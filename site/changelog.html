@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>更新日志 - Vicdata</title>
+    <link rel="stylesheet" href="styles.css?v=20260626-changelog2">
+  </head>
+  <body class="changelog-body">
+    <header class="topbar">
+      <div>
+        <h1>更新日志 - Vicdata</h1>
+        <p id="metaLine">原版数据站版本变化。</p>
+      </div>
+      <div class="topbar-actions" aria-label="全局控制">
+        <a class="topbar-link" href="index.html">返回资料库</a>
+      </div>
+    </header>
+
+    <main class="changelog-page">
+      <section class="changelog-panel" aria-label="更新日志">
+        <div class="changelog-heading">
+          <div>
+            <h2 id="changelogTitle">版本变化</h2>
+            <p id="changelogMeta" class="changelog-note"></p>
+          </div>
+          <label class="changelog-search">
+            <span>版本段</span>
+            <select id="changelogPairSelect" aria-label="更新日志版本段"></select>
+          </label>
+          <label class="changelog-search">
+            <span>搜索</span>
+            <input id="changelogSearch" type="search" autocomplete="off" placeholder="条目、字段、源文件">
+          </label>
+        </div>
+
+        <div id="changelogBoardFilters" class="changelog-filters" aria-label="板块筛选"></div>
+        <div id="changelogStats" class="changelog-stats" aria-live="polite"></div>
+        <div id="changelogList" class="changelog-list"></div>
+      </section>
+    </main>
+
+    <script src="versions.js?v=20260626-changelog3"></script>
+    <script src="changelog.js?v=20260626-changelog3"></script>
+  </body>
+</html>

@@ -1,0 +1,50 @@
+# Local game and engine mirrors
+game/
+jomini/
+clausewitz/
+
+# Generated datasets and exported sites
+database/
+output/
+output_next/
+output_gamma_test/
+output_victorian_century/
+Victorian Century Database/
+site/data.js
+site/map-data.js
+site/changelog-data.js
+site/versions/
+
+# Game-derived site assets
+site/assets/buildings/
+site/assets/companies/
+site/assets/dlc/
+site/assets/ideologies/
+site/assets/interest-groups/
+site/assets/map/
+site/assets/prestige-goods/
+
+# Local logs and browser/debug captures
+logs/
+*.log
+site/server*.log
+site/server.*.out.log
+site/server.*.err.log
+site/debug-*.png
+site/debug-*.html
+
+# Local Codex and planning state
+.codex/
+.superpowers/
+
+# Local tools and scratch materials
+tools/
+配色方案/
+todolist.md
+WORKLOG.md
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
