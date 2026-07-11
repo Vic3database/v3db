@@ -7,7 +7,7 @@ const failures = [];
 const appSource = readText("site/app.js");
 const indexSource = readText("site/index.html");
 const styleSource = readText("site/styles.css");
-const siteData = readSiteData("site/data.js");
+const siteData = readSiteData("site/versions/1.13.9/data.js");
 
 checkFilterContracts();
 checkOverlayContracts();
@@ -26,7 +26,7 @@ console.log(JSON.stringify({
     "site/app.js",
     "site/index.html",
     "site/styles.css",
-    "site/data.js",
+    "site/versions/1.13.9/data.js",
   ],
   ui_ideology_contracts: "ok",
 }, null, 2));
@@ -161,12 +161,12 @@ function checkRedesignContracts() {
   assert(/class="[^"]*\btopbar-brand\b/.test(indexSource), "topbar brand entry is missing");
   assert(/class="[^"]*\bbrand-logo\b"[^>]*assets\/brand\/vicdata-icon-192\.png/.test(indexSource), "topbar brand should use the Vicdata brand icon");
   assert(/class="[^"]*\btopbar-nav\b/.test(indexSource), "topbar board navigation is missing");
-  for (const view of ["country", "culture", "region", "company", "ideology", "changelog"]) {
+  for (const view of ["country", "culture", "region", "company", "ideology"]) {
     assert(new RegExp(`data-nav-view="${view}"`).test(indexSource), `topbar board entry for ${view} is missing`);
   }
-  assert(/data-nav-view="changelog"[\s\S]*assets\/lucide\/icons\/notebook-pen\.svg/.test(indexSource), "changelog board should use the Lucide notebook-pen icon");
-  assert(/<option value="changelog">/.test(indexSource), "view select should include changelog");
-  assert(!/id="changelogLink"/.test(indexSource), "changelog should be a board entry, not a separate topbar link");
+  assert(!/data-nav-view="changelog"/.test(indexSource), "single-version public shell should not expose the changelog board");
+  assert(!/<option value="changelog">/.test(indexSource), "single-version view select should not include changelog");
+  assert(!/id="changelogLink"/.test(indexSource), "changelog should not be a separate topbar link");
   assert(/id="settingsNavButton"/.test(indexSource), "settings rail entry is missing");
   assert(/id="globalSearchButton"/.test(indexSource), "global search icon button is missing");
   assert(/assets\/lucide\/icons\/search\.svg/.test(indexSource), "global search button should use the Lucide search icon");
@@ -193,7 +193,7 @@ function checkRedesignContracts() {
   assert(!/开局世界局势|开局国家（按省份）|松散政权白地/.test(appSource), "removed map status and legend labels should not be rendered");
   assert(!/els\.pageTitle\.textContent/.test(appSource), "page title updates should tolerate the compact topbar shell");
   assert(!/els\.metaLine\.textContent/.test(appSource), "meta line updates should tolerate the compact topbar shell");
-  for (const icon of ["earth", "map", "drama", "briefcase-business", "user-star", "notebook-pen", "refresh-ccw", "milestone", "search", "settings", "text-search", "layout-list"]) {
+  for (const icon of ["earth", "map", "drama", "briefcase-business", "user-star", "refresh-ccw", "milestone", "search", "settings", "text-search", "layout-list"]) {
     assert(new RegExp(`assets/lucide/icons/${icon}\\.svg`).test(indexSource), `Lucide ${icon} icon should be wired in the shell`);
   }
   assert(/id="globalSearchDialog"/.test(indexSource), "global search dialog is missing");

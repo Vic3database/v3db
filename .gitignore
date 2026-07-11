@@ -13,7 +13,12 @@ Victorian Century Database/
 site/data.js
 site/map-data.js
 site/changelog-data.js
-site/versions/
+site/changelogs/
+site/versions/*
+!site/versions/
+!site/versions/1.13.9/
+!site/versions/1.13.9/data.js
+!site/versions/1.13.9/map-data.js
 
 # Game-derived site assets
 site/assets/buildings/

@@ -5,7 +5,7 @@ const root = process.cwd();
 const failures = [];
 
 const appSource = readText("site/app.js");
-const siteData = readSiteData("site/data.js");
+const siteData = readSiteData("site/versions/1.13.9/data.js");
 const andeanFederation = siteData.countries.find((country) => country.tag === "FND");
 
 checkDataCoverage();
@@ -20,7 +20,7 @@ if (failures.length) {
 console.log(JSON.stringify({
   checked: [
     "site/app.js",
-    "site/data.js",
+    "site/versions/1.13.9/data.js",
   ],
   country_map_selection: "ok",
 }, null, 2));

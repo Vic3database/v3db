@@ -7,7 +7,7 @@ const root = process.cwd();
 const siteRoot = path.join(root, "site");
 const gameRoot = path.join(root, "game");
 const appSource = fs.readFileSync(path.join(siteRoot, "app.js"), "utf8");
-const dataSource = fs.readFileSync(path.join(siteRoot, "data.js"), "utf8");
+const dataSource = fs.readFileSync(path.join(siteRoot, "versions", "1.13.9", "data.js"), "utf8");
 
 const sandbox = { window: {} };
 vm.runInNewContext(dataSource, sandbox);
