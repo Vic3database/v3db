@@ -50,15 +50,33 @@ git diff --check
 
 `check_publish_bundle.mjs` 会检查公开站点只保留 `1.13.9`，并确认配置、首页、脚本和数据引用到的文件存在。`check_site_asset_coverage.mjs` 会把站点资源和本地 `game` 目录中的原始图片做对照，因此需要本地保留 Victoria 3 游戏目录镜像。
 
-## GitHub Pages
+## GitHub Pages 与域名
 
 仓库公开后，可以使用 `.github/workflows/pages.yml` 部署 GitHub Pages。工作流会上传 `site/` 目录，不会上传仓库根目录或本地生成目录。
 
-如果仓库仍是私有状态，当前账号计划可能无法启用 GitHub Pages。改为公开仓库后，需要在仓库设置里启用 Pages，并使用 GitHub Actions 作为发布来源。部署成功后，常见地址形式是：
+如果仓库仍是私有状态，当前账号计划可能无法启用 GitHub Pages。改为公开仓库后，需要在仓库设置里启用 Pages，并使用 GitHub Actions 作为发布来源。项目准备使用的正式域名是：
 
 ```text
-https://vic3database.github.io/v3db/
+https://vic3database.org/
 ```
+
+GitHub Pages 的自定义域名需要先在仓库 `Settings` -> `Pages` 里保存 `vic3database.org`，再到域名服务商后台设置 DNS。当前发布方式是 GitHub Actions，自定义域名由 GitHub Pages 设置保存，不依赖仓库中的 `CNAME` 文件。
+
+DNS 建议设置如下：
+
+```text
+A     @     185.199.108.153
+A     @     185.199.109.153
+A     @     185.199.110.153
+A     @     185.199.111.153
+AAAA  @     2606:50c0:8000::153
+AAAA  @     2606:50c0:8001::153
+AAAA  @     2606:50c0:8002::153
+AAAA  @     2606:50c0:8003::153
+CNAME www   vic3database.github.io
+```
+
+`www.vic3database.org` 会由 GitHub Pages 按自定义域名设置重定向到主域名。不要设置 `*.vic3database.org` 这样的通配符记录。
 
 ## 许可证
 
