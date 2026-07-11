@@ -1,23 +1,23 @@
 # Vicdata
 
-Vicdata 是一个面向 Victoria 3 数据查询的静态网站。当前公开发布版本只包含 Victoria 3 `1.13.9` 的站点数据、地图数据，以及页面实际引用的图标和地图图片。
+Vicdata 是一个面向《维多利亚 3》的静态资料查询网站。当前公开站点使用 Victoria 3 `1.13.9` 数据，提供国家、地区、文化、公司和意识形态资料的浏览、筛选、搜索和地图查看。
 
-这个项目不是 Paradox Interactive 或 Victoria 3 官方项目。仓库中的游戏数据、地图和图像素材来自本地 Victoria 3 安装目录的解析与转换，只用于让网页能够显示对应资料。项目代码的授权不会覆盖这些游戏内容，也不会把 Victoria 3 的原始数据、图片、名称或商标重新授权给其他人。
+项目与 Paradox Interactive 没有关联。仓库中的游戏数据、地图、图像、名称和商标来自《维多利亚 3》文件解析与网页资源整理，只用于让页面显示对应资料。项目代码的授权不包含这些游戏内容。
 
-## 当前内容
+## 内容范围
 
-网站入口在 `site/index.html`。版本配置在 `site/versions.js`，目前只指向：
+网站入口是 `site/index.html`。公开站点当前只发布一个数据版本，版本配置在 `site/versions.js`，对应数据文件为：
 
 ```text
 site/versions/1.13.9/data.js
 site/versions/1.13.9/map-data.js
 ```
 
-已跟踪的站点图片资源是网页实际会加载的文件，包括公司图标、建筑图标、意识形态图标、利益集团图标、名贵商品图标、DLC 图标和两张地图图片。旧版本数据、完整游戏目录、本地生成数据库和调试输出不提交到仓库。
+仓库保留页面实际会加载的图标、地图图片、站点脚本和样式。历史版本数据、完整本地游戏目录、开发过程输出和调试文件不属于公开站点内容。
 
 ## 本地运行
 
-需要本机已安装 Node.js。仓库根目录下运行：
+需要本机安装 Node.js。仓库根目录下运行：
 
 ```powershell
 node scripts/serve_site.mjs site 8876
@@ -29,59 +29,46 @@ node scripts/serve_site.mjs site 8876
 http://127.0.0.1:8876/
 ```
 
-如果端口被占用，可以换一个端口，例如：
+如果端口被占用，可以换一个端口：
 
 ```powershell
 node scripts/serve_site.mjs site 8878
 ```
 
-## 校验
+## 检查
 
-公开发布前可以运行这些检查：
+发布前可以运行：
 
 ```powershell
 node scripts/check_publish_bundle.mjs
 node scripts/check_ui_ideology_contracts.mjs
+node scripts/check_about_page.mjs
 node scripts/check_country_map_selection.mjs
 node scripts/check_site_asset_coverage.mjs
 node scripts/check_filter_order.mjs --file site/index.html
 git diff --check
 ```
 
-`check_publish_bundle.mjs` 会检查公开站点只保留 `1.13.9`，并确认配置、首页、脚本和数据引用到的文件存在。`check_site_asset_coverage.mjs` 会把站点资源和本地 `game` 目录中的原始图片做对照，因此需要本地保留 Victoria 3 游戏目录镜像。
+其中 `check_site_asset_coverage.mjs` 会对照本地游戏资源检查站点图片覆盖情况。没有本地游戏文件时，这项检查可能无法完成。
 
-## GitHub Pages 与域名
+## 部署
 
-仓库公开后，可以使用 `.github/workflows/pages.yml` 部署 GitHub Pages。工作流会上传 `site/` 目录，不会上传仓库根目录或本地生成目录。
+仓库包含 GitHub Pages 工作流。公开仓库启用 Pages 后，可以使用 `.github/workflows/pages.yml` 发布 `site/` 目录。
 
-如果仓库仍是私有状态，当前账号计划可能无法启用 GitHub Pages。改为公开仓库后，需要在仓库设置里启用 Pages，并使用 GitHub Actions 作为发布来源。项目准备使用的正式域名是：
+项目准备使用的公开域名是：
 
 ```text
 https://vic3database.org/
 ```
 
-GitHub Pages 的自定义域名需要先在仓库 `Settings` -> `Pages` 里保存 `vic3database.org`，再到域名服务商后台设置 DNS。当前发布方式是 GitHub Actions，自定义域名由 GitHub Pages 设置保存，不依赖仓库中的 `CNAME` 文件。
+## 反馈
 
-DNS 建议设置如下：
+希望网站新增的功能可以发送到：
 
 ```text
-A     @     185.199.108.153
-A     @     185.199.109.153
-A     @     185.199.110.153
-A     @     185.199.111.153
-AAAA  @     2606:50c0:8000::153
-AAAA  @     2606:50c0:8001::153
-AAAA  @     2606:50c0:8002::153
-AAAA  @     2606:50c0:8003::153
-CNAME www   vic3database.github.io
+vic3database@outlook.com
 ```
 
-`www.vic3database.org` 会由 GitHub Pages 按自定义域名设置重定向到主域名。不要设置 `*.vic3database.org` 这样的通配符记录。
+## 声明
 
-## 许可证
-
-当前仓库还没有设置项目许可证。公开仓库前建议先决定是否为项目代码添加开源许可证。无论选择哪一种代码许可证，README 顶部的非官方说明和素材边界都应保留，因为游戏数据和图像素材不属于项目代码许可证的授权范围。
-
-## 致谢与声明
-
-Victoria 3 是 Paradox Interactive 的游戏。Vicdata 只是一个玩家制作的数据浏览工具，与 Paradox Interactive 没有从属、授权或合作关系。
+Victoria 3 是 Paradox Interactive 的游戏。Vicdata 是玩家制作的数据浏览工具，与 Paradox Interactive 没有从属、授权或合作关系。

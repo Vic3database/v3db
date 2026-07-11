@@ -168,8 +168,10 @@ function checkRedesignContracts() {
   assert(!/<option value="changelog">/.test(indexSource), "single-version view select should not include changelog");
   assert(!/id="changelogLink"/.test(indexSource), "changelog should not be a separate topbar link");
   assert(/id="settingsNavButton"/.test(indexSource), "settings rail entry is missing");
+  assert(/id="aboutNavButton"/.test(indexSource), "about dialog entry is missing");
   assert(/id="globalSearchButton"/.test(indexSource), "global search icon button is missing");
   assert(/assets\/lucide\/icons\/search\.svg/.test(indexSource), "global search button should use the Lucide search icon");
+  assert(/assets\/lucide\/icons\/circle-help\.svg/.test(indexSource), "about button should use the Lucide circle-help icon");
   assert(/class="[^"]*\blucide-icon\b/.test(indexSource), "fixed UI controls should render Lucide SVG icons");
   assert(/<img\s+class="lucide-icon"/.test(indexSource), "fixed UI icons should render as direct SVG images");
   assert(!/--icon-url/.test(indexSource), "fixed UI icons should not depend on CSS mask URLs");
@@ -199,12 +201,22 @@ function checkRedesignContracts() {
   assert(/id="globalSearchDialog"/.test(indexSource), "global search dialog is missing");
   assert(/id="globalSearchDialogInput"/.test(indexSource), "global search dialog input is missing");
   assert(/id="globalSearchLegacyToggle"/.test(indexSource), "global search legacy-version toggle is missing");
+  assert(/id="infoDialog"/.test(indexSource), "settings and about dialog shell is missing");
+  assert(!/data-nav-view="about"/.test(indexSource), "about should open as a dialog, not a board route");
+  assert(!/<option value="about">/.test(indexSource), "hidden view select should not include about as a board");
   assert(!/id="globalSearchInput"/.test(indexSource), "inline topbar global search input should be removed");
   assert(/value="home"/.test(indexSource), "view select should include home");
   assert(/function\s+renderHomeBoard\s*\(/.test(appSource), "home board renderer is missing");
   assert(/function\s+renderChangelogBoard\s*\(/.test(appSource), "changelog board renderer is missing");
   assert(/parts\[0\]\s*===\s*"changelog"/.test(appSource), "hash routing should handle the changelog board");
-  assert(/state\.view\s*!==\s*"home"\s*&&\s*state\.view\s*!==\s*"settings"\s*&&\s*state\.view\s*!==\s*"changelog"/.test(appSource), "changelog board should not render the old detail column");
+  assert(/openInfoDialog\("settings"\)/.test(appSource), "settings should open the auxiliary dialog");
+  assert(/openInfoDialog\("about"\)/.test(appSource), "about should open the auxiliary dialog");
+  assert(!/replaceHash\("\/settings"\)/.test(appSource), "settings should not switch to a board route");
+  assert(/function\s+renderSettingsDialogContent\s*\(/.test(appSource), "settings dialog content renderer is missing");
+  assert(/function\s+renderAboutDialogContent\s*\(/.test(appSource), "about dialog content renderer is missing");
+  assert(/mailto:vic3database@outlook\.com/.test(appSource), "about dialog should include the public feedback email");
+  assert(/boardManagesDetail\s*=\s*state\.view\s*===\s*"home"/.test(appSource), "only the home board should manage its own detail panel");
+  assert(/if\s*\(!boardManagesDetail\s*&&\s*state\.view\s*!==\s*"changelog"\s*&&\s*isDetailPageRoute\(\)\)/.test(appSource), "non-detail boards should not render the old detail column");
   assert(/function\s+openGlobalSearchDialog\s*\(/.test(appSource), "global search dialog opener is missing");
   assert(/function\s+closeGlobalSearchDialog\s*\(/.test(appSource), "global search dialog closer is missing");
   assert(/function\s+renderEntityBadge\s*\(/.test(appSource), "entity badge renderer is missing");
@@ -213,7 +225,7 @@ function checkRedesignContracts() {
   assert(/classList\.toggle\("detail-page",\s*isDetailPageRoute\(\)\)/.test(appSource), "detail routes should set detail-page body state");
   assert(/function\s+detailBackButton\s*\(/.test(appSource), "detail pages need a back-to-board button");
   assert(/body\.detail-page\s+\.detail-back-button/.test(styleSource), "detail page back button styles are missing");
-  assert(/body:not\(\.detail-page\):not\(\[data-view="home"\]\):not\(\[data-view="settings"\]\):not\(\[data-view="changelog"\]\)\s+\.detail/.test(styleSource), "list pages should hide the old detail column");
+  assert(/body:not\(\.detail-page\):not\(\[data-view="home"\]\):not\(\[data-view="changelog"\]\)\s+\.detail/.test(styleSource), "list pages should hide the old detail column");
   assert(/body:not\(\.detail-page\)\s+\.results/.test(styleSource), "list pages should move the list column to the right");
   assert(!/body\.filters-collapsed\s+\.results\s*{[\s\S]*?left:\s*12px/.test(styleSource), "filter collapse should not move the list panel over the map toolbar");
   assert(/countryTypeFilters/.test(indexSource), "merged country type filter container is missing");
@@ -243,6 +255,8 @@ function checkRedesignContracts() {
   assert(mapPanelStyles.some((block) => /top:\s*12px/.test(block) && /left:\s*12px/.test(block)), "map panel should not expose map pixels in the top-left panel gutter");
   assert(/#languageGroupFilters\s+\.filter-group-block\s*\+\s*\.filter-group-block/.test(styleSource), "language groups should be divided by separators");
   assert(/\.global-search-dialog/.test(styleSource), "global search dialog styles are missing");
+  assert(/\.info-dialog/.test(styleSource), "settings and about dialog styles are missing");
+  assert(/\.feedback-link/.test(styleSource), "about feedback link styles are missing");
   assert(/\.entity-badge/.test(styleSource), "entity badge styles are missing");
 }
 

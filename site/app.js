@@ -86,6 +86,7 @@ const state = {
   search: "",
   globalSearch: "",
   globalSearchDialogOpen: false,
+  infoDialog: "",
   globalSearchIncludeLegacy: false,
   globalSearchActiveIndex: 0,
   changelogBoard: "all",
@@ -473,6 +474,9 @@ const viewLabels = {
   changelog: "更新日志",
 };
 
+const feedbackEmail = "vic3database@outlook.com";
+const feedbackMailto = "mailto:vic3database@outlook.com?subject=Vicdata%20feature%20request";
+
 const ideologyOccurrenceOptions = [
   { key: "default", label: "默认" },
   { key: "flavor", label: "风味" },
@@ -608,6 +612,11 @@ const els = {
   globalSearchLegacyToggle: document.querySelector("#globalSearchLegacyToggle"),
   globalSearchCloseButton: document.querySelector("#globalSearchCloseButton"),
   settingsNavButton: document.querySelector("#settingsNavButton"),
+  aboutNavButton: document.querySelector("#aboutNavButton"),
+  infoDialog: document.querySelector("#infoDialog"),
+  infoDialogTitle: document.querySelector("#infoDialogTitle"),
+  infoDialogBody: document.querySelector("#infoDialogBody"),
+  infoDialogCloseButton: document.querySelector("#infoDialogCloseButton"),
   viewSelect: document.querySelector("#viewSelect"),
   versionSelect: document.querySelector("#versionSelect"),
   resetButton: document.querySelector("#resetButton"),
@@ -909,15 +918,19 @@ function bindEvents() {
     });
   });
   els.settingsNavButton?.addEventListener("click", () => {
-    hideTransientOverlays();
-    replaceHash("/settings");
-    applyHash();
-    render();
+    openInfoDialog("settings");
+  });
+  els.aboutNavButton?.addEventListener("click", () => {
+    openInfoDialog("about");
   });
   els.globalSearchButton?.addEventListener("click", openGlobalSearchDialog);
   els.globalSearchCloseButton?.addEventListener("click", closeGlobalSearchDialog);
   els.globalSearchDialog?.addEventListener("click", (event) => {
     if (event.target === els.globalSearchDialog) closeGlobalSearchDialog();
+  });
+  els.infoDialogCloseButton?.addEventListener("click", closeInfoDialog);
+  els.infoDialog?.addEventListener("click", (event) => {
+    if (event.target === els.infoDialog) closeInfoDialog();
   });
   els.globalSearchDialogInput?.addEventListener("input", () => {
     state.globalSearch = els.globalSearchDialogInput.value.trim().toLowerCase();
@@ -929,6 +942,7 @@ function bindEvents() {
     renderGlobalSearchDialogResults();
   });
   document.addEventListener("keydown", handleGlobalSearchDialogKeydown);
+  document.addEventListener("keydown", handleInfoDialogKeydown);
   document.addEventListener("click", (event) => {
     const button = event.target.closest("[data-detail-back]");
     if (!button) return;
@@ -1387,6 +1401,10 @@ function conceptKindLabel(kind) {
 }
 
 function openGlobalSearchDialog() {
+  if (state.infoDialog) {
+    state.infoDialog = "";
+    syncInfoDialogVisibility();
+  }
   state.globalSearchDialogOpen = true;
   state.globalSearchActiveIndex = 0;
   if (!els.globalSearchDialog) return;
@@ -1403,6 +1421,48 @@ function closeGlobalSearchDialog() {
   if (els.globalSearchDialog) els.globalSearchDialog.hidden = true;
   document.body.classList.remove("global-search-dialog-open");
   els.globalSearchButton?.focus();
+}
+
+function openInfoDialog(kind) {
+  if (state.globalSearchDialogOpen) closeGlobalSearchDialog();
+  state.infoDialog = kind === "settings" ? "settings" : "about";
+  syncInfoDialogVisibility();
+  requestAnimationFrame(() => els.infoDialogCloseButton?.focus());
+}
+
+function closeInfoDialog() {
+  const previous = state.infoDialog;
+  state.infoDialog = "";
+  if (els.infoDialog) els.infoDialog.hidden = true;
+  if (els.infoDialogTitle) els.infoDialogTitle.textContent = "";
+  if (els.infoDialogBody) els.infoDialogBody.innerHTML = "";
+  document.body.classList.remove("info-dialog-open");
+  if (previous === "settings") els.settingsNavButton?.focus();
+  else els.aboutNavButton?.focus();
+}
+
+function renderInfoDialog() {
+  if (!els.infoDialogTitle || !els.infoDialogBody || !state.infoDialog) return;
+  if (state.infoDialog === "settings") {
+    els.infoDialogTitle.textContent = "设置";
+    els.infoDialogBody.innerHTML = renderSettingsDialogContent();
+    bindSettingsControls(els.infoDialogBody);
+    return;
+  }
+  els.infoDialogTitle.textContent = "关于";
+  els.infoDialogBody.innerHTML = renderAboutDialogContent();
+}
+
+function syncInfoDialogVisibility() {
+  if (!els.infoDialog) return;
+  if (!state.infoDialog) {
+    els.infoDialog.hidden = true;
+    document.body.classList.remove("info-dialog-open");
+    return;
+  }
+  renderInfoDialog();
+  els.infoDialog.hidden = false;
+  document.body.classList.add("info-dialog-open");
 }
 
 function handleGlobalSearchDialogKeydown(event) {
@@ -1428,21 +1488,32 @@ function handleGlobalSearchDialogKeydown(event) {
   }
 }
 
+function handleInfoDialogKeydown(event) {
+  if (!state.infoDialog) return;
+  if (event.key !== "Escape") return;
+  event.preventDefault();
+  closeInfoDialog();
+}
+
 function applyHash() {
   const parts = location.hash.replace(/^#\/?/, "").split("/").filter(Boolean);
+  state.infoDialog = "";
   if (!parts.length || parts[0] === "home") {
     state.view = "home";
     state.detailKind = "home";
     return;
   }
   if (parts[0] === "settings") {
-    state.view = "settings";
-    state.detailKind = "settings";
+    state.infoDialog = "settings";
     return;
   }
   if (parts[0] === "changelog") {
     state.view = "changelog";
     state.detailKind = "changelog";
+    return;
+  }
+  if (parts[0] === "about") {
+    state.infoDialog = "about";
     return;
   }
   if (parts[0] === "country" && !parts[1]) {
@@ -1591,6 +1662,7 @@ function render() {
   document.body.classList.toggle("detail-page", isDetailPageRoute());
   document.body.classList.toggle("global-search-active", Boolean(state.globalSearch));
   updatePageChrome();
+  syncInfoDialogVisibility();
   updateResultsPanelMode();
   els.countryViewButton?.setAttribute("aria-pressed", String(state.view === "country"));
   els.cultureViewButton?.setAttribute("aria-pressed", String(state.view === "culture"));
@@ -1615,8 +1687,6 @@ function render() {
 
   if (state.view === "home") {
     renderHomeBoard();
-  } else if (state.view === "settings") {
-    renderSettingsBoard();
   } else if (state.view === "changelog") {
     renderChangelogBoard();
   } else if (state.view === "culture") {
@@ -1630,9 +1700,10 @@ function render() {
   } else {
     renderCountryBoard();
   }
-  if (state.view !== "home" && state.view !== "settings" && state.view !== "changelog" && isDetailPageRoute()) {
+  const boardManagesDetail = state.view === "home";
+  if (!boardManagesDetail && state.view !== "changelog" && isDetailPageRoute()) {
     renderDetailForState();
-  } else {
+  } else if (!boardManagesDetail) {
     els.detail.innerHTML = "";
   }
 }
@@ -1718,13 +1789,10 @@ function renderHomeBoard() {
   renderMap([]);
 }
 
-function renderSettingsBoard() {
-  els.resultCount.textContent = "设置";
-  els.activeHint.textContent = "显示偏好";
-  els.countryList.className = "country-list";
-  els.countryList.innerHTML = `
+function renderSettingsDialogContent() {
+  return `
     <section class="settings-placeholder settings-panel">
-      <h2>显示设置</h2>
+      <p>这些选项会影响筛选栏、地图和国家列表的默认显示。</p>
       <label class="settings-toggle">
         <input id="whiteDecentralizedSetting" type="checkbox"${state.whiteDecentralized ? " checked" : ""}>
         <span>松散政权显示为白地</span>
@@ -1739,14 +1807,49 @@ function renderSettingsBoard() {
       </label>
     </section>
   `;
-  bindSettingsControls();
-  els.detail.innerHTML = `
-    <section class="settings-placeholder">
-      <h2>设置</h2>
-      <p>这些选项会影响筛选栏、地图和国家列表的默认显示。</p>
+}
+
+function renderAboutDialogContent() {
+  const version = data.meta?.victoria3_version || "未知";
+  return `
+    <div class="about-dialog-grid">
+      <section class="settings-placeholder about-intro">
+        <h3>${escapeHtml(siteTitle)}</h3>
+        <p>Vicdata 是一个面向《维多利亚 3》的资料查询网站。当前公开站点保留 ${escapeHtml(version)} 数据，提供国家、地区、文化、公司和意识形态等条目的浏览、筛选、搜索和地图查看。</p>
+        <p>网站把游戏数据整理成静态页面，适合用来查国家标签、地区资源、公司条件、文化关系和意识形态对法律的态度。地图用于辅助查看开局归属、地区范围、文化本土和公司关联，不模拟游戏运行时的全部判断。</p>
+      </section>
+      <section class="about-stat-grid" aria-label="站点数据范围">
+        ${aboutStat("当前版本", version)}
+        ${aboutStat("国家", `${countries.length} 个`)}
+        ${aboutStat("州地区", `${landStateRegions.length} 个`)}
+        ${aboutStat("文化", `${cultures.length} 个`)}
+        ${aboutStat("公司", `${companies.length} 个`)}
+        ${aboutStat("意识形态", `${ideologies.length} 个`)}
+      </section>
+      <section class="settings-placeholder about-note">
+        <h3>数据与声明</h3>
+        <p>站点数据来自本地《维多利亚 3》安装目录的解析和转换。项目不是 Paradox Interactive 或《维多利亚 3》的官方项目，游戏数据、图片、名称和商标仍属于原权利方。</p>
+      </section>
+    </div>
+    <section class="settings-placeholder developer-card" aria-label="开发者简介">
+      <img class="developer-avatar" src="assets/about/developer.jpg" alt="开发者头像">
+      <div class="developer-copy">
+        <h3>开发者</h3>
+        <p>这个网站由霜月制作和维护。开发者长期整理《维多利亚 3》的数据、图标和地图资料，把分散在脚本、图片和本地数据库里的内容做成可以检索、可以对照的网页。</p>
+        <p>站点的主要工作包括解析游戏文件、生成资料库、整理公开发布资源、调整中文界面，以及持续检查国家、地区、公司和意识形态页面的显示结果。</p>
+        <a class="feedback-link" href="${feedbackMailto}">发送希望添加的功能到 ${feedbackEmail}</a>
+      </div>
     </section>
   `;
-  renderMap([]);
+}
+
+function aboutStat(label, value) {
+  return `
+    <article class="about-stat">
+      <span class="about-stat-label">${escapeHtml(label)}</span>
+      <strong>${escapeHtml(value)}</strong>
+    </article>
+  `;
 }
 
 function renderChangelogBoard() {
@@ -1984,25 +2087,28 @@ function changelogSearchBlob(change) {
   ].join("\n").toLowerCase();
 }
 
-function bindSettingsControls() {
-  const white = els.countryList.querySelector("#whiteDecentralizedSetting");
-  const omitIndigenous = els.countryList.querySelector("#omitIndigenousSetting");
-  const omitDecentralized = els.countryList.querySelector("#omitDecentralizedTagsSetting");
+function bindSettingsControls(container = els.countryList) {
+  const white = container?.querySelector("#whiteDecentralizedSetting");
+  const omitIndigenous = container?.querySelector("#omitIndigenousSetting");
+  const omitDecentralized = container?.querySelector("#omitDecentralizedTagsSetting");
   white?.addEventListener("change", () => {
     state.whiteDecentralized = white.checked;
     persistDisplaySetting("vicdata-white-decentralized", state.whiteDecentralized);
     render();
+    renderInfoDialog();
   });
   omitIndigenous?.addEventListener("change", () => {
     state.omitIndigenousLanguagesCultures = omitIndigenous.checked;
     persistDisplaySetting("vicdata-omit-indigenous", state.omitIndigenousLanguagesCultures);
     renderFilterOptions();
     render();
+    renderInfoDialog();
   });
   omitDecentralized?.addEventListener("change", () => {
     state.omitDecentralizedTags = omitDecentralized.checked;
     persistDisplaySetting("vicdata-omit-decentralized-tags", state.omitDecentralizedTags);
     render();
+    renderInfoDialog();
   });
 }
 

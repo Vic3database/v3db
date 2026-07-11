@@ -28,6 +28,7 @@
         </label>
         <button id="globalSearchButton" class="topbar-icon-button" type="button" aria-label="全站搜索" title="全站搜索"><img class="lucide-icon" src="assets/lucide/icons/search.svg" alt="" aria-hidden="true"></button>
         <button id="settingsNavButton" class="topbar-icon-button" type="button" aria-label="设置" title="设置"><img class="lucide-icon" src="assets/lucide/icons/settings.svg" alt="" aria-hidden="true"></button>
+        <button id="aboutNavButton" class="topbar-icon-button" type="button" aria-label="关于" title="关于"><img class="lucide-icon" src="assets/lucide/icons/circle-help.svg" alt="" aria-hidden="true"></button>
         <select id="viewSelect" aria-label="板块切换" hidden>
           <option value="home">首页</option>
           <option value="country">国家</option>
@@ -225,9 +226,18 @@
           <div id="globalSearchDialogResults" class="global-search-dialog-results" role="listbox" aria-label="全站搜索结果"></div>
         </section>
       </div>
+      <div id="infoDialog" class="global-search-backdrop info-dialog-backdrop" hidden>
+        <section class="global-search-dialog info-dialog" role="dialog" aria-modal="true" aria-labelledby="infoDialogTitle">
+          <div class="global-search-dialog-head">
+            <h2 id="infoDialogTitle"></h2>
+            <button id="infoDialogCloseButton" class="dialog-close-button" type="button" aria-label="关闭浮窗">×</button>
+          </div>
+          <div id="infoDialogBody" class="info-dialog-body"></div>
+        </section>
+      </div>
     </main>
 
     <script src="versions.js?v=20260627-version-groups1"></script>
-    <script src="app.js?v=20260710-card-lines-region-focus1"></script>
+    <script src="app.js?v=20260711-info-dialog1"></script>
   </body>
 </html>
