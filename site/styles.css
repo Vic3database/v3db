@@ -3223,12 +3223,12 @@ body[data-view="ideology"][data-results-panel="collapsed"] .detail {
 }
 
 .results .country-row {
-  grid-template-columns: auto minmax(0, 1fr) 28px;
+  grid-template-columns: 64px minmax(0, 1fr) 28px;
 }
 
 .results .country-heading {
   display: grid;
-  grid-template-columns: minmax(64px, auto) minmax(0, 1fr) 28px;
+  grid-template-columns: auto minmax(0, 1fr) 28px;
   align-items: center;
   gap: 4px 6px;
 }
@@ -3259,8 +3259,14 @@ body[data-view="ideology"][data-results-panel="collapsed"] .detail {
 
 .results .country-row > .entity-badge {
   grid-column: 1;
-  grid-row: 1;
+  grid-row: 1 / span 4;
   align-self: center;
+}
+
+.results .country-row > .entity-badge.entity-badge-flag {
+  width: 64px;
+  height: 42px;
+  border-radius: 5px;
 }
 
 .results .country-row > .country-color,
@@ -4282,6 +4288,18 @@ body.detail-page .detail {
   right: 12px;
   width: auto;
   animation: detail-panel-in 0.18s ease both;
+}
+
+body.detail-page[data-view="ideology"] .results {
+  left: calc(12px + var(--ideology-left-width) + var(--panel-gap));
+  right: auto;
+  width: var(--ideology-results-width);
+}
+
+body.detail-page[data-view="ideology"] .detail {
+  left: calc(12px + var(--ideology-left-width) + var(--panel-gap) + var(--ideology-results-width) + var(--panel-gap));
+  right: 12px;
+  width: auto;
 }
 
 @keyframes detail-list-in {
