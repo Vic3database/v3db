@@ -1,4 +1,5 @@
 const versionConfig = window.VIC3_VERSION_CONFIG || null;
+let countryFlagData = {};
 
 let data = {};
 let countries = [];
@@ -675,6 +676,7 @@ init().catch((error) => {
 });
 
 async function init() {
+  await loadCountryFlagData();
   await loadInitialDataset();
   syncViewLabels();
   initTheme();
@@ -683,6 +685,10 @@ async function init() {
   bindEvents();
   applyHash();
   render();
+}
+
+async function loadCountryFlagData() {
+  countryFlagData = window.VIC3_COUNTRY_FLAGS || await loadScriptValue("assets/flags/country-flags.js", "VIC3_COUNTRY_FLAGS") || {};
 }
 
 async function loadInitialDataset() {
@@ -2245,7 +2251,7 @@ function renderGlobalSearchList(results) {
     ${group.items.map((result) => `
       <button class="country-row global-result-row" type="button" data-global-result="${escapeHtml(result.id)}" aria-current="${result.id === state.selectedGlobalResult}">
         <span class="country-heading">
-          ${result.color ? `<span class="country-color" style="${colorStyle(result.color)}" aria-hidden="true"></span>` : ""}
+          ${result.kind === "country" ? countryFlagIconHtml(result.raw, "country-flag-inline") : result.color ? `<span class="country-color" style="${colorStyle(result.color)}" aria-hidden="true"></span>` : ""}
           <span class="tag">${escapeHtml(result.key)}</span>
           <span class="name">${escapeHtml(result.title)}</span>
           <span class="pill tag-pill tag-muted">${escapeHtml(result.typeLabel)}</span>
@@ -2781,7 +2787,7 @@ function renderEntityBadge(kind, entity, label = "") {
   const text = label || entity?.name_zh || entity?.name || entity?.tag || entity?.key || "?";
   const initial = text.trim().slice(0, 1).toUpperCase() || "?";
   if (kind === "country") {
-    return `<span class="entity-badge entity-badge-square entity-badge-country">${escapeHtml(initial)}</span>`;
+    return countryFlagIconHtml(entity, "entity-badge entity-badge-flag") || `<span class="entity-badge entity-badge-square entity-badge-country">${escapeHtml(initial)}</span>`;
   }
   if (kind === "stateRegion" || kind === "strategicRegion" || kind === "geographicRegion" || kind === "region") {
     const color = entity?.map_color?.hex || entity?.colorHex || "#9b7a5f";
@@ -2802,7 +2808,8 @@ function renderCountryList(filtered) {
       ${renderEntityBadge("country", country, country.name)}
       <span class="country-heading">
         <span class="tag">${escapeHtml(country.tag)}</span>
-        <a class="name row-title-link" href="#/country/${encodeURIComponent(country.tag)}" data-country-open="${escapeHtml(country.tag)}">${countryNameText(country)}</a>
+        <span class="name">${countryNameText(country)}</span>
+        ${rowDetailButton("data-country-detail", country.tag)}
       </span>
       <span class="minor country-meta">${countryCapitalText(country)}</span>
       <span class="minor country-meta">主流文化：${escapeHtml((country.primaryCulturesZh || []).join("、") || "无")}</span>
@@ -2821,10 +2828,10 @@ function renderCountryList(filtered) {
       selectCountryCard(row.dataset.country);
     });
   });
-  els.countryList.querySelectorAll("[data-country-open]").forEach((link) => {
-    link.addEventListener("click", (event) => {
+  els.countryList.querySelectorAll("[data-country-detail]").forEach((button) => {
+    button.addEventListener("click", (event) => {
       event.preventDefault();
-      openCountryDetail(link.dataset.countryOpen);
+      openCountryDetail(button.dataset.countryDetail);
     });
   });
 }
@@ -2854,7 +2861,8 @@ function renderRegionList(filteredStrategicRegions, filteredStateRegions, filter
       <article class="country-row region-row selectable-row" data-state-region="${escapeHtml(stateRegion.key)}" style="${stateRegionBorderStyle(stateRegion)}" aria-current="${stateRegion.key === state.selectedStateRegion && state.detailKind === "stateRegion"}" tabindex="0">
         <span class="country-heading">
           <span class="tag">${escapeHtml(stateRegion.key)}</span>
-          <a class="name row-title-link" href="#/state-region/${encodeURIComponent(stateRegion.key)}" data-state-region-open="${escapeHtml(stateRegion.key)}">${stateRegionNameText(stateRegion)}</a>
+          <span class="name">${stateRegionNameText(stateRegion)}</span>
+          ${rowDetailButton("data-state-region-detail", stateRegion.key)}
         </span>
         <span class="minor country-meta">${escapeHtml(stateRegionSummaryText(stateRegion))}</span>
         <span class="minor country-meta">本土文化：${escapeHtml(refNames(stateRegion.homeland_cultures))}</span>
@@ -2876,10 +2884,10 @@ function renderRegionList(filteredStrategicRegions, filteredStateRegions, filter
       selectStateRegionCard(row.dataset.stateRegion);
     });
   });
-  els.countryList.querySelectorAll("[data-state-region-open]").forEach((link) => {
-    link.addEventListener("click", (event) => {
+  els.countryList.querySelectorAll("[data-state-region-detail]").forEach((button) => {
+    button.addEventListener("click", (event) => {
       event.preventDefault();
-      openStateRegionDetail(link.dataset.stateRegionOpen);
+      openStateRegionDetail(button.dataset.stateRegionDetail);
     });
   });
 }
@@ -2890,6 +2898,15 @@ function selectStateRegionCard(stateRegionKey) {
   state.detailKind = "stateRegion";
   state.regionListMode = "state";
   replaceHash(selectionHashForCard("/region", `/state-region/${encodeURIComponent(stateRegionKey)}`));
+  render();
+}
+
+function selectStateRegionFromMap(stateRegionKey) {
+  if (!stateRegionKey || !byStateRegion.has(stateRegionKey)) return;
+  state.selectedStateRegion = stateRegionKey;
+  state.detailKind = "stateRegion";
+  state.regionListMode = "state";
+  replaceHash("/region");
   render();
 }
 
@@ -2910,9 +2927,10 @@ function renderCultureList(filtered) {
       <span class="country-color" style="${colorStyle(culture.color?.hex)}" aria-hidden="true"></span>
       <span class="tag">${escapeHtml(culture.key)}</span>
       <span>
-        <a class="name row-title-link" href="#/culture/${encodeURIComponent(culture.key)}" data-culture-open="${escapeHtml(culture.key)}">${escapeHtml(culture.name_zh)}</a>
+        <span class="name">${escapeHtml(culture.name_zh)}</span>
         <span class="minor">${escapeHtml([culture.heritage?.name_zh, culture.language?.name_zh].filter(Boolean).join("、"))}</span>
       </span>
+      ${rowDetailButton("data-culture-detail", culture.key)}
       <span class="minor">${escapeHtml((culture.homeland_strategic_regions || []).map((region) => region.name_zh).join("、"))}</span>
       <span class="pill-line">${traitList(culture.traditions)}${victorianCenturyBadge(culture)}</span>
     </article>
@@ -2929,10 +2947,10 @@ function renderCultureList(filtered) {
       selectCultureCard(row.dataset.culture);
     });
   });
-  els.countryList.querySelectorAll("[data-culture-open]").forEach((link) => {
-    link.addEventListener("click", (event) => {
+  els.countryList.querySelectorAll("[data-culture-detail]").forEach((button) => {
+    button.addEventListener("click", (event) => {
       event.preventDefault();
-      openCultureDetail(link.dataset.cultureOpen);
+      openCultureDetail(button.dataset.cultureDetail);
     });
   });
 }
@@ -2958,14 +2976,15 @@ function renderCompanyList(filtered) {
   els.countryList.className = "country-list company-list";
   els.countryList.innerHTML = visible.map((company) => `
     <article class="country-row company-row" data-company="${escapeHtml(company.key)}" aria-current="${company.key === state.selectedCompany && state.detailKind === "company"}" tabindex="0">
-      <a class="company-heading-link" href="#/company/${encodeURIComponent(company.key)}" data-company-open="${escapeHtml(company.key)}" title="查看详情">
+      <span class="company-heading">
         ${companyIconHtml(company)}
         <span class="company-title-text">
           <span class="name">${escapeHtml(company.name_zh || company.key)}</span>
           <span class="tag">${escapeHtml(company.key)}</span>
         </span>
         ${companyDlcIconPill(company)}
-      </a>
+        ${rowDetailButton("data-company-detail", company.key)}
+      </span>
       <span class="region-building-strip">${companyBuildingStrip(company)}</span>
       <span class="pill-line country-tags company-asset-line">${companyPrestigeGoodsPills(company)}</span>
       <span class="minor country-meta">${companyMetaLine(company)}</span>
@@ -2984,10 +3003,10 @@ function renderCompanyList(filtered) {
       selectCompanyCard(row.dataset.company);
     });
   });
-  els.countryList.querySelectorAll("[data-company-open]").forEach((link) => {
-    link.addEventListener("click", (event) => {
+  els.countryList.querySelectorAll("[data-company-detail]").forEach((button) => {
+    button.addEventListener("click", (event) => {
       event.preventDefault();
-      openCompanyDetail(link.dataset.companyOpen);
+      openCompanyDetail(button.dataset.companyDetail);
     });
   });
 }
@@ -3023,13 +3042,14 @@ function renderIdeologyList(filtered) {
     <div class="list-section-title">${escapeHtml(type.label)}</div>
     ${type.items.map((ideology) => `
       <article class="country-row ideology-row selectable-row" data-ideology="${escapeHtml(ideology.key)}" aria-current="${ideology.key === state.selectedIdeology && state.detailKind === "ideology"}" tabindex="0">
-        <a class="country-heading ideology-row-heading row-title-link" href="#/ideology/${encodeURIComponent(ideology.key)}" data-ideology-open="${escapeHtml(ideology.key)}">
+        <span class="country-heading ideology-row-heading">
           ${ideologyIconHtml(ideology, "ideology-icon ideology-row-icon")}
           <span class="ideology-row-title">
             <span class="tag">${escapeHtml(ideology.key)}</span>
             <span class="name">${escapeHtml(ideology.name_zh || ideology.key)}</span>
           </span>
-        </a>
+          ${rowDetailButton("data-ideology-detail", ideology.key)}
+        </span>
         <span class="minor country-meta">${escapeHtml(cleanIdeologyDescription(ideology.desc_zh) || "无描述")}</span>
         <span class="pill-line country-tags">${victorianCenturyBadge(ideology)}</span>
         ${ideologyLawGroupPreviewHtml(ideology)}
@@ -3048,10 +3068,10 @@ function renderIdeologyList(filtered) {
       selectIdeologyCard(row.dataset.ideology);
     });
   });
-  els.countryList.querySelectorAll("[data-ideology-open]").forEach((link) => {
-    link.addEventListener("click", (event) => {
+  els.countryList.querySelectorAll("[data-ideology-detail]").forEach((button) => {
+    button.addEventListener("click", (event) => {
       event.preventDefault();
-      openIdeologyDetail(link.dataset.ideologyOpen);
+      openIdeologyDetail(button.dataset.ideologyDetail);
     });
   });
 }
@@ -3189,7 +3209,7 @@ function renderCountryDetail(country) {
     <div class="detail-title">
       ${detailBackButton("country")}
       <div class="detail-title-main">
-        <span class="country-color large" style="${colorStyle(country.colorHex)}" aria-hidden="true"></span>
+        ${countryFlagIconHtml(country, "country-flag-title") || `<span class="country-color large" style="${colorStyle(country.colorHex)}" aria-hidden="true"></span>`}
         <h2>${escapeHtml(country.name)}</h2>
       </div>
       <span class="tag">${country.tag}</span>
@@ -3220,6 +3240,8 @@ function renderCountryDetail(country) {
 
     <h3>地图色</h3>
     ${dynamicMapColorList(country)}
+
+    ${countryFlagVariantSection(country)}
 
     <h3>开局</h3>
     <dl class="field-grid">
@@ -3258,6 +3280,10 @@ function detailBackButton(view = state.view) {
   const target = view === "region" ? "region" : view || "country";
   const label = viewLabels[target] || "国家";
   return `<button class="detail-back-button" type="button" data-detail-back="${escapeHtml(target)}" aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}"><img class="lucide-icon" src="assets/lucide/icons/arrow-left.svg" alt="" aria-hidden="true"></button>`;
+}
+
+function rowDetailButton(attributeName, key) {
+  return `<button class="row-detail-button" type="button" ${attributeName}="${escapeHtml(key)}" aria-label="进入详情" title="进入详情"><img class="lucide-icon" src="assets/lucide/icons/arrow-right.svg" alt="" aria-hidden="true"></button>`;
 }
 
 function renderCultureDetail(culture) {
@@ -4487,12 +4513,14 @@ function bindMapEvents() {
     if (drag && !drag.moved) {
       const stateRegion = stateRegionFromPointerEvent(event);
       if (stateRegion) {
-        state.selectedStateRegion = stateRegion.key;
-        state.detailKind = "stateRegion";
-        replaceHash(`/state-region/${encodeURIComponent(stateRegion.key)}`);
-        render();
+        selectStateRegionFromMap(stateRegion.key);
       }
     }
+  });
+  els.mapCanvas.addEventListener("dblclick", (event) => {
+    if (state.view !== "region") return;
+    const stateRegion = stateRegionFromPointerEvent(event);
+    if (stateRegion) openStateRegionDetail(stateRegion.key);
   });
   els.mapCanvas.addEventListener("pointerleave", () => {
     mapRuntime.drag = null;
@@ -6641,6 +6669,46 @@ function dynamicMapColorList(country) {
   `).join("")}</div>`;
 }
 
+function countryFlagVariantSection(country) {
+  const flagInfo = countryFlagData[country?.tag];
+  const variants = flagInfo?.variants || [];
+  if (!variants.length) return "";
+  const body = `
+    <div class="country-flag-variant-grid">
+      ${variants.map((variant) => `
+        <article class="country-flag-variant-card">
+          <img class="country-flag-variant-image" src="${escapeHtml(variant.image)}" alt="${escapeHtml(countryFlagVariantAlt(country, variant))}">
+          <div class="country-flag-variant-body">
+            <div class="rule-head country-flag-variant-head">
+              <strong>${escapeHtml(variant.key)}</strong>
+              <span class="tag">${escapeHtml(variant.exportKey || variant.key)}</span>
+            </div>
+            <dl class="mini-grid country-flag-variant-meta">
+              ${field("优先级", escapeHtml(String(variant.priority ?? 0)))}
+              ${field("触发", escapeHtml(variant.triggerSummary || "默认候选"))}
+              ${field("附属旗角", escapeHtml(variant.subjectCanton || ""))}
+              ${field("领主旗角", escapeHtml(flagYesNo(variant.allowOverlordCanton)))}
+            </dl>
+            ${rawDetails("触发条件", variant.triggerRaw)}
+          </div>
+        </article>
+      `).join("")}
+    </div>
+  `;
+  return collapsibleDetailSection("国旗变体", body, `${variants.length} 种`);
+}
+
+function countryFlagVariantAlt(country, variant) {
+  const name = country?.name || country?.tag || "国家";
+  return `${name} ${variant.key || variant.exportKey || "国旗"}`;
+}
+
+function flagYesNo(value) {
+  if (value === "yes") return "是";
+  if (value === "no") return "否";
+  return "";
+}
+
 function refsText(rule) {
   const parts = [];
   if (rule.referenced_tags) parts.push(`国家：${rule.referenced_tags}`);
@@ -6694,6 +6762,22 @@ function companyIconPath(icon) {
   const baseName = fileBaseName(icon).replace(/\.dds$/i, ".png");
   if (!baseName || baseName === fileBaseName(icon)) return "";
   return `assets/companies/${encodeURIComponent(baseName)}`;
+}
+
+function countryFlagIconHtml(country, className = "country-flag-inline") {
+  const image = countryDefaultFlagImage(country);
+  if (!image) return "";
+  const label = country?.name || country?.name_zh || country?.tag || "country";
+  const tag = country?.tag || "";
+  const title = [label, tag].filter(Boolean).join(" ");
+  return `<img class="${escapeHtml(className)}" src="${escapeHtml(image)}" alt="" title="${escapeHtml(title)}">`;
+}
+
+function countryDefaultFlagImage(country) {
+  const tag = country?.tag || country?.key || "";
+  if (!tag) return "";
+  const variants = countryFlagData[tag]?.variants || [];
+  return variants.find((variant) => variant.key === tag)?.image || variants[0]?.image || "";
 }
 
 function ideologyIconHtml(ideology, className = "ideology-icon") {

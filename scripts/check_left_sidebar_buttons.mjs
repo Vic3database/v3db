@@ -55,6 +55,10 @@ function checkImageButtonContracts() {
   assert(!/background:\s*rgba\(/.test(resourcePressedBlock), "selected resource image buttons should not reintroduce a selected plate");
   assert(/border-color:\s*var\(--accent\)/.test(resourcePressedBlock), "selected resource image buttons should use the shared gold selected border");
 
+  const resourceItemsBlock = styleBlock(".resource-filter-items");
+  assert(/grid-template-columns:\s*repeat\(auto-fill,\s*minmax\(40px,\s*1fr\)\)/.test(resourceItemsBlock), "region resource filters should use the same 40px auto-fill icon grid as company filters");
+  assert(!/grid-template-columns:\s*repeat\(7,\s*minmax\(0,\s*1fr\)\)/.test(resourceItemsBlock), "region resource filters should not stretch seven columns across the whole sidebar");
+
   const globalControlIndex = styleSource.lastIndexOf("button,\nselect,\ninput");
   const finalImageButtonIndex = styleSource.lastIndexOf(".filter-token-with-icon,\n.ideology-group-icon-button");
   assert(globalControlIndex >= 0, "global control style block is missing");

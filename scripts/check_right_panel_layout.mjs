@@ -94,7 +94,9 @@ function checkTooltipContracts() {
 
 function checkListInteractionContracts() {
   const regionList = functionSource("renderRegionList");
-  assert(/data-state-region-open/.test(regionList), "state-region rows should expose a dedicated detail-opening control");
+  assert(!/row-title-link/.test(regionList), "state-region row titles should not be links");
+  assert(!/data-state-region-open/.test(regionList), "state-region row titles should not open detail pages");
+  assert(/data-state-region-detail/.test(regionList), "state-region rows should expose a right-side detail button");
   assert(!/data-strategic-region=/.test(regionList), "region list should not render strategic-region rows");
   assert(!/data-geographic-region=/.test(regionList), "region list should not render geographic-region rows");
   assert(!/replaceHash\(`\/state-region/.test(regionList), "clicking a state-region card should not open its detail page directly");
@@ -103,9 +105,17 @@ function checkListInteractionContracts() {
   assert(!/data-region-list-mode/.test(appSource), "region list should not expose strategic/geographic list-mode buttons");
   assert(!/selectedGeographicRegion\s*=\s*filteredGeographicRegions\[0\]/.test(functionSource("renderRegionBoard")), "region board should not auto-select a geographic-region filter");
   assert(/data-geographic-region-filter[\s\S]*aria-pressed="\$\{String\(region\.key === state\.selectedGeographicRegion\)\}"/.test(functionSource("renderGeographicRegionFilterGroupRow")), "geographic-region filters should show selected state without requiring a detail page");
-  assert(/data-country-open/.test(functionSource("renderCountryList")), "country rows should expose a dedicated detail-opening control");
-  assert(/data-culture-open/.test(functionSource("renderCultureList")), "culture rows should expose a dedicated detail-opening control");
-  assert(/data-ideology-open/.test(functionSource("renderIdeologyList")), "ideology rows should expose a dedicated detail-opening control");
+  assert(!/row-title-link/.test(appSource), "result card titles should not use title links");
+  assert(!/company-heading-link/.test(functionSource("renderCompanyList")), "company row titles should not use a heading link");
+  assert(!/data-country-open/.test(functionSource("renderCountryList")), "country row titles should not open detail pages");
+  assert(!/data-culture-open/.test(functionSource("renderCultureList")), "culture row titles should not open detail pages");
+  assert(!/data-company-open/.test(functionSource("renderCompanyList")), "company row titles should not open detail pages");
+  assert(!/data-ideology-open/.test(functionSource("renderIdeologyList")), "ideology row titles should not open detail pages");
+  assert(/data-country-detail/.test(functionSource("renderCountryList")), "country rows should expose a right-side detail button");
+  assert(/data-culture-detail/.test(functionSource("renderCultureList")), "culture rows should expose a right-side detail button");
+  assert(/data-company-detail/.test(functionSource("renderCompanyList")), "company rows should expose a right-side detail button");
+  assert(/data-ideology-detail/.test(functionSource("renderIdeologyList")), "ideology rows should expose a right-side detail button");
+  assert(/\.row-detail-button/.test(styleSource), "detail buttons should use a shared card action style");
   assert(!/replaceHash\(`\/geographic-region/.test(eventBindingSource()), "geographic-region filters should not navigate to geographic-region detail pages");
   assert(!/replaceHash\(`\/strategic-region/.test(eventBindingSource()), "strategic-region filters should not navigate to strategic-region detail pages");
   assert(/function\s+countryOwnerTagFromPointerEvent[\s\S]*!mapRuntime\.pixelOwnerIndexes/.test(appSource), "current province ownership should be available beyond the country board");
