@@ -4800,9 +4800,13 @@ body.detail-page[data-view="ideology"] .detail {
     left: calc(12px + var(--results-panel-width) + 12px);
   }
 
-}
+  body[data-view="home"] .detail {
+    left: auto;
+    right: 12px;
+    width: var(--right-panel-width);
+  }
 
-@media (max-width: 820px) {
+}@media (max-width: 820px) {
   .global-search-backdrop {
     padding: 12px;
     place-items: start center;
