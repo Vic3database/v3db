@@ -14,6 +14,8 @@ let companyCharterTypes = [];
 let interestGroups = [];
 let interestGroupTraits = [];
 let ideologies = [];
+let laws = [];
+let lawGroups = [];
 let mapData = null;
 let siteTitle = "Vicdata";
 
@@ -26,6 +28,8 @@ let byCompany = new Map();
 let byInterestGroup = new Map();
 let interestGroupTraitByKey = new Map();
 let ideologyByKey = new Map();
+let lawByKey = new Map();
+let lawGroupByKey = new Map();
 const ideologyUsageCache = new Map();
 let cultureTraitByKey = new Map();
 let cultureTraitGroupByKey = new Map();
@@ -112,6 +116,8 @@ const state = {
   ideologyGroups: new Set(),
   ideologyOccurrences: new Set(),
   ideologyLawGroups: new Set(),
+  lawGroups: new Set(),
+  commonLawIdeologyOnly: false,
   resultsPanelMode: "side",
   whiteDecentralized: false,
   omitIndigenousLanguagesCultures: true,
@@ -126,6 +132,7 @@ const state = {
   selectedGeographicRegion: "",
   selectedCompany: "",
   selectedIdeology: "",
+  selectedLaw: "",
   selectedGlobalResult: "",
   detailKind: "country",
   regionListMode: "state",
@@ -472,6 +479,7 @@ const viewLabels = {
   region: "地区（资源）",
   company: "公司",
   ideology: "意识形态",
+  law: "法律",
   changelog: "更新日志",
 };
 
@@ -576,7 +584,7 @@ const lawStanceLabels = {
   strongly_disapprove: "强烈反对",
 };
 
-const lawStanceDisplayOrder = ["strongly_disapprove", "disapprove", "neutral", "approve", "strongly_approve"];
+const lawStanceDisplayOrder = ["strongly_approve", "approve", "neutral", "disapprove", "strongly_disapprove"];
 
 const companyKindLabels = new Map(companyKindOptions.map((item) => [item.key, item.label]));
 const companyPrestigeLabels = new Map([
@@ -626,6 +634,7 @@ const els = {
   regionViewButton: document.querySelector("#regionViewButton"),
   companyViewButton: document.querySelector("#companyViewButton"),
   ideologyViewButton: document.querySelector("#ideologyViewButton"),
+  lawViewButton: document.querySelector("#lawViewButton"),
   searchInput: document.querySelector("#searchInput"),
   tierFilters: document.querySelector("#tierFilters"),
   countryTypeFilters: document.querySelector("#countryTypeFilters"),
@@ -643,6 +652,8 @@ const els = {
   ideologyGroupFilters: document.querySelector("#ideologyGroupFilters"),
   ideologyOccurrenceFilters: document.querySelector("#ideologyOccurrenceFilters"),
   ideologyLawGroupFilters: document.querySelector("#ideologyLawGroupFilters"),
+  lawGroupFilters: document.querySelector("#lawGroupFilters"),
+  commonLawIdeologyFilter: document.querySelector("#commonLawIdeologyFilter"),
   heritageGroupFilters: document.querySelector("#heritageGroupFilters"),
   heritageFilters: document.querySelector("#heritageFilters"),
   languageGroupFilters: document.querySelector("#languageGroupFilters"),
@@ -770,6 +781,8 @@ function applyLoadedDataset(nextData, nextMapData) {
   interestGroups = data.interestGroups || [];
   interestGroupTraits = data.interestGroupTraits || [];
   ideologies = data.ideologies || [];
+  laws = data.laws || [];
+  lawGroups = data.lawGroups || [];
   mapData = nextMapData || null;
   siteTitle = versionConfig?.site_title || data.meta?.site_title || data.meta?.dataset_name || "Vicdata";
 
@@ -782,6 +795,8 @@ function applyLoadedDataset(nextData, nextMapData) {
   byInterestGroup = new Map(interestGroups.map((group) => [group.key, group]));
   interestGroupTraitByKey = new Map(interestGroupTraits.map((trait) => [trait.key, trait]));
   ideologyByKey = new Map(ideologies.map((ideology) => [ideology.key, ideology]));
+  lawByKey = new Map(laws.map((law) => [law.key, law]));
+  lawGroupByKey = new Map(lawGroups.map((group) => [group.key, group]));
   cultureTraitByKey = new Map(cultureTraits.map((trait) => [trait.key, trait]));
   cultureTraitGroupByKey = new Map(cultureTraitGroups.map((group) => [group.key, group]));
   stateKeyByProvinceColor = buildStateKeyByProvinceColor();
@@ -819,6 +834,7 @@ function resetDatasetState() {
   state.ideologyGroups.clear();
   state.ideologyOccurrences.clear();
   state.ideologyLawGroups.clear();
+  state.lawGroups.clear();
   state.dimUnfilteredCountries = false;
   state.tradition = "";
   state.mapSubject = "";
@@ -829,6 +845,7 @@ function resetDatasetState() {
   state.selectedGeographicRegion = "";
   state.selectedCompany = "";
   state.selectedIdeology = "";
+  state.selectedLaw = "";
   state.selectedGlobalResult = "";
   if (els.searchInput) els.searchInput.value = "";
   if (els.globalSearchDialogInput) els.globalSearchDialogInput.value = "";
@@ -854,7 +871,7 @@ function resetMapRuntime() {
 
 function updateMetaLine() {
   const datasetPrefix = data.meta?.dataset_name ? `${data.meta.dataset_name}，` : "";
-  setOptionalText(els.metaLine, `${datasetPrefix}版本 ${data.meta?.victoria3_version || "未知"}，国家 ${countries.length} 个，文化 ${cultures.length} 个，州地区 ${stateRegions.length} 个，地理区域 ${groupedGeographicRegions.length} 个，公司 ${companies.length} 个，意识形态 ${ideologies.length} 个`);
+  setOptionalText(els.metaLine, `${datasetPrefix}版本 ${data.meta?.victoria3_version || "未知"}，国家 ${countries.length} 个，文化 ${cultures.length} 个，州地区 ${stateRegions.length} 个，地理区域 ${groupedGeographicRegions.length} 个，公司 ${companies.length} 个，意识形态 ${ideologies.length} 个，法律 ${laws.length} 条`);
 }
 
 function renderVersionOptions() {
@@ -872,6 +889,7 @@ function syncViewLabels() {
     region: els.regionViewButton,
     company: els.companyViewButton,
     ideology: els.ideologyViewButton,
+    law: els.lawViewButton,
   };
   for (const [view, label] of Object.entries(viewLabels)) {
     if (buttonByView[view]) buttonByView[view].textContent = label;
@@ -917,6 +935,7 @@ function renderFilterOptions() {
   renderResourceFilterOptions();
   renderCompanyFilterOptions();
   renderIdeologyFilterOptions();
+  renderLawFilterOptions();
   renderSortOptions();
 }
 
@@ -979,6 +998,10 @@ function bindEvents() {
     setView("ideology");
     render();
   });
+  els.lawViewButton?.addEventListener("click", () => {
+    setView("law");
+    render();
+  });
   els.viewSelect?.addEventListener("change", () => {
     setView(els.viewSelect.value);
     render();
@@ -1028,6 +1051,11 @@ function bindEvents() {
   bindContainerTokenSet(els.ideologyGroupFilters, state.ideologyGroups, "ideologyGroup");
   bindContainerTokenSet(els.ideologyOccurrenceFilters, state.ideologyOccurrences, "ideologyOccurrence");
   bindContainerTokenSet(els.ideologyLawGroupFilters, state.ideologyLawGroups, "ideologyLawGroup");
+  bindLawGroupFilterTokens();
+  els.commonLawIdeologyFilter?.addEventListener("change", () => {
+    state.commonLawIdeologyOnly = els.commonLawIdeologyFilter.checked;
+    render();
+  });
   bindContainerTokenSet(els.heritageGroupFilters, state.heritageGroups, "heritageGroup", () => {
     renderDependentFilterOptions();
   });
@@ -1088,11 +1116,14 @@ function bindEvents() {
     state.ideologyGroups.clear();
     state.ideologyOccurrences.clear();
     state.ideologyLawGroups.clear();
+    state.lawGroups.clear();
+    state.commonLawIdeologyOnly = false;
     state.dimUnfilteredCountries = false;
     state.tradition = "";
     state.mapSubject = "";
     state.selectedGlobalResult = "";
     els.searchInput.value = "";
+    if (els.commonLawIdeologyFilter) els.commonLawIdeologyFilter.checked = false;
     if (els.globalSearchDialogInput) els.globalSearchDialogInput.value = "";
     document.querySelectorAll("[data-filter-token]").forEach((button) => setTokenPressed(button, false));
     setTokenPressed(els.filteredCountryMapToggle, false);
@@ -1299,9 +1330,63 @@ function showConceptTooltip(target, event) {
     hideConceptTooltip();
     return;
   }
-  els.conceptTooltip.innerHTML = conceptTooltipRows(target);
+  const isIdeology = target.dataset.conceptKind === "ideology";
+  els.conceptTooltip.classList.toggle("ideology-tooltip", isIdeology);
+  els.conceptTooltip.innerHTML = isIdeology ? ideologyTooltipRows(target) : conceptTooltipRows(target);
   els.conceptTooltip.hidden = false;
   moveConceptTooltip(event);
+}
+
+function ideologyTooltipRows(target) {
+  const key = target.dataset.conceptKey || "";
+  const ideology = ideologyByKey.get(key);
+  if (!ideology) return conceptTooltipRows(target);
+  return `
+    <div class="ideology-tooltip-head">
+      <div class="ideology-tooltip-identity">
+        ${ideologyIconHtml(ideology, "ideology-tooltip-icon")}
+        <div>
+          <div class="ideology-tooltip-title">${escapeHtml(ideology.name_zh || ideology.key)}</div>
+          <div class="ideology-tooltip-id">${escapeHtml(ideology.key)}</div>
+        </div>
+      </div>
+      <div class="ideology-tooltip-type">${escapeHtml(ideologyTypeLabels.get(ideologyTypeKey(ideology)) || "")}</div>
+    </div>
+    ${ideologyTooltipAttitudeGroups(ideology)}
+    ${ideology.desc_zh ? `<p class="ideology-tooltip-desc">${escapeHtml(cleanIdeologyDescription(ideology.desc_zh))}</p>` : ""}
+  `;
+}
+
+function ideologyTooltipAttitudeGroups(ideology) {
+  return groupLawStances(ideology?.law_stances || []).map((group) => {
+    const items = [...group.items].sort((left, right) => {
+      const leftLaw = lawByKey.get(left.law_key) || left;
+      const rightLaw = lawByKey.get(right.law_key) || right;
+      return sortLaws(leftLaw, rightLaw);
+    });
+    return `
+      <section class="ideology-tooltip-attitude-group">
+        <h4>对${escapeHtml(group.name)}的态度</h4>
+        ${ideologyTooltipAttitudeLines(items)}
+      </section>
+    `;
+  }).join("");
+}
+
+function ideologyTooltipAttitudeLines(stances) {
+  const grouped = new Map();
+  for (const stance of stances || []) {
+    const key = stance.stance || "neutral";
+    if (!grouped.has(key)) grouped.set(key, []);
+    grouped.get(key).push(stance);
+  }
+  return lawStanceDisplayOrder.filter((stance) => grouped.has(stance)).map((stance) => {
+    const names = grouped.get(stance).map((item) => {
+      const law = lawByKey.get(item.law_key) || item;
+      return lawDisplayName(law);
+    }).filter(Boolean).join("、");
+    return `<div class="ideology-tooltip-attitude-line ${lawStanceClassName(stance)}"><span>${escapeHtml(lawStanceSentencePrefix(stance))}</span> ${escapeHtml(names)}</div>`;
+  }).join("");
 }
 
 function conceptTooltipRows(target) {
@@ -1348,7 +1433,11 @@ function conceptTooltipContextLine(kind, key) {
   }
   if (kind === "ideology") {
     const ideology = ideologyByKey.get(key);
-    return [ideologyTypeLabels.get(ideologyTypeKey(ideology || {})), refNames(ideologyInterestGroupRefs(ideology || {}))].filter(Boolean).join(" · ");
+    return [
+      ideologyTypeLabels.get(ideologyTypeKey(ideology || {})),
+      refNames(ideologyInterestGroupRefs(ideology || {})),
+      conceptTooltipIdeologyLawStance(ideology),
+    ].filter(Boolean).join(" · ");
   }
   if (kind === "building") return "建筑";
   if (kind === "goods") return "商品";
@@ -1357,6 +1446,13 @@ function conceptTooltipContextLine(kind, key) {
   if (kind === "interestGroupTrait") return "利益集团特质";
   if (kind === "law") return "法律";
   return "";
+}
+
+function conceptTooltipIdeologyLawStance(ideology) {
+  const law = state.detailKind === "law" ? lawByKey.get(state.selectedLaw) : null;
+  const stanceLaw = law ? lawByKey.get(lawStanceSourceKey(law)) || law : null;
+  const stance = stanceLaw && (ideology?.law_stances || []).find((item) => item.law_key === stanceLaw.key);
+  return stance ? `对${lawDisplayName(law)}：${lawStanceLabel(stance.stance)}` : "";
 }
 
 function conceptTooltipActionText(target) {
@@ -1375,7 +1471,9 @@ function moveConceptTooltip(event) {
 
 function hideConceptTooltip() {
   clearConceptTooltipTimer();
-  if (els.conceptTooltip) els.conceptTooltip.hidden = true;
+  if (!els.conceptTooltip) return;
+  els.conceptTooltip.hidden = true;
+  els.conceptTooltip.classList.remove("ideology-tooltip");
 }
 
 function searchConcept(target) {
@@ -1595,6 +1693,17 @@ function applyHash() {
     state.detailKind = "ideology";
     return;
   }
+  if (parts[0] === "law" && !parts[1]) {
+    state.view = "law";
+    state.detailKind = "law";
+    return;
+  }
+  if (parts[0] === "law" && parts[1] && lawByKey.has(decodeURIComponent(parts[1]))) {
+    state.view = "law";
+    state.selectedLaw = decodeURIComponent(parts[1]);
+    state.detailKind = "law";
+    return;
+  }
   if (parts[0] === "religion" && parts[1]) {
     state.search = decodeURIComponent(parts[1]).toLowerCase();
     els.searchInput.value = state.search;
@@ -1681,6 +1790,7 @@ function render() {
   els.regionViewButton?.setAttribute("aria-pressed", String(state.view === "region"));
   els.companyViewButton?.setAttribute("aria-pressed", String(state.view === "company"));
   els.ideologyViewButton?.setAttribute("aria-pressed", String(state.view === "ideology"));
+  els.lawViewButton?.setAttribute("aria-pressed", String(state.view === "law"));
   document.querySelectorAll("[data-nav-view]").forEach((button) => {
     button.setAttribute("aria-current", String(button.dataset.navView === state.view));
   });
@@ -1694,6 +1804,7 @@ function render() {
   renderResourceFilterOptions();
   renderCompanyFilterOptions();
   renderIdeologyFilterOptions();
+  renderLawFilterOptions();
   syncFilterSectionOpenStates();
   renderMapControls();
 
@@ -1709,6 +1820,8 @@ function render() {
     renderCompanyBoard();
   } else if (state.view === "ideology") {
     renderIdeologyBoard();
+  } else if (state.view === "law") {
+    renderLawBoard();
   } else {
     renderCountryBoard();
   }
@@ -1727,7 +1840,7 @@ function isDetailPageRoute() {
 function detailRouteKey() {
   const [route, key] = location.hash.replace(/^#\/?/, "").split("/").filter(Boolean);
   if (!route || !key) return "";
-  return ["country", "culture", "state-region", "strategic-region", "geographic-region", "company", "ideology"].includes(route) ? key : "";
+  return ["country", "culture", "state-region", "strategic-region", "geographic-region", "company", "ideology", "law"].includes(route) ? key : "";
 }
 
 function syncFilterSectionOpenStates() {
@@ -1751,6 +1864,7 @@ function syncFilterSectionOpenStates() {
   setSection(".filter-section:has(#ideologyGroupFilters)", state.ideologyGroups.size > 0);
   setSection(".filter-section:has(#ideologyOccurrenceFilters)", state.ideologyOccurrences.size > 0);
   setSection(".filter-section:has(#ideologyLawGroupFilters)", state.ideologyLawGroups.size > 0);
+  setSection(".filter-section:has(#lawGroupFilters)", ["law", "ideology"].includes(state.view) || state.lawGroups.size > 0 || state.commonLawIdeologyOnly);
   setSection(".filter-section:has(#heritageGroupFilters)", state.heritageGroups.size > 0 || state.heritages.size > 0);
   setSection(".filter-section:has(#languageGroupFilters)", state.languageGroups.size > 0 || state.languages.size > 0);
   setSection(".filter-section:has(#traditionFilters)", Boolean(state.tradition));
@@ -1775,7 +1889,7 @@ function renderHomeBoard() {
     { category: "外交", label: "国家", text: `${countries.length} 个国家`, view: "country", icon: "assets/home/waving_flag.png" },
     { category: "外交", label: "国家集团", text: "筹备中", icon: "assets/home/sovereign_empire.png" },
     { category: "外交", label: "外交条约与博弈", text: "筹备中", icon: "assets/home/international_diplomacy.png" },
-    { category: "内政", label: "法律", text: "筹备中", icon: "assets/home/law_enforcement.png" },
+    { category: "内政", label: "法律", text: `${laws.length} 条法律`, view: "law", icon: "assets/home/law_enforcement.png" },
     { category: "内政", label: "意识形态", text: `${ideologies.length} 个意识形态`, view: "ideology", icon: "assets/home/democracy.png" },
     { category: "内政", label: "日志、事件与决议", text: "筹备中", icon: "assets/home/event_default.png" },
     { category: "社会", label: "文化", text: `${cultures.length} 个文化`, view: "culture", icon: "assets/home/nationalism.png" },
@@ -2259,8 +2373,21 @@ function renderIdeologyBoard() {
   renderIdeologyList(filtered);
 }
 
+function renderLawBoard() {
+  const filtered = laws.filter(matchesLawFilters).sort(sortLaws);
+  if (state.selectedLaw && !lawByKey.has(state.selectedLaw)) state.selectedLaw = "";
+  if (!isDetailPageRoute() && state.selectedLaw && !filtered.some((law) => law.key === state.selectedLaw)) state.selectedLaw = "";
+  els.resultCount.textContent = `${filtered.length} 条法律`;
+  els.activeHint.textContent = buildActiveHint(filtered.length);
+  renderLawList(filtered);
+}
+
 function renderDetailForState() {
   const activeDetailRouteKey = detailRouteKey();
+  if (state.detailKind === "law" && lawByKey.has(state.selectedLaw)) {
+    renderLawDetail(lawByKey.get(state.selectedLaw));
+    return;
+  }
   if (state.detailKind === "ideology" && ideologyByKey.has(state.selectedIdeology)) {
     renderIdeologyDetail(ideologyByKey.get(state.selectedIdeology));
     return;
@@ -2403,6 +2530,7 @@ function navigateGlobalSearchResult(kind, key) {
   else if (kind === "geographicRegion") replaceHash(`/geographic-region/${encodeURIComponent(key)}`);
   else if (kind === "company") replaceHash(`/company/${encodeURIComponent(key)}`);
   else if (kind === "ideology") replaceHash(`/ideology/${encodeURIComponent(key)}`);
+  else if (kind === "law") replaceHash(`/law/${encodeURIComponent(key)}`);
   else return;
   applyHash();
   render();
@@ -2420,6 +2548,7 @@ function renderGlobalSearchDetail(result) {
   if (result.kind === "geographicRegion") return renderGeographicRegionDetail(byGeographicRegion.get(result.key));
   if (result.kind === "company") return renderCompanyDetail(byCompany.get(result.key));
   if (result.kind === "ideology") return renderIdeologyDetail(ideologyByKey.get(result.key));
+  if (result.kind === "law") return renderLawDetail(lawByKey.get(result.key));
   if (result.kind === "cultureTrait" || result.kind === "cultureTraitGroup") return renderCultureTraitDetail(result);
   if (result.kind === "interestGroup") return renderInterestGroupDetail(result);
   if (result.kind === "interestGroupTrait") return renderInterestGroupTraitDetail(result);
@@ -2520,6 +2649,16 @@ function globalSearchResults(query) {
     raw: ideology,
     searchText: ideologySearchBlob(ideology),
   }));
+  laws.forEach((law) => add({
+    id: `law:${law.key}`,
+    kind: "law",
+    typeLabel: "法律",
+    key: law.key,
+    title: law.name_zh || law.key,
+    subtitle: law.group_name_zh || law.group_key || "",
+    raw: law,
+    searchText: lawSearchBlob(law),
+  }));
   cultureTraits.forEach((trait) => add({
     id: `cultureTrait:${trait.key}`,
     kind: "cultureTrait",
@@ -2557,7 +2696,7 @@ function globalSearchResults(query) {
     subtitle: trait.modifier_summary_zh || "",
     searchText: [trait.name_zh, trait.key, trait.desc_zh, trait.modifier_summary_zh].filter(Boolean).join(" "),
   }));
-  const order = new Map(["国家", "文化", "地区", "地理区域", "语言", "语族", "传承", "传承组", "传统", "战略区域", "公司", "意识形态", "利益集团", "利益集团特质"].map((label, index) => [label, index]));
+  const order = new Map(["国家", "文化", "地区", "地理区域", "语言", "语族", "传承", "传承组", "传统", "战略区域", "公司", "意识形态", "法律", "利益集团", "利益集团特质"].map((label, index) => [label, index]));
   return results
     .sort((a, b) => a.score - b.score || orderValue(order, a.typeLabel) - orderValue(order, b.typeLabel) || a.title.localeCompare(b.title, "zh-Hans-CN"))
     .slice(0, 120);
@@ -2725,11 +2864,18 @@ function matchesCompanyGeographicRegionFilter(company) {
 }
 
 function matchesIdeologyFilters(ideology) {
+  if (!matchesCommonLawAndIdeologyFilter(ideology, "ideology")) return false;
   if (state.ideologyTypes.size > 0 && !state.ideologyTypes.has(ideologyTypeKey(ideology))) return false;
   if (!matchesRefSet(state.ideologyGroups, ideologyInterestGroupRefs(ideology))) return false;
   if (!matchesRefSet(state.ideologyOccurrences, ideologyOccurrenceRefs(ideology))) return false;
   if (!matchesRefSet(state.ideologyLawGroups, ideologyLawGroupRefs(ideology))) return false;
   return matchesSearchBlob(ideologySearchBlob(ideology));
+}
+
+function matchesLawFilters(law) {
+  if (!matchesCommonLawAndIdeologyFilter(law, "law")) return false;
+  if (state.lawGroups.size > 0 && !state.lawGroups.has(law.group_key)) return false;
+  return matchesSearchBlob(lawSearchBlob(law));
 }
 
 function matchesSearchBlob(blob) {
@@ -3164,6 +3310,181 @@ function openIdeologyDetail(ideologyKey) {
   render();
 }
 
+function renderLawList(filtered) {
+  const categories = new Map();
+  for (const law of filtered) {
+    const groupKey = law.group_key || "uncategorized";
+    const group = lawGroupByKey.get(groupKey) || { key: groupKey, name_zh: law.group_name_zh || groupKey, category: "uncategorized" };
+    const categoryKey = group.category || "uncategorized";
+    if (!categories.has(categoryKey)) categories.set(categoryKey, { key: categoryKey, groups: new Map() });
+    const groups = categories.get(categoryKey).groups;
+    if (!groups.has(groupKey)) groups.set(groupKey, { ...group, laws: [] });
+    groups.get(groupKey).laws.push(law);
+  }
+  const sections = [...categories.values()].sort((a, b) => lawGroupCategoryOrder(a.key) - lawGroupCategoryOrder(b.key)
+    || lawGroupCategoryLabel(a.key).localeCompare(lawGroupCategoryLabel(b.key), "zh-Hans-CN"));
+  els.countryList.className = "country-list law-list";
+  if (!sections.length) {
+    els.countryList.innerHTML = `<p class="empty">没有匹配结果。</p>`;
+    return;
+  }
+  els.countryList.innerHTML = sections.map((category) => `
+    <details class="law-category-section" open>
+      <summary class="law-category-title">${escapeHtml(lawGroupCategoryLabel(category.key))}</summary>
+      ${[...category.groups.values()].sort(sortLawGroup).map((group) => `
+        <section class="law-group-section">
+          <h3 class="list-section-title">${escapeHtml(group.name_zh)}</h3>
+          ${group.laws.sort(sortLaws).map((law) => `
+      <article class="country-row law-row selectable-row" data-law="${escapeHtml(law.key)}" aria-current="${law.key === state.selectedLaw && state.detailKind === "law"}" tabindex="0">
+        <span class="country-heading law-row-heading">
+          ${lawIconHtml(law, "law-icon law-row-icon")}
+          <span class="law-row-title"><span class="tag">${escapeHtml(law.key)}</span><span class="name">${escapeHtml(lawDisplayName(law))}</span></span>
+          ${rowDetailButton("data-law-detail", law.key)}
+        </span>
+      </article>
+          `).join("")}
+        </section>
+      `).join("")}
+    </details>
+  `).join("");
+  els.countryList.querySelectorAll("[data-law]").forEach((row) => {
+    row.addEventListener("click", (event) => {
+      if (event.target.closest("a, button, [data-concept-key]")) return;
+      selectLawCard(row.dataset.law);
+    });
+    row.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      if (event.target.closest("a, button, [data-concept-key]")) return;
+      event.preventDefault();
+      selectLawCard(row.dataset.law);
+    });
+  });
+  els.countryList.querySelectorAll("[data-law-detail]").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      openLawDetail(button.dataset.lawDetail);
+    });
+  });
+}
+
+function selectLawCard(lawKey) {
+  if (!lawKey || !lawByKey.has(lawKey)) return;
+  state.selectedLaw = lawKey;
+  state.detailKind = "law";
+  replaceHash(selectionHashForCard("/law", `/law/${encodeURIComponent(lawKey)}`));
+  render();
+}
+
+function openLawDetail(lawKey) {
+  if (!lawKey || !lawByKey.has(lawKey)) return;
+  state.selectedLaw = lawKey;
+  state.detailKind = "law";
+  replaceHash(`/law/${encodeURIComponent(lawKey)}`);
+  render();
+}
+
+function lawProgressivenessLabel(value) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return "进步度：无";
+  return `进步度：${numeric > 0 ? "+" : ""}${numeric}`;
+}
+
+function matchesCommonLawAndIdeologyFilter(item, kind) {
+  if (!state.commonLawIdeologyOnly) return true;
+  if (kind === "law") return !item.parent;
+  return isCommonIdeology(item);
+}
+
+function isCommonIdeology(ideology) {
+  return ideology?.is_universal === true;
+}
+
+function bindLawGroupFilterTokens() {
+  els.lawGroupFilters.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-law-group]");
+    if (!button || !els.lawGroupFilters.contains(button)) return;
+    const value = button.dataset.lawGroup;
+    if (!value) return;
+    const pressed = button.getAttribute("aria-pressed") === "true";
+    state.lawGroups.clear();
+    if (!pressed) state.lawGroups.add(value);
+    render();
+  });
+}
+
+function lawDisplayName(law) {
+  if (!law) return "";
+  const name = law.name_zh || law.key || "";
+  const parent = law.parent ? lawByKey.get(law.parent) : null;
+  const parentName = parent?.name_zh || law.parent || "";
+  return parentName ? `${name}（${parentName}）` : name;
+}
+
+function lawGroupCategoryLabel(category) {
+  return {
+    power_structure: "权力结构",
+    economy: "经济",
+    human_rights: "人权",
+    uncategorized: "未分类",
+  }[category] || category || "未分类";
+}
+
+function lawGroupCategoryOrder(category) {
+  return ["power_structure", "economy", "human_rights", "uncategorized"].indexOf(category);
+}
+
+function lawEffectListHtml(law) {
+  const modifiers = (law.modifiers || []).map((modifier) => ({ kind: "modifier", modifier }));
+  const institutionModifiers = (law.institution_modifiers || []).map((modifier) => ({ kind: "modifier", modifier }));
+  const enactmentEffects = (law.enactment_effects || []).map((label) => ({ kind: "enactment", label }));
+  const hasInstitutionEffects = Boolean(law.institution) || institutionModifiers.length > 0;
+  if (!modifiers.length && !hasInstitutionEffects && !enactmentEffects.length) return `<p class="empty compact">暂无可直接展示的效果。</p>`;
+  return `<ul class="law-effect-list">
+    ${modifiers.map(lawEffectItemHtml).join("")}
+    ${law.institution ? lawEffectItemHtml({ kind: "institution", institution: law.institution }) : ""}
+    ${institutionModifiers.length ? `<li class="law-effect-section-label">机构效果(每级):</li>${institutionModifiers.map(lawEffectItemHtml).join("")}` : ""}
+    ${enactmentEffects.map(lawEffectItemHtml).join("")}
+  </ul>`;
+}
+
+function lawEffectItemHtml(entry) {
+  if (entry.kind === "institution") return `<li class="law-effect-neutral">解锁${escapeHtml(entry.institution.name_zh || entry.institution.key)}机构</li>`;
+  if (entry.kind === "enactment") return `<li class="law-effect-neutral">${escapeHtml(entry.label)}</li>`;
+  const modifier = entry.modifier || entry;
+  const label = modifier?.name_zh || modifier?.key || "";
+  const value = modifier?.value_zh || "";
+  return `<li class="law-effect-neutral"><span>${escapeHtml(label)}</span>${value ? ` <strong class="law-effect-value ${lawEffectClassName(modifier)}">${escapeHtml(value)}</strong>` : ""}</li>`;
+}
+
+function lawEffectClassName(modifier) {
+  const value = Number(modifier?.value);
+  if (Number.isFinite(value) && value > 0) return "law-effect-positive";
+  if (Number.isFinite(value) && value < 0) return "law-effect-negative";
+  return "law-effect-neutral";
+}
+
+function lawAmendmentDetailsHtml(amendments) {
+  if (!(amendments || []).length) return "";
+  return `
+    <h3>相关修正案</h3>
+    <div class="law-amendment-list">
+      ${amendments.map((amendment) => `
+        <details class="law-amendment-card">
+          <summary>${escapeHtml(amendment.name_zh || amendment.key)}</summary>
+          ${amendment.desc_zh ? `<p>${escapeHtml(cleanDescriptionText(amendment.desc_zh))}</p>` : ""}
+          <dl class="field-grid">
+            ${field("上位法", lawPill(lawByKey.get(amendment.parent_law) || { key: amendment.parent_law, name_zh: amendment.parent_law }))}
+            ${field("适用法律", lawPills(amendment.allowed_laws || []))}
+          </dl>
+          <h4>效果</h4>
+          ${lawEffectListHtml({ modifiers: amendment.modifiers || [] })}
+          ${rawDetails("触发条件", amendment.possible?.raw)}
+        </details>
+      `).join("")}
+    </div>
+  `;
+}
+
 function ideologyLawGroupPreviewHtml(ideology) {
   const groups = ideologyLawGroupRefs(ideology).slice(0, 6);
   if (!groups.length) return "";
@@ -3492,7 +3813,7 @@ function renderGeographicRegionDetail(region) {
 
 function renderMapControls() {
   if (!els.mapModeSelect || !els.mapSubjectSelect) return;
-  if (state.view === "ideology") {
+  if (state.view === "ideology" || state.view === "law") {
     return;
   }
   syncMapModeForView();
@@ -3507,7 +3828,7 @@ function renderMapControls() {
 }
 
 function syncMapModeForView() {
-  if (state.view === "ideology") {
+  if (state.view === "ideology" || state.view === "law") {
     state.mapMode = "";
     state.mapSubject = "";
     return;
@@ -4882,6 +5203,85 @@ function sortIdeologies(a, b) {
   return a.key.localeCompare(b.key);
 }
 
+function renderLawDetail(law) {
+  if (!law) {
+    els.detail.innerHTML = `<p class="empty">没有匹配结果。</p>`;
+    return;
+  }
+  const group = lawGroupByKey.get(law.group_key);
+  const stances = lawIdeologyStances(law);
+  els.detail.innerHTML = `
+    <div class="detail-title law-detail-title">
+      ${detailBackButton("law")}
+      <div class="detail-title-main">
+        ${lawIconHtml(law, "law-icon law-detail-icon")}
+      <h2>${escapeHtml(lawDisplayName(law))}</h2>
+      </div>
+      <span class="tag">${escapeHtml(law.key)}</span>
+    </div>
+    <h3>基础</h3>
+    <dl class="field-grid">
+      ${field("法律组", tagPill(group?.name_zh || law.group_name_zh || law.group_key, "tag-type", law.group_key))}
+      ${field("进步度", lawProgressivenessLabel(law.progressiveness))}
+      ${field("前置科技", refItemsPills(law.unlocking_technologies, "technology", "tag-technology"))}
+      ${field("互斥法律", lawPills(law.disallowing_laws || []))}
+      ${field("来源文件", escapeHtml(fileBaseName(law.source_file)))}
+    </dl>
+    <h3>效果</h3>
+    ${lawEffectListHtml(law)}
+    ${lawAmendmentDetailsHtml(law.amendments)}
+    <h3>意识形态态度</h3>
+    ${lawIdeologyStanceHtml(stances)}
+    <h3>条件脚本</h3>
+    ${rawDetails("可见条件", law.is_visible?.raw)}
+    ${rawDetails("颁布条件", law.can_enact?.raw)}
+    ${rawDetails("法律组启用条件", group?.enable?.raw)}
+    ${rawDetails("法律组变更条件", group?.change_allowed_trigger?.raw)}
+  `;
+}
+
+function lawIdeologyStances(law) {
+  const lawKey = lawStanceSourceKey(law);
+  const grouped = new Map();
+  for (const ideology of ideologies) {
+    const stance = (ideology.law_stances || []).find((item) => item.law_key === lawKey);
+    if (!stance) continue;
+    if (!grouped.has(stance.stance)) grouped.set(stance.stance, []);
+    grouped.get(stance.stance).push(ideology);
+  }
+  for (const items of grouped.values()) items.sort(sortIdeologyRefsByType);
+  return grouped;
+}
+
+function lawStanceSourceKey(law) {
+  const visited = new Set();
+  let current = law;
+  while (current?.parent && !visited.has(current.key)) {
+    visited.add(current.key);
+    current = lawByKey.get(current.parent);
+  }
+  return current?.key || law?.key || "";
+}
+
+function lawIdeologyStanceHtml(grouped) {
+  const blocks = lawStanceDisplayOrder.map((stance) => {
+    const items = grouped.get(stance) || [];
+    if (!items.length) return "";
+    return `
+      <section class="law-ideology-stance ${lawStanceClassName(stance)}">
+        <h4>${escapeHtml(lawStanceSentencePrefix(stance))}</h4>
+        ${ideologyPillGroups(items, `tag-ideology ${lawStanceClassName(stance)}`)}
+      </section>
+    `;
+  }).filter(Boolean).join("");
+  return blocks ? `<div class="law-ideology-stance-list">${blocks}</div>` : `<p class="empty compact">没有意识形态态度数据。</p>`;
+}
+
+function sortLaws(a, b) {
+  return Number(a.sort_order ?? Number.MAX_SAFE_INTEGER) - Number(b.sort_order ?? Number.MAX_SAFE_INTEGER)
+    || a.key.localeCompare(b.key);
+}
+
 function sortCountriesByTag(a, b) {
   return a.tag.localeCompare(b.tag);
 }
@@ -4913,6 +5313,8 @@ function renderSortOptions() {
             ["name", "按名称"],
             ["type", "按类型"],
           ]
+          : state.view === "law"
+            ? [["key", "游戏内顺序"]]
     : [
       ["key", "按 Tag"],
       ["name", "按名称"],
@@ -5065,6 +5467,37 @@ function renderIdeologyFilterOptions() {
     ideologyChoiceToken("ideology-occurrence", option.key, option.label, state.ideologyOccurrences.has(option.key))
   )).join("");
   els.ideologyLawGroupFilters.innerHTML = renderIdeologyLawGroupFilterSections(lawGroups);
+}
+
+function renderLawFilterOptions() {
+  const groups = lawGroups.slice().sort(sortLawGroup);
+  syncSetWithOptions(state.lawGroups, groups);
+  els.lawGroupFilters.innerHTML = renderLawGroupFilterSections(groups);
+}
+
+function renderLawGroupFilterSections(groups) {
+  const byCategory = new Map();
+  for (const group of groups) {
+    const category = group.category || "uncategorized";
+    if (!byCategory.has(category)) byCategory.set(category, []);
+    byCategory.get(category).push(group);
+  }
+  return [...byCategory.entries()]
+    .sort(([a], [b]) => lawGroupCategoryOrder(a) - lawGroupCategoryOrder(b) || lawGroupCategoryLabel(a).localeCompare(lawGroupCategoryLabel(b), "zh-Hans-CN"))
+    .map(([category, categoryGroups]) => `
+      <section class="ideology-law-filter-group">
+        <h3>${escapeHtml(lawGroupCategoryLabel(category))}</h3>
+        <div class="ideology-law-filter-items">
+          ${categoryGroups.map((group) => ideologyChoiceToken("law-group", group.key, group.name_zh || group.key, state.lawGroups.has(group.key))).join("")}
+        </div>
+      </section>
+    `).join("");
+}
+
+function sortLawGroup(a, b) {
+  return orderValue(ideologyLawGroupOrderMap, a.key) - orderValue(ideologyLawGroupOrderMap, b.key)
+    || (a.name_zh || a.key).localeCompare(b.name_zh || b.key, "zh-Hans-CN")
+    || a.key.localeCompare(b.key);
 }
 
 function collectIdeologyInterestGroupOptions() {
@@ -5346,6 +5779,7 @@ function conceptPill({
   label,
   className = "",
   title = "",
+  hideNativeTitle = false,
   kind = "",
   key = "",
   href = "",
@@ -5358,7 +5792,7 @@ function conceptPill({
   const tooltip = title || conceptKey;
   const attrs = [
     `class="pill concept-pill${classText}"`,
-    tooltip && tooltip !== label ? `title="${escapeHtml(tooltip)}"` : "",
+    !hideNativeTitle && tooltip && tooltip !== label ? `title="${escapeHtml(tooltip)}"` : "",
     kind ? `data-concept-kind="${escapeHtml(kind)}"` : "",
     conceptKey ? `data-concept-key="${escapeHtml(conceptKey)}"` : "",
     label ? `data-concept-label="${escapeHtml(label)}"` : "",
@@ -5378,6 +5812,7 @@ function conceptHref(kind, key) {
   if (kind === "geographicRegion") return `#/geographic-region/${encodeURIComponent(key)}`;
   if (kind === "company") return `#/company/${encodeURIComponent(key)}`;
   if (kind === "ideology") return `#/ideology/${encodeURIComponent(key)}`;
+  if (kind === "law") return `#/law/${encodeURIComponent(key)}`;
   if (kind === "religion") return `#/religion/${encodeURIComponent(key)}`;
   return "";
 }
@@ -5392,6 +5827,7 @@ function kindFromRef(item) {
   if (item?.id?.startsWith("interest_group:")) return "interestGroup";
   if (item?.id?.startsWith("interest_group_trait:")) return "interestGroupTrait";
   if (item?.id?.startsWith("ideology:")) return "ideology";
+  if (item?.id?.startsWith("law:")) return "law";
   if (item?.id?.startsWith("culture_trait_group:")) return "cultureTraitGroup";
   if (item?.id?.startsWith("culture_trait:")) return "cultureTrait";
   if (item?.id?.startsWith("building:")) return "building";
@@ -5740,9 +6176,10 @@ function modifierPills(modifiers) {
 }
 
 function modifierSummaryLabel(modifier) {
-  const label = modifier?.summary_zh || modifier?.key || "";
-  const longMapiLabel = ["市场接入度", "的价格影响"].join("");
-  return label.replaceAll(longMapiLabel, "MAPI");
+  if (modifier?.key === "state_market_access_price_impact") {
+    return `市场接入度的价格影响(MAPI)${modifier?.value_zh ? ` ${modifier.value_zh}` : ""}`;
+  }
+  return modifier?.summary_zh || modifier?.key || "";
 }
 
 function interestGroupFlavorList(groups) {
@@ -5868,24 +6305,41 @@ function traitIconHtml(trait, kind) {
 
 function activeIdeologyPills(group) {
   const addedKeys = new Set((group.added_ideologies || []).map((item) => item.key));
-  const items = (group.active_ideologies || []).map((ideology) => (
-    ideologyPill(ideology, addedKeys.has(ideology.key) ? "tag-ig-added" : "tag-muted")
-  )).filter(Boolean);
-  return items.length ? `<span class="link-list">${items.join("")}</span>` : "";
+  return ideologyPillGroups(group.active_ideologies, (ideology) => (
+    addedKeys.has(ideology.key) ? "tag-ig-added" : "tag-muted"
+  ));
 }
 
 function ideologyPills(ideologyRefs, className = "tag-ideology") {
-  const items = (ideologyRefs || []).map((ideology) => ideologyPill(ideology, className)).filter(Boolean);
-  return items.length ? `<span class="link-list">${items.join("")}</span>` : "";
+  return ideologyPillGroups(ideologyRefs, className);
+}
+
+function ideologyPillGroups(ideologyRefs, className = "tag-ideology") {
+  const groups = ideologyTypeOptions.map((type) => ({
+    ...type,
+    items: [...(ideologyRefs || [])]
+      .filter((ideology) => ideologyTypeKey(ideologyByKey.get(ideology?.key) || ideology) === type.key)
+      .sort(sortRefByName),
+  })).filter((type) => type.items.length > 0);
+  return groups.map((type) => {
+    const items = type.items.map((ideology) => {
+      const resolvedClassName = typeof className === "function" ? className(ideology) : className;
+      return ideologyPill(ideology, resolvedClassName);
+    }).filter(Boolean);
+    return `<div class="ideology-pill-group"><span class="ideology-pill-group-label">${escapeHtml(type.label)}：</span><span class="link-list">${items.join("")}</span></div>`;
+  }).join("");
 }
 
 function ideologyPill(ideology, className = "tag-ideology") {
   if (!ideology?.key) return "";
   const source = ideologyByKey.get(ideology.key) || ideology;
+  // 类型标题“运动：”替代了名称后的“(运动)”后缀。
+  const label = ideology.name_zh || ideology.key;
   return conceptPill({
-    label: ideology.name_zh || ideology.key,
-    className,
-    title: ideologyLawGroupTooltip(source),
+    label,
+    className: `${className} ideology-tooltip-trigger`.trim(),
+    title: ideologyLawStanceTooltip(source),
+    hideNativeTitle: true,
     kind: "ideology",
     key: ideology.key,
     search: ideology.name_zh || ideology.key,
@@ -5901,6 +6355,14 @@ function ideologyRefPill(key, className = "tag-ideology") {
 function ideologyLawGroupTooltip(ideology) {
   const groups = ideologyLawGroupNames(ideology);
   return [ideology?.key, groups.length ? `相关法律组：${groups.join("、")}` : ""].filter(Boolean).join("；");
+}
+
+function ideologyLawStanceTooltip(ideology) {
+  const law = state.detailKind === "law" ? lawByKey.get(state.selectedLaw) : null;
+  const stanceLaw = law ? lawByKey.get(lawStanceSourceKey(law)) || law : null;
+  const stance = stanceLaw && (ideology?.law_stances || []).find((item) => item.law_key === stanceLaw.key);
+  const stanceText = stance ? `对${lawDisplayName(law)}：${lawStanceLabel(stance.stance)}` : "";
+  return [ideologyLawGroupTooltip(ideology), stanceText].filter(Boolean).join("；");
 }
 
 function ideologyLawGroupNames(ideology) {
@@ -6818,6 +7280,36 @@ function rawDetails(label, value) {
   `;
 }
 
+function lawIconHtml(law, className = "law-icon") {
+  const baseName = fileBaseName(law?.icon).replace(/\.dds$/i, "");
+  if (!baseName) return "";
+  const alt = escapeHtml(law?.name_zh || law?.key || "法律");
+  return `<img class="${escapeHtml(className)}" src="assets/laws/${encodeURIComponent(baseName)}.png" alt="${alt}" onerror="this.hidden=true">`;
+}
+
+function lawPill(law) {
+  if (!law?.key) return "";
+  return conceptPill({
+    label: law.name_zh || law.key,
+    className: "tag-law",
+    title: law.key,
+    kind: "law",
+    key: law.key,
+    href: conceptHref("law", law.key),
+  });
+}
+
+function sortIdeologyRefsByType(left, right) {
+  return orderValue(ideologyTypeOrder, ideologyTypeKey(ideologyByKey.get(left?.key) || left))
+    - orderValue(ideologyTypeOrder, ideologyTypeKey(ideologyByKey.get(right?.key) || right))
+    || sortRefByName(left, right);
+}
+
+function lawPills(keys) {
+  const pills = (keys || []).map((key) => lawPill(lawByKey.get(key) || { key, name_zh: key })).filter(Boolean);
+  return pills.length ? `<span class="link-list">${pills.join("")}</span>` : "";
+}
+
 function collapsibleDetailSection(title, html, meta = "") {
   const body = String(html || "").trim();
   if (!body) return "";
@@ -7233,6 +7725,7 @@ function searchPlaceholder() {
   if (state.view === "region") return "州地区、战略区域、海域、资源、地区特质、国家、文化";
   if (state.view === "company") return "公司、建筑、名贵商品、总部、战略区域、条件";
   if (state.view === "ideology") return "板块内搜索：意识形态、利益集团、法律组、法律";
+  if (state.view === "law") return "法律、法律组、修正、条件";
   return "国家、Tag、文化、宗教、州地区";
 }
 
@@ -7419,6 +7912,25 @@ function ideologySearchBlob(ideology) {
   ].join(" ").toLowerCase();
 }
 
+function lawSearchBlob(law) {
+  const group = lawGroupByKey.get(law.group_key);
+  return [
+    law.key,
+    law.name_zh,
+    law.group_key,
+    law.group_name_zh,
+    law.progressiveness,
+    law.modifier_summary_zh,
+    law.parent,
+    ...(law.disallowing_laws || []),
+    ...(law.modifiers || []).flatMap((modifier) => [modifier.key, modifier.name_zh, modifier.desc_zh, modifier.summary_zh]),
+    ...conditionSearchParts(law.can_enact),
+    ...conditionSearchParts(law.is_visible),
+    ...conditionSearchParts(group?.enable),
+    ...conditionSearchParts(group?.change_allowed_trigger),
+  ].filter(Boolean).join(" ").toLowerCase();
+}
+
 function ideologyWeightSearchParts(ideology) {
   return [
     ...conditionSearchParts(ideology.character_requirements?.country),
@@ -7557,6 +8069,7 @@ function buildActiveHint(count) {
   if (state.view === "ideology" && state.ideologyGroups.size) parts.push(`利益集团 ${state.ideologyGroups.size}`);
   if (state.view === "ideology" && state.ideologyOccurrences.size) parts.push(`出现方式 ${state.ideologyOccurrences.size}`);
   if (state.view === "ideology" && state.ideologyLawGroups.size) parts.push(`法律组 ${state.ideologyLawGroups.size}`);
+  if (state.view === "law" && state.lawGroups.size) parts.push(`法律组 ${state.lawGroups.size}`);
   if (["country", "culture"].includes(state.view) && state.tradition) parts.push(`传统 ${getTraitName(state.tradition)}`);
   return parts.join("；");
 }

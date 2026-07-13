@@ -19,6 +19,7 @@
           <button class="topbar-nav-item" type="button" data-nav-view="region"><img class="lucide-icon" src="assets/lucide/icons/map.svg" alt="" aria-hidden="true"><span>地区</span></button>
           <button class="topbar-nav-item" type="button" data-nav-view="company"><img class="lucide-icon" src="assets/lucide/icons/briefcase-business.svg" alt="" aria-hidden="true"><span>公司</span></button>
           <button class="topbar-nav-item" type="button" data-nav-view="ideology"><img class="lucide-icon" src="assets/lucide/icons/user-star.svg" alt="" aria-hidden="true"><span>意识形态</span></button>
+          <button class="topbar-nav-item" type="button" data-nav-view="law"><img class="lucide-icon" src="assets/lucide/icons/scale.svg" alt="" aria-hidden="true"><span>法律</span></button>
         </nav>
       </div>
       <div class="topbar-actions" aria-label="全局控制">
@@ -36,6 +37,7 @@
           <option value="region">地区</option>
           <option value="company">公司</option>
           <option value="ideology">意识形态</option>
+          <option value="law">法律</option>
         </select>
       </div>
     </header>
@@ -147,6 +149,12 @@
           <div id="ideologyTypeFilters" class="ideology-type-list"></div>
         </details>
 
+        <details class="filter-section law-ideology-only">
+          <summary>法律组</summary>
+          <label class="filter-check"><input id="commonLawIdeologyFilter" type="checkbox">仅查看通用法律和意识形态</label>
+          <div id="lawGroupFilters" class="ideology-law-filter-list"></div>
+        </details>
+
         <details class="filter-section ideology-only">
           <summary>利益集团</summary>
           <div id="ideologyGroupFilters" class="ideology-icon-grid"></div>
@@ -210,7 +218,7 @@
 
       <section class="results">
         <div class="panel-head">
-          <strong>导航</strong>
+          <strong>列表</strong>
         </div>
         <div class="result-head">
           <div>
