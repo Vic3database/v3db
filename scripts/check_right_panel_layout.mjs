@@ -31,6 +31,9 @@ function checkDetailLayoutContracts() {
   const ideologyHeaderBlock = ruleBlock(".vic3-ideology-header");
   const detailScriptBlock = ruleBlock(".detail .script-details");
   const detailScriptPreBlock = ruleBlock(".detail .script-details pre");
+  const scriptBlock = ruleBlock(".script-details");
+  const scriptPreBlock = ruleBlock(".script-details pre");
+  const interestGroupRuleBlock = ruleBlock(".interest-group-rule");
   const detailInterestGroupRuleBlock = ruleBlock(".detail .interest-group-rule");
   const detailBackButtonSource = functionSource("detailBackButton");
   assert(/\.detail\s*{[\s\S]*--detail-pad-x:\s*20px[\s\S]*padding:\s*0\s+var\(--detail-pad-x\)\s+32px/.test(styleSource), "detail panel should put top spacing in the sticky title instead of scrollable padding");
@@ -50,6 +53,9 @@ function checkDetailLayoutContracts() {
   assert(detailScriptBlock.includes("border-top: 1px solid rgba(200, 164, 91, 0.24)"), "detail script sections should use the standard gold separator");
   assert(detailScriptPreBlock.includes("border-color: rgba(200, 164, 91, 0.28)") && detailScriptPreBlock.includes("background: var(--panel-glass-strong)") && detailScriptPreBlock.includes("color: var(--ink)"), "detail source code blocks should use the standard dark panel palette");
   assert(detailInterestGroupRuleBlock.includes("border-color: rgba(200, 164, 91, 0.24)") && detailInterestGroupRuleBlock.includes("background: var(--surface-raised)") && detailInterestGroupRuleBlock.includes("color: var(--ink)"), "detail matching-rule blocks should use the standard panel palette");
+  assert(scriptBlock.includes("border-top: 1px solid rgba(200, 164, 91, 0.24)"), "script sections should use the standard gold separator by default");
+  assert(scriptPreBlock.includes("border-color: rgba(200, 164, 91, 0.28)") && scriptPreBlock.includes("background: var(--panel-glass-strong)") && scriptPreBlock.includes("color: var(--ink)"), "source code blocks should use the standard dark panel palette by default");
+  assert(interestGroupRuleBlock.includes("border-color: rgba(200, 164, 91, 0.24)") && interestGroupRuleBlock.includes("background: var(--surface-raised)") && interestGroupRuleBlock.includes("color: var(--ink)"), "matching-rule blocks should use the standard panel palette by default");
   assert(!detailScriptPreBlock.includes("background: #f3f6f3"), "detail source code blocks should not use the old light background");
   assert(/\.detail\s+\.link-list,\s*[\s\S]*\.detail\s+\.pill-line\s*{[\s\S]*align-items:\s*flex-start/.test(styleSource), "right-panel link and tag rows should align wrapped pills cleanly");
 }
