@@ -2448,8 +2448,7 @@ function renderGlobalSearchList(results) {
         <span class="country-heading">
           ${result.kind === "country" ? countryFlagIconHtml(result.raw, "country-flag-inline") : result.color ? `<span class="country-color" style="${colorStyle(result.color)}" aria-hidden="true"></span>` : ""}
           <span class="tag">${escapeHtml(result.key)}</span>
-          <span class="name">${escapeHtml(result.title)}</span>
-          <span class="pill tag-pill tag-muted">${escapeHtml(result.typeLabel)}</span>
+          <span class="name">${escapeHtml(result.displayTitle || result.title)}</span>
         </span>
         <span class="minor country-meta">${escapeHtml(result.subtitle || result.searchHint || "")}</span>
       </button>
@@ -2489,12 +2488,11 @@ function renderGlobalSearchDialogResults() {
     ${group.items.map((result) => {
       const active = itemIndex === state.globalSearchActiveIndex;
       const html = `
-        <button class="country-row global-result-row" type="button" data-global-dialog-result="${escapeHtml(result.id)}" data-result-kind="${escapeHtml(result.kind)}" data-result-key="${escapeHtml(result.key)}" aria-selected="${active}">
-          ${renderEntityBadge(result.kind, result.raw || result, result.title)}
+        <button class="country-row global-result-row" type="button" data-global-dialog-result="${escapeHtml(result.id)}" data-result-kind="${escapeHtml(result.kind)}" data-result-key="${escapeHtml(result.navigationKey || result.key)}" aria-selected="${active}">
+          ${renderEntityBadge(result.kind, result.raw || result, result.displayTitle || result.title)}
           <span class="country-heading">
             <span class="tag">${escapeHtml(result.key)}</span>
-            <span class="name">${escapeHtml(result.title)}</span>
-            <span class="pill tag-pill tag-muted">${escapeHtml(result.typeLabel)}</span>
+            <span class="name">${escapeHtml(result.displayTitle || result.title)}</span>
           </span>
           <span class="minor country-meta">${escapeHtml(result.subtitle || result.searchHint || "")}</span>
         </button>
@@ -2523,6 +2521,15 @@ function updateGlobalSearchActiveDescendant() {
 
 function navigateGlobalSearchResult(kind, key) {
   if (!kind || !key) return;
+  if (kind === "interestGroupFlavor") {
+    const [countryTag, groupKey] = key.split(":");
+    if (!countryTag || !groupKey) return;
+    replaceHash(`/country/${encodeURIComponent(countryTag)}`);
+    applyHash();
+    render();
+    focusInterestGroupFlavorResult(countryTag, groupKey);
+    return;
+  }
   if (kind === "country") replaceHash(`/country/${encodeURIComponent(key)}`);
   else if (kind === "culture") replaceHash(`/culture/${encodeURIComponent(key)}`);
   else if (kind === "stateRegion") replaceHash(`/state-region/${encodeURIComponent(key)}`);
@@ -2552,6 +2559,7 @@ function renderGlobalSearchDetail(result) {
   if (result.kind === "cultureTrait" || result.kind === "cultureTraitGroup") return renderCultureTraitDetail(result);
   if (result.kind === "interestGroup") return renderInterestGroupDetail(result);
   if (result.kind === "interestGroupTrait") return renderInterestGroupTraitDetail(result);
+  if (result.kind === "interestGroupFlavor") return renderCountryDetail(byTag.get(result.countryTag));
   els.detail.innerHTML = `
     <div class="detail-title">
       <div class="detail-title-main"><h2>${escapeHtml(result.title)}</h2></div>
@@ -2569,12 +2577,12 @@ function globalSearchResults(query) {
   if (!needle) return [];
   const results = [];
   const add = (result) => {
-    const haystack = normalizeSearchText([result.title, result.key, result.subtitle, result.searchText].filter(Boolean).join(" "));
+    const haystack = normalizeSearchText([result.title, result.key, result.aliases, result.subtitle, result.searchText].flat().filter(Boolean).join(" "));
     if (!haystack.includes(needle)) return;
     const title = normalizeSearchText(result.title || "");
     const key = normalizeSearchText(result.key || "");
     const score = title === needle ? 0 : key === needle ? 1 : title.startsWith(needle) ? 2 : haystack.indexOf(needle) + 10;
-    results.push({ ...result, score });
+    results.push({ ...result, displayTitle: globalSearchDisplayTitle(result, needle), score });
   };
   countries.forEach((country) => add({
     id: `country:${country.tag}`,
@@ -2603,6 +2611,7 @@ function globalSearchResults(query) {
     typeLabel: "地区",
     key: stateRegion.key,
     title: stateRegion.name_zh || stateRegion.key,
+    aliases: stateRegionVariantNames(stateRegion),
     subtitle: refNames(stateRegion.strategic_regions),
     color: byStrategicRegion.get(stateRegion.strategic_regions?.[0]?.key)?.map_color?.hex || "",
     raw: stateRegion,
@@ -2696,7 +2705,8 @@ function globalSearchResults(query) {
     subtitle: trait.modifier_summary_zh || "",
     searchText: [trait.name_zh, trait.key, trait.desc_zh, trait.modifier_summary_zh].filter(Boolean).join(" "),
   }));
-  const order = new Map(["国家", "文化", "地区", "地理区域", "语言", "语族", "传承", "传承组", "传统", "战略区域", "公司", "意识形态", "法律", "利益集团", "利益集团特质"].map((label, index) => [label, index]));
+  interestGroupFlavorSearchResults().forEach(add);
+  const order = new Map(["国家", "文化", "地区", "地理区域", "语言", "语族", "传承", "传承组", "传统", "战略区域", "公司", "意识形态", "法律", "利益集团", "利益集团特质", "利益集团风味"].map((label, index) => [label, index]));
   return results
     .sort((a, b) => a.score - b.score || orderValue(order, a.typeLabel) - orderValue(order, b.typeLabel) || a.title.localeCompare(b.title, "zh-Hans-CN"))
     .slice(0, 120);
@@ -3002,6 +3012,18 @@ function renderEntityBadge(kind, entity, label = "") {
   const initial = text.trim().slice(0, 1).toUpperCase() || "?";
   if (kind === "country") {
     return countryFlagIconHtml(entity, "entity-badge entity-badge-flag") || `<span class="entity-badge entity-badge-square entity-badge-country">${escapeHtml(initial)}</span>`;
+  }
+  if (kind === "interestGroup" || kind === "interestGroupFlavor") {
+    return interestGroupIconHtml(entity, "entity-badge entity-badge-interest-group");
+  }
+  if (kind === "interestGroupTrait") {
+    return traitIconHtml(entity, "interest-group").replace('class="trait-icon"', 'class="entity-badge entity-badge-trait"');
+  }
+  if (kind === "company") {
+    return companyIconHtml(entity).replace('class="company-logo"', 'class="entity-badge entity-badge-company"');
+  }
+  if (kind === "ideology") {
+    return ideologyIconHtml(entity, "entity-badge entity-badge-ideology");
   }
   if (kind === "stateRegion" || kind === "strategicRegion" || kind === "geographicRegion" || kind === "region") {
     const color = entity?.map_color?.hex || entity?.colorHex || "#9b7a5f";
@@ -3387,6 +3409,41 @@ function lawProgressivenessLabel(value) {
   const numeric = Number(value);
   if (!Number.isFinite(numeric)) return "进步度：无";
   return `进步度：${numeric > 0 ? "+" : ""}${numeric}`;
+}
+
+function globalSearchDisplayTitle(result, needle) {
+  const title = result.title || result.key || "";
+  const aliases = result.aliases || [];
+  if (result.kind === "interestGroupFlavor" && aliases.length) return `${title}（${aliases.join("/")}）`;
+  const matchedAliases = aliases.filter((alias) => normalizeSearchText(alias).includes(needle));
+  if (!matchedAliases.length) return title;
+  const remainingAliases = aliases.filter((alias) => !matchedAliases.includes(alias));
+  return `${title}（${[...matchedAliases, ...remainingAliases].join("/")}）`;
+}
+
+function interestGroupFlavorSearchResults() {
+  const candidates = countries.flatMap((country) => (country.interestGroups || [])
+    .filter((group) => group.display_name?.is_flavored)
+    .map((group) => ({
+      id: `interestGroupFlavor:${country.tag}:${group.key}`,
+      kind: "interestGroupFlavor",
+      typeLabel: "利益集团风味",
+      key: group.key,
+      navigationKey: `${country.tag}:${group.key}`,
+      title: group.display_name?.name_zh || group.name_zh || group.key,
+      aliases: [group.name_zh].filter((name) => name && name !== group.display_name?.name_zh),
+      subtitle: country.name,
+      raw: group,
+      countryTag: country.tag,
+      searchText: [country.tag, country.name, group.key, group.name_zh, group.display_name?.key, group.display_name?.name_zh].filter(Boolean).join(" "),
+    })));
+  const byFlavor = new Map();
+  for (const candidate of candidates) {
+    const identity = `${candidate.key}:${candidate.title}`;
+    const current = byFlavor.get(identity);
+    if (!current || candidate.countryTag === "JAP") byFlavor.set(identity, candidate);
+  }
+  return [...byFlavor.values()];
 }
 
 function matchesCommonLawAndIdeologyFilter(item, kind) {
@@ -6196,7 +6253,7 @@ function interestGroupFlavorCard(group) {
   const changedTraits = !sameKeySet(group.base_traits, group.active_traits);
   const changedIdeologies = (group.added_ideologies || []).length || (group.removed_ideologies || []).length;
   return `
-    <article class="rule-item interest-group-card" style="${interestGroupStyle(group)}">
+    <article id="interest-group-flavor-target-${escapeHtml(group.key)}" class="rule-item interest-group-card interest-group-flavor-target" tabindex="-1" style="${interestGroupStyle(group)}">
       <div class="rule-head interest-group-head">
         <span class="interest-group-title">
           <span class="interest-group-color" aria-hidden="true"></span>
@@ -6308,6 +6365,19 @@ function activeIdeologyPills(group) {
   return ideologyPillGroups(group.active_ideologies, (ideology) => (
     addedKeys.has(ideology.key) ? "tag-ig-added" : "tag-muted"
   ));
+}
+
+function focusInterestGroupFlavorResult(countryTag, groupKey) {
+  requestAnimationFrame(() => {
+    const target = document.querySelector(`#interest-group-flavor-target-${CSS.escape(groupKey)}`);
+    if (!target || state.selectedTag !== countryTag) return;
+    const section = target.closest("details");
+    if (section) section.open = true;
+    target.scrollIntoView({ block: "center" });
+    target.classList.add("interest-group-flavor-focus");
+    target.focus({ preventScroll: true });
+    window.setTimeout(() => target.classList.remove("interest-group-flavor-focus"), 1800);
+  });
 }
 
 function ideologyPills(ideologyRefs, className = "tag-ideology") {
