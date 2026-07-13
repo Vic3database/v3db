@@ -161,6 +161,11 @@ function main() {
   const companyCharterTypes = loadCompanyCharterTypes(contentPath("common", "company_charter_types"), loc);
   const interestGroupTraits = loadInterestGroupTraits(contentPath("common", "interest_group_traits"), loc);
   const ideologies = loadIdeologies(contentPath("common", "ideologies"), loc);
+  const lawGroups = loadLawGroups(contentPath("common", "law_groups"), loc);
+  const institutions = loadInstitutions(contentPath("common", "institutions"), loc);
+  const amendments = loadLawAmendments(contentPath("common", "amendments"), loc);
+  const laws = loadLaws(contentPath("common", "laws"), lawGroups, institutions, loc);
+  attachLawAmendments(laws, amendments);
   const interestGroups = loadInterestGroups(
     contentPath("common", "interest_groups"),
     loc,
@@ -221,6 +226,9 @@ function main() {
       dynamicNameVariantsByScope,
       dynamicMapColorRulesByTag,
     }));
+  const existingAtStartTags = new Set(countryRows
+    .filter((row) => row.exists_at_start === "是")
+    .map((row) => row.tag));
   const cultureRows = buildCultureRows(cultures, cultureTraits, cultureTraitGroups, relatedCountriesByCulture, stateRegionRows, loc);
   const cultureTraitRows = [...cultureTraits.values()].sort((a, b) => a.key.localeCompare(b.key));
   const cultureTraitGroupRows = [...cultureTraitGroups.values()].sort((a, b) => a.key.localeCompare(b.key));
@@ -328,7 +336,16 @@ function main() {
     company_charter_types: companyCharterTypes,
     interest_groups: interestGroups.map(publicInterestGroup),
     interest_group_traits: [...interestGroupTraits.values()],
-    ideologies: [...ideologies.values()],
+    ideologies: ideologyCoverageRows(ideologies, countryRows, interestGroups, {
+      cultures,
+      cultureTraits,
+      interestGroupTraits,
+      ideologies,
+      existingAtStartTags,
+      locName: (key) => locCleanName(loc, key),
+    }),
+    law_groups: [...lawGroups.values()],
+    laws: [...laws.values()],
     formable_countries: formationRows,
     releasable_countries: releaseRows,
     dynamic_country_name_variants: dynamicNameVariants,
@@ -354,6 +371,8 @@ function main() {
     interestGroups,
     interestGroupTraits,
     ideologies,
+    lawGroups,
+    laws,
     geographicRegions,
     relatedCountriesByCulture,
     definitions,
@@ -389,6 +408,8 @@ function main() {
     interestGroups,
     interestGroupTraits,
     ideologies,
+    lawGroups,
+    laws,
     definitions,
     startingOwners,
     historyCountryTags,
@@ -412,6 +433,8 @@ function main() {
     interest_groups: interestGroups.length,
     interest_group_traits: interestGroupTraits.size,
     ideologies: ideologies.size,
+    law_groups: lawGroups.size,
+    laws: laws.size,
     output: outDir,
     database: databaseDir,
     dataset_name: datasetName,
@@ -1329,6 +1352,154 @@ function loadIdeologies(dir, loc) {
     }
   }
   return rows;
+}
+
+function loadLawGroups(dir, loc) {
+  const rows = new Map();
+  let sortOrder = 0;
+  for (const file of listFiles(dir)) {
+    const root = parseScript(readText(file), file);
+    for (const assignment of root.assignments) {
+      const key = scriptEntryKey(assignment.key);
+      if (!key.startsWith("lawgroup_")) continue;
+      const node = asNode(assignment.value);
+      if (!node) continue;
+      rows.set(key, {
+        id: `law_group:${key}`,
+        key,
+        sort_order: sortOrder++,
+        name_zh: locCleanName(loc, key),
+        category: firstScalar(node, "law_group_category"),
+        base_enactment_days: toNumberOrNull(firstScalar(node, "base_enactment_days")),
+        enactment_approval_mult: toNumberOrNull(firstScalar(node, "enactment_approval_mult")),
+        ideological_opinion_impact: toNumberOrNull(firstScalar(node, "ideological_opinion_impact")),
+        affected_by_regime_change: boolFromYesNo(firstScalar(node, "affected_by_regime_change")),
+        enable: conditionSummaryObject(firstValue(node, "enable"), loc),
+        change_allowed_trigger: conditionSummaryObject(firstValue(node, "change_allowed_trigger"), loc),
+        source_file: normalizePath(file),
+      });
+    }
+  }
+  return rows;
+}
+
+function loadInstitutions(dir, loc) {
+  const rows = new Map();
+  for (const file of listFiles(dir)) {
+    const root = parseScript(readText(file), file);
+    for (const assignment of root.assignments) {
+      const key = scriptEntryKey(assignment.key);
+      if (!key.startsWith("institution_")) continue;
+      const node = asNode(assignment.value);
+      if (!node) continue;
+      rows.set(key, {
+        key,
+        name_zh: locCleanName(loc, key),
+        modifiers: allValues(node, "modifier").map(asNode).filter(Boolean)
+          .flatMap((modifierNode) => modifierNode.assignments.map((item) => modifierRef(item.key, item.value, loc))),
+      });
+    }
+  }
+  return rows;
+}
+
+function loadLawAmendments(dir, loc) {
+  const rows = [];
+  for (const file of listFiles(dir)) {
+    const root = parseScript(readText(file), file);
+    for (const assignment of root.assignments) {
+      const key = scriptEntryKey(assignment.key);
+      if (!key.startsWith("amendment_")) continue;
+      const node = asNode(assignment.value);
+      if (!node) continue;
+      rows.push({
+        key,
+        name_zh: locCleanName(loc, key),
+        desc_zh: loc.has(`${key}_desc`) ? cleanLocalizationText(locName(loc, `${key}_desc`), loc) : "",
+        parent_law: firstScalar(node, "parent"),
+        allowed_laws: nodeItems(asNode(firstValue(node, "allowed_laws")) || { items: [] }),
+        modifiers: allValues(node, "modifier").map(asNode).filter(Boolean)
+          .flatMap((modifierNode) => modifierNode.assignments.map((item) => modifierRef(item.key, item.value, loc))),
+        possible: conditionSummaryObject(firstValue(node, "possible"), loc),
+        source_file: normalizePath(file),
+      });
+    }
+  }
+  return rows;
+}
+
+function attachLawAmendments(laws, amendments) {
+  for (const law of laws.values()) law.amendments = [];
+  for (const amendment of amendments) {
+    const keys = new Set([amendment.parent_law, ...(amendment.allowed_laws || [])].filter(Boolean));
+    for (const key of keys) {
+      const law = laws.get(key);
+      if (law) law.amendments.push(amendment);
+    }
+  }
+  for (const law of laws.values()) law.amendments.sort((a, b) => (a.name_zh || a.key).localeCompare(b.name_zh || b.key, "zh-Hans-CN"));
+}
+
+function loadLaws(dir, lawGroups, institutions, loc) {
+  const rows = new Map();
+  let sortOrder = 0;
+  for (const file of listFiles(dir)) {
+    const root = parseScript(readText(file), file);
+    for (const assignment of root.assignments) {
+      const key = scriptEntryKey(assignment.key);
+      if (!key.startsWith("law_")) continue;
+      const node = asNode(assignment.value);
+      if (!node) continue;
+      const groupKey = firstScalar(node, "group");
+      const modifiers = allValues(node, "modifier")
+        .map(asNode)
+        .filter(Boolean)
+        .flatMap((modifierNode) => modifierNode.assignments.map((item) => modifierRef(item.key, item.value, loc)));
+      const institutionKey = firstScalar(node, "institution");
+      const institutionModifiers = allValues(node, "institution_modifier")
+        .map(asNode)
+        .filter(Boolean)
+        .flatMap((modifierNode) => modifierNode.assignments.map((item) => modifierRef(item.key, item.value, loc)));
+      rows.set(key, {
+        id: `law:${key}`,
+        key,
+        sort_order: sortOrder++,
+        name_zh: locCleanName(loc, key),
+        group_key: groupKey,
+        group_name_zh: lawGroups.get(groupKey)?.name_zh || locCleanName(loc, groupKey),
+        icon: stripQuotes(firstScalar(node, "icon")),
+        progressiveness: toNumberOrNull(firstScalar(node, "progressiveness")),
+        modifiers,
+        modifier_summary_zh: joinValues(modifiers.map((modifier) => modifier.summary_zh)),
+        unlocking_technologies: refsToObjects(nodeItems(asNode(firstValue(node, "unlocking_technologies")) || { items: [] }), loc),
+        institution: institutionKey ? {
+          key: institutionKey,
+          name_zh: institutions.get(institutionKey)?.name_zh || locCleanName(loc, institutionKey),
+        } : null,
+        institution_modifiers: institutionModifiers,
+        enactment_effects: lawEnactmentEffects(node, loc),
+        amendments: [],
+        parent: firstScalar(node, "parent"),
+        disallowing_laws: nodeItems(asNode(firstValue(node, "disallowing_laws")) || { items: [] }),
+        can_enact: conditionSummaryObject(firstValue(node, "can_enact"), loc),
+        is_visible: conditionSummaryObject(firstValue(node, "is_visible"), loc),
+        source_file: normalizePath(file),
+      });
+    }
+  }
+  return rows;
+}
+
+function lawEnactmentEffects(node, loc) {
+  const raw = ["on_activate", "on_enact"]
+    .map((key) => firstValue(node, key))
+    .filter(Boolean)
+    .map((value) => stringifyScriptValue(value))
+    .join("\n");
+  const labels = [];
+  if (/\bliberate_slaves\s*=\s*yes\b/.test(raw)) labels.push("颁布时解放奴隶");
+  if (/\bliberate_slaves_in_incorporated_states\s*=\s*yes\b/.test(raw)) labels.push("颁布时解放已整合州的奴隶");
+  return labels;
 }
 
 function characterIdeologyRequirements(node, loc) {
@@ -2418,6 +2589,30 @@ function countryInterestGroupFlavors(interestGroups, context) {
   });
 }
 
+function ideologyCoverageRows(ideologies, countryRows, interestGroups, context) {
+  const eligibleCountries = countryRows.filter((row) => row.country_type !== "decentralized");
+  const coverage = new Map();
+  for (const country of eligibleCountries) {
+    const present = new Set();
+    for (const group of countryInterestGroupFlavors(interestGroups, {
+      tag: country.tag,
+      country_type: country.country_type,
+      primaryCultureKeys: splitJoined(country.primary_cultures),
+      religion: country.religion,
+      ...context,
+    })) {
+      for (const ideology of group.active_ideologies || []) present.add(ideology.key);
+    }
+    for (const key of present) coverage.set(key, (coverage.get(key) || 0) + 1);
+  }
+  return [...ideologies.values()].map((ideology) => ({
+    ...ideology,
+    country_coverage_count: coverage.get(ideology.key) || 0,
+    country_coverage_total: eligibleCountries.length,
+    is_universal: eligibleCountries.length > 0 && coverage.get(ideology.key) === eligibleCountries.length,
+  }));
+}
+
 function executeInterestGroupEffects(value, context, runtime, conditions) {
   const node = asNode(value);
   if (!node) return;
@@ -2814,7 +3009,7 @@ function uniqueByCategory(categories) {
 }
 
 function formatModifierValue(key, numericValue, rawValue) {
-  if (!Number.isFinite(numericValue)) return rawValue || "";
+  if (!Number.isFinite(numericValue)) return rawValue === "yes" ? "" : rawValue || "";
   const sign = numericValue > 0 ? "+" : "";
   if (isPercentModifierKey(key)) {
     return `${sign}${formatNumber(numericValue * 100)}%`;
@@ -2849,6 +3044,12 @@ function cleanLocalizationText(text, loc, depth = 0) {
   ));
   result = result.replace(/\$([A-Za-z0-9_:.]+)(?:\|[^$]+)?\$/g, (_match, key) => (
     cleanLocalizationText(loc.get(key) || key, loc, depth + 1)
+  ));
+  result = result.replace(/\[GetInterestGroupVariant\('([^']+)'\s*,\s*GetPlayer\)\.GetNameWithCountryVariant\]/g, (_match, key) => (
+    cleanLocalizationText(locName(loc, key), loc, depth + 1)
+  ));
+  result = result.replace(/\[Get(?:InstitutionType|PopType|CombatUnitGroup|CombatUnitType|DiplomaticActionType|BuildingType|LawType)\('([^']+)'\)\.GetName\]/g, (_match, key) => (
+    cleanLocalizationText(locName(loc, key), loc, depth + 1)
   ));
   result = result.replace(/@[A-Za-z0-9_]+!/g, "");
   result = result.replace(/#(?:[A-Za-z0-9_]+)?\s?/g, "").replace(/#!/g, "");
@@ -3112,6 +3313,8 @@ function writeDatabase(dir, data) {
     interestGroups,
     interestGroupTraits,
     ideologies,
+    lawGroups,
+    laws,
     geographicRegions,
     cultureRows,
     cultureTraitRows,
@@ -3295,6 +3498,8 @@ function writeDatabase(dir, data) {
       interest_groups: "interest_groups.json",
       interest_group_traits: "interest_group_traits.json",
       ideologies: "ideologies.json",
+      law_groups: "law_groups.json",
+      laws: "laws.json",
       dynamic_country_name_variants: "dynamic_country_name_variants.json",
       dynamic_country_map_color_rules: "dynamic_country_map_color_rules.json",
       formable_countries: "formable_countries.json",
@@ -3313,6 +3518,8 @@ function writeDatabase(dir, data) {
       interest_groups: interestGroups.length,
       interest_group_traits: interestGroupTraits.size,
       ideologies: ideologies.size,
+      law_groups: lawGroups.size,
+      laws: laws.size,
       dynamic_country_name_variants: dynamicNameVariants.length,
       dynamic_country_map_color_rules: dynamicMapColorRules.length,
       formable_countries: formables.length,
@@ -3332,7 +3539,16 @@ function writeDatabase(dir, data) {
   writeJson(path.join(dir, "company_charter_types.json"), companyCharterTypes);
   writeJson(path.join(dir, "interest_groups.json"), interestGroups.map(publicInterestGroup));
   writeJson(path.join(dir, "interest_group_traits.json"), [...interestGroupTraits.values()]);
-  writeJson(path.join(dir, "ideologies.json"), [...ideologies.values()]);
+  writeJson(path.join(dir, "ideologies.json"), ideologyCoverageRows(ideologies, countryRows, interestGroups, {
+    cultures,
+    cultureTraits,
+    interestGroupTraits,
+    ideologies,
+    existingAtStartTags,
+    locName: (key) => locCleanName(loc, key),
+  }));
+  writeJson(path.join(dir, "law_groups.json"), [...lawGroups.values()]);
+  writeJson(path.join(dir, "laws.json"), [...laws.values()]);
   writeJson(path.join(dir, "dynamic_country_name_variants.json"), dynamicNameVariants);
   writeJson(path.join(dir, "dynamic_country_map_color_rules.json"), dynamicMapColorRules);
   writeJson(path.join(dir, "formable_countries.json"), formables);
