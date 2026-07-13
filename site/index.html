@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Vicdata</title>
-    <link rel="stylesheet" href="styles.css?v=20260712-country-flags12">
+    <link rel="stylesheet" href="styles.css?v=20260713-homepage8">
     <link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png">
     <link rel="apple-touch-icon" sizes="180x180" href="assets/brand/apple-touch-icon.png">
     <link rel="manifest" href="site.webmanifest">
@@ -188,9 +188,29 @@
         </details>
       </aside>
 
+      <section id="homeWelcome" class="home-welcome" hidden aria-label="Vicdata 资料库说明">
+        <p class="home-kicker">VICTORIA 3 · DATA REFERENCE</p>
+        <h1>Vicdata 维多利亚 3 资料库</h1>
+        <p>查阅国家、文化、地区、公司与意识形态资料，并在地图中查看它们之间的关联。</p>
+        <button id="homeGuideButton" class="home-guide-button" type="button">
+          <span class="home-guide-mark">?</span>
+          <span><strong>网站使用说明</strong><small>了解资料范围、搜索方式、地图操作与常见问题。</small></span>
+          <span class="home-guide-arrow" aria-hidden="true">→</span>
+        </button>
+        <p class="home-copyright">Vicdata 为玩家制作的资料浏览工具，与 Paradox Interactive 没有从属、授权或合作关系。游戏名称、图像、数据与商标归其权利人所有。</p>
+      </section>
+
+      <section id="homeLinks" class="home-links" hidden aria-labelledby="home-links-title">
+        <h2 id="home-links-title">链接</h2>
+        <a href="https://vic3.paradoxwikis.com/Victoria_3_Wiki" target="_blank" rel="noreferrer">Victoria 3 Wiki</a>
+        <a href="https://vic3.parawikis.com/wiki/%E9%A6%96%E9%A1%B5" target="_blank" rel="noreferrer">Parawikis</a>
+        <a href="https://forum.paradoxplaza.com/forum/forums/victoria-3.1095/" target="_blank" rel="noreferrer">Victoria 3 官方论坛</a>
+        <a href="https://space.bilibili.com/3546875974126422" target="_blank" rel="noreferrer">Victoria3 官方账号（B站）</a>
+      </section>
+
       <section class="results">
         <div class="panel-head">
-          <strong>列表</strong>
+          <strong>导航</strong>
         </div>
         <div class="result-head">
           <div>
@@ -239,6 +259,6 @@
 
     <script src="versions.js?v=20260627-version-groups1"></script>
     <script src="assets/flags/country-flags.js?v=20260712-all-flags2"></script>
-    <script src="app.js?v=20260712-country-flags14"></script>
+    <script src="app.js?v=20260713-homepage8"></script>
   </body>
 </html>

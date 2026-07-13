@@ -651,6 +651,9 @@ const els = {
   sortSelect: document.querySelector("#sortSelect"),
   resultCount: document.querySelector("#resultCount"),
   activeHint: document.querySelector("#activeHint"),
+  homeWelcome: document.querySelector("#homeWelcome"),
+  homeGuideButton: document.querySelector("#homeGuideButton"),
+  homeLinks: document.querySelector("#homeLinks"),
   mapPanel: document.querySelector("#mapPanel"),
   mapModeSelect: document.querySelector("#mapModeSelect"),
   mapSubjectSelect: document.querySelector("#mapSubjectSelect"),
@@ -683,6 +686,7 @@ async function init() {
   initDisplaySettings();
   renderFilterOptions();
   bindEvents();
+  els.homeGuideButton?.addEventListener("click", () => openInfoDialog("about"));
   applyHash();
   render();
 }
@@ -1665,6 +1669,8 @@ function updatePanelToggleState() {
 function render() {
   hideTransientOverlays();
   document.body.dataset.view = state.view;
+  if (els.homeWelcome) els.homeWelcome.hidden = state.view !== "home";
+  if (els.homeLinks) els.homeLinks.hidden = state.view !== "home";
   document.body.classList.toggle("detail-page", isDetailPageRoute());
   document.body.classList.toggle("global-search-active", Boolean(state.globalSearch));
   updatePageChrome();
@@ -1762,34 +1768,96 @@ function initializeDefaultFilterSectionOpenStates() {
 
 function renderHomeBoard() {
   mapRuntime.filteredCountryTags = new Set();
-  els.resultCount.textContent = `${siteTitle} 入口`;
-  els.activeHint.textContent = `版本 ${data.meta?.victoria3_version || "未知"}`;
+  els.resultCount.textContent = "";
+  els.activeHint.textContent = "";
   els.countryList.className = "country-list home-board";
   const entries = [
-    { label: "最近版本", text: data.meta?.victoria3_version || "未知", view: "country" },
-    { label: "国家", text: `${countries.length} 个国家`, view: "country" },
-    { label: "地区", text: `${landStateRegions.length} 个州地区`, view: "region" },
-    { label: "文化", text: `${cultures.length} 个文化`, view: "culture" },
-    { label: "公司", text: `${companies.length} 个公司`, view: "company" },
-    { label: "意识形态", text: `${ideologies.length} 个意识形态`, view: "ideology" },
+    { category: "外交", label: "国家", text: `${countries.length} 个国家`, view: "country", icon: "assets/home/waving_flag.png" },
+    { category: "外交", label: "国家集团", text: "筹备中", icon: "assets/home/sovereign_empire.png" },
+    { category: "外交", label: "外交条约与博弈", text: "筹备中", icon: "assets/home/international_diplomacy.png" },
+    { category: "内政", label: "法律", text: "筹备中", icon: "assets/home/law_enforcement.png" },
+    { category: "内政", label: "意识形态", text: `${ideologies.length} 个意识形态`, view: "ideology", icon: "assets/home/democracy.png" },
+    { category: "内政", label: "日志、事件与决议", text: "筹备中", icon: "assets/home/event_default.png" },
+    { category: "社会", label: "文化", text: `${cultures.length} 个文化`, view: "culture", icon: "assets/home/nationalism.png" },
+    { category: "社会", label: "科技", text: "筹备中", icon: "assets/home/academia.png" },
+    { category: "社会", label: "角色", text: "筹备中", icon: "assets/home/event_portrait.png" },
+    { category: "经济", label: "地区", text: `${landStateRegions.length} 个州地区`, view: "region", icon: "assets/home/state.png" },
+    { category: "经济", label: "建筑", text: "筹备中", icon: "assets/home/manufacturies.png" },
+    { category: "经济", label: "商品", text: "筹备中", icon: "assets/home/grand_strategy_games_prestige.png" },
+    { category: "经济", label: "公司", text: `${companies.length} 个公司`, view: "company", icon: "assets/home/companies.png" },
+    { category: "军事", label: "陆军", text: "筹备中", icon: "assets/home/line_infantry.png" },
+    { category: "军事", label: "海军", text: "筹备中", icon: "assets/home/dreadnought.png" },
+    { category: "其他", label: "成就", text: "筹备中", icon: "assets/home/icon_achievements_enabled.png" },
+    { category: "其他", label: "游戏资源展示", text: "筹备中", icon: "assets/home/romanticism.png" },
+    { category: "其他", label: "更新日志", text: "版本差异", view: "changelog", icon: "assets/home/mass_communication.png" },
   ];
-  els.countryList.innerHTML = entries.map((entry) => `
-    <button class="home-card" type="button" data-home-view="${escapeHtml(entry.view)}">
-      <span class="home-card-label">${escapeHtml(entry.label)}</span>
-      <span class="home-card-text">${escapeHtml(entry.text)}</span>
-    </button>
-  `).join("");
+  const categoryRows = [["外交", "内政"], ["经济", "军事"], ["社会", "其他"]];
+  const homeUpdatedAt = new Intl.DateTimeFormat("zh-CN", {
+    timeZone: "Asia/Hong_Kong",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(new Date()).replace(/\//g, "-");
+  els.countryList.innerHTML = `
+    <div class="home-category-list">
+      ${categoryRows.map(([leftCategory, rightCategory]) => {
+        const rowEntries = [...entries.filter((entry) => entry.category === leftCategory), ...entries.filter((entry) => entry.category === rightCategory)];
+        return `
+          <section class="home-category-row" aria-label="${escapeHtml(leftCategory)}和${escapeHtml(rightCategory)}">
+            <div class="home-category-heading"><h2>${escapeHtml(leftCategory)}</h2><span>${escapeHtml(String(entries.filter((entry) => entry.category === leftCategory).length))} 项</span></div>
+            <div class="home-category-heading"><h2>${escapeHtml(rightCategory)}</h2><span>${escapeHtml(String(entries.filter((entry) => entry.category === rightCategory).length))} 项</span></div>
+            <div class="home-entry-grid">
+              ${rowEntries.map((entry) => entry.view ? `
+                <button class="home-entry" type="button" data-home-view="${escapeHtml(entry.view)}">
+                  <img class="home-entry-icon" src="${escapeHtml(entry.icon)}" alt="" aria-hidden="true">
+                  <span class="home-entry-copy"><strong>${escapeHtml(entry.label)}</strong><small>${escapeHtml(entry.text)}</small></span>
+                </button>
+              ` : `
+                <article class="home-entry home-entry-pending" aria-label="${escapeHtml(entry.label)}，筹备中">
+                  <img class="home-entry-icon" src="${escapeHtml(entry.icon)}" alt="" aria-hidden="true">
+                  <span class="home-entry-copy"><strong>${escapeHtml(entry.label)}</strong><small>${escapeHtml(entry.text)}</small></span>
+                </article>
+              `).join("")}
+            </div>
+          </section>
+        `;
+      }).join("")}
+    </div>
+  `;
   els.countryList.querySelectorAll("[data-home-view]").forEach((button) => {
     button.addEventListener("click", () => {
+      if (button.dataset.homeView === "changelog") {
+        location.hash = "/changelog";
+        return;
+      }
       setView(button.dataset.homeView);
       render();
     });
   });
   els.detail.innerHTML = `
-    <section class="settings-placeholder">
-      <h2>${escapeHtml(siteTitle)}</h2>
-      <p>这里汇总站点内容、功能入口、最近版本和更新记录。右上角搜索按钮可打开全站搜索。</p>
-      <p>当前默认版本为 ${escapeHtml(data.meta?.victoria3_version || "未知")}。</p>
+    <section class="home-side-panel home-announcement">
+      <div class="home-side-heading"><h2>公告</h2><span>站内</span></div>
+      <article class="home-announcement-item">
+        <time>2026-07-13</time>
+        <strong>主页资料入口正在调整</strong>
+        <p>已建成板块可直接进入，后续板块会在资料准备完成后开放。</p>
+      </article>
+      <article class="home-announcement-item">
+        <time>当前数据版本</time>
+        <strong>Victoria 3 ${escapeHtml(data.meta?.victoria3_version || "未知")}</strong>
+        <p>页面中的资料、筛选条件和地图内容以当前选择的版本为准。</p>
+      </article>
+      <p class="home-updated-at">最近更新：${escapeHtml(homeUpdatedAt)}</p>
+    </section>
+    <section class="home-side-panel home-news-placeholder">
+      <div class="home-side-heading"><h2>游戏资讯</h2><span>占位</span></div>
+      <div class="home-news-empty">
+        <img src="assets/home/romanticism.png" alt="" aria-hidden="true">
+        <p>此处将用于整理版本说明、开发日志与资料片资讯。目前保留为占位。</p>
+      </div>
     </section>
   `;
   renderMap([]);
@@ -5639,16 +5707,21 @@ function stateTraitEffectList(traits) {
   }
   return `<div class="rule-list">${traits.map((trait) => `
     <article class="rule-item">
-      <div class="rule-head">
-        <strong>${escapeHtml(trait.name_zh || trait.key)}</strong>
-        <span class="minor">${escapeHtml(trait.key)}</span>
+      <div class="trait-card-layout">
+        ${traitIconHtml(trait, "state")}
+        <div class="trait-card-content">
+          <div class="rule-head">
+            <strong>${escapeHtml(trait.name_zh || trait.key)}</strong>
+            <span class="minor">${escapeHtml(trait.key)}</span>
+          </div>
+          <dl class="mini-grid">
+            ${field("类型", traitCategoryPills(trait.categories))}
+            ${field("效果", modifierPills(trait.modifiers))}
+            ${field("殖民科技", escapeHtml((trait.required_techs_for_colonization || []).join("、")))}
+            ${field("失效科技", escapeHtml((trait.disabling_technologies || []).join("、")))}
+          </dl>
+        </div>
       </div>
-      <dl class="mini-grid">
-        ${field("类型", traitCategoryPills(trait.categories))}
-        ${field("效果", modifierPills(trait.modifiers))}
-        ${field("殖民科技", escapeHtml((trait.required_techs_for_colonization || []).join("、")))}
-        ${field("失效科技", escapeHtml((trait.disabling_technologies || []).join("、")))}
-      </dl>
     </article>
   `).join("")}</div>`;
 }
@@ -5767,14 +5840,30 @@ function interestGroupTraitDetailCard(trait, changed = false) {
   const className = changed ? " interest-group-trait-card-changed" : "";
   return `
     <article class="interest-group-trait-card${className}" data-concept-kind="interestGroupTrait" data-concept-key="${escapeHtml(trait.key || "")}" data-concept-label="${escapeHtml(trait.name_zh || trait.key || "")}" data-concept-search="${escapeHtml(trait.name_zh || trait.key || "")}">
-      <div class="interest-group-trait-head">
-        <strong>${escapeHtml(trait.name_zh || trait.key || "")}</strong>
-        ${approval ? `<span>${escapeHtml(approval)}</span>` : ""}
+      <div class="trait-card-layout">
+        ${traitIconHtml(trait, "interest-group")}
+        <div class="trait-card-content">
+          <div class="interest-group-trait-head">
+            <strong>${escapeHtml(trait.name_zh || trait.key || "")}</strong>
+            ${approval ? `<span>${escapeHtml(approval)}</span>` : ""}
+          </div>
+          ${summary ? `<p>${escapeHtml(summary)}</p>` : ""}
+          ${desc ? `<p class="minor">${escapeHtml(desc)}</p>` : ""}
+        </div>
       </div>
-      ${summary ? `<p>${escapeHtml(summary)}</p>` : ""}
-      ${desc ? `<p class="minor">${escapeHtml(desc)}</p>` : ""}
     </article>
   `;
+}
+
+function traitIconHtml(trait, kind) {
+  const iconPath = String(trait?.icon || "");
+  const fileName = iconPath
+    ? iconPath.split(/[\\/]/).at(-1).replace(/\.dds$/i, ".png")
+    : String(trait?.key || "").replace(/^ig_trait_/, "").replace(/^state_trait_/, "") + ".png";
+  if (!fileName || fileName === ".png") return "";
+  const folder = kind === "interest-group" ? "interest-group-traits" : "state-traits";
+  const alt = escapeHtml(trait?.name_zh || trait?.key || "特质");
+  return `<img class="trait-icon" src="assets/${folder}/${escapeHtml(fileName)}" alt="${alt}" onerror="this.hidden=true">`;
 }
 
 function activeIdeologyPills(group) {
