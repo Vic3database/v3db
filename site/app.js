@@ -128,6 +128,7 @@ const state = {
   selectedTag: "",
   selectedCulture: "",
   selectedStateRegion: "",
+  mapSelectedStateRegion: "",
   selectedStrategicRegion: "",
   selectedGeographicRegion: "",
   selectedCompany: "",
@@ -2333,7 +2334,8 @@ function renderRegionBoard() {
     .map((stateRef) => byStateRegion.get(stateRef.key))
     .filter(Boolean));
   if (state.selectedStateRegion && !byStateRegion.has(state.selectedStateRegion)) state.selectedStateRegion = "";
-  if (!isDetailPageRoute() && state.selectedStateRegion && !filteredStateRegions.some((stateRegion) => stateRegion.key === state.selectedStateRegion)) state.selectedStateRegion = "";
+  if (state.mapSelectedStateRegion && !byStateRegion.has(state.mapSelectedStateRegion)) state.mapSelectedStateRegion = "";
+  if (!isDetailPageRoute() && state.selectedStateRegion && !filteredStateRegions.some((stateRegion) => stateRegion.key === state.selectedStateRegion) && state.selectedStateRegion !== state.mapSelectedStateRegion) state.selectedStateRegion = "";
   if (state.selectedStrategicRegion && ![...filteredStrategicRegions, ...filteredSeaRegions].some((region) => region.key === state.selectedStrategicRegion)) {
     state.selectedStrategicRegion = "";
   }
@@ -3089,8 +3091,23 @@ function openCountryDetail(countryTag) {
 }
 
 function renderRegionList(filteredStrategicRegions, filteredStateRegions, filteredSeaRegions, filteredGeographicRegions) {
-  const visibleStateRegions = filteredStateRegions.slice(0, 220);
+  const visibleStateRegions = filteredStateRegions;
+  const selectedStateRegionFromMap = byStateRegion.get(state.mapSelectedStateRegion);
+  const mapSelectionIsFilteredOut = selectedStateRegionFromMap && !visibleStateRegions.some((stateRegion) => stateRegion.key === selectedStateRegionFromMap.key);
   els.countryList.className = "country-list region-list";
+  const selectedFromMapHtml = mapSelectionIsFilteredOut ? `
+    <article class="country-row region-row region-map-selected selectable-row" data-state-region="${escapeHtml(selectedStateRegionFromMap.key)}" style="${stateRegionBorderStyle(selectedStateRegionFromMap)}" aria-current="true" tabindex="0">
+      <span class="country-heading">
+        <span class="tag">${escapeHtml(selectedStateRegionFromMap.key)}</span>
+        <span class="name">${stateRegionNameText(selectedStateRegionFromMap)}</span>
+        ${rowDetailButton("data-state-region-detail", selectedStateRegionFromMap.key)}
+      </span>
+      <span class="minor country-meta">${escapeHtml(stateRegionSummaryText(selectedStateRegionFromMap))}</span>
+      <span class="minor country-meta">本土文化：${escapeHtml(refNames(selectedStateRegionFromMap.homeland_cultures))}</span>
+      <span class="pill-line country-tags">${stateRegionTagPills(selectedStateRegionFromMap)}</span>
+      <span class="region-building-strip">${stateRegionBuildingStrip(selectedStateRegionFromMap)}</span>
+    </article>
+  ` : "";
   const stateRegionHtml = visibleStateRegions.length ? `
     <div class="list-section-title">州地区</div>
     ${visibleStateRegions.map((stateRegion) => `
@@ -3107,7 +3124,7 @@ function renderRegionList(filteredStrategicRegions, filteredStateRegions, filter
       </article>
     `).join("")}
   ` : "";
-  els.countryList.innerHTML = stateRegionHtml || `<p class="empty">没有匹配结果。</p>`;
+  els.countryList.innerHTML = `${selectedFromMapHtml}${stateRegionHtml || (selectedFromMapHtml ? "" : `<p class="empty">没有匹配结果。</p>`)}`;
   els.countryList.querySelectorAll("[data-state-region]").forEach((row) => {
     row.addEventListener("click", (event) => {
       if (event.target.closest("a, button, [data-concept-key]")) return;
@@ -3131,6 +3148,7 @@ function renderRegionList(filteredStrategicRegions, filteredStateRegions, filter
 function selectStateRegionCard(stateRegionKey) {
   if (!stateRegionKey || !byStateRegion.has(stateRegionKey)) return;
   state.selectedStateRegion = stateRegionKey;
+  state.mapSelectedStateRegion = "";
   state.detailKind = "stateRegion";
   state.regionListMode = "state";
   replaceHash(selectionHashForCard("/region", `/state-region/${encodeURIComponent(stateRegionKey)}`));
@@ -3140,15 +3158,21 @@ function selectStateRegionCard(stateRegionKey) {
 function selectStateRegionFromMap(stateRegionKey) {
   if (!stateRegionKey || !byStateRegion.has(stateRegionKey)) return;
   state.selectedStateRegion = stateRegionKey;
+  state.mapSelectedStateRegion = stateRegionKey;
   state.detailKind = "stateRegion";
   state.regionListMode = "state";
   replaceHash("/region");
   render();
+  requestAnimationFrame(() => {
+    const selectedRow = els.countryList.querySelector(`[data-state-region="${stateRegionKey}"]`);
+    selectedRow?.scrollIntoView({ block: "center", behavior: "smooth" });
+  });
 }
 
 function openStateRegionDetail(stateRegionKey) {
   if (!stateRegionKey || !byStateRegion.has(stateRegionKey)) return;
   state.selectedStateRegion = stateRegionKey;
+  state.mapSelectedStateRegion = "";
   state.detailKind = "stateRegion";
   state.regionListMode = "state";
   replaceHash(`/state-region/${encodeURIComponent(stateRegionKey)}`);
