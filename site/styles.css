@@ -5039,8 +5039,8 @@ body.detail-page .detail-back-button {
 }
 
 .global-search-dialog {
-  width: min(760px, 100%);
-  max-height: min(720px, calc(100vh - 48px));
+  width: min(1080px, 100%);
+  max-height: min(84vh, calc(100vh - 48px));
   display: grid;
   gap: 12px;
   padding: 16px;
@@ -5109,11 +5109,51 @@ body.detail-page .detail-back-button {
 
 .global-search-dialog-results {
   min-height: 120px;
-  max-height: min(460px, 58vh);
+  max-height: min(650px, 68vh);
   overflow: auto;
   display: grid;
   gap: 8px;
   padding-right: 2px;
+}
+
+.global-search-dialog-results .country-row {
+  grid-template-columns: 100px minmax(0, 1fr);
+  min-height: 78px;
+}
+
+.global-search-dialog-results .country-row > .entity-badge {
+  width: 100px;
+  height: 60px;
+  justify-self: start;
+  align-self: center;
+  object-fit: contain;
+  object-position: left center;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.global-search-dialog-results .entity-badge.entity-badge-flag {
+  width: 100px;
+  height: 60px;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.global-search-dialog-results .entity-badge.entity-badge-round {
+  width: 60px;
+  border-radius: 999px;
+}
+
+.global-search-dialog-results .entity-badge.entity-badge-swatch {
+  width: 60px;
+  min-width: 60px;
+  border-radius: 8px;
+}
+
+.interest-group-flavor-focus {
+  outline: 3px solid rgba(200, 164, 91, 0.72);
+  outline-offset: 4px;
 }
 
 .global-search-dialog-results .country-row[aria-selected="true"] {

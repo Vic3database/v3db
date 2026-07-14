@@ -8,6 +8,7 @@ const failures = [];
 
 checkRegionMapClickContracts();
 checkRegionRowDetailButtonContracts();
+checkRegionMapListSyncContracts();
 
 if (failures.length) {
   console.error(failures.map((failure) => `- ${failure}`).join("\n"));
@@ -40,6 +41,16 @@ function checkRegionRowDetailButtonContracts() {
   assert(/assets\/lucide\/icons\/arrow-right\.svg/.test(rowDetailButton), "row detail button should use the right-arrow icon");
   assert(/aria-label="进入详情"/.test(rowDetailButton), "row detail button should have an accessible label");
   assert(/\.row-detail-button/.test(stylesSource), "row detail button should have shared styles");
+}
+
+function checkRegionMapListSyncContracts() {
+  const renderRegionList = functionSource("renderRegionList");
+  const selectStateRegionFromMap = functionSource("selectStateRegionFromMap");
+
+  assert(!/filteredStateRegions\.slice\(0,\s*220\)/.test(renderRegionList), "region rows should not be capped at 220 items");
+  assert(/selectedStateRegionFromMap/.test(renderRegionList), "region list should resolve the region selected from the map");
+  assert(/region-map-selected/.test(renderRegionList), "filtered-out map selections should render a temporary highlighted card");
+  assert(/scrollIntoView\(\{ block: "center"/.test(selectStateRegionFromMap), "map selection should scroll its region card into view");
 }
 
 function readText(relativePath) {

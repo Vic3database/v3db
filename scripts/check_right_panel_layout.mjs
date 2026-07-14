@@ -31,6 +31,9 @@ function checkDetailLayoutContracts() {
   const ideologyHeaderBlock = ruleBlock(".vic3-ideology-header");
   const detailScriptBlock = ruleBlock(".detail .script-details");
   const detailScriptPreBlock = ruleBlock(".detail .script-details pre");
+  const scriptBlock = ruleBlock(".script-details");
+  const scriptPreBlock = ruleBlock(".script-details pre");
+  const interestGroupRuleBlock = ruleBlock(".interest-group-rule");
   const detailInterestGroupRuleBlock = ruleBlock(".detail .interest-group-rule");
   const detailBackButtonSource = functionSource("detailBackButton");
   assert(/\.detail\s*{[\s\S]*--detail-pad-x:\s*20px[\s\S]*padding:\s*0\s+var\(--detail-pad-x\)\s+32px/.test(styleSource), "detail panel should put top spacing in the sticky title instead of scrollable padding");
@@ -50,6 +53,9 @@ function checkDetailLayoutContracts() {
   assert(detailScriptBlock.includes("border-top: 1px solid rgba(200, 164, 91, 0.24)"), "detail script sections should use the standard gold separator");
   assert(detailScriptPreBlock.includes("border-color: rgba(200, 164, 91, 0.28)") && detailScriptPreBlock.includes("background: var(--panel-glass-strong)") && detailScriptPreBlock.includes("color: var(--ink)"), "detail source code blocks should use the standard dark panel palette");
   assert(detailInterestGroupRuleBlock.includes("border-color: rgba(200, 164, 91, 0.24)") && detailInterestGroupRuleBlock.includes("background: var(--surface-raised)") && detailInterestGroupRuleBlock.includes("color: var(--ink)"), "detail matching-rule blocks should use the standard panel palette");
+  assert(scriptBlock.includes("border-top: 1px solid rgba(200, 164, 91, 0.24)"), "script sections should use the standard gold separator by default");
+  assert(scriptPreBlock.includes("border-color: rgba(200, 164, 91, 0.28)") && scriptPreBlock.includes("background: var(--panel-glass-strong)") && scriptPreBlock.includes("color: var(--ink)"), "source code blocks should use the standard dark panel palette by default");
+  assert(interestGroupRuleBlock.includes("border-color: rgba(200, 164, 91, 0.24)") && interestGroupRuleBlock.includes("background: var(--surface-raised)") && interestGroupRuleBlock.includes("color: var(--ink)"), "matching-rule blocks should use the standard panel palette by default");
   assert(!detailScriptPreBlock.includes("background: #f3f6f3"), "detail source code blocks should not use the old light background");
   assert(/\.detail\s+\.link-list,\s*[\s\S]*\.detail\s+\.pill-line\s*{[\s\S]*align-items:\s*flex-start/.test(styleSource), "right-panel link and tag rows should align wrapped pills cleanly");
 }
@@ -71,6 +77,14 @@ function checkScrollbarContracts() {
 
 function checkTooltipContracts() {
   assert(/function\s+conceptTooltipRows\s*\(/.test(appSource), "concept tooltip should be built through a view-aware row helper");
+  assert(/function\s+ideologyTooltipRows\s*\(/.test(appSource), "ideology tags should render through a dedicated rich tooltip helper");
+  assert(/function\s+ideologyTooltipAttitudeGroups\s*\(/.test(appSource), "ideology tooltip should group all law stances by law group");
+  assert(/function\s+ideologyTooltipAttitudeLines\s*\(/.test(appSource), "ideology tooltip should group laws by stance within each law group");
+  assert(/ideology-tooltip/.test(appSource), "ideology tags should opt into the rich tooltip class");
+  assert(/ideologyIconHtml\(ideology, "ideology-tooltip-icon"\)/.test(appSource), "ideology tooltip should show the ideology icon");
+  assert(/对\$\{escapeHtml\(group\.name\)\}的态度/.test(appSource), "ideology tooltip should label each law group attitude");
+  assert(/ideology-tooltip-attitude-line/.test(appSource), "ideology tooltip should render colored law stance lines");
+  assert(/hideNativeTitle:\s*true/.test(appSource), "ideology tags should not keep a native browser tooltip");
   assert(/function\s+conceptTooltipContextLine\s*\(/.test(appSource), "concept tooltip should have view-specific context lines");
   assert(/function\s+conceptTooltipActionText\s*\(/.test(appSource), "concept tooltip action text should be isolated and short");
   assert(/function\s+resourceSummaryText\s*\(/.test(appSource), "concept tooltip state-region context should use a defined resource summary helper");
@@ -86,6 +100,13 @@ function checkTooltipContracts() {
   assert(!functionSource("mapTooltipHtml").split("const rows = mapTooltipRowsForView")[0].includes("<dl>"), "sea map tooltip should only show name and id");
   assert(!/map-tooltip-section[\s\S]*stateTraitEffectList\(stateRegion\.traits\)/.test(functionSource("mapTooltipHtml")), "map hover tooltip should not render full state trait cards");
   assert(/\.concept-tooltip\s*{[\s\S]*max-width:\s*260px/.test(styleSource), "concept tooltip should be narrowed after content simplification");
+  assert(/\.concept-tooltip\.ideology-tooltip\s*{[\s\S]*width:\s*min\(360px,\s*calc\(100%\s*-\s*28px\)\)/.test(styleSource), "ideology tooltip should use a map-tooltip-sized card");
+  assert(/ideology-tooltip-type/.test(appSource), "ideology tooltip should place its type beside the title");
+  assert(/ideology-tooltip-desc/.test(appSource), "ideology tooltip should render its description at the bottom");
+  assert(/\.ideology-tooltip\s*{[\s\S]*overflow:\s*visible/.test(styleSource), "ideology tooltip should not use an internal scroll container");
+  assert(/\.ideology-tooltip-attitude-line\.stance-neutral\s*{[\s\S]*color:\s*var\(--ink\)/.test(styleSource), "neutral ideology stances should use the default ideology text color");
+  assert(/\.ideology-tooltip-attitude-group\s*{[\s\S]*border-top:\s*0/.test(styleSource), "ideology attitude groups should not add a background divider");
+  assert(/\.ideology-tooltip\s+\.ideology-tooltip-attitude-line\s*{[\s\S]*background:\s*transparent[\s\S]*border-color:\s*transparent[\s\S]*box-shadow:\s*none/.test(styleSource), "ideology tooltip attitude lines should override generic stance backgrounds");
   assert(/\.map-tooltip\s*{[\s\S]*width:\s*min\(360px,\s*calc\(100%\s*-\s*18px\)\)/.test(styleSource), "map tooltip should be narrowed after content simplification");
   assert(/\.map-tooltip-resource-row\s*{[\s\S]*display:\s*flex/.test(styleSource), "map tooltip resource icon rows should use a wrapping flex layout");
   assert(/\.map-tooltip-resource-row\s+\.building-chip\s*{[\s\S]*border:\s*0[\s\S]*background:\s*transparent[\s\S]*box-shadow:\s*none/.test(styleSource), "map tooltip resource icons should not keep the building chip card frame");
@@ -153,7 +174,7 @@ function checkListInteractionContracts() {
   assert(/function\s+renderRegionBoard[\s\S]*const selectedStateRegion = byStateRegion\.get\(state\.selectedStateRegion\)[\s\S]*renderMap\(regionMapStateRegions\(filteredStateRegions,\s*filteredSeaStateRegions,\s*filteredGeographicRegions\)\)[\s\S]*focusStateRegionOnMap\(selectedStateRegion\)/.test(appSource), "region board should focus the map after a state-region card is selected");
   assert(/stateRegionSummaryText[\s\S]*countryRefNames/.test(appSource), "state-region cards should show starting owner labels with country tags");
   assert(!/function\s+stateRegionSummaryText[\s\S]*所属/.test(appSource), "state-region card summaries should not duplicate strategic-region text");
-  assert(!/市场接入度的价格影响/.test(appSource), "MAPI labels should not use the long market access wording in the UI");
+  assert(/市场接入度的价格影响\(MAPI\)/.test(appSource), "MAPI labels should use the requested full wording in the UI");
 }
 
 function readText(relativePath) {
