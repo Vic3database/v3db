@@ -33,17 +33,80 @@ const wikiData = {
   interestGroups: data.interestGroups,
   interestGroupTraits: data.interestGroupTraits,
   ideologies: data.ideologies,
+  laws: data.laws,
+  lawGroups: data.lawGroups,
   dynamicCountryNameVariants: data.dynamicCountryNameVariants,
   dynamicCountryMapColorRules: data.dynamicCountryMapColorRules,
   formables: data.formables,
   releasables: data.releasables,
 };
 
+const dataChunks = {
+  country: ["countries", "dynamicCountryNameVariants", "dynamicCountryMapColorRules", "formables", "releasables"],
+  culture: ["cultures", "cultureTraits", "cultureTraitGroups"],
+  region: ["stateRegions", "strategicRegions", "geographicRegions"],
+  company: ["companies", "companyCharterTypes"],
+  ideology: ["interestGroups", "interestGroupTraits", "ideologies"],
+  law: ["laws", "lawGroups"],
+};
+
+const dataChunkFileNames = {
+  country: "data-countries.js",
+  culture: "data-cultures.js",
+  region: "data-regions.js",
+  company: "data-companies.js",
+  ideology: "data-ideologies.js",
+  law: "data-laws.js",
+};
+
+for (const [key, keys] of Object.entries(dataChunks)) {
+  if (key === "country") continue;
+  const chunk = Object.fromEntries(keys.map((field) => [field, wikiData[field] || []]));
+  fs.writeFileSync(
+    path.join(outDir, dataChunkFileNames[key]),
+    `window.VIC3_DATA_CHUNK = ${JSON.stringify(chunk)};\n`,
+    "utf8",
+  );
+}
+
+const countryShardCount = 4;
+const countryShardSize = Math.ceil(wikiData.countries.length / countryShardCount);
+const countryShardFiles = [];
+for (let index = 0; index < countryShardCount; index += 1) {
+  const file = `data-countries-${index + 1}.js`;
+  countryShardFiles.push(file);
+  fs.writeFileSync(
+    path.join(outDir, file),
+    `window.VIC3_DATA_CHUNK = ${JSON.stringify({ countries: wikiData.countries.slice(index * countryShardSize, (index + 1) * countryShardSize) })};\n`,
+    "utf8",
+  );
+}
+const countryMetaFile = "data-country-meta.js";
+countryShardFiles.push(countryMetaFile);
 fs.writeFileSync(
-  path.join(outDir, "data.js"),
-  `window.VIC3_DATA = ${JSON.stringify(wikiData)};\n`,
+  path.join(outDir, countryMetaFile),
+  `window.VIC3_DATA_CHUNK = ${JSON.stringify(Object.fromEntries(dataChunks.country.slice(1).map((field) => [field, wikiData[field] || []])))};\n`,
   "utf8",
 );
+
+const dataIndex = {
+  meta: wikiData.meta,
+  chunks: Object.fromEntries(Object.entries(dataChunks).map(([key, keys]) => [key, {
+    files: key === "country" ? countryShardFiles : [dataChunkFileNames[key]],
+    keys,
+    counts: Object.fromEntries(keys.map((field) => [field, Array.isArray(wikiData[field]) ? wikiData[field].length : 0])),
+  }])),
+};
+
+fs.writeFileSync(
+  path.join(outDir, "data-index.js"),
+  `window.VIC3_DATA_INDEX = ${JSON.stringify(dataIndex)};\n`,
+  "utf8",
+);
+fs.rmSync(path.join(outDir, "data.js"), { force: true });
+for (const legacyFile of ["data-countries.js", "data-countrys.js", "data-companys.js", "data-ideologys.js"]) {
+  fs.rmSync(path.join(outDir, legacyFile), { force: true });
+}
 
 console.log(JSON.stringify({
   source,
@@ -60,6 +123,8 @@ console.log(JSON.stringify({
   interestGroups: wikiData.interestGroups.length,
   interestGroupTraits: wikiData.interestGroupTraits.length,
   ideologies: wikiData.ideologies.length,
+  laws: wikiData.laws.length,
+  lawGroups: wikiData.lawGroups.length,
   dynamicCountryNameVariants: wikiData.dynamicCountryNameVariants.length,
   dynamicCountryMapColorRules: wikiData.dynamicCountryMapColorRules.length,
   formables: wikiData.formables.length,
@@ -82,6 +147,8 @@ function loadSiteData(sourceFile) {
     const interestGroups = sourceData.files.interest_groups ? readJson(path.join(baseDir, sourceData.files.interest_groups)) : [];
     const interestGroupTraits = sourceData.files.interest_group_traits ? readJson(path.join(baseDir, sourceData.files.interest_group_traits)) : [];
     const ideologies = sourceData.files.ideologies ? readJson(path.join(baseDir, sourceData.files.ideologies)) : [];
+    const laws = sourceData.files.laws ? readJson(path.join(baseDir, sourceData.files.laws)) : [];
+    const lawGroups = sourceData.files.law_groups ? readJson(path.join(baseDir, sourceData.files.law_groups)) : [];
     const dynamicCountryNameVariants = readJson(path.join(baseDir, sourceData.files.dynamic_country_name_variants));
     const dynamicCountryMapColorRules = readJson(path.join(baseDir, sourceData.files.dynamic_country_map_color_rules));
     const formables = readJson(path.join(baseDir, sourceData.files.formable_countries));
@@ -111,6 +178,8 @@ function loadSiteData(sourceFile) {
       interestGroups,
       interestGroupTraits,
       ideologies,
+      laws,
+      lawGroups,
       dynamicCountryNameVariants,
       dynamicCountryMapColorRules,
       formables,
@@ -132,6 +201,8 @@ function deriveSiteData(siteData) {
     interestGroups: siteData.interestGroups || [],
     interestGroupTraits: siteData.interestGroupTraits || [],
     ideologies: siteData.ideologies || [],
+    laws: siteData.laws || [],
+    lawGroups: siteData.lawGroups || [],
   };
 }
 

@@ -37,7 +37,7 @@ if (!config) {
   }
 
   for (const entry of versions) {
-    addRequired(entry.data);
+    addRequired(entry.data_index);
     addRequired(entry.map_data);
   }
 
@@ -46,9 +46,7 @@ if (!config) {
   }
 }
 
-const data = readData(requiredFiles.has("versions/1.13.9/data.js")
-  ? path.join(siteRoot, "versions", "1.13.9", "data.js")
-  : "");
+const data = readChunkedData(path.join(siteRoot, "versions", "1.13.9"));
 const buildingIconFileByKey = readAppObject("buildingIconFileByKey");
 const companyDlcOptions = readAppArray("companyDlcOptions");
 const prestigeGoodIconOverrides = readAppMap("prestigeGoodIconOverrides");
@@ -86,11 +84,26 @@ console.log(JSON.stringify({
   versions: (config?.versions || []).map((entry) => entry.version),
 }, null, 2));
 
-function readData(file) {
-  if (!file) return {};
+function readChunkedData(versionDir) {
+  const indexFile = path.join(versionDir, "data-index.js");
+  if (!fs.existsSync(indexFile)) return {};
   const dataSandbox = { window: {} };
-  vm.runInNewContext(fs.readFileSync(file, "utf8"), dataSandbox, { filename: file });
-  return dataSandbox.window.VIC3_DATA || {};
+  vm.runInNewContext(fs.readFileSync(indexFile, "utf8"), dataSandbox, { filename: indexFile });
+  const index = dataSandbox.window.VIC3_DATA_INDEX || {};
+  const data = { meta: index.meta || {} };
+  for (const chunk of Object.values(index.chunks || {})) {
+    for (const file of chunk.files || []) {
+      addRequired(`versions/1.13.9/${file}`);
+      const chunkFile = path.join(versionDir, file);
+      const chunkSandbox = { window: {} };
+      vm.runInNewContext(fs.readFileSync(chunkFile, "utf8"), chunkSandbox, { filename: chunkFile });
+      const value = chunkSandbox.window.VIC3_DATA_CHUNK || {};
+      for (const [field, rows] of Object.entries(value)) {
+        data[field] = field === "countries" ? [...(data[field] || []), ...(rows || [])] : rows;
+      }
+    }
+  }
+  return data;
 }
 
 function addRequired(relative) {

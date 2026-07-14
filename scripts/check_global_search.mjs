@@ -2,13 +2,14 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
+import { readChunkedSiteData } from "./site_data_reader.mjs";
 
 const root = process.cwd();
 const indexSource = readText("site/index.html");
 const appSource = readText("site/app.js");
 const styleSource = readText("site/styles.css");
 const todoSource = readText("todolist.md");
-const siteData = readSiteData("site/versions/1.13.9/data.js");
+const siteData = readChunkedSiteData(root);
 
 assert.doesNotMatch(indexSource, /全站搜索/, "the search interface should use 全局搜索 consistently");
 assert.match(indexSource, /全局搜索/, "the search interface should expose 全局搜索");
@@ -46,13 +47,6 @@ console.log(JSON.stringify({
 
 function readText(relativePath) {
   return fs.readFileSync(path.join(root, relativePath), "utf8");
-}
-
-function readSiteData(relativePath) {
-  const source = readText(relativePath);
-  const context = { window: {}, module: { exports: {} } };
-  vm.runInNewContext(source, context, { filename: relativePath });
-  return context.window.VIC3_DATA || context.module.exports;
 }
 
 function functionSource(name) {

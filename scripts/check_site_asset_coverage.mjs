@@ -2,16 +2,13 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
+import { readChunkedSiteData } from "./site_data_reader.mjs";
 
 const root = process.cwd();
 const siteRoot = path.join(root, "site");
 const gameRoot = path.join(root, "game");
 const appSource = fs.readFileSync(path.join(siteRoot, "app.js"), "utf8");
-const dataSource = fs.readFileSync(path.join(siteRoot, "versions", "1.13.9", "data.js"), "utf8");
-
-const sandbox = { window: {} };
-vm.runInNewContext(dataSource, sandbox);
-const siteData = sandbox.window.VIC3_DATA || {};
+const siteData = readChunkedSiteData(root);
 
 const buildingIconFileByKey = readAppObject("buildingIconFileByKey");
 const companyDlcOptions = readAppArray("companyDlcOptions");

@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { readChunkedSiteData } from "./site_data_reader.mjs";
 
 const root = process.cwd();
 const failures = [];
@@ -7,7 +8,7 @@ const failures = [];
 const appSource = readText("site/app.js");
 const indexSource = readText("site/index.html");
 const styleSource = readText("site/styles.css");
-const siteData = readSiteData("site/versions/1.13.9/data.js");
+const siteData = readChunkedSiteData(root);
 
 checkFilterContracts();
 checkOverlayContracts();
@@ -26,7 +27,7 @@ console.log(JSON.stringify({
     "site/app.js",
     "site/index.html",
     "site/styles.css",
-    "site/versions/1.13.9/data.js",
+    "site/versions/1.13.9/data-index.js",
   ],
   ui_ideology_contracts: "ok",
 }, null, 2));
@@ -370,13 +371,6 @@ function functionSource(name) {
     }
   }
   return appSource.slice(start);
-}
-
-function readSiteData(relativePath) {
-  const text = readText(relativePath);
-  const match = text.match(/window\.VIC3_DATA\s*=\s*(.*?);?\s*$/s);
-  if (!match) throw new Error(`${relativePath} does not contain window.VIC3_DATA`);
-  return JSON.parse(match[1].replace(/;\s*$/, ""));
 }
 
 function classifyFlavorExamples(countries, ideologyByKey) {

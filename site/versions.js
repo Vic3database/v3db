@@ -14,7 +14,7 @@ window.VIC3_VERSION_CONFIG = {
     {
       version: "1.13.9",
       label: "1.13.9",
-      data: "versions/1.13.9/data.js",
+      data_index: "versions/1.13.9/data-index.js",
       map_data: "versions/1.13.9/map-data.js",
     },
   ],
