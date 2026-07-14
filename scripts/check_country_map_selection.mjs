@@ -1,11 +1,12 @@
 import fs from "node:fs";
 import path from "node:path";
+import { readChunkedSiteData } from "./site_data_reader.mjs";
 
 const root = process.cwd();
 const failures = [];
 
 const appSource = readText("site/app.js");
-const siteData = readSiteData("site/versions/1.13.9/data.js");
+const siteData = readChunkedSiteData(root);
 const andeanFederation = siteData.countries.find((country) => country.tag === "FND");
 
 checkDataCoverage();
@@ -20,7 +21,7 @@ if (failures.length) {
 console.log(JSON.stringify({
   checked: [
     "site/app.js",
-    "site/versions/1.13.9/data.js",
+    "site/versions/1.13.9/data-index.js",
   ],
   country_map_selection: "ok",
 }, null, 2));
@@ -68,13 +69,6 @@ function checkMapFocusContracts() {
 
 function readText(relativePath) {
   return fs.readFileSync(path.join(root, relativePath), "utf8").replace(/^\uFEFF/, "");
-}
-
-function readSiteData(relativePath) {
-  const source = readText(relativePath)
-    .replace(/^window\.VIC3_DATA\s*=\s*/, "")
-    .replace(/;\s*$/, "");
-  return JSON.parse(source);
 }
 
 function functionSource(name) {

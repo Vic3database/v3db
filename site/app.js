@@ -2,6 +2,10 @@ const versionConfig = window.VIC3_VERSION_CONFIG || null;
 let countryFlagData = {};
 
 let data = {};
+let dataIndex = null;
+let loadedDataVersion = "";
+const loadedDataChunks = new Set();
+let dataChunkLoadPromise = null;
 let countries = [];
 let cultures = [];
 let cultureTraits = [];
@@ -699,7 +703,7 @@ async function init() {
   renderFilterOptions();
   bindEvents();
   els.homeGuideButton?.addEventListener("click", () => openInfoDialog("about"));
-  applyHash();
+  await applyHash();
   render();
 }
 
@@ -728,16 +732,69 @@ async function loadVersion(version, options = {}) {
     return;
   }
   setOptionalText(els.metaLine, `正在加载 ${entry.label || entry.version}`);
-  const [nextData, nextMapData] = await Promise.all([
-    loadScriptValue(entry.data, "VIC3_DATA"),
+  const [nextDataIndex, nextMapData] = await Promise.all([
+    loadScriptValue(entry.data_index, "VIC3_DATA_INDEX"),
     loadScriptValue(entry.map_data, "VIC3_MAP_DATA"),
   ]);
-  applyLoadedDataset(nextData || {}, nextMapData || null);
+  dataIndex = nextDataIndex || null;
+  loadedDataVersion = entry.version;
+  loadedDataChunks.clear();
+  applyLoadedDataset({ meta: dataIndex?.meta || {} }, nextMapData || null);
+  await ensureDataChunksForRoute();
   if (els.versionSelect) els.versionSelect.value = entry.version;
   if (options.replaceUrl !== false) {
     const params = new URLSearchParams(window.location.search);
     params.set("version", entry.version);
     history.replaceState(null, "", `?${params.toString()}${window.location.hash}`);
+  }
+}
+
+function dataChunksForView(view) {
+  if (view === "country") return ["country", "culture", "region", "ideology"];
+  if (view === "culture") return ["culture", "region", "country"];
+  if (view === "region") return ["region", "country", "culture", "company"];
+  if (view === "company") return ["company", "region", "country"];
+  if (view === "ideology") return ["ideology", "law", "country"];
+  if (view === "law") return ["law", "ideology", "country"];
+  return [];
+}
+
+async function ensureDataChunksForRoute() {
+  return ensureDataChunks(dataChunksForView(routeView()));
+}
+
+function routeView() {
+  const segment = location.hash.replace(/^#\/?/, "").split("/")[0];
+  if (["country", "culture", "region", "company", "ideology", "law"].includes(segment)) return segment;
+  if (["state-region", "strategic-region", "geographic-region"].includes(segment)) return "region";
+  return "home";
+}
+
+async function ensureDataChunks(chunkKeys) {
+  if (!dataIndex?.chunks) return;
+  const pending = chunkKeys.filter((key) => !loadedDataChunks.has(key));
+  if (!pending.length) return;
+  if (dataChunkLoadPromise) {
+    await dataChunkLoadPromise;
+    return ensureDataChunks(chunkKeys);
+  }
+  dataChunkLoadPromise = (async () => {
+    for (const key of pending) {
+      const entry = dataIndex.chunks[key];
+      for (const file of entry?.files || []) {
+        const chunk = await loadScriptValue(`versions/${loadedDataVersion}/${file}`, "VIC3_DATA_CHUNK");
+        for (const [field, value] of Object.entries(chunk || {})) {
+          data[field] = field === "countries" ? [...(data[field] || []), ...(value || [])] : value;
+        }
+      }
+      loadedDataChunks.add(key);
+    }
+  })();
+  try {
+    await dataChunkLoadPromise;
+    applyLoadedDataset(data, mapData);
+  } finally {
+    dataChunkLoadPromise = null;
   }
 }
 
@@ -815,6 +872,14 @@ function applyLoadedDataset(nextData, nextMapData) {
   renderVersionOptions();
 }
 
+function dataCount(field, loadedRows) {
+  if (loadedDataChunks.size || !dataIndex?.chunks) return loadedRows.length;
+  for (const chunk of Object.values(dataIndex.chunks)) {
+    if (Object.hasOwn(chunk.counts || {}, field)) return chunk.counts[field];
+  }
+  return loadedRows.length;
+}
+
 function resetDatasetState() {
   state.search = "";
   state.globalSearch = "";
@@ -872,7 +937,7 @@ function resetMapRuntime() {
 
 function updateMetaLine() {
   const datasetPrefix = data.meta?.dataset_name ? `${data.meta.dataset_name}，` : "";
-  setOptionalText(els.metaLine, `${datasetPrefix}版本 ${data.meta?.victoria3_version || "未知"}，国家 ${countries.length} 个，文化 ${cultures.length} 个，州地区 ${stateRegions.length} 个，地理区域 ${groupedGeographicRegions.length} 个，公司 ${companies.length} 个，意识形态 ${ideologies.length} 个，法律 ${laws.length} 条`);
+  setOptionalText(els.metaLine, `${datasetPrefix}版本 ${data.meta?.victoria3_version || "未知"}，国家 ${dataCount("countries", countries)} 个，文化 ${dataCount("cultures", cultures)} 个，州地区 ${dataCount("stateRegions", stateRegions)} 个，地理区域 ${dataCount("geographicRegions", groupedGeographicRegions)} 个，公司 ${dataCount("companies", companies)} 个，意识形态 ${dataCount("ideologies", ideologies)} 个，法律 ${dataCount("laws", laws)} 条`);
 }
 
 function renderVersionOptions() {
@@ -942,8 +1007,8 @@ function renderFilterOptions() {
 
 function bindEvents() {
   document.querySelectorAll("[data-nav-view]").forEach((button) => {
-    button.addEventListener("click", () => {
-      setView(button.dataset.navView);
+    button.addEventListener("click", async () => {
+      await setView(button.dataset.navView);
       render();
     });
   });
@@ -973,38 +1038,38 @@ function bindEvents() {
   });
   document.addEventListener("keydown", handleGlobalSearchDialogKeydown);
   document.addEventListener("keydown", handleInfoDialogKeydown);
-  document.addEventListener("click", (event) => {
+  document.addEventListener("click", async (event) => {
     const button = event.target.closest("[data-detail-back]");
     if (!button) return;
-    setView(button.dataset.detailBack || "country");
+    await setView(button.dataset.detailBack || "country");
     render();
   });
-  els.countryViewButton?.addEventListener("click", () => {
-    setView("country");
+  els.countryViewButton?.addEventListener("click", async () => {
+    await setView("country");
     render();
   });
-  els.cultureViewButton?.addEventListener("click", () => {
-    setView("culture");
+  els.cultureViewButton?.addEventListener("click", async () => {
+    await setView("culture");
     render();
   });
-  els.regionViewButton?.addEventListener("click", () => {
-    setView("region");
+  els.regionViewButton?.addEventListener("click", async () => {
+    await setView("region");
     render();
   });
-  els.companyViewButton?.addEventListener("click", () => {
-    setView("company");
+  els.companyViewButton?.addEventListener("click", async () => {
+    await setView("company");
     render();
   });
-  els.ideologyViewButton?.addEventListener("click", () => {
-    setView("ideology");
+  els.ideologyViewButton?.addEventListener("click", async () => {
+    await setView("ideology");
     render();
   });
-  els.lawViewButton?.addEventListener("click", () => {
-    setView("law");
+  els.lawViewButton?.addEventListener("click", async () => {
+    await setView("law");
     render();
   });
-  els.viewSelect?.addEventListener("change", () => {
-    setView(els.viewSelect.value);
+  els.viewSelect?.addEventListener("change", async () => {
+    await setView(els.viewSelect.value);
     render();
   });
   els.versionSelect?.addEventListener("change", async () => {
@@ -1013,7 +1078,7 @@ function bindEvents() {
     try {
       await loadVersion(els.versionSelect.value);
       renderFilterOptions();
-      applyHash();
+      await applyHash();
       render();
     } finally {
       els.versionSelect.disabled = false;
@@ -1131,12 +1196,12 @@ function bindEvents() {
     renderDependentFilterOptions();
     render();
   });
-  window.addEventListener("hashchange", () => {
+  window.addEventListener("hashchange", async () => {
     hideTransientOverlays();
     state.globalSearch = "";
     state.selectedGlobalResult = "";
     if (els.globalSearchDialogInput) els.globalSearchDialogInput.value = "";
-    applyHash();
+    await applyHash();
     render();
   });
 }
@@ -1182,7 +1247,7 @@ function setTheme(theme, persist = true) {
 
 function bindTokenSet(selector, set, datasetKey, afterChange) {
   document.querySelectorAll(selector).forEach((button) => {
-    button.addEventListener("click", () => {
+    button.addEventListener("click", async () => {
       const pressed = button.getAttribute("aria-pressed") === "true";
       setTokenPressed(button, !pressed);
       toggleSet(set, button.dataset[datasetKey], !pressed);
@@ -1509,11 +1574,12 @@ function conceptKindLabel(kind) {
   }[kind] || "概念";
 }
 
-function openGlobalSearchDialog() {
+async function openGlobalSearchDialog() {
   if (state.infoDialog) {
     state.infoDialog = "";
     syncInfoDialogVisibility();
   }
+  await ensureDataChunks(Object.keys(dataIndex?.chunks || {}));
   state.globalSearchDialogOpen = true;
   state.globalSearchActiveIndex = 0;
   if (!els.globalSearchDialog) return;
@@ -1604,7 +1670,8 @@ function handleInfoDialogKeydown(event) {
   closeInfoDialog();
 }
 
-function applyHash() {
+async function applyHash() {
+  await ensureDataChunksForRoute();
   const parts = location.hash.replace(/^#\/?/, "").split("/").filter(Boolean);
   state.infoDialog = "";
   if (!parts.length || parts[0] === "home") {
@@ -1711,12 +1778,13 @@ function applyHash() {
   }
 }
 
-function setView(view) {
+async function setView(view) {
   hideTransientOverlays();
   state.view = view;
   state.detailKind = view === "region" ? "stateRegion" : view;
   if (view === "region") state.regionListMode = "state";
   replaceHash(`/${view}`);
+  await ensureDataChunksForRoute();
   renderStrategicRegionFilterOptions();
   renderSortOptions();
 }
@@ -1887,19 +1955,19 @@ function renderHomeBoard() {
   els.activeHint.textContent = "";
   els.countryList.className = "country-list home-board";
   const entries = [
-    { category: "外交", label: "国家", text: `${countries.length} 个国家`, view: "country", icon: "assets/home/waving_flag.png" },
+    { category: "外交", label: "国家", text: `${dataCount("countries", countries)} 个国家`, view: "country", icon: "assets/home/waving_flag.png" },
     { category: "外交", label: "国家集团", text: "筹备中", icon: "assets/home/sovereign_empire.png" },
     { category: "外交", label: "外交条约与博弈", text: "筹备中", icon: "assets/home/international_diplomacy.png" },
     { category: "内政", label: "法律", text: `${laws.length} 条法律`, view: "law", icon: "assets/home/law_enforcement.png" },
-    { category: "内政", label: "意识形态", text: `${ideologies.length} 个意识形态`, view: "ideology", icon: "assets/home/democracy.png" },
+    { category: "内政", label: "意识形态", text: `${dataCount("ideologies", ideologies)} 个意识形态`, view: "ideology", icon: "assets/home/democracy.png" },
     { category: "内政", label: "日志、事件与决议", text: "筹备中", icon: "assets/home/event_default.png" },
-    { category: "社会", label: "文化", text: `${cultures.length} 个文化`, view: "culture", icon: "assets/home/nationalism.png" },
+    { category: "社会", label: "文化", text: `${dataCount("cultures", cultures)} 个文化`, view: "culture", icon: "assets/home/nationalism.png" },
     { category: "社会", label: "科技", text: "筹备中", icon: "assets/home/academia.png" },
     { category: "社会", label: "角色", text: "筹备中", icon: "assets/home/event_portrait.png" },
     { category: "经济", label: "地区", text: `${landStateRegions.length} 个州地区`, view: "region", icon: "assets/home/state.png" },
     { category: "经济", label: "建筑", text: "筹备中", icon: "assets/home/manufacturies.png" },
     { category: "经济", label: "商品", text: "筹备中", icon: "assets/home/grand_strategy_games_prestige.png" },
-    { category: "经济", label: "公司", text: `${companies.length} 个公司`, view: "company", icon: "assets/home/companies.png" },
+    { category: "经济", label: "公司", text: `${dataCount("companies", companies)} 个公司`, view: "company", icon: "assets/home/companies.png" },
     { category: "军事", label: "陆军", text: "筹备中", icon: "assets/home/line_infantry.png" },
     { category: "军事", label: "海军", text: "筹备中", icon: "assets/home/dreadnought.png" },
     { category: "其他", label: "成就", text: "筹备中", icon: "assets/home/icon_achievements_enabled.png" },
@@ -1943,12 +2011,12 @@ function renderHomeBoard() {
     </div>
   `;
   els.countryList.querySelectorAll("[data-home-view]").forEach((button) => {
-    button.addEventListener("click", () => {
+    button.addEventListener("click", async () => {
       if (button.dataset.homeView === "changelog") {
         location.hash = "/changelog";
         return;
       }
-      setView(button.dataset.homeView);
+      await setView(button.dataset.homeView);
       render();
     });
   });
@@ -2009,11 +2077,11 @@ function renderAboutDialogContent() {
       </section>
       <section class="about-stat-grid" aria-label="站点数据范围">
         ${aboutStat("当前版本", version)}
-        ${aboutStat("国家", `${countries.length} 个`)}
+        ${aboutStat("国家", `${dataCount("countries", countries)} 个`)}
         ${aboutStat("州地区", `${landStateRegions.length} 个`)}
-        ${aboutStat("文化", `${cultures.length} 个`)}
-        ${aboutStat("公司", `${companies.length} 个`)}
-        ${aboutStat("意识形态", `${ideologies.length} 个`)}
+        ${aboutStat("文化", `${dataCount("cultures", cultures)} 个`)}
+        ${aboutStat("公司", `${dataCount("companies", companies)} 个`)}
+        ${aboutStat("意识形态", `${dataCount("ideologies", ideologies)} 个`)}
       </section>
       <section class="settings-placeholder about-note">
         <h3>数据与声明</h3>
@@ -2457,7 +2525,7 @@ function renderGlobalSearchList(results) {
     `).join("")}
   `).join("");
   els.countryList.querySelectorAll("[data-global-result]").forEach((button) => {
-    button.addEventListener("click", () => {
+    button.addEventListener("click", async () => {
       state.selectedGlobalResult = button.dataset.globalResult;
       render();
     });
@@ -2504,9 +2572,9 @@ function renderGlobalSearchDialogResults() {
     }).join("")}
   `).join("");
   els.globalSearchDialogResults.querySelectorAll("[data-global-dialog-result]").forEach((button, index) => {
-    button.addEventListener("click", () => {
+    button.addEventListener("click", async () => {
       state.globalSearchActiveIndex = index;
-      navigateGlobalSearchResult(button.dataset.resultKind, button.dataset.resultKey);
+      await navigateGlobalSearchResult(button.dataset.resultKind, button.dataset.resultKey);
       closeGlobalSearchDialog();
     });
   });
@@ -2521,13 +2589,13 @@ function updateGlobalSearchActiveDescendant() {
   });
 }
 
-function navigateGlobalSearchResult(kind, key) {
+async function navigateGlobalSearchResult(kind, key) {
   if (!kind || !key) return;
   if (kind === "interestGroupFlavor") {
     const [countryTag, groupKey] = key.split(":");
     if (!countryTag || !groupKey) return;
     replaceHash(`/country/${encodeURIComponent(countryTag)}`);
-    applyHash();
+    await applyHash();
     render();
     focusInterestGroupFlavorResult(countryTag, groupKey);
     return;
@@ -2541,7 +2609,7 @@ function navigateGlobalSearchResult(kind, key) {
   else if (kind === "ideology") replaceHash(`/ideology/${encodeURIComponent(key)}`);
   else if (kind === "law") replaceHash(`/law/${encodeURIComponent(key)}`);
   else return;
-  applyHash();
+  await applyHash();
   render();
 }
 

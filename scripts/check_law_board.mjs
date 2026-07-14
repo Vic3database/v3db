@@ -3,9 +3,10 @@ import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
 import { fileURLToPath } from "node:url";
+import { readChunkedSiteData } from "./site_data_reader.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const siteData = readSiteData("site/versions/1.13.9/data.js");
+const siteData = readChunkedSiteData(root);
 const indexSource = readText("site/index.html");
 const appSource = readText("site/app.js");
 
@@ -106,13 +107,6 @@ for (const law of siteData.laws) {
 }
 
 console.log(JSON.stringify({ law_board_data: "ok", laws: siteData.laws.length, law_groups: siteData.lawGroups.length }));
-
-function readSiteData(relativePath) {
-  const source = readText(relativePath);
-  const context = { window: {} };
-  vm.runInNewContext(source, context);
-  return context.window.VIC3_DATA || {};
-}
 
 function readText(relativePath) {
   return fs.readFileSync(path.join(root, relativePath), "utf8").replace(/^\uFEFF/, "");
