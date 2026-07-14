@@ -85,7 +85,7 @@ assert.doesNotMatch(appSource, /\$\{ideology\.name_zh \|\| ideology\.key\}\$\{id
 assert.match(readText("site/styles.css"), /\.ideology-pill-group\s*{[\s\S]*?display:\s*grid;[\s\S]*?grid-template-columns:\s*5em\s+minmax\(0,\s*1fr\)/, "ideology tag rows should share one aligned label column");
 assert.match(appSource, /lawDisplayName\(law\)/, "law rows should render variants through their display name");
 assert.match(appSource, /lawEffectListHtml\(law\)/, "law details should render effects as a list");
-assert.match(appSource, /\$\{laws\.length\} 条法律/, "home board should expose the law entry");
+assert.match(appSource, /\$\{dataCount\("laws", laws\)\} 条法律/, "home board should expose the indexed law count before the law chunk loads");
 assert.match(appSource, /view: "law"/, "home law entry should link to the law board");
 assert.match(indexSource, /data-nav-view="law"[\s\S]*assets\/lucide\/icons\/scale\.svg/, "law nav should use the scale icon");
 assert.match(indexSource, /<strong>列表<\/strong>/, "content panel should be called a list");

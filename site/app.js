@@ -873,11 +873,18 @@ function applyLoadedDataset(nextData, nextMapData) {
 }
 
 function dataCount(field, loadedRows) {
-  if (loadedDataChunks.size || !dataIndex?.chunks) return loadedRows.length;
-  for (const chunk of Object.values(dataIndex.chunks)) {
+  for (const chunk of Object.values(dataIndex?.chunks || {})) {
     if (Object.hasOwn(chunk.counts || {}, field)) return chunk.counts[field];
   }
   return loadedRows.length;
+}
+
+function regionOverviewCounts() {
+  const seaAreas = dataCount("seaStateRegions", seaStateRegionKeys);
+  return {
+    landRegions: dataCount("stateRegions", stateRegions) - seaAreas,
+    seaAreas,
+  };
 }
 
 function resetDatasetState() {
@@ -937,7 +944,8 @@ function resetMapRuntime() {
 
 function updateMetaLine() {
   const datasetPrefix = data.meta?.dataset_name ? `${data.meta.dataset_name}，` : "";
-  setOptionalText(els.metaLine, `${datasetPrefix}版本 ${data.meta?.victoria3_version || "未知"}，国家 ${dataCount("countries", countries)} 个，文化 ${dataCount("cultures", cultures)} 个，州地区 ${dataCount("stateRegions", stateRegions)} 个，地理区域 ${dataCount("geographicRegions", groupedGeographicRegions)} 个，公司 ${dataCount("companies", companies)} 个，意识形态 ${dataCount("ideologies", ideologies)} 个，法律 ${dataCount("laws", laws)} 条`);
+  const { landRegions, seaAreas } = regionOverviewCounts();
+  setOptionalText(els.metaLine, `${datasetPrefix}版本 ${data.meta?.victoria3_version || "未知"}，国家 ${dataCount("countries", countries)} 个，文化 ${dataCount("cultures", cultures)} 个，地区 ${landRegions} 个、海域 ${seaAreas} 片，地理区域 ${dataCount("geographicRegions", groupedGeographicRegions)} 个，公司 ${dataCount("companies", companies)} 个，意识形态 ${dataCount("ideologies", ideologies)} 个，法律 ${dataCount("laws", laws)} 条`);
 }
 
 function renderVersionOptions() {
@@ -1486,12 +1494,12 @@ function conceptTooltipContextLine(kind, key) {
   if (kind === "strategicRegion") {
     const region = byStrategicRegion.get(key);
     const count = (region?.states || []).length;
-    return count ? `${count} 个州地区` : "";
+    return count ? `${count} 个地区` : "";
   }
   if (kind === "geographicRegion") {
     const region = byGeographicRegion.get(key);
     const count = geographicRegionStateRegions(region).length;
-    return count ? `${count} 个州地区` : "";
+    return count ? `${count} 个地区` : "";
   }
   if (kind === "company") {
     const company = byCompany.get(key);
@@ -1556,7 +1564,7 @@ function conceptKindLabel(kind) {
   return {
     country: "国家",
     culture: "文化",
-    stateRegion: "州地区",
+    stateRegion: "地区",
     strategicRegion: "战略区域",
     geographicRegion: "地理区域",
     company: "公司",
@@ -1954,17 +1962,18 @@ function renderHomeBoard() {
   els.resultCount.textContent = "";
   els.activeHint.textContent = "";
   els.countryList.className = "country-list home-board";
+  const { landRegions, seaAreas } = regionOverviewCounts();
   const entries = [
     { category: "外交", label: "国家", text: `${dataCount("countries", countries)} 个国家`, view: "country", icon: "assets/home/waving_flag.png" },
     { category: "外交", label: "国家集团", text: "筹备中", icon: "assets/home/sovereign_empire.png" },
     { category: "外交", label: "外交条约与博弈", text: "筹备中", icon: "assets/home/international_diplomacy.png" },
-    { category: "内政", label: "法律", text: `${laws.length} 条法律`, view: "law", icon: "assets/home/law_enforcement.png" },
+    { category: "内政", label: "法律", text: `${dataCount("laws", laws)} 条法律`, view: "law", icon: "assets/home/law_enforcement.png" },
     { category: "内政", label: "意识形态", text: `${dataCount("ideologies", ideologies)} 个意识形态`, view: "ideology", icon: "assets/home/democracy.png" },
     { category: "内政", label: "日志、事件与决议", text: "筹备中", icon: "assets/home/event_default.png" },
     { category: "社会", label: "文化", text: `${dataCount("cultures", cultures)} 个文化`, view: "culture", icon: "assets/home/nationalism.png" },
     { category: "社会", label: "科技", text: "筹备中", icon: "assets/home/academia.png" },
     { category: "社会", label: "角色", text: "筹备中", icon: "assets/home/event_portrait.png" },
-    { category: "经济", label: "地区", text: `${landStateRegions.length} 个州地区`, view: "region", icon: "assets/home/state.png" },
+    { category: "经济", label: "地区", text: `${landRegions} 个地区、${seaAreas} 片海域`, view: "region", icon: "assets/home/state.png" },
     { category: "经济", label: "建筑", text: "筹备中", icon: "assets/home/manufacturies.png" },
     { category: "经济", label: "商品", text: "筹备中", icon: "assets/home/grand_strategy_games_prestige.png" },
     { category: "经济", label: "公司", text: `${dataCount("companies", companies)} 个公司`, view: "company", icon: "assets/home/companies.png" },
@@ -2077,7 +2086,7 @@ function renderAboutDialogContent() {
       <section class="about-stat-grid" aria-label="站点数据范围">
         ${aboutStat("当前版本", version)}
         ${aboutStat("国家", `${dataCount("countries", countries)} 个`)}
-        ${aboutStat("州地区", `${landStateRegions.length} 个`)}
+        ${aboutStat("地区", `${regionOverviewCounts().landRegions} 个地区、${regionOverviewCounts().seaAreas} 片海域`)}
         ${aboutStat("文化", `${dataCount("cultures", cultures)} 个`)}
         ${aboutStat("公司", `${dataCount("companies", companies)} 个`)}
         ${aboutStat("意识形态", `${dataCount("ideologies", ideologies)} 个`)}
@@ -2413,7 +2422,7 @@ function renderRegionBoard() {
     state.detailKind = regionListModeDetailKind();
   }
   const selectedStateRegion = byStateRegion.get(state.selectedStateRegion);
-  els.resultCount.textContent = `州地区 ${filteredStateRegions.length} 个`;
+  els.resultCount.textContent = `地区 ${filteredStateRegions.length} 个`;
   els.activeHint.textContent = buildActiveHint(filteredStateRegions.length);
   renderRegionList(filteredStrategicRegions, filteredStateRegions, filteredSeaRegions, filteredGeographicRegions);
   renderMap(regionMapStateRegions(filteredStateRegions, filteredSeaStateRegions, filteredGeographicRegions));
@@ -2692,7 +2701,7 @@ function globalSearchResults(query) {
     typeLabel: "战略区域",
     key: region.key,
     title: strategicRegionName(region),
-    subtitle: `州地区 ${(region.states || []).length} 个`,
+    subtitle: `地区 ${(region.states || []).length} 个`,
     color: region.map_color?.hex || "",
     raw: region,
     searchText: strategicRegionSearchBlob(region),
@@ -2703,7 +2712,7 @@ function globalSearchResults(query) {
     typeLabel: "地理区域",
     key: region.key,
     title: geographicRegionDisplayName(region),
-    subtitle: `州地区 ${geographicRegionStateRegions(region).length} 个`,
+    subtitle: `地区 ${geographicRegionStateRegions(region).length} 个`,
     raw: region,
     searchText: geographicRegionSearchBlob(region),
   }));
@@ -3176,7 +3185,7 @@ function renderRegionList(filteredStrategicRegions, filteredStateRegions, filter
     </article>
   ` : "";
   const stateRegionHtml = visibleStateRegions.length ? `
-    <div class="list-section-title">州地区</div>
+    <div class="list-section-title">地区</div>
     ${visibleStateRegions.map((stateRegion) => `
       <article class="country-row region-row selectable-row" data-state-region="${escapeHtml(stateRegion.key)}" style="${stateRegionBorderStyle(stateRegion)}" aria-current="${stateRegion.key === state.selectedStateRegion && state.detailKind === "stateRegion"}" tabindex="0">
         <span class="country-heading">
@@ -3668,7 +3677,7 @@ function renderCompanyDetail(company) {
       ${field("总部倾向", stateRegionLinks(company.preferred_headquarters))}
       ${field("相关战略区域", strategicRegionLinks(company.referenced_strategic_regions))}
       ${field("相关地理区域", geographicRegionLinks(company.referenced_geographic_regions))}
-      ${field("相关州地区", stateRegionLinks(company.referenced_state_regions))}
+      ${field("相关地区", stateRegionLinks(company.referenced_state_regions))}
       ${field("相关文化", cultureLinks(company.referenced_cultures))}
       ${field("相关国家", countryLinks((company.referenced_countries || []).map((item) => item.tag), (company.referenced_countries || []).map((item) => item.name_zh)))}
       ${field("所需科技", listText(company.required_technologies))}
@@ -3761,7 +3770,7 @@ function renderCountryDetail(country) {
       ${field("部队颜色", unitColorText(country))}
       ${field("主流文化", linkedTerms(country.primaryCultures, country.primaryCulturesZh, "culture"))}
       ${field("所在战略区域", strategicRegionLinks(country.locationStrategicRegions))}
-      ${field("所在州地区", stateRegionLinks(country.locationStateRegions))}
+      ${field("所在地区", stateRegionLinks(country.locationStateRegions))}
       ${field("主流文化本土战略区域", strategicRegionLinks(country.primaryCultureHomelandStrategicRegions))}
       ${field("传承", groupedTraitPills(country.primaryCultureHeritageGroups, country.primaryCultureHeritages, "tag-heritage-group", "tag-heritage"))}
       ${field("语言", groupedTraitPills(country.primaryCultureLanguageGroups, country.primaryCultureLanguages, "tag-language-group", "tag-language"))}
@@ -3796,7 +3805,7 @@ function renderCountryDetail(country) {
       ${field("同文化可成立", countryLinks(country.canFormTags, country.canFormNames))}
       ${field("成立文化", linkedTerms(country.formationRequiredCultures, country.formationRequiredCulturesZh, "culture"))}
       ${field("成立范围战略区域", strategicRegionLinks(country.formationStrategicRegions))}
-      ${field("成立范围州地区", stateRegionLinks(country.formationStateRegions))}
+      ${field("成立范围地区", stateRegionLinks(country.formationStateRegions))}
       ${field("规则直接列州", stateRegionLinks((country.formationStates || []).map((key) => ({ key, name_zh: byStateRegion.get(key)?.name_zh || key }))))}
       ${field("成立地区", escapeHtml(country.formationRegion || ""))}
     </dl>
@@ -3921,7 +3930,7 @@ function renderStrategicRegionDetail(region) {
     <dl class="field-grid">
       ${field("类型", tagPill(regionKind, isSeaStrategicRegion(region) ? "tag-sea" : "tag-region"))}
       ${field("颜色", colorValue(region.map_color?.hex, region.map_color?.rgb))}
-      ${field("州地区", stateRegionLinks(region.states))}
+      ${field("地区", stateRegionLinks(region.states))}
       ${field("本土文化", cultureLinks(region.homeland_cultures))}
       ${field("开局国家", countryLinks((region.starting_owners || []).map((country) => country.tag), (region.starting_owners || []).map((country) => country.name_zh)))}
     </dl>
@@ -3947,8 +3956,8 @@ function renderGeographicRegionDetail(region) {
       ${field("类型", tagPill("地理区域", "tag-region"))}
       ${field("分组", tagPill(geographicRegionGroupLabels.get(region.geographic_region_group) || region.geographic_region_group_zh || region.geographic_region_group || "暂置", "tag-muted"))}
       ${field("战略区域", strategicRegionLinks(strategicRefs))}
-      ${field("州地区", stateRegionLinks(stateRefs))}
-      ${field("州地区数量", escapeHtml(String(stateRefs.length)))}
+      ${field("地区", stateRegionLinks(stateRefs))}
+      ${field("地区数量", escapeHtml(String(stateRefs.length)))}
       ${field("开局国家", countryLinks(startingOwners.map((country) => country.tag), startingOwners.map((country) => country.name_zh)))}
       ${field("本土文化", cultureLinks(homelandCultures))}
     </dl>
@@ -5145,7 +5154,7 @@ function wrapMapX(x) {
 
 function mapTooltipHtml(stateRegion, feature, ownerTag = "") {
   const isSea = isSeaStateRegion(stateRegion);
-  const kind = isSea ? "海域" : "州地区";
+  const kind = isSea ? "海域" : "地区";
   const variants = stateRegionVariantNames(stateRegion);
   const variantText = variants.length ? `（${escapeHtml(variants.join("/"))}）` : "";
   if (isSea) {
@@ -5931,7 +5940,7 @@ function geographicRegionTagPills(region) {
   return [
     victorianCenturyBadge(region),
     limitedRefPills(geographicRegionStrategicRegions(region), "tag-region", 6),
-    tagPill(`${geographicRegionStateRegions(region).length} 个州地区`, "tag-muted"),
+    tagPill(`${geographicRegionStateRegions(region).length} 个地区`, "tag-muted"),
   ].filter(Boolean).join("");
 }
 
@@ -7916,12 +7925,12 @@ function clampNumber(value, min, max) {
 }
 
 function searchPlaceholder() {
-  if (state.view === "culture") return "文化、特质、宗教、本土战略区域、州地区";
-  if (state.view === "region") return "州地区、战略区域、海域、资源、地区特质、国家、文化";
+  if (state.view === "culture") return "文化、特质、宗教、本土战略区域、地区";
+  if (state.view === "region") return "地区、战略区域、海域、资源、地区特质、国家、文化";
   if (state.view === "company") return "公司、建筑、名贵商品、总部、战略区域、条件";
   if (state.view === "ideology") return "板块内搜索：意识形态、利益集团、法律组、法律";
   if (state.view === "law") return "法律、法律组、修正、条件";
-  return "国家、Tag、文化、宗教、州地区";
+  return "国家、Tag、文化、宗教、地区";
 }
 
 function unitColorText(country) {

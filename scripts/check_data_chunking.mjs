@@ -13,6 +13,7 @@ assert(fs.existsSync(indexFile), "missing data index");
 
 const index = readGlobal(indexFile, "VIC3_DATA_INDEX");
 assert.equal(index?.meta?.victoria3_version, "1.13.9", "index should retain dataset metadata");
+assert.equal(index?.chunks?.region?.counts?.seaStateRegions, 106, "region index should expose the sea-area count before region data loads");
 assert.equal(fs.existsSync(path.join(versionDir, "data.js")), false, "complete data.js should not remain in the published version bundle");
 
 const expectedChunks = {

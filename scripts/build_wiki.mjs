@@ -94,9 +94,19 @@ const dataIndex = {
   chunks: Object.fromEntries(Object.entries(dataChunks).map(([key, keys]) => [key, {
     files: key === "country" ? countryShardFiles : [dataChunkFileNames[key]],
     keys,
-    counts: Object.fromEntries(keys.map((field) => [field, Array.isArray(wikiData[field]) ? wikiData[field].length : 0])),
+    counts: {
+      ...Object.fromEntries(keys.map((field) => [field, Array.isArray(wikiData[field]) ? wikiData[field].length : 0])),
+      ...(key === "region" ? { seaStateRegions: seaStateRegionCount(wikiData.strategicRegions) } : {}),
+    },
   }])),
 };
+
+function seaStateRegionCount(strategicRegions) {
+  return new Set((strategicRegions || [])
+    .filter((region) => String(region.source_file || "").includes("water_strategic_regions") || /^\$.*\$$/.test(String(region.name_zh || "")))
+    .flatMap((region) => (region.states || []).map((state) => state.key)))
+    .size;
+}
 
 fs.writeFileSync(
   path.join(outDir, "data-index.js"),

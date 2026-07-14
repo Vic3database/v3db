@@ -34,6 +34,10 @@ expect(homeFunction.includes("const entries = ["), "homepage should define its e
 expect((homeFunction.match(/icon: "/g) || []).length === 18, "homepage should define all eighteen requested entries");
 expect(homeFunction.includes('view: "country"'), "homepage should retain the country entry route");
 expect(homeFunction.includes('view: "changelog"'), "homepage should link the changelog entry");
+expect(homeFunction.includes('const { landRegions, seaAreas } = regionOverviewCounts();'), "homepage should obtain region counts before data chunks load");
+expect(homeFunction.includes('`${landRegions} 个地区、${seaAreas} 片海域`'), "homepage should show separate land-region and sea-area counts");
+expect(homeFunction.includes('dataCount("laws", laws)'), "homepage should show the indexed law count before data chunks load");
+expect(appSource.includes('function regionOverviewCounts()'), "site should derive region counts from the data index");
 expect(homeFunction.includes("home-entry-grid"), "homepage should render an entry grid");
 expect(homeFunction.includes("home-category"), "homepage should render categorized entry sections");
 expect((homeFunction.match(/category: "/g) || []).length === 18, "homepage should classify all eighteen requested entries");
@@ -48,6 +52,7 @@ expect(indexSource.includes('id="homeWelcome"'), "homepage should define a welco
 expect(indexSource.includes('<strong>列表</strong>'), "homepage panel heading should read 列表");
 expect(indexSource.includes('id="homeGuideButton"'), "homepage welcome panel should include the site guide button");
 expect(indexSource.includes('id="homeLinks"'), "homepage should define an external links panel outside navigation");
+expect(!indexSource.includes("州地区"), "homepage shell should use 地区 terminology");
 expect(indexSource.includes("home-copyright"), "welcome panel should render the copyright statement");
 expect(!homeFunction.includes("home-intro"), "homepage navigation renderer should not place the welcome copy inside navigation");
 expect(!homeFunction.includes("home-guide-button"), "homepage navigation renderer should not place the site guide inside navigation");
@@ -67,17 +72,24 @@ expect(/\.home-category-card\s*\{[\s\S]*grid-column:\s*(?:1\s*\/\s*)?span\s*3/.t
 expect(/\.home-category-card\[data-category="经济"\]\s*\{[\s\S]*grid-column:\s*(?:1\s*\/\s*)?span\s*4/.test(stylesSource), "economy category card should span four columns");
 expect(/\.home-category-card\[data-category="军事"\]\s*\{[\s\S]*grid-column:\s*(?:1\s*\/\s*)?span\s*2/.test(stylesSource), "military category card should span two columns");
 expect(/\.home-category-card\s*\{[\s\S]*border:\s*1px\s+solid\s+rgba\(200,\s*164,\s*91,\s*0?\.2\)/.test(stylesSource), "standard category cards should use the requested border color");
+expect(!/\.home-category-heading\s*\{[^}]*border-bottom\s*:/.test(stylesSource), "category headings should not have a divider line");
+expect(/\.home-category-card\s*\{[^}]*padding:\s*12px/.test(stylesSource), "category buttons should keep distance from the card edges");
+expect(/\.home-category-card\s+\.home-entry-grid\s*\{[^}]*gap:\s*36px/.test(stylesSource), "three-entry category button spacing should match adjacent-card spacing");
+expect(/\.home-category-card\[data-category="经济"\]\s+\.home-entry-grid\s*\{[^}]*gap:\s*36px/.test(stylesSource), "economy button spacing should align 公司 with 法律 and 成就");
 expect(/\.home-entry\s*\{[\s\S]*grid-template-columns:\s*46px\s+minmax\(0,\s*1fr\)/.test(stylesSource), "homepage entry cards should place icon left and text right");
 expect(/\.home-entry-copy strong\s*\{[\s\S]*font-size:\s*var\(--text-base\)/.test(stylesSource), "homepage entry labels should use the larger base text size");
 expect(/\.home-category-heading h2\s*\{[\s\S]*font-size:\s*var\(--text-lg\)/.test(stylesSource), "homepage category headings should use a larger text size");
 expect(/\.home-links\s*\{/.test(stylesSource), "homepage should style the external links panel");
+expect(/\.home-links\[hidden\]\s*\{\s*display:\s*none/.test(stylesSource), "homepage links should hide outside the home view");
 expect(/\.home-links a\s*\{[\s\S]*color:\s*var\(--ink\)[\s\S]*font-weight:\s*400/.test(stylesSource), "homepage links should use regular white text");
 expect(/\.home-updated-at\s*\{[\s\S]*color:\s*var\(--ink\)[\s\S]*font-size:\s*var\(--text-sm\)[\s\S]*font-weight:\s*400/.test(stylesSource), "homepage update time should use normal unbolded white text");
 expect(/body\[data-view="home"\]\s+\.result-head\s*\{[\s\S]*display:\s*none/.test(stylesSource), "homepage should hide the entry and sort controls");
 expect(/body\[data-view="home"\]\s+\.results\s*\{[\s\S]*top:\s*214px/.test(stylesSource), "homepage navigation should sit below the independent welcome panel");
+expect(/body\[data-view="home"\]\s+\.results\s*\{[^}]*bottom:\s*auto[^}]*height:\s*fit-content/.test(stylesSource), "homepage navigation panel height should follow its category cards");
 expect(/body\[data-view="home"\]\s+\.filters/.test(stylesSource), "homepage should hide the normal filter panel");
 expect(/body\[data-view="home"\]\s+\.detail\s*\{[\s\S]*left:\s*auto[\s\S]*right:\s*12px/.test(stylesSource), "homepage right panel should not overlap the entry grid");
 expect(todoSource.includes("整理首页游戏资讯内容与链接来源"), "todo list should record the news-content follow-up");
+expect(!appSource.includes("州地区"), "site UI should use 地区 terminology");
 
 for (const icon of icons) {
   expect(homeFunction.includes(`assets/home/${icon}`), `homepage should reference ${icon}`);

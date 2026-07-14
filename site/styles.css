@@ -4433,9 +4433,10 @@ body[data-view="home"] .filters {
 
 body[data-view="home"] .results {
   top: 214px;
-  bottom: 300px;
+  bottom: auto;
   right: calc(12px + var(--right-panel-width) + var(--panel-gap));
   width: auto;
+  height: fit-content;
 }
 
 body[data-view="home"] .result-head {
@@ -4547,7 +4548,6 @@ body[data-view="home"] .detail {
   justify-content: space-between;
   gap: 10px;
   padding-bottom: 8px;
-  border-bottom: 1px solid rgba(200, 164, 91, 0.18);
 }
 
 .home-category-heading h2 {
@@ -4563,8 +4563,8 @@ body[data-view="home"] .detail {
   font-size: var(--text-xs);
 }
 
-.home-category-card .home-entry-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.home-category-card[data-category="经济"] .home-entry-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.home-category-card .home-entry-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 36px; }
+.home-category-card[data-category="经济"] .home-entry-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 36px; }
 .home-category-card[data-category="军事"] .home-entry-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
 .home-entry {
@@ -4682,6 +4682,10 @@ button.home-entry:hover {
   justify-items: start;
   gap: 4px;
   padding: 4px 14px 14px;
+}
+
+.home-links[hidden] {
+  display: none;
 }
 
 .home-links h2 {
