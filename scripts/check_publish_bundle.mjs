@@ -62,6 +62,7 @@ for (const relative of [
   }),
 ]) {
   addRequired(relative);
+  addRequired(webpSibling(relative));
 }
 
 for (const relative of [...requiredFiles].sort()) {
@@ -111,6 +112,15 @@ function addRequired(relative) {
   const clean = relative.split(/[?#]/, 1)[0].replaceAll("\\", "/");
   if (!clean || /^[a-z]+:/i.test(clean) || clean.startsWith("/")) return;
   requiredFiles.add(clean);
+}
+
+function webpSibling(relative) {
+  const clean = String(relative || "").replaceAll("\\", "/");
+  if (clean === "assets/map/flatmap_votp.png") return clean.replace(/\.png$/i, ".webp");
+  if (/^assets\/(?:buildings|companies|laws|ideologies)\/.*\.png$/i.test(clean)) {
+    return clean.replace(/\.png$/i, ".webp");
+  }
+  return "";
 }
 
 function assetReferencesFromHtml(source) {
