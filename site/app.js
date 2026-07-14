@@ -66,7 +66,7 @@ let pendingConceptTooltipPoint = null;
 const mapRuntime = {
   imageUrl: "assets/map/provinces.png",
   image: null,
-  paperMapUrl: "assets/map/flatmap_votp.png",
+  paperMapUrls: ["assets/map/flatmap_votp.webp", "assets/map/flatmap_votp.png"],
   paperMapImage: null,
   sourcePixels: null,
   width: 4096,
@@ -4168,7 +4168,7 @@ function ensureMapLoaded() {
     return;
   }
   window.setTimeout(async () => {
-    mapRuntime.paperMapImage = await loadImage(mapRuntime.paperMapUrl).catch(() => null);
+    mapRuntime.paperMapImage = await loadImageCandidates(mapRuntime.paperMapUrls).catch(() => null);
     mapRuntime.width = mapData.width || mapRuntime.width;
     mapRuntime.height = mapData.height || mapRuntime.height;
     mapRuntime.stateKeysByIndex = mapData.stateKeys || [""];
@@ -4193,6 +4193,18 @@ function loadImage(src) {
     image.onerror = reject;
     image.src = src;
   });
+}
+
+async function loadImageCandidates(sources) {
+  let lastError = null;
+  for (const source of sources || []) {
+    try {
+      return await loadImage(source);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError || new Error("图片加载失败");
 }
 
 function decodeMapRuns(runs, expectedLength) {
@@ -7446,7 +7458,12 @@ function lawIconHtml(law, className = "law-icon") {
   const baseName = fileBaseName(law?.icon).replace(/\.dds$/i, "");
   if (!baseName) return "";
   const alt = escapeHtml(law?.name_zh || law?.key || "法律");
-  return `<img class="${escapeHtml(className)}" src="assets/laws/${encodeURIComponent(baseName)}.png" alt="${alt}" onerror="this.hidden=true">`;
+  return webpPictureHtml({
+    className,
+    pngPath: `assets/laws/${encodeURIComponent(baseName)}.png`,
+    alt,
+    fallbackOnError: "this.hidden=true",
+  });
 }
 
 function lawPill(law) {
@@ -7490,7 +7507,7 @@ function buildingIconHtml(key, label = "") {
   const fileName = buildingIconFileByKey[key];
   if (!fileName) return "";
   const path = `assets/buildings/${encodeURIComponent(fileName)}`;
-  return `<img class="resource-icon" src="${path}" alt="" title="${escapeHtml(label || key)}">`;
+  return webpPictureHtml({ className: "resource-icon", pngPath: path, alt: "", title: label || key });
 }
 
 function companyIconHtml(company) {
@@ -7498,7 +7515,7 @@ function companyIconHtml(company) {
   const title = [label, company?.icon].filter(Boolean).join("；");
   const path = companyIconPath(company?.icon);
   if (!path) return `<span class="company-icon-placeholder" title="${escapeHtml(title)}">司</span>`;
-  return `<img class="company-logo" src="${path}" alt="" title="${escapeHtml(title)}">`;
+  return webpPictureHtml({ className: "company-logo", pngPath: path, alt: "", title });
 }
 
 function companyIconPath(icon) {
@@ -7528,7 +7545,24 @@ function ideologyIconHtml(ideology, className = "ideology-icon") {
   const title = [label, ideology?.key].filter(Boolean).join("；");
   const path = ideologyIconPath(ideology?.icon);
   if (!path) return `<span class="${escapeHtml(className)} ideology-icon-placeholder" title="${escapeHtml(title)}"></span>`;
-  return `<img class="${escapeHtml(className)}" src="${path}" alt="" title="${escapeHtml(title)}" onerror="this.onerror=null;this.src='assets/ideologies/no_ideology.png';">`;
+  return webpPictureHtml({
+    className,
+    pngPath: path,
+    alt: "",
+    title,
+    fallbackOnError: "this.onerror=null;this.src='assets/ideologies/no_ideology.png';",
+  });
+}
+
+function webpPictureHtml({ className = "", pngPath = "", alt = "", title = "", fallbackOnError = "" }) {
+  if (!pngPath) return "";
+  const titleAttribute = title ? ` title="${escapeHtml(title)}"` : "";
+  const errorAttribute = fallbackOnError ? ` onerror="${escapeHtml(fallbackOnError)}"` : "";
+  return `<picture><source srcset="${escapeHtml(webpAssetPath(pngPath))}" type="image/webp"><img class="${escapeHtml(className)}" src="${escapeHtml(pngPath)}" alt="${escapeHtml(alt)}"${titleAttribute}${errorAttribute}></picture>`;
+}
+
+function webpAssetPath(pngPath) {
+  return String(pngPath || "").replace(/\.png$/i, ".webp");
 }
 
 function ideologyIconPath(icon) {

@@ -29,6 +29,18 @@ site/assets/interest-groups/
 site/assets/map/
 site/assets/prestige-goods/
 
+# WebP display assets are generated from ignored game-derived PNGs and published with the site.
+!site/assets/buildings/
+!site/assets/buildings/**/*.webp
+!site/assets/companies/
+!site/assets/companies/**/*.webp
+!site/assets/ideologies/
+!site/assets/ideologies/**/*.webp
+!site/assets/laws/
+!site/assets/laws/**/*.webp
+!site/assets/map/
+!site/assets/map/flatmap_votp.webp
+
 # Local logs and browser/debug captures
 logs/
 *.log
