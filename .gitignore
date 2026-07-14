@@ -40,6 +40,11 @@ site/assets/prestige-goods/
 !site/assets/laws/**/*.webp
 !site/assets/map/
 !site/assets/map/flatmap_votp.webp
+site/assets/buildings/**/*.png
+site/assets/companies/**/*.png
+site/assets/ideologies/**/*.png
+site/assets/laws/**/*.png
+site/assets/map/**/*.png
 
 # Local logs and browser/debug captures
 logs/
