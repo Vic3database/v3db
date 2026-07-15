@@ -2479,11 +2479,26 @@ function renderLawBoard() {
 
 function technologyGraphLayout(category) {
   const eras = technologyEras.map((era) => era.key);
+  const technologyGraphLanes = 3;
+  const columnWidth = 340;
+  const nodeWidth = 152;
+  const laneHeight = 112;
   const nodes = new Map();
-  eras.forEach((era, column) => technologies.filter((item) => item.category === category && item.era === era)
-    .sort((a, b) => a.name_zh.localeCompare(b.name_zh, "zh-Hans-CN"))
-    .forEach((technology, row) => nodes.set(technology.key, { technology, x: 48 + column * 224, y: 62 + row * 82 })));
-  return { nodes, width: 1180, height: Math.max(460, ...[...nodes.values()].map((node) => node.y + 64)) };
+  eras.forEach((era, column) => {
+    const rows = Array.from({ length: technologyGraphLanes }, () => []);
+    technologies.filter((item) => item.category === category && item.era === era)
+      .sort((a, b) => a.name_zh.localeCompare(b.name_zh, "zh-Hans-CN"))
+      .forEach((technology, index) => rows[index % technologyGraphLanes].push(technology));
+    rows.forEach((lane, laneIndex) => lane.forEach((technology, index) => {
+      nodes.set(technology.key, {
+        technology,
+        x: 48 + column * columnWidth + index * (nodeWidth + 14),
+        y: 66 + laneIndex * laneHeight,
+      });
+    }));
+  });
+  const widestEra = Math.max(1, ...eras.map((era) => Math.ceil(technologies.filter((item) => item.category === category && item.era === era).length / technologyGraphLanes)));
+  return { nodes, width: Math.max(1720, 96 + eras.length * columnWidth + widestEra * (nodeWidth + 14)), height: 438, columnWidth };
 }
 
 function technologyGraphEdges(layout) {
@@ -2495,7 +2510,8 @@ function technologyGraphEdges(layout) {
 
 function technologyNodeHtml(node) {
   const selected = node.technology.key === state.selectedTechnology;
-  return `<button class="technology-node" type="button" data-technology-key="${escapeHtml(node.technology.key)}" aria-pressed="${selected}" style="left:${node.x}px;top:${node.y}px"><span class="technology-node-category">${escapeHtml(node.technology.category_zh)}</span><span>${escapeHtml(node.technology.name_zh)}</span></button>`;
+  const iconFile = node.technology.icon.split("/").pop().replace(/\.dds$/i, ".png");
+  return `<button class="technology-node" type="button" data-technology-key="${escapeHtml(node.technology.key)}" aria-pressed="${selected}" style="left:${node.x}px;top:${node.y}px"><img src="assets/technologies/${escapeHtml(iconFile)}" alt="" aria-hidden="true"><span><small class="technology-node-category">${escapeHtml(node.technology.category_zh)}</small>${escapeHtml(node.technology.name_zh)}</span></button>`;
 }
 
 function renderTechnologyBoard() {
