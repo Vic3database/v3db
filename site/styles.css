@@ -3401,6 +3401,15 @@ body[data-view="law"][data-results-panel="collapsed"] .detail {
   grid-template-columns: 64px minmax(0, 1fr) 28px;
 }
 
+.results .company-row {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px 8px;
+  min-height: auto;
+  max-height: none;
+  overflow: visible;
+  cursor: pointer;
+}
+
 .results .country-heading {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) 28px;
@@ -3452,15 +3461,6 @@ body[data-view="law"][data-results-panel="collapsed"] .detail {
 
 .results .culture-row {
   grid-template-columns: 18px minmax(88px, 118px) minmax(0, 1fr) 28px;
-}
-
-.results .company-row {
-  grid-template-columns: minmax(0, 1fr);
-  gap: 6px 8px;
-  min-height: auto;
-  max-height: none;
-  overflow: visible;
-  cursor: pointer;
 }
 
 .results .company-row > .company-heading,
