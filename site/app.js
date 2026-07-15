@@ -2480,8 +2480,12 @@ function renderLawBoard() {
 function technologyGraphLayout() {
   const eras = technologyEras.map((era) => era.key);
   const technologyGraphCategory = state.technologyCategory;
-  const eraHeight = 190;
-  const technologyGraphMinGap = 170;
+  const technologyGridColumns = 15;
+  const technologyGridRows = 12;
+  const technologyGridCellWidth = 170;
+  const technologyGridCellHeight = 78;
+  const technologyGridOccupied = new Set();
+  const eraBaseRows = [0, 2, 5, 8, 10];
   const nodes = new Map();
   eras.forEach((era, eraIndex) => {
     const eraTechnologies = technologies.filter((item) => item.category === technologyGraphCategory && item.era === era)
@@ -2508,19 +2512,31 @@ function technologyGraphLayout() {
     };
     const positioned = eraTechnologies.map((technology, index) => ({ technology, idealX: technologyGraphIdealX(technology, index), idealY: technologyGraphIdealY(technology) }))
       .sort((left, right) => left.idealX - right.idealX || left.technology.name_zh.localeCompare(right.technology.name_zh, "zh-Hans-CN"));
-    let previousX = -technologyGraphMinGap;
     positioned.forEach(({ technology, idealX, idealY }) => {
-      const x = Math.max(36, idealX, previousX + technologyGraphMinGap);
+      const targetColumn = Math.max(0, Math.min(technologyGridColumns - 1, Math.round((idealX - 36) / technologyGridCellWidth)));
+      const targetRow = Math.max(0, Math.min(technologyGridRows - 1, eraBaseRows[eraIndex] + idealY));
+      const cell = technologyGridNearestCell(targetColumn, targetRow, technologyGridColumns, technologyGridRows, technologyGridOccupied);
+      technologyGridOccupied.add(`${cell.column}:${cell.row}`);
       nodes.set(technology.key, {
         technology,
-        x,
-        y: 38 + eraIndex * eraHeight + idealY * 56,
+        x: 36 + cell.column * technologyGridCellWidth,
+        y: 38 + cell.row * technologyGridCellHeight,
       });
-      previousX = x;
     });
   });
-  const widestEra = Math.max(1, ...eras.map((era) => technologies.filter((item) => item.category === technologyGraphCategory && item.era === era).length));
-  return { nodes, width: Math.max(1260, 72 + widestEra * 170), height: eraHeight * eras.length + 32, eraHeight, technologyGraphCategory };
+  return { nodes, width: 72 + technologyGridColumns * technologyGridCellWidth, height: 76 + technologyGridRows * technologyGridCellHeight, technologyGridColumns, technologyGridRows, technologyGridCellHeight, eraBaseRows, technologyGraphCategory };
+}
+
+function technologyGridNearestCell(targetColumn, targetRow, columns, rows, occupied) {
+  for (let radius = 0; radius < Math.max(columns, rows); radius += 1) {
+    for (let row = Math.max(0, targetRow - radius); row <= Math.min(rows - 1, targetRow + radius); row += 1) {
+      for (let column = Math.max(0, targetColumn - radius); column <= Math.min(columns - 1, targetColumn + radius); column += 1) {
+        if (Math.abs(column - targetColumn) + Math.abs(row - targetRow) > radius) continue;
+        if (!occupied.has(`${column}:${row}`)) return { column, row };
+      }
+    }
+  }
+  return { column: targetColumn, row: targetRow };
 }
 
 function technologyGraphEdges(layout) {
@@ -2544,7 +2560,7 @@ function renderTechnologyBoard() {
   els.resultCount.textContent = `${[...layout.nodes.values()].length} 项科技`;
   els.activeHint.textContent = "";
   const categoryLabels = { production: "生产", military: "军事", society: "社会" };
-  els.countryList.innerHTML = `<section class="technology-shell"><div class="technology-controls">${Object.entries(categoryLabels).map(([key,label]) => `<button type="button" data-technology-category="${key}" aria-pressed="${layout.technologyGraphCategory === key}">${label}</button>`).join("")}<button type="button" data-technology-reset>重置视图</button></div><div class="technology-graph-viewport"><div class="technology-graph-canvas" style="width:${layout.width}px;height:${layout.height}px;transform:translate(${state.technologyViewport.x}px,${state.technologyViewport.y}px) scale(${state.technologyViewport.scale})"><div class="technology-era-headings">${technologyEras.map((era, index) => `<span style="top:${38 + index * layout.eraHeight}px">${escapeHtml(era.label_zh)}</span>`).join("")}</div><svg class="technology-graph-edges" width="${layout.width}" height="${layout.height}">${edges.map(({from,to}) => `<line x1="${from.x + 152}" y1="${from.y + 28}" x2="${to.x}" y2="${to.y + 28}" class="${selected && (from.technology.key === selected.key || to.technology.key === selected.key) ? "is-highlighted" : ""}"/>`).join("")}</svg>${[...layout.nodes.values()].map(technologyNodeHtml).join("")}</div></div><div class="technology-mobile-list">${technologyEras.map((era) => `<details open><summary>${era.label_zh}</summary>${[...layout.nodes.values()].filter((node) => node.technology.era === era.key).map(technologyNodeHtml).join("")}</details>`).join("")}</div><div class="technology-local-graph">${selected ? `已选：${escapeHtml(selected.name_zh)}　前置 ${selected.prerequisites.length}　后续 ${selected.unlocks.length}` : "选择科技查看局部关系"}</div></section>`;
+  els.countryList.innerHTML = `<section class="technology-shell"><div class="technology-controls">${Object.entries(categoryLabels).map(([key,label]) => `<button type="button" data-technology-category="${key}" aria-pressed="${layout.technologyGraphCategory === key}">${label}</button>`).join("")}<button type="button" data-technology-reset>重置视图</button></div><div class="technology-graph-viewport"><div class="technology-graph-canvas technology-grid-${layout.technologyGridColumns}x${layout.technologyGridRows}" style="width:${layout.width}px;height:${layout.height}px;transform:translate(${state.technologyViewport.x}px,${state.technologyViewport.y}px) scale(${state.technologyViewport.scale})"><div class="technology-era-headings">${technologyEras.map((era, index) => `<span style="top:${38 + layout.eraBaseRows[index] * layout.technologyGridCellHeight}px">${escapeHtml(era.label_zh)}</span>`).join("")}</div><svg class="technology-graph-edges" width="${layout.width}" height="${layout.height}">${edges.map(({from,to}) => `<line x1="${from.x + 152}" y1="${from.y + 28}" x2="${to.x}" y2="${to.y + 28}" class="${selected && (from.technology.key === selected.key || to.technology.key === selected.key) ? "is-highlighted" : ""}"/>`).join("")}</svg>${[...layout.nodes.values()].map(technologyNodeHtml).join("")}</div></div><div class="technology-mobile-list">${technologyEras.map((era) => `<details open><summary>${era.label_zh}</summary>${[...layout.nodes.values()].filter((node) => node.technology.era === era.key).map(technologyNodeHtml).join("")}</details>`).join("")}</div><div class="technology-local-graph">${selected ? `已选：${escapeHtml(selected.name_zh)}　前置 ${selected.prerequisites.length}　后续 ${selected.unlocks.length}` : "选择科技查看局部关系"}</div></section>`;
   els.detail.innerHTML = renderTechnologyDetail(selected);
   els.countryList.querySelectorAll("[data-technology-key]").forEach((button) => button.addEventListener("click", () => { location.hash = `/technology/${encodeURIComponent(button.dataset.technologyKey)}`; }));
   els.countryList.querySelectorAll("[data-technology-category]").forEach((button) => button.addEventListener("click", () => { state.technologyCategory = button.dataset.technologyCategory; state.selectedTechnology = ""; state.technologyViewport = { x: 0, y: 0, scale: 1 }; render(); }));

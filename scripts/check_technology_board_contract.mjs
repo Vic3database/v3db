@@ -11,13 +11,16 @@ assert.match(app, /function renderTechnologyBoard\(/, "technology board renderer
 assert.match(app, /function renderTechnologyDetail\(/, "technology detail renderer must exist");
 assert.match(app, /technologyGraphLayout/, "technology graph layout must exist");
 assert.match(app, /const technologyGraphCategory = state\.technologyCategory/, "technology graph must render the selected category only");
-assert.match(app, /const eraHeight = 190/, "technology graph must reserve a vertical band for each era");
-assert.match(app, /eraIndex \* eraHeight/, "technology graph must place era I at the top and era V at the bottom");
+assert.match(app, /const eraBaseRows = \[0, 2, 5, 8, 10\]/, "technology graph must reserve grid rows for each era");
+assert.match(app, /eraBaseRows\[eraIndex\]/, "technology graph must place era I at the top and era V at the bottom");
 assert.match(app, /technologyGraphCategory/, "technology graph must keep category trees independent");
 assert.match(app, /technologyGraphIdealX/, "technology graph must align nodes from prerequisite positions");
 assert.match(app, /technologyGraphMinGap/, "technology graph must separate nodes in the same era");
 assert.match(app, /technologyGraphIdealY/, "technology graph must place nodes on intra-era dependency levels");
 assert.match(app, /sameEraPrerequisites/, "technology graph must derive vertical position from prerequisites in the same era");
+assert.match(app, /const technologyGridColumns = 15/, "technology graph must use fifteen columns");
+assert.match(app, /const technologyGridRows = 12/, "technology graph must use twelve rows");
+assert.match(app, /technologyGridOccupied/, "technology graph must reserve occupied grid cells");
 assert.match(app, /data-technology-key/, "technology nodes must expose stable keys");
 assert.match(app, /data-technology-target/, "technology detail links must expose targets");
 assert.match(app, /assets\/technologies\//, "technology nodes must use published technology icons");
