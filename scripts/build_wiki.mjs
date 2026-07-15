@@ -35,6 +35,8 @@ const wikiData = {
   ideologies: data.ideologies,
   laws: data.laws,
   lawGroups: data.lawGroups,
+  technologies: data.technologies,
+  technologyEras: data.technologyEras,
   dynamicCountryNameVariants: data.dynamicCountryNameVariants,
   dynamicCountryMapColorRules: data.dynamicCountryMapColorRules,
   formables: data.formables,
@@ -48,6 +50,7 @@ const dataChunks = {
   company: ["companies", "companyCharterTypes"],
   ideology: ["interestGroups", "interestGroupTraits", "ideologies"],
   law: ["laws", "lawGroups"],
+  technology: ["technologies", "technologyEras"],
 };
 
 const dataChunkFileNames = {
@@ -57,6 +60,7 @@ const dataChunkFileNames = {
   company: "data-companies.js",
   ideology: "data-ideologies.js",
   law: "data-laws.js",
+  technology: "data-technologies.js",
 };
 
 for (const [key, keys] of Object.entries(dataChunks)) {
@@ -148,6 +152,8 @@ function loadSiteData(sourceFile) {
     const interestGroupTraits = sourceData.files.interest_group_traits ? readJson(path.join(baseDir, sourceData.files.interest_group_traits)) : [];
     const ideologies = sourceData.files.ideologies ? readJson(path.join(baseDir, sourceData.files.ideologies)) : [];
     const laws = sourceData.files.laws ? readJson(path.join(baseDir, sourceData.files.laws)) : [];
+    const technologies = sourceData.files.technologies ? readJson(path.join(baseDir, sourceData.files.technologies)) : [];
+    const technologyEras = sourceData.files.technology_eras ? readJson(path.join(baseDir, sourceData.files.technology_eras)) : [];
     const lawGroups = sourceData.files.law_groups ? readJson(path.join(baseDir, sourceData.files.law_groups)) : [];
     const dynamicCountryNameVariants = readJson(path.join(baseDir, sourceData.files.dynamic_country_name_variants));
     const dynamicCountryMapColorRules = readJson(path.join(baseDir, sourceData.files.dynamic_country_map_color_rules));
@@ -180,6 +186,8 @@ function loadSiteData(sourceFile) {
       ideologies,
       laws,
       lawGroups,
+      technologies,
+      technologyEras,
       dynamicCountryNameVariants,
       dynamicCountryMapColorRules,
       formables,
@@ -203,6 +211,8 @@ function deriveSiteData(siteData) {
     ideologies: siteData.ideologies || [],
     laws: siteData.laws || [],
     lawGroups: siteData.lawGroups || [],
+    technologies: siteData.technologies || [],
+    technologyEras: siteData.technologyEras || [],
   };
 }
 

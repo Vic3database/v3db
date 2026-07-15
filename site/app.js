@@ -20,6 +20,8 @@ let interestGroupTraits = [];
 let ideologies = [];
 let laws = [];
 let lawGroups = [];
+let technologies = [];
+let technologyEras = [];
 let mapData = null;
 let siteTitle = "Vicdata";
 
@@ -34,6 +36,7 @@ let interestGroupTraitByKey = new Map();
 let ideologyByKey = new Map();
 let lawByKey = new Map();
 let lawGroupByKey = new Map();
+let technologyByKey = new Map();
 const ideologyUsageCache = new Map();
 let cultureTraitByKey = new Map();
 let cultureTraitGroupByKey = new Map();
@@ -138,6 +141,9 @@ const state = {
   selectedCompany: "",
   selectedIdeology: "",
   selectedLaw: "",
+  selectedTechnology: "",
+  technologyCategory: "production",
+  technologyViewport: { x: 0, y: 0, scale: 1 },
   selectedGlobalResult: "",
   detailKind: "country",
   regionListMode: "state",
@@ -485,6 +491,7 @@ const viewLabels = {
   company: "公司",
   ideology: "意识形态",
   law: "法律",
+  technology: "科技",
   changelog: "更新日志",
 };
 
@@ -756,6 +763,7 @@ function dataChunksForView(view) {
   if (view === "company") return ["company", "region", "country"];
   if (view === "ideology") return ["ideology", "law", "country"];
   if (view === "law") return ["law", "ideology", "country"];
+  if (view === "technology") return ["technology"];
   return [];
 }
 
@@ -765,7 +773,7 @@ async function ensureDataChunksForRoute() {
 
 function routeView() {
   const segment = location.hash.replace(/^#\/?/, "").split("/")[0];
-  if (["country", "culture", "region", "company", "ideology", "law"].includes(segment)) return segment;
+  if (["country", "culture", "region", "company", "ideology", "law", "technology"].includes(segment)) return segment;
   if (["state-region", "strategic-region", "geographic-region"].includes(segment)) return "region";
   return "home";
 }
@@ -841,6 +849,8 @@ function applyLoadedDataset(nextData, nextMapData) {
   ideologies = data.ideologies || [];
   laws = data.laws || [];
   lawGroups = data.lawGroups || [];
+  technologies = data.technologies || [];
+  technologyEras = data.technologyEras || [];
   mapData = nextMapData || null;
   siteTitle = versionConfig?.site_title || data.meta?.site_title || data.meta?.dataset_name || "Vicdata";
 
@@ -855,6 +865,7 @@ function applyLoadedDataset(nextData, nextMapData) {
   ideologyByKey = new Map(ideologies.map((ideology) => [ideology.key, ideology]));
   lawByKey = new Map(laws.map((law) => [law.key, law]));
   lawGroupByKey = new Map(lawGroups.map((group) => [group.key, group]));
+  technologyByKey = new Map(technologies.map((technology) => [technology.key, technology]));
   cultureTraitByKey = new Map(cultureTraits.map((trait) => [trait.key, trait]));
   cultureTraitGroupByKey = new Map(cultureTraitGroups.map((group) => [group.key, group]));
   stateKeyByProvinceColor = buildStateKeyByProvinceColor();
@@ -1772,6 +1783,18 @@ async function applyHash() {
     state.detailKind = "law";
     return;
   }
+  if (parts[0] === "technology" && !parts[1]) {
+    state.view = "technology";
+    state.detailKind = "technology";
+    return;
+  }
+  if (parts[0] === "technology" && parts[1] && technologyByKey.has(decodeURIComponent(parts[1]))) {
+    state.view = "technology";
+    state.selectedTechnology = decodeURIComponent(parts[1]);
+    state.technologyCategory = technologyByKey.get(state.selectedTechnology).category;
+    state.detailKind = "technology";
+    return;
+  }
   if (parts[0] === "religion" && parts[1]) {
     state.search = decodeURIComponent(parts[1]).toLowerCase();
     els.searchInput.value = state.search;
@@ -1891,10 +1914,12 @@ function render() {
     renderIdeologyBoard();
   } else if (state.view === "law") {
     renderLawBoard();
+  } else if (state.view === "technology") {
+    renderTechnologyBoard();
   } else {
     renderCountryBoard();
   }
-  const boardManagesDetail = state.view === "home";
+  const boardManagesDetail = state.view === "home" || state.view === "technology";
   if (!boardManagesDetail && state.view !== "changelog" && isDetailPageRoute()) {
     renderDetailForState();
   } else if (!boardManagesDetail) {
@@ -1909,7 +1934,7 @@ function isDetailPageRoute() {
 function detailRouteKey() {
   const [route, key] = location.hash.replace(/^#\/?/, "").split("/").filter(Boolean);
   if (!route || !key) return "";
-  return ["country", "culture", "state-region", "strategic-region", "geographic-region", "company", "ideology", "law"].includes(route) ? key : "";
+  return ["country", "culture", "state-region", "strategic-region", "geographic-region", "company", "ideology", "law", "technology"].includes(route) ? key : "";
 }
 
 function syncFilterSectionOpenStates() {
@@ -1962,7 +1987,7 @@ function renderHomeBoard() {
     { category: "内政", label: "意识形态", text: `${dataCount("ideologies", ideologies)} 个意识形态`, view: "ideology", icon: "assets/home/democracy.png" },
     { category: "内政", label: "日志、事件与决议", text: "筹备中", icon: "assets/home/event_default.png" },
     { category: "社会", label: "文化", text: `${dataCount("cultures", cultures)} 个文化`, view: "culture", icon: "assets/home/nationalism.png" },
-    { category: "社会", label: "科技", text: "筹备中", icon: "assets/home/academia.png" },
+    { category: "社会", label: "科技", text: `${dataCount("technologies", technologies)} 项科技`, view: "technology", icon: "assets/home/academia.png" },
     { category: "社会", label: "角色", text: "筹备中", icon: "assets/home/event_portrait.png" },
     { category: "经济", label: "地区", text: `${landStateRegions.length} 个州地区`, view: "region", icon: "assets/home/state.png" },
     { category: "经济", label: "建筑", text: "筹备中", icon: "assets/home/manufacturies.png" },
@@ -2450,6 +2475,57 @@ function renderLawBoard() {
   els.resultCount.textContent = `${filtered.length} 条法律`;
   els.activeHint.textContent = buildActiveHint(filtered.length);
   renderLawList(filtered);
+}
+
+function technologyGraphLayout(category) {
+  const eras = technologyEras.map((era) => era.key);
+  const nodes = new Map();
+  eras.forEach((era, column) => technologies.filter((item) => item.category === category && item.era === era)
+    .sort((a, b) => a.name_zh.localeCompare(b.name_zh, "zh-Hans-CN"))
+    .forEach((technology, row) => nodes.set(technology.key, { technology, x: 48 + column * 224, y: 62 + row * 82 })));
+  return { nodes, width: 1180, height: Math.max(460, ...[...nodes.values()].map((node) => node.y + 64)) };
+}
+
+function technologyGraphEdges(layout) {
+  return [...layout.nodes.values()].flatMap((node) => node.technology.prerequisites.map((key) => {
+    const from = layout.nodes.get(key);
+    return from ? { from, to: node } : null;
+  }).filter(Boolean));
+}
+
+function technologyNodeHtml(node) {
+  const selected = node.technology.key === state.selectedTechnology;
+  return `<button class="technology-node" type="button" data-technology-key="${escapeHtml(node.technology.key)}" aria-pressed="${selected}" style="left:${node.x}px;top:${node.y}px"><span class="technology-node-category">${escapeHtml(node.technology.category_zh)}</span><span>${escapeHtml(node.technology.name_zh)}</span></button>`;
+}
+
+function renderTechnologyBoard() {
+  const category = ["production", "military", "society"].includes(state.technologyCategory) ? state.technologyCategory : "production";
+  const layout = technologyGraphLayout(category);
+  const selected = technologyByKey.get(state.selectedTechnology) || null;
+  const edges = technologyGraphEdges(layout);
+  els.countryList.className = "country-list technology-board";
+  els.resultCount.textContent = `${[...layout.nodes.values()].length} 项科技`;
+  els.activeHint.textContent = "";
+  els.countryList.innerHTML = `<section class="technology-shell"><div class="technology-controls">${[["production","生产"],["military","军事"],["society","社会"]].map(([key,label]) => `<button type="button" data-technology-category="${key}" aria-pressed="${category === key}">${label}</button>`).join("")}<button type="button" data-technology-reset>重置视图</button></div><div class="technology-graph-viewport"><div class="technology-graph-canvas" style="width:${layout.width}px;height:${layout.height}px;transform:translate(${state.technologyViewport.x}px,${state.technologyViewport.y}px) scale(${state.technologyViewport.scale})"><div class="technology-era-headings">${technologyEras.map((era) => `<span>${escapeHtml(era.label_zh)}</span>`).join("")}</div><svg class="technology-graph-edges" width="${layout.width}" height="${layout.height}">${edges.map(({from,to}) => `<line x1="${from.x + 152}" y1="${from.y + 28}" x2="${to.x}" y2="${to.y + 28}" class="${selected && (from.technology.key === selected.key || to.technology.key === selected.key) ? "is-highlighted" : ""}"/>`).join("")}</svg>${[...layout.nodes.values()].map(technologyNodeHtml).join("")}</div></div><div class="technology-mobile-list">${technologyEras.map((era) => `<details open><summary>${era.label_zh}</summary>${[...layout.nodes.values()].filter((node) => node.technology.era === era.key).map(technologyNodeHtml).join("")}</details>`).join("")}</div><div class="technology-local-graph">${selected ? `已选：${escapeHtml(selected.name_zh)}　前置 ${selected.prerequisites.length}　后续 ${selected.unlocks.length}` : "选择科技查看局部关系"}</div></section>`;
+  els.detail.innerHTML = renderTechnologyDetail(selected);
+  els.countryList.querySelectorAll("[data-technology-key]").forEach((button) => button.addEventListener("click", () => { location.hash = `/technology/${encodeURIComponent(button.dataset.technologyKey)}`; }));
+  els.countryList.querySelectorAll("[data-technology-category]").forEach((button) => button.addEventListener("click", () => { state.technologyCategory = button.dataset.technologyCategory; state.selectedTechnology = ""; state.technologyViewport = { x: 0, y: 0, scale: 1 }; render(); }));
+  els.countryList.querySelector("[data-technology-reset]")?.addEventListener("click", () => { state.technologyViewport = { x: 0, y: 0, scale: 1 }; render(); });
+  const viewport = els.countryList.querySelector(".technology-graph-viewport");
+  let drag = null;
+  viewport?.addEventListener("pointerdown", (event) => { drag = { x: event.clientX, y: event.clientY, startX: state.technologyViewport.x, startY: state.technologyViewport.y }; viewport.setPointerCapture(event.pointerId); });
+  viewport?.addEventListener("pointermove", (event) => { if (!drag) return; state.technologyViewport.x = drag.startX + event.clientX - drag.x; state.technologyViewport.y = drag.startY + event.clientY - drag.y; const canvas = viewport.querySelector(".technology-graph-canvas"); if (canvas) canvas.style.transform = `translate(${state.technologyViewport.x}px,${state.technologyViewport.y}px) scale(${state.technologyViewport.scale})`; });
+  viewport?.addEventListener("pointerup", () => { drag = null; });
+  viewport?.addEventListener("wheel", (event) => { event.preventDefault(); state.technologyViewport.scale = Math.max(.7, Math.min(1.8, state.technologyViewport.scale * (event.deltaY < 0 ? 1.1 : .9))); const canvas = viewport.querySelector(".technology-graph-canvas"); if (canvas) canvas.style.transform = `translate(${state.technologyViewport.x}px,${state.technologyViewport.y}px) scale(${state.technologyViewport.scale})`; }, { passive: false });
+}
+
+function renderTechnologyDetail(technology) {
+  if (!technology) return `<section class="technology-detail"><h2>科技</h2><p>选择一项科技查看前置关系与解锁内容。</p></section>`;
+  const relation = (items, label) => `<section><h3>${label}</h3><div>${items.length ? items.map((item) => `<button class="pill tag-technology" type="button" data-technology-target="${escapeHtml(item.key)}">${escapeHtml(item.name_zh)}</button>`).join("") : "无"}</div></section>`;
+  const refs = technology.references || { laws: [], companies: [] };
+  const linkItems = (items, route) => items.length ? items.map((item) => `<a class="pill" href="#/${route}/${encodeURIComponent(item.key)}">${escapeHtml(item.name_zh)}</a>`).join("") : "无";
+  queueMicrotask(() => document.querySelectorAll("[data-technology-target]").forEach((button) => button.addEventListener("click", () => { location.hash = `/technology/${encodeURIComponent(button.dataset.technologyTarget)}`; })));
+  return `<section class="technology-detail"><h2>${escapeHtml(technology.name_zh)}</h2><p>${escapeHtml(technology.category_zh)} · ${escapeHtml(technology.era_label_zh)} · ${escapeHtml(String(technology.era_cost))} 创新力</p><p>${escapeHtml(technology.desc_zh || "无说明")}</p>${relation(technology.prerequisites.map((key) => technologyByKey.get(key)).filter(Boolean), "前置科技")}${relation(technology.unlocks, "后续科技")}<section><h3>修正效果</h3>${technology.modifiers.length ? technology.modifiers.map((item) => `<p>${escapeHtml(item.summary_zh)}</p>`).join("") : "无"}</section><section><h3>关联法律</h3>${linkItems(refs.laws, "law")}</section><section><h3>关联公司</h3>${linkItems(refs.companies, "company")}</section></section>`;
 }
 
 function renderDetailForState() {
