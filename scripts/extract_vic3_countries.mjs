@@ -166,6 +166,13 @@ function main() {
   const amendments = loadLawAmendments(contentPath("common", "amendments"), loc);
   const laws = loadLaws(contentPath("common", "laws"), lawGroups, institutions, loc);
   attachLawAmendments(laws, amendments);
+  const technologyEras = loadTechnologyEras(contentPath("common", "technology", "eras"));
+  const technologies = loadTechnologies(
+    contentPath("common", "technology", "technologies"),
+    technologyEras,
+    loc,
+  );
+  attachTechnologyReferences(technologies, { laws, companies });
   const interestGroups = loadInterestGroups(
     contentPath("common", "interest_groups"),
     loc,
@@ -373,6 +380,8 @@ function main() {
     ideologies,
     lawGroups,
     laws,
+    technologies,
+    technologyEras,
     geographicRegions,
     relatedCountriesByCulture,
     definitions,
@@ -435,6 +444,7 @@ function main() {
     ideologies: ideologies.size,
     law_groups: lawGroups.size,
     laws: laws.size,
+    technologies: technologies.length,
     output: outDir,
     database: databaseDir,
     dataset_name: datasetName,
@@ -1488,6 +1498,103 @@ function loadLaws(dir, lawGroups, institutions, loc) {
     }
   }
   return rows;
+}
+
+const technologyCategoryZh = {
+  production: "生产",
+  military: "军事",
+  society: "社会",
+};
+
+const technologyEraLabels = {
+  era_1: "时代 I",
+  era_2: "时代 II",
+  era_3: "时代 III",
+  era_4: "时代 IV",
+  era_5: "时代 V",
+};
+
+function loadTechnologyEras(dir) {
+  const eras = new Map();
+  for (const file of listFiles(dir)) {
+    const root = parseScript(readText(file), file);
+    for (const assignment of root.assignments) {
+      const key = scriptEntryKey(assignment.key);
+      if (!Object.hasOwn(technologyEraLabels, key)) continue;
+      const node = asNode(assignment.value);
+      const cost = toNumberOrNull(firstScalar(node, "technology_cost"));
+      if (cost === null) throw new Error(`科技时代缺少研究成本：${key}`);
+      eras.set(key, { key, label_zh: technologyEraLabels[key], cost });
+    }
+  }
+  return [...eras.values()].sort((left, right) => left.key.localeCompare(right.key, "en"));
+}
+
+function loadTechnologies(dir, technologyEras, loc) {
+  const eraByKey = new Map(technologyEras.map((era) => [era.key, era]));
+  const technologies = [];
+  for (const file of listFiles(dir)) {
+    const root = parseScript(readText(file), file);
+    for (const assignment of root.assignments) {
+      const key = scriptEntryKey(assignment.key);
+      const node = asNode(assignment.value);
+      if (!node) continue;
+      const era = stripPrefix(firstScalar(node, "era"));
+      const category = stripPrefix(firstScalar(node, "category"));
+      if (!eraByKey.has(era) || !Object.hasOwn(technologyCategoryZh, category)) continue;
+      const prerequisites = nodeItems(asNode(firstValue(node, "unlocking_technologies")) || { items: [] })
+        .map(stripPrefix)
+        .filter(Boolean)
+        .sort();
+      const modifiers = allValues(node, "modifier")
+        .map(asNode)
+        .filter(Boolean)
+        .flatMap((modifierNode) => modifierNode.assignments.map((item) => modifierRef(item.key, item.value, loc)));
+      technologies.push({
+        id: `technology:${key}`,
+        key,
+        name_zh: locCleanName(loc, key),
+        desc_zh: loc.has(`${key}_desc`) ? cleanLocalizationText(locName(loc, `${key}_desc`), loc) : "",
+        icon: stripQuotes(firstScalar(node, "texture")),
+        category,
+        category_zh: technologyCategoryZh[category],
+        era,
+        era_label_zh: eraByKey.get(era).label_zh,
+        era_cost: eraByKey.get(era).cost,
+        prerequisites,
+        unlocks: [],
+        modifiers,
+        modifier_summary_zh: joinValues(modifiers.map((modifier) => modifier.summary_zh)),
+        references: { laws: [], companies: [] },
+        source_file: normalizePath(file),
+      });
+    }
+  }
+  return technologies.sort((left, right) => left.key.localeCompare(right.key, "en"));
+}
+
+function attachTechnologyReferences(technologies, { laws, companies }) {
+  const byKey = new Map(technologies.map((technology) => [technology.key, technology]));
+  for (const technology of technologies) {
+    for (const key of technology.prerequisites) {
+      const prerequisite = byKey.get(key);
+      if (!prerequisite) throw new Error(`科技 ${technology.key} 引用了不存在的前置科技：${key}`);
+      prerequisite.unlocks.push({ key: technology.key, name_zh: technology.name_zh });
+    }
+    technology.references = {
+      laws: [...laws.values()]
+        .filter((law) => law.unlocking_technologies.some((item) => item.key === technology.key))
+        .map((law) => ({ key: law.key, name_zh: law.name_zh })),
+      companies: companies
+        .filter((company) => company.required_technologies.some((item) => item.key === technology.key))
+        .map((company) => ({ key: company.key, name_zh: company.name_zh })),
+    };
+  }
+  for (const technology of technologies) {
+    technology.unlocks.sort((left, right) => left.name_zh.localeCompare(right.name_zh, "zh-Hans-CN"));
+    technology.references.laws.sort((left, right) => left.name_zh.localeCompare(right.name_zh, "zh-Hans-CN"));
+    technology.references.companies.sort((left, right) => left.name_zh.localeCompare(right.name_zh, "zh-Hans-CN"));
+  }
 }
 
 function lawEnactmentEffects(node, loc) {
@@ -3315,6 +3422,8 @@ function writeDatabase(dir, data) {
     ideologies,
     lawGroups,
     laws,
+    technologies,
+    technologyEras,
     geographicRegions,
     cultureRows,
     cultureTraitRows,
@@ -3500,6 +3609,8 @@ function writeDatabase(dir, data) {
       ideologies: "ideologies.json",
       law_groups: "law_groups.json",
       laws: "laws.json",
+      technologies: "technologies.json",
+      technology_eras: "technology_eras.json",
       dynamic_country_name_variants: "dynamic_country_name_variants.json",
       dynamic_country_map_color_rules: "dynamic_country_map_color_rules.json",
       formable_countries: "formable_countries.json",
@@ -3520,6 +3631,8 @@ function writeDatabase(dir, data) {
       ideologies: ideologies.size,
       law_groups: lawGroups.size,
       laws: laws.size,
+      technologies: technologies.length,
+      technology_eras: technologyEras.length,
       dynamic_country_name_variants: dynamicNameVariants.length,
       dynamic_country_map_color_rules: dynamicMapColorRules.length,
       formable_countries: formables.length,
@@ -3549,6 +3662,8 @@ function writeDatabase(dir, data) {
   }));
   writeJson(path.join(dir, "law_groups.json"), [...lawGroups.values()]);
   writeJson(path.join(dir, "laws.json"), [...laws.values()]);
+  writeJson(path.join(dir, "technologies.json"), technologies);
+  writeJson(path.join(dir, "technology_eras.json"), technologyEras);
   writeJson(path.join(dir, "dynamic_country_name_variants.json"), dynamicNameVariants);
   writeJson(path.join(dir, "dynamic_country_map_color_rules.json"), dynamicMapColorRules);
   writeJson(path.join(dir, "formable_countries.json"), formables);
