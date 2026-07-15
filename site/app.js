@@ -2481,16 +2481,27 @@ function technologyGraphLayout() {
   const eras = technologyEras.map((era) => era.key);
   const technologyGraphCategory = state.technologyCategory;
   const eraHeight = 190;
+  const technologyGraphMinGap = 170;
   const nodes = new Map();
   eras.forEach((era, eraIndex) => {
     const eraTechnologies = technologies.filter((item) => item.category === technologyGraphCategory && item.era === era)
       .sort((a, b) => a.name_zh.localeCompare(b.name_zh, "zh-Hans-CN"));
-    eraTechnologies.forEach((technology, index) => {
+    const technologyGraphIdealX = (technology, index) => {
+      const prerequisiteNodes = technology.prerequisites.map((key) => nodes.get(key)).filter(Boolean);
+      if (!prerequisiteNodes.length) return 36 + index * technologyGraphMinGap;
+      return prerequisiteNodes.reduce((sum, node) => sum + node.x, 0) / prerequisiteNodes.length;
+    };
+    const positioned = eraTechnologies.map((technology, index) => ({ technology, idealX: technologyGraphIdealX(technology, index) }))
+      .sort((left, right) => left.idealX - right.idealX || left.technology.name_zh.localeCompare(right.technology.name_zh, "zh-Hans-CN"));
+    let previousX = -technologyGraphMinGap;
+    positioned.forEach(({ technology, idealX }) => {
+      const x = Math.max(36, idealX, previousX + technologyGraphMinGap);
       nodes.set(technology.key, {
         technology,
-        x: 36 + index * 170,
-        y: 38 + eraIndex * eraHeight + ((index % 2) * 62),
+        x,
+        y: 38 + eraIndex * eraHeight,
       });
+      previousX = x;
     });
   });
   const widestEra = Math.max(1, ...eras.map((era) => technologies.filter((item) => item.category === technologyGraphCategory && item.era === era).length));

@@ -14,6 +14,8 @@ assert.match(app, /const technologyGraphCategory = state\.technologyCategory/, "
 assert.match(app, /const eraHeight = 190/, "technology graph must reserve a vertical band for each era");
 assert.match(app, /eraIndex \* eraHeight/, "technology graph must place era I at the top and era V at the bottom");
 assert.match(app, /technologyGraphCategory/, "technology graph must keep category trees independent");
+assert.match(app, /technologyGraphIdealX/, "technology graph must align nodes from prerequisite positions");
+assert.match(app, /technologyGraphMinGap/, "technology graph must separate nodes in the same era");
 assert.match(app, /data-technology-key/, "technology nodes must expose stable keys");
 assert.match(app, /data-technology-target/, "technology detail links must expose targets");
 assert.match(app, /assets\/technologies\//, "technology nodes must use published technology icons");
