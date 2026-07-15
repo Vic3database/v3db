@@ -11,7 +11,8 @@ assert.match(app, /function renderTechnologyBoard\(/, "technology board renderer
 assert.match(app, /function renderTechnologyDetail\(/, "technology detail renderer must exist");
 assert.match(app, /technologyGraphLayout/, "technology graph layout must exist");
 assert.match(app, /const technologyGraphLanes = 3/, "technology graph must limit each era to three horizontal lanes");
-assert.match(app, /columnWidth/, "technology graph must allocate horizontal space by era");
+assert.match(app, /const eraTrackHeight = 390/, "technology graph must reserve a separate horizontal track for each era");
+assert.match(app, /eraIndex \* eraTrackHeight/, "technology graph must stack era tracks vertically");
 assert.match(app, /data-technology-key/, "technology nodes must expose stable keys");
 assert.match(app, /data-technology-target/, "technology detail links must expose targets");
 assert.match(app, /assets\/technologies\//, "technology nodes must use published technology icons");
