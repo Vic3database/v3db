@@ -2486,20 +2486,35 @@ function technologyGraphLayout() {
   eras.forEach((era, eraIndex) => {
     const eraTechnologies = technologies.filter((item) => item.category === technologyGraphCategory && item.era === era)
       .sort((a, b) => a.name_zh.localeCompare(b.name_zh, "zh-Hans-CN"));
+    const eraTechnologyByKey = new Map(eraTechnologies.map((technology) => [technology.key, technology]));
+    const technologyGraphLevels = new Map();
+    const technologyGraphIdealY = (technology, visiting = new Set()) => {
+      if (technologyGraphLevels.has(technology.key)) return technologyGraphLevels.get(technology.key);
+      if (visiting.has(technology.key)) return 0;
+      const nextVisiting = new Set(visiting).add(technology.key);
+      const sameEraPrerequisites = technology.prerequisites
+        .map((key) => eraTechnologyByKey.get(key))
+        .filter(Boolean);
+      const level = sameEraPrerequisites.length
+        ? 1 + Math.max(...sameEraPrerequisites.map((item) => technologyGraphIdealY(item, nextVisiting)))
+        : 0;
+      technologyGraphLevels.set(technology.key, level);
+      return level;
+    };
     const technologyGraphIdealX = (technology, index) => {
       const prerequisiteNodes = technology.prerequisites.map((key) => nodes.get(key)).filter(Boolean);
       if (!prerequisiteNodes.length) return 36 + index * technologyGraphMinGap;
       return prerequisiteNodes.reduce((sum, node) => sum + node.x, 0) / prerequisiteNodes.length;
     };
-    const positioned = eraTechnologies.map((technology, index) => ({ technology, idealX: technologyGraphIdealX(technology, index) }))
+    const positioned = eraTechnologies.map((technology, index) => ({ technology, idealX: technologyGraphIdealX(technology, index), idealY: technologyGraphIdealY(technology) }))
       .sort((left, right) => left.idealX - right.idealX || left.technology.name_zh.localeCompare(right.technology.name_zh, "zh-Hans-CN"));
     let previousX = -technologyGraphMinGap;
-    positioned.forEach(({ technology, idealX }) => {
+    positioned.forEach(({ technology, idealX, idealY }) => {
       const x = Math.max(36, idealX, previousX + technologyGraphMinGap);
       nodes.set(technology.key, {
         technology,
         x,
-        y: 38 + eraIndex * eraHeight,
+        y: 38 + eraIndex * eraHeight + idealY * 56,
       });
       previousX = x;
     });
