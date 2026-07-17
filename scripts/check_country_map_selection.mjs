@@ -8,6 +8,7 @@ const failures = [];
 const appSource = readText("site/app.js");
 const siteData = readChunkedSiteData(root);
 const andeanFederation = siteData.countries.find((country) => country.tag === "FND");
+const countryByTag = new Map(siteData.countries.map((country) => [country.tag, country]));
 
 checkDataCoverage();
 checkMapSelectionContracts();
@@ -31,6 +32,7 @@ function checkDataCoverage() {
   assert(andeanFederation?.isMajorFormable === "是", "FND should be marked as a major formable country");
   assert((andeanFederation?.formationStateRegions || []).length >= 30, "FND should expose its formation state-region range");
   assert((andeanFederation?.formationStrategicRegions || []).some((region) => region.key === "region_andes"), "FND should keep Andes in its formation strategic regions");
+  assert(highestStartingOverlordTag("KUT") === "GBR", "Indian subjects should resolve through BIC to Great Britain");
 }
 
 function checkMapSelectionContracts() {
@@ -63,8 +65,20 @@ function checkMapSelectionContracts() {
   assert(/vicdata-subject-overlord-colors/.test(appSource), "overlord color setting should persist in local storage");
   assert(/countrySearchMatchedTags/.test(appSource), "country map should track left-search matches separately from list selections");
   assert(/globalSearchColorRestoreTag/.test(appSource), "country map should retain the country opened through global search");
-  assert(/startingSubjectUsesOverlordColor/.test(countryOwnerMapColor) && /startingOverlordTag/.test(countryOwnerMapColor) && /byTag\.get/.test(appSource), "eligible subjects should resolve their direct overlord color");
+  assert(/function highestStartingOverlord\(/.test(appSource), "country map should resolve the highest starting overlord");
+  assert(/while \(current\?\.startingOverlordTag/.test(functionSource("highestStartingOverlord")), "highest-overlord lookup should follow the entire starting subject chain");
+  assert(/highestStartingOverlord\(owner\)/.test(countryOwnerMapColor), "eligible subjects should use the highest starting overlord color");
   assert(/countryOwnerMapColor\(owner, ownerTag\)/.test(mapPixelColor), "map tooltip colors should share the owner-color decision path");
+}
+
+function highestStartingOverlordTag(tag) {
+  const visited = new Set();
+  let current = countryByTag.get(tag);
+  while (current?.startingOverlordTag && !visited.has(current.tag)) {
+    visited.add(current.tag);
+    current = countryByTag.get(current.startingOverlordTag);
+  }
+  return current?.tag || "";
 }
 
 function checkMapFocusContracts() {
