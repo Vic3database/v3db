@@ -4699,6 +4699,10 @@ button.home-entry:hover {
   padding: 4px 14px 14px;
 }
 
+.home-links[hidden] {
+  display: none !important;
+}
+
 .home-links h2 {
   margin: 0 0 4px;
   color: var(--accent);
