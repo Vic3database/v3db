@@ -3470,9 +3470,8 @@ function renderEntityBadge(kind, entity, label = "") {
 }
 
 function renderCountryList(filtered) {
-  const visible = filtered.slice(0, 220);
   els.countryList.className = "country-list";
-  els.countryList.innerHTML = visible.map((country) => `
+  els.countryList.innerHTML = filtered.map((country) => `
     <article class="country-row selectable-row" data-country="${country.tag}" style="${countryBorderStyle(country.colorHex)}" aria-current="${country.tag === state.selectedTag && state.detailKind === "country"}" tabindex="0">
       ${renderEntityBadge("country", country, country.name)}
       <span class="country-heading">
@@ -3512,6 +3511,15 @@ function selectCountryCard(countryTag) {
   state.detailKind = "country";
   replaceHash(selectionHashForCard("/country", `/country/${encodeURIComponent(countryTag)}`));
   render();
+}
+
+function selectCountryFromMap(countryTag) {
+  if (!countryTag || !byTag.has(countryTag)) return;
+  selectCountryCard(countryTag);
+  requestAnimationFrame(() => {
+    const selectedRow = els.countryList.querySelector(`[data-country="${countryTag}"]`);
+    selectedRow?.scrollIntoView({ block: "center", behavior: "smooth" });
+  });
 }
 
 function openCountryDetail(countryTag) {
@@ -4129,8 +4137,8 @@ function renderCountryDetail(country) {
       ${field("所在战略区域", strategicRegionLinks(country.locationStrategicRegions))}
       ${field("所在州地区", stateRegionLinks(country.locationStateRegions))}
       ${field("主流文化本土战略区域", strategicRegionLinks(country.primaryCultureHomelandStrategicRegions))}
-      ${field("传承", groupedTraitPills(country.primaryCultureHeritageGroups, country.primaryCultureHeritages, "tag-heritage-group", "tag-heritage"))}
-      ${field("语言", groupedTraitPills(country.primaryCultureLanguageGroups, country.primaryCultureLanguages, "tag-language-group", "tag-language"))}
+      ${field("传承", `<span class="grouped-trait-pills">${groupedTraitPills(country.primaryCultureHeritageGroups, country.primaryCultureHeritages, "tag-heritage-group", "tag-heritage")}</span>`)}
+      ${field("语言", `<span class="grouped-trait-pills">${groupedTraitPills(country.primaryCultureLanguageGroups, country.primaryCultureLanguages, "tag-language-group", "tag-language")}</span>`)}
       ${field("传统", traitList(country.primaryCultureTraditions))}
       ${field("宗教", linkedTerms([country.religion], [country.religionZh], "religion") + sourceSuffix(country.religionSource))}
       ${field("首都", stateRegionLinks(country.capital ? [{ key: country.capital, name_zh: country.capitalZh }] : []))}
@@ -4195,6 +4203,7 @@ function renderCultureDetail(culture) {
     return;
   }
   els.detail.innerHTML = `
+    <section class="culture-detail">
     <div class="detail-title">
       ${detailBackButton("culture")}
       <div class="detail-title-main">
@@ -4209,8 +4218,8 @@ function renderCultureDetail(culture) {
     <dl class="field-grid">
       ${field("颜色", colorValue(culture.color?.hex, culture.color?.rgb))}
       ${field("默认宗教", linkedTerms([culture.religion?.key], [culture.religion?.name_zh], "religion"))}
-      ${field("传承", groupedTraitPills(compactRefs([culture.heritage_group]), compactRefs([culture.heritage]), "tag-heritage-group", "tag-heritage"))}
-      ${field("语言", groupedTraitPills(compactRefs([culture.language_group]), compactRefs([culture.language]), "tag-language-group", "tag-language"))}
+      ${field("传承", `<span class="grouped-trait-pills">${groupedTraitPills(compactRefs([culture.heritage_group]), compactRefs([culture.heritage]), "tag-heritage-group", "tag-heritage")}</span>`)}
+      ${field("语言", `<span class="grouped-trait-pills">${groupedTraitPills(compactRefs([culture.language_group]), compactRefs([culture.language]), "tag-language-group", "tag-language")}</span>`)}
       ${field("传统", traitList(culture.traditions))}
       ${field("本土战略区域", strategicRegionLinks(culture.homeland_strategic_regions))}
       ${field("本土州", stateRegionLinks(culture.homeland_state_regions))}
@@ -4234,6 +4243,7 @@ function renderCultureDetail(culture) {
       ${field("同语言文化", cultureLinks(culture.same_language_cultures))}
       ${field("同传统文化", sameTraditionCultures(culture.traditions, culture.same_tradition_cultures))}
     </dl>
+    </section>
   `;
 }
 
@@ -5447,6 +5457,11 @@ function bindMapEvents() {
     mapRuntime.drag = null;
     if (drag?.pointerId) els.mapCanvas.releasePointerCapture(drag.pointerId);
     if (drag && !drag.moved) {
+      if (state.view === "country") {
+        const countryTag = countryOwnerTagFromPointerEvent(event);
+        if (countryTag) selectCountryFromMap(countryTag);
+        return;
+      }
       const stateRegion = stateRegionFromPointerEvent(event);
       if (stateRegion) {
         selectStateRegionFromMap(stateRegion.key);
@@ -7960,11 +7975,12 @@ function fileBaseName(file) {
 
 function colorValue(hex, rgb) {
   if (!hex) return "";
+  const hexText = String(hex).toUpperCase();
   const rgbText = Array.isArray(rgb) && rgb.length ? `RGB ${rgb.join(", ")}` : "";
   return `
     <span class="color-value">
       <span class="country-color" style="${colorStyle(hex)}" aria-hidden="true"></span>
-      <span>${escapeHtml(hex)}</span>
+      <span>${escapeHtml(hexText)}</span>
       <span class="minor">${escapeHtml(rgbText)}</span>
     </span>
   `;

@@ -57,7 +57,13 @@ function checkDetailLayoutContracts() {
   assert(scriptPreBlock.includes("border-color: rgba(200, 164, 91, 0.28)") && scriptPreBlock.includes("background: var(--panel-glass-strong)") && scriptPreBlock.includes("color: var(--ink)"), "source code blocks should use the standard dark panel palette by default");
   assert(interestGroupRuleBlock.includes("border-color: rgba(200, 164, 91, 0.24)") && interestGroupRuleBlock.includes("background: var(--surface-raised)") && interestGroupRuleBlock.includes("color: var(--ink)"), "matching-rule blocks should use the standard panel palette by default");
   assert(!detailScriptPreBlock.includes("background: #f3f6f3"), "detail source code blocks should not use the old light background");
-  assert(/\.detail\s+\.link-list,\s*[\s\S]*\.detail\s+\.pill-line\s*{[\s\S]*align-items:\s*flex-start/.test(styleSource), "right-panel link and tag rows should align wrapped pills cleanly");
+  assert(/\.detail\s+\.link-list,\s*[\s\S]*\.detail\s+\.pill-line,\s*[\s\S]*\.detail\s+\.grouped-trait-pills\s*{[\s\S]*align-items:\s*flex-start/.test(styleSource), "right-panel link and tag rows should align wrapped pills cleanly");
+  assert(/\.detail\s+\.link-list,\s*[\s\S]*\.detail\s+\.pill-line,\s*[\s\S]*\.detail\s+\.grouped-trait-pills\s*{[\s\S]*width:\s*100%[\s\S]*display:\s*flex[\s\S]*flex-wrap:\s*wrap[\s\S]*gap:\s*6px/.test(styleSource), "right-panel tag rows should fill the value column and keep gaps between wrapped tags");
+  assert(/field\("传承",\s*`<span class="grouped-trait-pills">\$\{groupedTraitPills\(country\.primaryCultureHeritageGroups/.test(appSource), "country heritage tags should use the shared flexible tag-row container");
+  assert(/field\("语言",\s*`<span class="grouped-trait-pills">\$\{groupedTraitPills\(country\.primaryCultureLanguageGroups/.test(appSource), "country language tags should use the shared flexible tag-row container");
+  assert(/function colorValue\(hex, rgb\)\s*{[\s\S]*String\(hex\)\.toUpperCase\(\)/.test(appSource), "detail color hex values should render in uppercase");
+  assert(/\.detail\s+\.grouped-trait-pills\s*{[\s\S]*gap:\s*6px/.test(styleSource), "culture heritage and language tags should use the related-country tag spacing");
+  assert(/\.culture-detail\s+\.detail-title\s*{[\s\S]*align-items:\s*center/.test(styleSource), "culture title content should align with the back button center");
 }
 
 function checkTagContrastContracts() {

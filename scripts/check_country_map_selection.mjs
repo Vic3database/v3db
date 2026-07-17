@@ -44,6 +44,8 @@ function checkMapSelectionContracts() {
   const countryOwnerMapColor = functionSource("countryOwnerMapColor");
   const addStateBorders = functionSource("addStateBorders");
   const addCountryBorders = functionSource("addCountryBorders");
+  const bindMapEvents = functionSource("bindMapEvents");
+  const selectCountryFromMap = functionSource("selectCountryFromMap");
 
   assert(/function\s+countryMapStateKeys\s*\(/.test(appSource), "country map should derive a selected country's default territory state keys");
   assert(/formationStateRegions[\s\S]*formationStates[\s\S]*formationRegion[\s\S]*startingStates/.test(functionSource("countryMapStateKeys")), "country map territory should prefer formation ranges before falling back to starting states");
@@ -69,6 +71,8 @@ function checkMapSelectionContracts() {
   assert(/while \(current\?\.startingOverlordTag/.test(functionSource("highestStartingOverlord")), "highest-overlord lookup should follow the entire starting subject chain");
   assert(/highestStartingOverlord\(owner\)/.test(countryOwnerMapColor), "eligible subjects should use the highest starting overlord color");
   assert(/countryOwnerMapColor\(owner, ownerTag\)/.test(mapPixelColor), "map tooltip colors should share the owner-color decision path");
+  assert(/state\.view\s*===\s*"country"[\s\S]*countryOwnerTagFromPointerEvent\(event\)[\s\S]*selectCountryFromMap\(/.test(bindMapEvents), "a left click on the country map should select the clicked country card");
+  assert(/selectCountryCard\(countryTag\)[\s\S]*\[data-country="\$\{countryTag\}"\][\s\S]*scrollIntoView/.test(selectCountryFromMap), "a country map selection should bring the selected country card into the list viewport");
 }
 
 function highestStartingOverlordTag(tag) {

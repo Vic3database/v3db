@@ -3989,7 +3989,11 @@ body[data-view="law"][data-results-panel="collapsed"] .detail {
 }
 
 .detail .link-list,
-.detail .pill-line {
+.detail .pill-line,
+.detail .grouped-trait-pills {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   gap: 6px;
 }
@@ -4019,6 +4023,10 @@ body[data-view="law"][data-results-panel="collapsed"] .detail {
 
 .detail .pill {
   max-width: 100%;
+}
+
+.culture-detail .detail-title {
+  align-items: center;
 }
 
 .detail .pill:not([class*="tag-"]):not(.good):not(.warn):not(.special) {
