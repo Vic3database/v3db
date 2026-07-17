@@ -1,1 +1,78 @@
-﻿import assert from "node:assert/strict";import fs from "node:fs";import path from "node:path";import vm from "node:vm";const root = process.cwd();const versionDir = path.join(root, "site", "versions", "1.13.9");const indexFile = path.join(versionDir, "data-index.js");const appFile = path.join(root, "site", "app.js");const versionsFile = path.join(root, "site", "versions.js");assert(fs.existsSync(indexFile), "missing data index");const index = readGlobal(indexFile, "VIC3_DATA_INDEX");assert.equal(index?.meta?.victoria3_version, "1.13.9", "index should retain dataset metadata");assert.equal(fs.existsSync(path.join(versionDir, "data.js")), false, "complete data.js should not remain in the published version bundle");const expectedChunks = {  country: ["countries", "dynamicCountryNameVariants", "dynamicCountryMapColorRules", "formables", "releasables"],  culture: ["cultures", "cultureTraits", "cultureTraitGroups"],  region: ["stateRegions", "strategicRegions", "geographicRegions"],  company: ["companies", "companyCharterTypes"],  ideology: ["interestGroups", "interestGroupTraits", "ideologies"],  law: ["laws", "lawGroups"],  technology: ["technologies", "technologyEras"],};for (const [key, keys] of Object.entries(expectedChunks)) {  const chunk = index?.chunks?.[key];  assert(chunk, `missing ${key} chunk entry`);  assert.deepEqual(Array.from(chunk.keys), keys, `${key} chunk exposes unexpected fields`);  assert(Array.isArray(chunk.files) && chunk.files.length, `missing ${key} chunk files`);  const chunkKeys = new Set();  for (const file of chunk.files) {    assert(fs.existsSync(path.join(versionDir, file)), `missing ${key} chunk file ${file}`);    const value = readGlobal(path.join(versionDir, file), "VIC3_DATA_CHUNK");    Object.keys(value).forEach((field) => chunkKeys.add(field));  }  assert.deepEqual(Array.from(chunkKeys).sort(), keys.slice().sort(), `${key} chunk files expose unexpected fields`);}const appSource = fs.readFileSync(appFile, "utf8");const versionSource = fs.readFileSync(versionsFile, "utf8");assert(/function ensureDataChunksForRoute/.test(appSource), "app must select chunks from the current route");assert(/function ensureDataChunks\(chunkKeys\)/.test(appSource), "app must load requested chunks");assert(/data_index:\s*"versions\/1\.13\.9\/data-index\.js"/.test(versionSource), "version entry must point to the data index");assert(/async function openGlobalSearchDialog\(\)[\s\S]*ensureDataChunks\(Object\.keys\(dataIndex\?\.chunks/.test(appSource), "global search must load every searchable chunk");assert(/for \(const key of pending\)/.test(appSource), "data chunks must load sequentially because they share a browser global");assert(/versions\/\$\{loadedDataVersion\}/.test(appSource), "chunk URLs must use the selected version");console.log(JSON.stringify({  data_chunking: "ok",  chunks: Object.keys(expectedChunks),}, null, 2));function readGlobal(file, globalName) {  const sandbox = { window: {} };  vm.runInNewContext(fs.readFileSync(file, "utf8"), sandbox, { filename: file });  return sandbox.window[globalName];}
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import vm from "node:vm";
+
+const root = process.cwd();
+const versionDir = path.join(root, "site", "versions", "1.13.9");
+const indexFile = path.join(versionDir, "data-index.js");
+const appFile = path.join(root, "site", "app.js");
+const versionsFile = path.join(root, "site", "versions.js");
+
+assert(fs.existsSync(indexFile), "missing data index");
+
+const index = readGlobal(indexFile, "VIC3_DATA_INDEX");
+assert.equal(index?.meta?.victoria3_version, "1.13.9", "index should retain dataset metadata");
+assert.equal(fs.existsSync(path.join(versionDir, "data.js")), false, "complete data.js should not remain in the published version bundle");
+
+const expectedChunks = {
+  country: ["countries", "dynamicCountryNameVariants", "dynamicCountryMapColorRules", "formables", "releasables"],
+  culture: ["cultures", "cultureTraits", "cultureTraitGroups"],
+  region: ["stateRegions", "strategicRegions", "geographicRegions"],
+  company: ["companies", "companyCharterTypes"],
+  ideology: ["interestGroups", "interestGroupTraits", "ideologies"],
+  law: ["laws", "lawGroups"],
+  technology: ["technologies", "technologyEras"],
+};
+
+for (const [key, keys] of Object.entries(expectedChunks)) {
+  const chunk = index?.chunks?.[key];
+  assert(chunk, `missing ${key} chunk entry`);
+  assert.deepEqual(Array.from(chunk.keys), keys, `${key} chunk exposes unexpected fields`);
+  assert(Array.isArray(chunk.files) && chunk.files.length, `missing ${key} chunk files`);
+  const chunkKeys = new Set();
+  for (const file of chunk.files) {
+    assert(fs.existsSync(path.join(versionDir, file)), `missing ${key} chunk file ${file}`);
+    const value = readGlobal(path.join(versionDir, file), "VIC3_DATA_CHUNK");
+    Object.keys(value).forEach((field) => chunkKeys.add(field));
+  }
+  assert.deepEqual(Array.from(chunkKeys).sort(), keys.slice().sort(), `${key} chunk files expose unexpected fields`);
+}
+
+const appSource = fs.readFileSync(appFile, "utf8");
+const versionSource = fs.readFileSync(versionsFile, "utf8");
+const countryRows = index.chunks.country.files.flatMap((file) => (
+  readGlobal(path.join(versionDir, file), "VIC3_DATA_CHUNK").countries || []
+));
+const countriesByTag = new Map(countryRows.map((country) => [country.tag, country]));
+for (const [tag, overlord, type] of [
+  ["BIC", "GBR", "chartered_company"],
+  ["TIB", "CHI", "vassal"],
+  ["TRI", "TUR", "puppet"],
+  ["HUN", "AUS", "crown_land"],
+]) {
+  const country = countriesByTag.get(tag);
+  assert.equal(country?.startingOverlordTag, overlord, `${tag} should expose its starting overlord in site data`);
+  assert.equal(country?.startingSubjectType, type, `${tag} should expose its starting subject type in site data`);
+  assert.equal(country?.startingSubjectUsesOverlordColor, true, `${tag} should borrow its overlord color`);
+}
+for (const tag of ["ABU", "KOR"]) {
+  assert.equal(countriesByTag.get(tag)?.startingSubjectUsesOverlordColor, false, `${tag} should retain its own color`);
+}
+assert(/function ensureDataChunksForRoute/.test(appSource), "app must select chunks from the current route");
+assert(/function ensureDataChunks\(chunkKeys\)/.test(appSource), "app must load requested chunks");
+assert(/data_index:\s*"versions\/1\.13\.9\/data-index\.js"/.test(versionSource), "version entry must point to the data index");
+assert(/async function openGlobalSearchDialog\(\)[\s\S]*ensureDataChunks\(Object\.keys\(dataIndex\?\.chunks/.test(appSource), "global search must load every searchable chunk");
+assert(/for \(const key of pending\)/.test(appSource), "data chunks must load sequentially because they share a browser global");
+assert(/versions\/\$\{loadedDataVersion\}/.test(appSource), "chunk URLs must use the selected version");
+
+console.log(JSON.stringify({
+  data_chunking: "ok",
+  chunks: Object.keys(expectedChunks),
+}, null, 2));
+
+function readGlobal(file, globalName) {
+  const sandbox = { window: {} };
+  vm.runInNewContext(fs.readFileSync(file, "utf8"), sandbox, { filename: file });
+  return sandbox.window[globalName];
+}
