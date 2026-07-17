@@ -39,6 +39,7 @@ function checkMapSelectionContracts() {
   const drawMapLayer = functionSource("drawMapLayer");
   const mapLayerSignature = functionSource("mapLayerSignature");
   const mapPixelColor = functionSource("mapPixelColor");
+  const countryOwnerMapColor = functionSource("countryOwnerMapColor");
   const addStateBorders = functionSource("addStateBorders");
   const addCountryBorders = functionSource("addCountryBorders");
 
@@ -58,6 +59,12 @@ function checkMapSelectionContracts() {
   assert(/ownerIndexes\[pixel\][\s\S]*ownerIndexes\[rightPixel\]/.test(addCountryBorders), "country borders should compare adjacent owner indexes");
   assert(/indexTouchesSea\(index, rightIndex\)/.test(addCountryBorders), "country borders should retain the sea test for the right-hand neighbor");
   assert(/indexTouchesSea\(index, downIndex\)/.test(addCountryBorders), "country borders should retain the sea test for the lower neighbor");
+  assert(/subjectOverlordColors:\s*true/.test(appSource), "overlord color setting should default to enabled");
+  assert(/vicdata-subject-overlord-colors/.test(appSource), "overlord color setting should persist in local storage");
+  assert(/countrySearchMatchedTags/.test(appSource), "country map should track left-search matches separately from list selections");
+  assert(/globalSearchColorRestoreTag/.test(appSource), "country map should retain the country opened through global search");
+  assert(/startingSubjectUsesOverlordColor/.test(countryOwnerMapColor) && /startingOverlordTag/.test(countryOwnerMapColor) && /byTag\.get/.test(appSource), "eligible subjects should resolve their direct overlord color");
+  assert(/countryOwnerMapColor\(owner, ownerTag\)/.test(mapPixelColor), "map tooltip colors should share the owner-color decision path");
 }
 
 function checkMapFocusContracts() {

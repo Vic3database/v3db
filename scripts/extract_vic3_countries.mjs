@@ -140,6 +140,9 @@ function main() {
   const definitions = loadCountryDefinitions(contentPath("common", "country_definitions"));
   const stateHistory = loadStateHistory(contentPath("common", "history", "states", "00_states.txt"));
   const startingOwners = stateHistory.startingOwnersByCountry;
+  const startingSubjectsByTag = loadStartingSubjectRelationships(
+    contentPath("common", "history", "diplomacy", "00_subject_relationships.txt"),
+  );
   const strategicRegions = loadStrategicRegions(contentPath("common", "strategic_regions"), loc);
   const geographicRegions = loadGeographicRegions(contentPath("common", "geographic_regions"), strategicRegions, loc);
   const stateTraits = loadStateTraits(contentPath("common", "state_traits"), loc);
@@ -205,6 +208,8 @@ function main() {
   const allTags = new Set([
     ...definitions.keys(),
     ...startingOwners.keys(),
+    ...startingSubjectsByTag.keys(),
+    ...[...startingSubjectsByTag.values()].map((subject) => subject.overlord_tag),
     ...historyCountryTags,
     ...releasables.keys(),
     ...formables.keys(),
@@ -225,6 +230,7 @@ function main() {
       cultures,
       religions,
       startingOwners,
+      startingSubjectsByTag,
       historyCountryTags,
       historyReligionOverrides,
       releasables,
@@ -257,6 +263,9 @@ function main() {
     "exists_at_start",
     "starting_state_count",
     "starting_states",
+    "starting_overlord_tag",
+    "starting_subject_type",
+    "starting_subject_uses_overlord_color",
     "has_history_country_file",
     "is_releasable",
     "is_formable",
@@ -1004,6 +1013,44 @@ function loadHistoryReligionOverrides(dir) {
     });
   }
   return overrides;
+}
+
+function loadStartingSubjectRelationships(files) {
+  const colorBorrowingTypes = new Set([
+    "puppet",
+    "vassal",
+    "crown_land",
+    "chartered_company",
+    "colony",
+    "dominion",
+    "personal_union",
+  ]);
+  const subjectsByTag = new Map();
+  for (const file of Array.isArray(files) ? files : [files]) {
+    if (!file || !fs.existsSync(file)) continue;
+    const root = parseScript(readText(file), file);
+    const diplomacy = asNode(firstValue(root, "DIPLOMACY")) || root;
+    for (const assignment of diplomacy.assignments) {
+      const overlordTag = stripPrefix(scriptEntryKey(assignment.key)).toUpperCase();
+      if (!/^[A-Z0-9]{3}$/.test(overlordTag)) continue;
+      const overlordNode = asNode(assignment.value);
+      if (!overlordNode) continue;
+      for (const pactAssignment of overlordNode.assignments) {
+        if (pactAssignment.key !== "create_diplomatic_pact") continue;
+        const pact = asNode(pactAssignment.value);
+        if (!pact) continue;
+        const subjectTag = stripPrefix(firstValue(pact, "country")).toUpperCase();
+        const type = stripPrefix(firstValue(pact, "type"));
+        if (!/^[A-Z0-9]{3}$/.test(subjectTag) || !type) continue;
+        subjectsByTag.set(subjectTag, {
+          overlord_tag: overlordTag,
+          type,
+          uses_overlord_color: colorBorrowingTypes.has(type),
+        });
+      }
+    }
+  }
+  return subjectsByTag;
 }
 
 function loadCountryRules(dir, kind) {
@@ -2192,6 +2239,7 @@ function buildCountryRow(context) {
     loc,
     cultures,
     startingOwners,
+    startingSubjectsByTag,
     historyCountryTags,
     historyReligionOverrides,
     releasables,
@@ -2201,6 +2249,7 @@ function buildCountryRow(context) {
     dynamicMapColorRulesByTag,
   } = context;
   const startingStates = [...(startingOwners.get(tag) || [])].sort();
+  const startingSubject = startingSubjectsByTag.get(tag);
   const primaryCultures = def?.cultures || [];
   const primaryCulturesZh = primaryCultures.map((key) => locName(loc, key));
   const historyReligion = historyReligionOverrides.get(tag)?.religion || "";
@@ -2226,6 +2275,9 @@ function buildCountryRow(context) {
     exists_at_start: startingStates.length > 0 ? "是" : "否",
     starting_state_count: String(startingStates.length),
     starting_states: joinValues(startingStates),
+    starting_overlord_tag: startingSubject?.overlord_tag || "",
+    starting_subject_type: startingSubject?.type || "",
+    starting_subject_uses_overlord_color: startingSubject?.uses_overlord_color ? "是" : "否",
     has_history_country_file: historyCountryTags.has(tag) ? "是" : "否",
     is_releasable: releasable ? "是" : "否",
     is_formable: formable ? "是" : "否",
@@ -3535,6 +3587,12 @@ function writeDatabase(dir, data) {
         id: `state_region:${state}`,
         key: state,
       })),
+      starting_subject: {
+        overlord_tag: row.starting_overlord_tag,
+        overlord_name_zh: row.starting_overlord_tag ? locName(loc, row.starting_overlord_tag) : "",
+        type: row.starting_subject_type,
+        uses_overlord_color: row.starting_subject_uses_overlord_color === "是",
+      },
       formation: {
         required_cultures: splitJoined(row.formation_required_cultures).map((culture, index) => ({
           id: `culture:${culture}`,
