@@ -143,6 +143,7 @@ const state = {
   selectedLaw: "",
   selectedTechnology: "",
   technologyCategory: "production",
+  technologySearch: "",
   technologyViewport: { x: 0, y: 0, scale: 1 },
   selectedGlobalResult: "",
   detailKind: "country",
@@ -1785,6 +1786,7 @@ async function applyHash() {
   }
   if (parts[0] === "technology" && !parts[1]) {
     state.view = "technology";
+    state.selectedTechnology = "";
     state.detailKind = "technology";
     return;
   }
@@ -2477,109 +2479,305 @@ function renderLawBoard() {
   renderLawList(filtered);
 }
 
+const technologyGridPositions = {
+  production: {
+    sericulture: { column: 10, row: 1 },
+    enclosure: { column: 14, row: 1 },
+    manufacturies: { column: 21, row: 1 },
+    shaft_mining: { column: 17, row: 2 },
+    distillation: { column: 22, row: 2 },
+    cotton_gin: { column: 24, row: 2 },
+    prospecting: { column: 14, row: 3 },
+    steelworking: { column: 16, row: 3 },
+    lathe: { column: 24, row: 3 },
+    intensive_agriculture: { column: 10, row: 4 },
+    bessemer_process: { column: 16, row: 4 },
+    atmospheric_engine: { column: 18, row: 4 },
+    mechanical_tools: { column: 20, row: 4 },
+    fractional_distillation: { column: 22, row: 4 },
+    crystal_glass: { column: 24, row: 4 },
+    canneries: { column: 26, row: 4 },
+    nitroglycerin: { column: 10, row: 5 },
+    watertube_boiler: { column: 17, row: 5 },
+    railways: { column: 19, row: 5 },
+    baking_powder: { column: 21, row: 5 },
+    mechanized_workshops: { column: 23, row: 5 },
+    chemical_bleaching: { column: 25, row: 5 },
+    improved_fertilizer: { column: 4, row: 6 },
+    steam_donkey: { column: 6, row: 6 },
+    dynamite: { column: 8, row: 6 },
+    open_hearth_process: { column: 10, row: 6 },
+    reinforced_concrete: { column: 13, row: 6 },
+    rotary_valve_engine: { column: 15, row: 6 },
+    steel_railway_cars: { column: 17, row: 6 },
+    shift_work: { column: 19, row: 6 },
+    vacuum_canning: { column: 21, row: 6 },
+    rubber_mastication: { column: 23, row: 6 },
+    threshing_machine: { column: 5, row: 7 },
+    pumpjacks: { column: 7, row: 7 },
+    electrical_generation: { column: 17, row: 7 },
+    aniline: { column: 23, row: 7 },
+    vulcanization: { column: 25, row: 7 },
+    nitrogen_fixation: { column: 1, row: 8 },
+    mechanized_farming: { column: 3, row: 8 },
+    electric_arc_process: { column: 5, row: 8 },
+    plastics: { column: 7, row: 8 },
+    pneumatic_tools: { column: 9, row: 8 },
+    steam_turbine: { column: 11, row: 8 },
+    electrical_capacitors: { column: 13, row: 8 },
+    combustion_engine: { column: 15, row: 8 },
+    telephone: { column: 17, row: 8 },
+    conveyors: { column: 20, row: 8 },
+    art_silk: { column: 23, row: 8 },
+    automatic_bottle_blowers: { column: 25, row: 8 },
+    electric_railway: { column: 16, row: 9 },
+    radio: { column: 18, row: 9 },
+    pasteurization: { column: 20, row: 9 },
+    arc_welding: { column: 7, row: 10 },
+    oil_turbine: { column: 11, row: 10 },
+    compression_ignition: { column: 15, row: 10 },
+    flash_freezing: { column: 20, row: 10 },
+    dough_rollers: { column: 22, row: 10 },
+  },
+  military: {
+    navigation: { column: 20, row: 1 },
+    admiralty: { column: 19, row: 2 },
+    drydocks: { column: 21, row: 2 },
+    paddle_steamer: { column: 20, row: 3 },
+    power_of_the_purse: { column: 17, row: 5 },
+    screw_frigate: { column: 20, row: 5 },
+    hydraulic_cranes: { column: 22, row: 5 },
+    self_propelled_torpedoes: { column: 16, row: 7 },
+    ironclad_tech: { column: 19, row: 7 },
+    gantry_cranes: { column: 22, row: 7 },
+    monitor_tech: { column: 15, row: 8 },
+    jeune_ecole: { column: 17, row: 8 },
+    floating_harbor: { column: 23, row: 8 },
+    submarine: { column: 16, row: 9 },
+    landing_craft: { column: 18, row: 9 },
+    sea_lane_strategies: { column: 20, row: 9 },
+    pre_dreadnought_tech: { column: 22, row: 9 },
+    concrete_dockyards: { column: 24, row: 9 },
+    dreadnought_tech: { column: 19, row: 10 },
+    destroyer: { column: 15, row: 11 },
+    carrier_tech: { column: 17, row: 11 },
+    battleship_tech: { column: 19, row: 11 },
+    battlefleet_tactics: { column: 20, row: 12 },
+    standing_army: { column: 7, row: 1 },
+    mandatory_service: { column: 5, row: 2 },
+    military_drill: { column: 7, row: 2 },
+    gunsmithing: { column: 9, row: 2 },
+    line_infantry: { column: 6, row: 3 },
+    artillery: { column: 8, row: 3 },
+    army_reserves: { column: 5, row: 4 },
+    napoleonic_warfare: { column: 7, row: 4 },
+    general_staff: { column: 4, row: 5 },
+    logistics: { column: 6, row: 5 },
+    field_works: { column: 8, row: 5 },
+    shell_gun: { column: 10, row: 5 },
+    percussion_cap: { column: 12, row: 5 },
+    triage: { column: 6, row: 6 },
+    rifling: { column: 12, row: 6 },
+    enlistment_offices: { column: 3, row: 7 },
+    modern_nursing: { column: 6, row: 7 },
+    electric_telegraph: { column: 9, row: 7 },
+    breech_loading_artillery: { column: 11, row: 7 },
+    repeaters: { column: 13, row: 7 },
+    military_statistics: { column: 5, row: 8 },
+    handcranked_machine_gun: { column: 11, row: 8 },
+    war_propaganda: { column: 2, row: 9 },
+    trench_works: { column: 5, row: 9 },
+    wargaming: { column: 7, row: 9 },
+    military_aviation: { column: 11, row: 9 },
+    bolt_action_rifles: { column: 13, row: 9 },
+    defense_in_depth: { column: 7, row: 10 },
+    automatic_machine_guns: { column: 11, row: 10 },
+    nco_training: { column: 2, row: 11 },
+    stormtroopers: { column: 4, row: 11 },
+    flamethrowers: { column: 7, row: 11 },
+    concrete_fortifications: { column: 9, row: 11 },
+    chemical_warfare: { column: 11, row: 11 },
+    mobile_armor: { column: 6, row: 12 },
+  },
+  society: {
+    urbanization: { column: 7, row: 1 },
+    rationalism: { column: 22, row: 1 },
+    urban_planning: { column: 6, row: 2 },
+    tech_bureaucracy: { column: 8, row: 2 },
+    democracy: { column: 21, row: 2 },
+    academia: { column: 23, row: 2 },
+    law_enforcement: { column: 7, row: 3 },
+    international_trade: { column: 9, row: 3 },
+    centralization: { column: 11, row: 3 },
+    international_relations: { column: 13, row: 3 },
+    mass_communication: { column: 22, row: 3 },
+    medical_degrees: { column: 24, row: 3 },
+    romanticism: { column: 26, row: 3 },
+    empiricism: { column: 28, row: 3 },
+    stock_exchange: { column: 8, row: 4 },
+    currency_standards: { column: 10, row: 4 },
+    colonization: { column: 15, row: 4 },
+    banking: { column: 10, row: 5 },
+    modern_sewerage: { column: 3, row: 6 },
+    corporate_charters: { column: 5, row: 6 },
+    postal_savings: { column: 8, row: 6 },
+    central_banking: { column: 11, row: 6 },
+    central_archives: { column: 13, row: 6 },
+    nationalism: { column: 16, row: 6 },
+    egalitarianism: { column: 18, row: 6 },
+    pharmaceuticals: { column: 23, row: 6 },
+    realism: { column: 25, row: 6 },
+    dialectics: { column: 27, row: 6 },
+    psychiatry: { column: 29, row: 6 },
+    joint_stock_companies: { column: 8, row: 7 },
+    organized_sports: { column: 15, row: 7 },
+    quinine: { column: 20, row: 7 },
+    labor_movement: { column: 22, row: 7 },
+    steel_frame_buildings: { column: 3, row: 8 },
+    mutual_funds: { column: 9, row: 8 },
+    identification_documents: { column: 11, row: 8 },
+    "pan-nationalism": { column: 13, row: 8 },
+    human_rights: { column: 15, row: 8 },
+    civilizing_mission: { column: 17, row: 8 },
+    anarchism: { column: 19, row: 8 },
+    corporatism: { column: 21, row: 8 },
+    camera: { column: 23, row: 8 },
+    socialism: { column: 25, row: 8 },
+    philosophical_pragmatism: { column: 29, row: 8 },
+    investment_banks: { column: 8, row: 9 },
+    feminism: { column: 15, row: 9 },
+    elevator: { column: 1, row: 10 },
+    zeppelins: { column: 3, row: 10 },
+    corporate_management: { column: 6, row: 10 },
+    international_exchange_standards: { column: 9, row: 10 },
+    central_planning: { column: 11, row: 10 },
+    multilateral_alliances: { column: 13, row: 10 },
+    malaria_prevention: { column: 17, row: 10 },
+    political_agitation: { column: 21, row: 10 },
+    film: { column: 23, row: 10 },
+    psychoanalysis: { column: 29, row: 10 },
+    paved_roads: { column: 1, row: 11 },
+    macroeconomics: { column: 7, row: 11 },
+    modern_financial_instruments: { column: 9, row: 11 },
+    mass_surveillance: { column: 11, row: 11 },
+    antibiotics: { column: 17, row: 11 },
+    mass_propaganda: { column: 22, row: 11 },
+    behaviorism: { column: 26, row: 11 },
+    analytical_philosophy: { column: 29, row: 11 },
+  },
+};
+
 function technologyGraphLayout() {
   const eras = technologyEras.map((era) => era.key);
   const technologyGraphCategory = state.technologyCategory;
-  const technologyGridColumns = 15;
-  const technologyGridRows = 12;
-  const technologyGridCellWidth = 170;
-  const technologyGridCellHeight = 78;
-  const technologyGridOccupied = new Set();
-  const eraBaseRows = [0, 2, 5, 8, 10];
+  const technologyPositions = technologyGridPositions[technologyGraphCategory] || {};
+  const technologyGridColumns = Math.max(1, ...Object.values(technologyPositions).map((position) => position.column));
+  const technologyGridRows = Math.max(1, ...Object.values(technologyPositions).map((position) => position.row));
+  const technologyGridCellWidth = 83;
+  const technologyGridCellHeight = 138;
+  const technologyGridLeft = 76;
+  const technologyGridTop = 38;
+  const eraBaseRows = [0, 2, 4, 6, 8];
   const nodes = new Map();
   eras.forEach((era, eraIndex) => {
     const eraTechnologies = technologies.filter((item) => item.category === technologyGraphCategory && item.era === era)
       .sort((a, b) => a.name_zh.localeCompare(b.name_zh, "zh-Hans-CN"));
-    const eraTechnologyByKey = new Map(eraTechnologies.map((technology) => [technology.key, technology]));
-    const technologyGraphLevels = new Map();
-    const technologyGraphIdealY = (technology, visiting = new Set()) => {
-      if (technologyGraphLevels.has(technology.key)) return technologyGraphLevels.get(technology.key);
-      if (visiting.has(technology.key)) return 0;
-      const nextVisiting = new Set(visiting).add(technology.key);
-      const sameEraPrerequisites = technology.prerequisites
-        .map((key) => eraTechnologyByKey.get(key))
-        .filter(Boolean);
-      const level = sameEraPrerequisites.length
-        ? 1 + Math.max(...sameEraPrerequisites.map((item) => technologyGraphIdealY(item, nextVisiting)))
-        : 0;
-      technologyGraphLevels.set(technology.key, level);
-      return level;
-    };
-    const technologyGraphIdealX = (technology, index) => {
-      const prerequisiteNodes = technology.prerequisites.map((key) => nodes.get(key)).filter(Boolean);
-      if (!prerequisiteNodes.length) return 36 + index * technologyGraphMinGap;
-      return prerequisiteNodes.reduce((sum, node) => sum + node.x, 0) / prerequisiteNodes.length;
-    };
-    const positioned = eraTechnologies.map((technology, index) => ({ technology, idealX: technologyGraphIdealX(technology, index), idealY: technologyGraphIdealY(technology) }))
-      .sort((left, right) => left.idealX - right.idealX || left.technology.name_zh.localeCompare(right.technology.name_zh, "zh-Hans-CN"));
-    positioned.forEach(({ technology, idealX, idealY }) => {
-      const targetColumn = Math.max(0, Math.min(technologyGridColumns - 1, Math.round((idealX - 36) / technologyGridCellWidth)));
-      const targetRow = Math.max(0, Math.min(technologyGridRows - 1, eraBaseRows[eraIndex] + idealY));
-      const cell = technologyGridNearestCell(targetColumn, targetRow, technologyGridColumns, technologyGridRows, technologyGridOccupied);
-      technologyGridOccupied.add(`${cell.column}:${cell.row}`);
+    eraTechnologies.forEach((technology, index) => {
+      const position = technologyPositions?.[technology.key];
+      if (!position) return;
+      const column = position?.column || (index % technologyGridColumns) + 1;
+      const row = position?.row || Math.min(technologyGridRows, eraBaseRows[eraIndex] + Math.floor(index / technologyGridColumns) + 1);
       nodes.set(technology.key, {
         technology,
-        x: 36 + cell.column * technologyGridCellWidth,
-        y: 38 + cell.row * technologyGridCellHeight,
+        x: technologyGridLeft + (column - 1) * technologyGridCellWidth - 50,
+        y: technologyGridTop + (row - 1) * technologyGridCellHeight - 40,
       });
     });
   });
-  return { nodes, width: 72 + technologyGridColumns * technologyGridCellWidth, height: 76 + technologyGridRows * technologyGridCellHeight, technologyGridColumns, technologyGridRows, technologyGridCellHeight, eraBaseRows, technologyGraphCategory };
-}
-
-function technologyGridNearestCell(targetColumn, targetRow, columns, rows, occupied) {
-  for (let radius = 0; radius < Math.max(columns, rows); radius += 1) {
-    for (let row = Math.max(0, targetRow - radius); row <= Math.min(rows - 1, targetRow + radius); row += 1) {
-      for (let column = Math.max(0, targetColumn - radius); column <= Math.min(columns - 1, targetColumn + radius); column += 1) {
-        if (Math.abs(column - targetColumn) + Math.abs(row - targetRow) > radius) continue;
-        if (!occupied.has(`${column}:${row}`)) return { column, row };
-      }
-    }
-  }
-  return { column: targetColumn, row: targetRow };
+  return { nodes, width: technologyGridLeft * 2 + technologyGridColumns * technologyGridCellWidth, height: technologyGridTop + 76 + technologyGridRows * technologyGridCellHeight, technologyGridColumns, technologyGridRows, technologyGridCellWidth, technologyGridCellHeight, technologyGridLeft, technologyGridTop, eraBaseRows, technologyGraphCategory };
 }
 
 function technologyGraphEdges(layout) {
-  return [...layout.nodes.values()].flatMap((node) => node.technology.prerequisites.map((key) => {
+  return [...layout.nodes.values()].flatMap((to) => to.technology.prerequisites.map((key) => {
     const from = layout.nodes.get(key);
-    return from ? { from, to: node } : null;
+    return from ? { from, to } : null;
   }).filter(Boolean));
+}
+
+function technologyEdgePath(from, to) {
+  const cardWidth = 144;
+  const cardHeight = 88;
+  const fromCenterX = from.x + cardWidth / 2;
+  const fromCenterY = from.y + cardHeight / 2;
+  const toCenterX = to.x + cardWidth / 2;
+  const toCenterY = to.y + cardHeight / 2;
+  const downward = toCenterY >= fromCenterY;
+  const startY = downward ? from.y + cardHeight : from.y;
+  const endY = downward ? to.y : to.y + cardHeight;
+  const stubLength = 16;
+  const startStubY = startY + (downward ? stubLength : -stubLength);
+  const endStubY = endY + (downward ? -stubLength : stubLength);
+  const diagonalX = toCenterX - fromCenterX;
+  const diagonalY = endStubY - startStubY;
+  const diagonalLength = Math.hypot(diagonalX, diagonalY) || 1;
+  const curveLength = Math.min(12, diagonalLength / 3);
+  const unitX = diagonalX / diagonalLength;
+  const unitY = diagonalY / diagonalLength;
+  const startCurveX = fromCenterX;
+  const startCurveY = startStubY - (downward ? curveLength : -curveLength);
+  const startDiagonalX = fromCenterX + unitX * curveLength;
+  const startDiagonalY = startStubY + unitY * curveLength;
+  const endDiagonalX = toCenterX - unitX * curveLength;
+  const endDiagonalY = endStubY - unitY * curveLength;
+  const endCurveX = toCenterX;
+  const endCurveY = endStubY + (downward ? curveLength : -curveLength);
+  return `M${fromCenterX} ${startY} V${startCurveY} Q${startCurveX} ${startStubY} ${startDiagonalX} ${startDiagonalY} L${endDiagonalX} ${endDiagonalY} Q${endCurveX} ${endStubY} ${toCenterX} ${endCurveY} V${endY}`;
 }
 
 function technologyNodeHtml(node) {
   const selected = node.technology.key === state.selectedTechnology;
-  const iconFile = node.technology.icon.split("/").pop().replace(/\.dds$/i, ".png");
-  return `<button class="technology-node" type="button" data-technology-key="${escapeHtml(node.technology.key)}" aria-pressed="${selected}" style="left:${node.x}px;top:${node.y}px"><img src="assets/technologies/${escapeHtml(iconFile)}" alt="" aria-hidden="true"><span><small class="technology-node-category">${escapeHtml(node.technology.category_zh)}</small>${escapeHtml(node.technology.name_zh)}</span></button>`;
+  const iconFile = node.technology.icon.split("/").pop().replace(/\.dds$/i, ".webp");
+  return `<button class="technology-node" type="button" data-technology-key="${escapeHtml(node.technology.key)}" aria-pressed="${selected}" style="left:${node.x}px;top:${node.y}px"><img src="assets/technologies/${escapeHtml(iconFile)}" alt="" aria-hidden="true"><span>${escapeHtml(node.technology.name_zh)}</span></button>`;
 }
 
 function renderTechnologyBoard() {
   const layout = technologyGraphLayout();
   const selected = technologyByKey.get(state.selectedTechnology) || null;
-  const edges = technologyGraphEdges(layout);
+  const normalizedSearch = state.technologySearch.trim().toLocaleLowerCase("zh-Hans-CN");
+  const visibleNodes = [...layout.nodes.values()].filter((node) => !normalizedSearch || `${node.technology.name_zh} ${node.technology.key}`.toLocaleLowerCase("zh-Hans-CN").includes(normalizedSearch));
+  const visibleNodeKeys = new Set(visibleNodes.map((node) => node.technology.key));
+  const edges = technologyGraphEdges(layout).filter(({ from, to }) => visibleNodeKeys.has(from.technology.key) && visibleNodeKeys.has(to.technology.key));
   els.countryList.className = "country-list technology-board";
-  els.resultCount.textContent = `${[...layout.nodes.values()].length} 项科技`;
+  els.resultCount.textContent = "";
   els.activeHint.textContent = "";
   const categoryLabels = { production: "生产", military: "军事", society: "社会" };
-  els.countryList.innerHTML = `<section class="technology-shell"><div class="technology-controls">${Object.entries(categoryLabels).map(([key,label]) => `<button type="button" data-technology-category="${key}" aria-pressed="${layout.technologyGraphCategory === key}">${label}</button>`).join("")}<button type="button" data-technology-reset>重置视图</button></div><div class="technology-graph-viewport"><div class="technology-graph-canvas technology-grid-${layout.technologyGridColumns}x${layout.technologyGridRows}" style="width:${layout.width}px;height:${layout.height}px;transform:translate(${state.technologyViewport.x}px,${state.technologyViewport.y}px) scale(${state.technologyViewport.scale})"><div class="technology-era-headings">${technologyEras.map((era, index) => `<span style="top:${38 + layout.eraBaseRows[index] * layout.technologyGridCellHeight}px">${escapeHtml(era.label_zh)}</span>`).join("")}</div><svg class="technology-graph-edges" width="${layout.width}" height="${layout.height}">${edges.map(({from,to}) => `<line x1="${from.x + 152}" y1="${from.y + 28}" x2="${to.x}" y2="${to.y + 28}" class="${selected && (from.technology.key === selected.key || to.technology.key === selected.key) ? "is-highlighted" : ""}"/>`).join("")}</svg>${[...layout.nodes.values()].map(technologyNodeHtml).join("")}</div></div><div class="technology-mobile-list">${technologyEras.map((era) => `<details open><summary>${era.label_zh}</summary>${[...layout.nodes.values()].filter((node) => node.technology.era === era.key).map(technologyNodeHtml).join("")}</details>`).join("")}</div><div class="technology-local-graph">${selected ? `已选：${escapeHtml(selected.name_zh)}　前置 ${selected.prerequisites.length}　后续 ${selected.unlocks.length}` : "选择科技查看局部关系"}</div></section>`;
+  els.countryList.innerHTML = `<section class="technology-shell"><div class="technology-controls"><select data-technology-category-select aria-label="科技类别">${Object.entries(categoryLabels).map(([key,label]) => `<option value="${key}" ${layout.technologyGraphCategory === key ? "selected" : ""}>${label}</option>`).join("")}</select><input type="search" data-technology-search aria-label="搜索科技" placeholder="搜索科技" value="${escapeHtml(state.technologySearch)}"><button class="map-tool-button" type="button" data-technology-reset aria-label="重置视图" title="重置视图"><img class="lucide-icon" src="assets/lucide/icons/refresh-ccw.svg" alt="" aria-hidden="true"></button></div><div class="technology-graph-viewport"><div class="technology-graph-canvas technology-grid-${layout.technologyGridColumns}x${layout.technologyGridRows}" style="width:${layout.width}px;height:${layout.height}px;transform:translate(${state.technologyViewport.x}px,${state.technologyViewport.y}px) scale(${state.technologyViewport.scale})"><svg class="technology-graph-edges" width="${layout.width}" height="${layout.height}" aria-hidden="true">${edges.map(({ from, to }) => { const highlighted = selected && (from.technology.key === selected.key || to.technology.key === selected.key); const stroke = highlighted ? "#c8a45b" : "#b7a883"; const strokeWidth = highlighted ? 5 : 3; const path = technologyEdgePath(from, to); return `<path d="${path}" fill="none" class="${highlighted ? "is-highlighted" : ""}" style="fill:none !important;stroke:${stroke} !important;stroke-width:${strokeWidth} !important"/>`; }).join("")}</svg>${visibleNodes.map(technologyNodeHtml).join("")}</div></div><div class="technology-mobile-list">${technologyEras.map((era) => `<details open><summary>${era.label_zh}</summary>${visibleNodes.filter((node) => node.technology.era === era.key).map(technologyNodeHtml).join("")}</details>`).join("")}</div><div class="technology-local-graph">${selected ? `已选：${escapeHtml(selected.name_zh)}　前置 ${selected.prerequisites.length}　后续 ${selected.unlocks.length}` : "选择科技查看局部关系"}</div></section>`;
   els.detail.innerHTML = renderTechnologyDetail(selected);
-  els.countryList.querySelectorAll("[data-technology-key]").forEach((button) => button.addEventListener("click", () => { location.hash = `/technology/${encodeURIComponent(button.dataset.technologyKey)}`; }));
-  els.countryList.querySelectorAll("[data-technology-category]").forEach((button) => button.addEventListener("click", () => { state.technologyCategory = button.dataset.technologyCategory; state.selectedTechnology = ""; state.technologyViewport = { x: 0, y: 0, scale: 1 }; render(); }));
+  els.countryList.querySelectorAll("[data-technology-key]").forEach((button) => {
+    button.addEventListener("pointerdown", (event) => event.stopPropagation());
+    button.addEventListener("click", () => { location.hash = `/technology/${encodeURIComponent(button.dataset.technologyKey)}`; });
+  });
+  els.countryList.querySelector("[data-technology-category-select]")?.addEventListener("change", (event) => { state.technologyCategory = event.target.value; state.technologySearch = ""; state.selectedTechnology = ""; state.technologyViewport = { x: 0, y: 0, scale: 1 }; render(); });
+  els.countryList.querySelector("[data-technology-search]")?.addEventListener("input", (event) => { state.technologySearch = event.target.value; renderTechnologyBoard(); });
   els.countryList.querySelector("[data-technology-reset]")?.addEventListener("click", () => { state.technologyViewport = { x: 0, y: 0, scale: 1 }; render(); });
   const viewport = els.countryList.querySelector(".technology-graph-viewport");
   let drag = null;
-  viewport?.addEventListener("pointerdown", (event) => { drag = { x: event.clientX, y: event.clientY, startX: state.technologyViewport.x, startY: state.technologyViewport.y }; viewport.setPointerCapture(event.pointerId); });
+  viewport?.addEventListener("pointerdown", (event) => { if (event.target.closest(".technology-node")) return; drag = { x: event.clientX, y: event.clientY, startX: state.technologyViewport.x, startY: state.technologyViewport.y }; viewport.setPointerCapture(event.pointerId); });
   viewport?.addEventListener("pointermove", (event) => { if (!drag) return; state.technologyViewport.x = drag.startX + event.clientX - drag.x; state.technologyViewport.y = drag.startY + event.clientY - drag.y; const canvas = viewport.querySelector(".technology-graph-canvas"); if (canvas) canvas.style.transform = `translate(${state.technologyViewport.x}px,${state.technologyViewport.y}px) scale(${state.technologyViewport.scale})`; });
   viewport?.addEventListener("pointerup", () => { drag = null; });
   viewport?.addEventListener("wheel", (event) => { event.preventDefault(); state.technologyViewport.scale = Math.max(.7, Math.min(1.8, state.technologyViewport.scale * (event.deltaY < 0 ? 1.1 : .9))); const canvas = viewport.querySelector(".technology-graph-canvas"); if (canvas) canvas.style.transform = `translate(${state.technologyViewport.x}px,${state.technologyViewport.y}px) scale(${state.technologyViewport.scale})`; }, { passive: false });
 }
 
 function renderTechnologyDetail(technology) {
-  if (!technology) return `<section class="technology-detail"><h2>科技</h2><p>选择一项科技查看前置关系与解锁内容。</p></section>`;
-  const relation = (items, label) => `<section><h3>${label}</h3><div>${items.length ? items.map((item) => `<button class="pill tag-technology" type="button" data-technology-target="${escapeHtml(item.key)}">${escapeHtml(item.name_zh)}</button>`).join("") : "无"}</div></section>`;
+  if (!technology) return "";
+  const relation = (items, label) => `<section><h3>${label}</h3><div class="technology-relation-tags">${items.length ? items.map((item) => `<button class="pill tag-technology" type="button" data-technology-target="${escapeHtml(item.key)}">${escapeHtml(item.name_zh)}</button>`).join("") : "无"}</div></section>`;
   const refs = technology.references || { laws: [], companies: [] };
   const linkItems = (items, route) => items.length ? items.map((item) => `<a class="pill" href="#/${route}/${encodeURIComponent(item.key)}">${escapeHtml(item.name_zh)}</a>`).join("") : "无";
-  queueMicrotask(() => document.querySelectorAll("[data-technology-target]").forEach((button) => button.addEventListener("click", () => { location.hash = `/technology/${encodeURIComponent(button.dataset.technologyTarget)}`; })));
-  return `<section class="technology-detail"><h2>${escapeHtml(technology.name_zh)}</h2><p>${escapeHtml(technology.category_zh)} · ${escapeHtml(technology.era_label_zh)} · ${escapeHtml(String(technology.era_cost))} 创新力</p><p>${escapeHtml(technology.desc_zh || "无说明")}</p>${relation(technology.prerequisites.map((key) => technologyByKey.get(key)).filter(Boolean), "前置科技")}${relation(technology.unlocks, "后续科技")}<section><h3>修正效果</h3>${technology.modifiers.length ? technology.modifiers.map((item) => `<p>${escapeHtml(item.summary_zh)}</p>`).join("") : "无"}</section><section><h3>关联法律</h3>${linkItems(refs.laws, "law")}</section><section><h3>关联公司</h3>${linkItems(refs.companies, "company")}</section></section>`;
+  queueMicrotask(() => {
+    document.querySelectorAll("[data-technology-target]").forEach((button) => button.addEventListener("click", () => { location.hash = `/technology/${encodeURIComponent(button.dataset.technologyTarget)}`; }));
+    document.querySelector("[data-technology-back]")?.addEventListener("click", () => { location.hash = "/technology"; });
+  });
+  return `<section class="technology-detail"><div class="detail-title"><button class="detail-back-button" type="button" data-technology-back aria-label="返回科技树" title="返回科技树"><img class="lucide-icon" src="assets/lucide/icons/arrow-left.svg" alt="" aria-hidden="true"></button><div class="detail-title-main"><h2>${escapeHtml(technology.name_zh)}</h2></div></div><p>${escapeHtml(technology.category_zh)} · ${escapeHtml(technology.era_label_zh)} · ${escapeHtml(String(technology.era_cost))} 创新力</p><p>${escapeHtml(technology.desc_zh || "无说明")}</p>${relation(technology.prerequisites.map((key) => technologyByKey.get(key)).filter(Boolean), "前置科技")}${relation(technology.unlocks, "后续科技")}<section><h3>修正效果</h3>${technology.modifiers.length ? technology.modifiers.map((item) => `<p>${escapeHtml(item.summary_zh)}</p>`).join("") : "无"}</section><section><h3>关联法律</h3>${linkItems(refs.laws, "law")}</section><section><h3>关联公司</h3>${linkItems(refs.companies, "company")}</section></section>`;
 }
 
 function renderDetailForState() {
@@ -2738,6 +2936,7 @@ async function navigateGlobalSearchResult(kind, key) {
   else if (kind === "company") replaceHash(`/company/${encodeURIComponent(key)}`);
   else if (kind === "ideology") replaceHash(`/ideology/${encodeURIComponent(key)}`);
   else if (kind === "law") replaceHash(`/law/${encodeURIComponent(key)}`);
+  else if (kind === "technology") replaceHash(`/technology/${encodeURIComponent(key)}`);
   else return;
   await applyHash();
   render();
@@ -2868,6 +3067,16 @@ function globalSearchResults(query) {
     raw: law,
     searchText: lawSearchBlob(law),
   }));
+  technologies.forEach((technology) => add({
+    id: `technology:${technology.key}`,
+    kind: "technology",
+    typeLabel: "科技",
+    key: technology.key,
+    title: technology.name_zh || technology.key,
+    subtitle: [technology.category_zh, technology.era_label_zh].filter(Boolean).join("，"),
+    raw: technology,
+    searchText: [technology.name_zh, technology.key, technology.desc_zh, technology.category_zh, technology.era_label_zh].filter(Boolean).join(" "),
+  }));
   cultureTraits.forEach((trait) => add({
     id: `cultureTrait:${trait.key}`,
     kind: "cultureTrait",
@@ -2906,7 +3115,7 @@ function globalSearchResults(query) {
     searchText: [trait.name_zh, trait.key, trait.desc_zh, trait.modifier_summary_zh].filter(Boolean).join(" "),
   }));
   interestGroupFlavorSearchResults().forEach(add);
-  const order = new Map(["国家", "文化", "地区", "地理区域", "语言", "语族", "传承", "传承组", "传统", "战略区域", "公司", "意识形态", "法律", "利益集团", "利益集团特质", "利益集团风味"].map((label, index) => [label, index]));
+  const order = new Map(["国家", "文化", "地区", "地理区域", "语言", "语族", "传承", "传承组", "传统", "战略区域", "公司", "意识形态", "法律", "科技", "利益集团", "利益集团特质", "利益集团风味"].map((label, index) => [label, index]));
   return results
     .sort((a, b) => a.score - b.score || orderValue(order, a.typeLabel) - orderValue(order, b.typeLabel) || a.title.localeCompare(b.title, "zh-Hans-CN"))
     .slice(0, 120);

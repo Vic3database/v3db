@@ -5174,42 +5174,58 @@ body[data-view="changelog"] .detail {
 }
 
 body[data-view="technology"] .results {
-  left: 12px;
+  inset: 0;
+  left: 0;
   right: min(410px, 32vw);
-  top: 78px;
-  bottom: 12px;
   width: auto;
+  padding: 12px;
+  border: 0;
+  border-radius: 0;
+}
+
+body[data-view="technology"] .results > .panel-head,
+body[data-view="technology"] .results > .result-head { display: none; }
+
+body[data-view="technology"]:not(.detail-page) .results {
+  right: 0;
+}
+
+body[data-view="technology"]:not(.detail-page) .detail {
+  display: none;
 }
 
 body[data-view="technology"] .detail {
   display: block;
   left: auto;
-  right: 12px;
-  top: 78px;
-  bottom: 12px;
+  right: 0;
+  top: 0;
+  bottom: 0;
   width: min(380px, 30vw);
   overflow: auto;
+  border-radius: 0;
 }
 
-.technology-shell { min-height: 100%; display: flex; flex-direction: column; gap: 10px; }
+.technology-shell { height: 100%; min-height: 0; display: flex; flex-direction: column; gap: 10px; }
 .technology-controls { display: flex; gap: 8px; flex-wrap: wrap; }
-.technology-controls button, .technology-detail button { border: 1px solid rgba(200,164,91,.45); background: var(--surface-raised); color: var(--ink); padding: 6px 10px; }
+.technology-controls select, .technology-controls input, .technology-controls button, .technology-detail button { min-height: 34px; border: 1px solid rgba(200,164,91,.45); background: var(--surface-raised); color: var(--ink); padding: 6px 10px; }
+.technology-controls select { min-width: 96px; }
+.technology-controls input { width: min(260px, 42vw); }
 .technology-controls button[aria-pressed="true"], .technology-node[aria-pressed="true"] { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(200,164,91,.2); }
 .technology-graph-viewport { flex: 1; min-height: 500px; overflow: hidden; border: 1px solid rgba(200,164,91,.32); background: radial-gradient(circle at 50% 20%, rgba(98,108,85,.2), transparent 52%), var(--panel-glass-strong); cursor: grab; }
 .technology-graph-canvas { position: relative; transform-origin: 0 0; transition: transform .12s ease-out; }
-.technology-era-headings { position: absolute; inset: 0; color: rgba(200,164,91,.55); font-size: 11px; pointer-events: none; }
-.technology-era-headings span { position: absolute; left: 8px; padding: 3px 6px; }
-.technology-graph-edges { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
-.technology-graph-edges line { stroke: rgba(191,169,113,.42); stroke-width: 2; }
-.technology-graph-edges line.is-highlighted { stroke: var(--gold); stroke-width: 3; }
-.technology-node { position: absolute; z-index: 1; width: 152px; min-height: 56px; display: grid; grid-template-columns: 34px 1fr; gap: 7px; align-items: center; text-align: left; border: 1px solid rgba(170,150,103,.55); background: rgba(46,47,40,.98); color: var(--ink); padding: 6px; }
-.technology-node img { width: 32px; height: 32px; object-fit: contain; }
-.technology-node span { display: grid; gap: 2px; }
-.technology-node-category { color: var(--gold); font-size: 11px; }
+.technology-grid-overlay { display: none; }
+.technology-graph-edges { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: visible; }
+.technology-graph-canvas .technology-graph-edges path { fill: none; stroke: rgba(183, 168, 131, .72) !important; stroke-width: 3 !important; stroke-linecap: round; stroke-linejoin: round; }
+.technology-graph-canvas .technology-graph-edges path.is-highlighted { stroke: var(--gold) !important; stroke-width: 5 !important; }
+.technology-node { position: absolute; z-index: 1; width: 144px; min-height: 88px; display: flex; flex-direction: column; gap: 5px; align-items: center; justify-content: center; text-align: center; border: 1px solid rgba(170,150,103,.55); background: rgba(46,47,40,.98); color: var(--ink); padding: 8px; }
+.technology-node img { width: 32px; height: 32px; object-fit: contain; flex: 0 0 auto; }
+.technology-node span { display: block; }
 .technology-node span { overflow-wrap: anywhere; }
 .technology-detail { display: grid; gap: 12px; padding: 16px; }
 .technology-detail h2, .technology-detail h3, .technology-detail p { margin: 0; }
 .technology-detail section { display: grid; gap: 6px; }
+.technology-relation-tags { display: flex; flex-wrap: wrap; gap: 10px; }
+.technology-detail .tag-technology { margin: 0; }
 .technology-mobile-list, .technology-local-graph { display: none; }
 
 @media (max-width: 900px) {
@@ -5234,6 +5250,22 @@ body.detail-page .detail {
   right: 12px;
   width: auto;
   animation: detail-panel-in 0.18s ease both;
+}
+
+body.detail-page[data-view="technology"] .results {
+  left: 0;
+  right: 20vw;
+  top: 0;
+  bottom: 0;
+  width: auto;
+}
+
+body.detail-page[data-view="technology"] .detail {
+  left: auto;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 20vw;
 }
 
 body.detail-page[data-view="ideology"] .results,
