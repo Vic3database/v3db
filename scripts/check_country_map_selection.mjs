@@ -39,6 +39,8 @@ function checkMapSelectionContracts() {
   const drawMapLayer = functionSource("drawMapLayer");
   const mapLayerSignature = functionSource("mapLayerSignature");
   const mapPixelColor = functionSource("mapPixelColor");
+  const addStateBorders = functionSource("addStateBorders");
+  const addCountryBorders = functionSource("addCountryBorders");
 
   assert(/function\s+countryMapStateKeys\s*\(/.test(appSource), "country map should derive a selected country's default territory state keys");
   assert(/formationStateRegions[\s\S]*formationStates[\s\S]*formationRegion[\s\S]*startingStates/.test(functionSource("countryMapStateKeys")), "country map territory should prefer formation ranges before falling back to starting states");
@@ -49,6 +51,13 @@ function checkMapSelectionContracts() {
   assert(/countryMapUsesOwnerPixels\(\)/.test(drawMapLayer), "country map should disable owner-pixel coloring when a selected territory is shown");
   assert(/countryMapUsesOwnerPixels\(\)/.test(mapPixelColor), "map tooltip color lookup should follow the selected territory coloring mode");
   assert(/selectedCountryMapSignature\(\)/.test(mapLayerSignature), "country map cache signature should include the selected country's territory");
+  assert(/addStateBorders\(data, stateIndexes, mapRuntime\.width, mapRuntime\.height\)/.test(drawMapLayer), "map layer should draw state borders before country borders");
+  assert(/state\.mapMode === "country"[\s\S]*addCountryBorders\(data, stateIndexes, mapRuntime\.pixelOwnerIndexes, mapRuntime\.width, mapRuntime\.height\)/.test(drawMapLayer), "country map should overlay country borders only in the country board");
+  assert(/const stateBorderColor = \[/.test(addStateBorders), "state-border renderer should own its subdued border color");
+  assert(/const countryBorderColor = \[/.test(addCountryBorders), "country-border renderer should own its stronger border color");
+  assert(/ownerIndexes\[pixel\][\s\S]*ownerIndexes\[rightPixel\]/.test(addCountryBorders), "country borders should compare adjacent owner indexes");
+  assert(/indexTouchesSea\(index, rightIndex\)/.test(addCountryBorders), "country borders should retain the sea test for the right-hand neighbor");
+  assert(/indexTouchesSea\(index, downIndex\)/.test(addCountryBorders), "country borders should retain the sea test for the lower neighbor");
 }
 
 function checkMapFocusContracts() {
