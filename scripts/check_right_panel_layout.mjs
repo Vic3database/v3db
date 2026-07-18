@@ -41,9 +41,9 @@ function checkDetailLayoutContracts() {
   assert(/\.detail\s*{[\s\S]*--detail-pad-x:\s*18px[\s\S]*padding:\s*0\s+var\(--detail-pad-x\)\s+28px/.test(styleSource), "desktop detail panel should not leave a scrollable gap above the sticky title");
   assert(detailTitleBlock.includes("position: sticky") && detailTitleBlock.includes("top: 0") && /z-index:\s*\d+/.test(detailTitleBlock), "detail title should stay fixed at the top of the scrolling detail panel");
   assert(/align-items:\s*center/.test(detailTitleBlock), "all shared detail title content should align vertically like the culture detail title");
-  assert(/styles\.css\?v=20260718-detail-title1/.test(readText("site/index.html")), "detail title style changes should refresh the main stylesheet URL");
-  assert(/styles\/records\.css\?v=20260718-detail-title1/.test(readText("site/styles.css")), "detail title alignment should refresh the records stylesheet import");
-  assert(/styles\/shell\.css\?v=20260718-detail-title1/.test(readText("site/styles.css")), "removing the culture-only override should refresh the shell stylesheet import");
+  assert(/styles\.css\?v=20260718-company-location2/.test(readText("site/index.html")), "detail title style changes should refresh the main stylesheet URL");
+  assert(/styles\/records\.css\?v=20260718-company-location2/.test(readText("site/styles.css")), "detail title alignment should refresh the records stylesheet import");
+  assert(/styles\/shell\.css\?v=20260718-company-location2/.test(readText("site/styles.css")), "removing the culture-only override should refresh the shell stylesheet import");
   assert(/margin:\s*0\s+calc\(-1\s*\*\s*var\(--detail-pad-x\)\)\s+0/.test(detailTitleBlock), "detail title should cover the panel width without exposing scrolling content above it");
   assert(/padding:\s*var\(--detail-pad-top\)\s+var\(--detail-pad-x\)\s+12px/.test(detailTitleBlock), "detail title should own the panel top spacing");
   assert(ideologyHeaderBlock.includes("position: sticky") && ideologyHeaderBlock.includes("top: 0") && /z-index:\s*\d+/.test(ideologyHeaderBlock), "ideology detail title should stay fixed at the top of the scrolling detail panel");
@@ -145,7 +145,7 @@ function checkListInteractionContracts() {
   assert(!/data-ideology-open/.test(functionSource("renderIdeologyList")), "ideology row titles should not open detail pages");
   assert(/data-country-detail/.test(functionSource("renderCountryList")), "country rows should expose a right-side detail button");
   assert(/data-culture-detail/.test(functionSource("renderCultureList")), "culture rows should expose a right-side detail button");
-  assert(/data-company-detail/.test(functionSource("renderCompanyList")), "company rows should expose a right-side detail button");
+  assert(!/data-company-detail|rowDetailButton/.test(functionSource("renderCompanyList")), "company rows should use the card itself as the only detail entry");
   assert(/data-ideology-detail/.test(functionSource("renderIdeologyList")), "ideology rows should expose a right-side detail button");
   assert(/\.row-detail-button/.test(styleSource), "detail buttons should use a shared card action style");
   assert(!/replaceHash\(`\/geographic-region/.test(eventBindingSource()), "geographic-region filters should not navigate to geographic-region detail pages");

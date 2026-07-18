@@ -8,7 +8,7 @@ const app = readSiteAppSource(root);
 const index = fs.readFileSync(path.join(root, "site", "index.html"), "utf8");
 const styles = readSiteStyleSource(root);
 const technologyChunk = readGlobal(path.join(root, "site", "versions", "1.13.9", "data-technologies.js"));
-const technologyRenderer = app.match(/function renderTechnologyBoard\(\) \{[\s\S]*?\n}\n\nfunction renderTechnologyDetail/)[0];
+const technologyRenderer = app.match(/function renderTechnologyBoard\(\) \{[\s\S]*?\r?\n}\r?\n\s*function renderTechnologyDetail/)[0];
 
 assert.match(app, /function renderTechnologyBoard\(/, "technology board renderer must exist");
 assert.match(app, /function renderTechnologyDetail\(/, "technology detail renderer must exist");
@@ -93,7 +93,7 @@ assert.match(app, /analytical_philosophy: \{ column: 29, row: 11 \}/, "society t
 assert.match(app, /mass_propaganda: \{ column: 22, row: 11 \}/, "society technology positions must define mass propaganda at row eleven column twenty-two");
 assert.match(app, /technology-relation-tags/, "technology detail relationships must use a spaced tag container");
 assert.match(styles, /\.technology-relation-tags \{ display: flex; flex-wrap: wrap; gap: 10px; \}/, "technology detail tags must have a 10px gap");
-assert.match(fs.readFileSync(path.join(root, "site", "index.html"), "utf8"), /styles\.css\?v=20260718-detail-title1/, "stylesheet version must refresh the split source files");
+assert.match(fs.readFileSync(path.join(root, "site", "index.html"), "utf8"), /styles\.css\?v=20260718-company-location2/, "stylesheet version must refresh the split source files");
 for (const technology of technologyChunk.technologies) {
   const iconFile = path.basename(technology.icon).replace(/\.dds$/i, ".webp");
   assert(fs.existsSync(path.join(root, "site", "assets", "technologies", iconFile)), `${technology.key} must have a published WebP icon`);

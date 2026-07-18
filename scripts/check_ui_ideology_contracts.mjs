@@ -39,11 +39,18 @@ function checkFilterContracts() {
   assert(/key:\s*"agriculture"/.test(appSource), "merged agriculture filter group is missing");
   assert(/company-region-filter-section/.test(indexSource), "company region filter sections should have an ordering class");
   assert(/body\[data-view="company"\]\s+\.company-region-filter-section/.test(styleSource), "company region filters should be ordered at the bottom in company view");
-  assert(!/<details\b[^>]*class="[^"]*\bfilter-section\b[^"]*"[^>]*\sopen\b/.test(indexSource), "filter sections should not be statically open by default");
+  assert(!/<details\b[^>]*class="[^"]*\bfilter-section\b[^"]*"[^>]*\sopen\b/.test(indexSource), "filter sections should not be statically open in markup");
   assert(/syncFilterSectionOpenStates/.test(appSource), "filter sections should auto-open when a choice is active");
   assert(/collapsible-detail-section/.test(appSource), "heavy detail sections should render as collapsible detail sections");
   assert(!/setSection\("\.filter-section",\s*false\)/.test(appSource), "filter sections should not be force-collapsed on every render");
   assert(/hasInitializedFilterSections/.test(appSource), "filter section default collapse should be tracked as initial state");
+  const defaultFilterSource = functionSource("initializeDefaultFilterSectionOpenStates");
+  for (const filterId of ["resourceFilters", "companyKindFilters", "companyPrestigeFilters", "companyDlcFilters", "strategicRegionFilters"]) {
+    assert(defaultFilterSource.includes(filterId), `${filterId} should be open by default`);
+  }
+  assert(!defaultFilterSource.includes("geographicRegionFilters"), "geographic-region filter must stay collapsed by default");
+  const syncFilterSource = functionSource("syncFilterSectionOpenStates");
+  assert(/if\s*\(open\)\s*section\.open\s*=\s*true/.test(syncFilterSource), "filter synchronization must preserve default and user-controlled collapsed states");
 }
 
 function checkOverlayContracts() {
@@ -106,14 +113,14 @@ function checkTypographyContracts() {
   assert(/--results-panel-width:\s*clamp\(420px,\s*30vw,\s*570px\)/.test(styleSource), "company/list panel should be widened to roughly one and a half times the previous width");
   assert(/\.results\s+\.company-row\s*{[\s\S]*grid-template-columns:\s*minmax\(0,\s*1fr\)[\s\S]*min-height:\s*auto[\s\S]*max-height:\s*none[\s\S]*overflow:\s*visible/.test(styleSource), "company rows should use a flexible card layout");
   assert(/\.results\s+\.company-row\s*>\s*\.company-heading,\s*[\s\S]*\.results\s+\.company-row\s*>\s*\.region-building-strip,\s*[\s\S]*\.results\s+\.company-row\s*>\s*\.country-meta,\s*[\s\S]*\.results\s+\.company-row\s*>\s*\.country-tags,\s*[\s\S]*\.results\s+\.company-row\s*>\s*\.company-asset-line\s*{[\s\S]*grid-column:\s*1/.test(styleSource), "company row child sections should use the full card width");
-  assert(/\.results\s+\.company-row\s+\.company-heading\s*{[\s\S]*display:\s*grid[\s\S]*grid-template-columns:\s*48px\s+minmax\(0,\s*1fr\)\s+auto\s+28px/.test(styleSource), "company row header should combine icon, name, key, DLC, and the detail button");
+  assert(/\.results\s+\.company-row\s+\.company-heading\s*{[\s\S]*display:\s*grid[\s\S]*grid-template-columns:\s*48px\s+minmax\(0,\s*1fr\)\s+auto/.test(styleSource), "company row header should combine icon, name, key, and DLC without a detail button column");
   assert(/\.results\s+\.company-row\s+\.company-logo,\s*[\s\S]*\.results\s+\.company-row\s+\.company-icon-placeholder\s*{[\s\S]*width:\s*44px[\s\S]*height:\s*44px/.test(styleSource), "company list icons should span the two title lines");
   assert(/\.results\s+\.company-row\s+\.region-building-strip\s*{[\s\S]*gap:\s*2px/.test(styleSource), "company building icon strip should use tighter spacing");
   assert(/\.results\s+\.company-row\s+\.company-asset-line\s*{[\s\S]*display:\s*flex/.test(styleSource), "company prestige goods should use a compact asset line");
   assert(/\.company-building-separator\s*{[\s\S]*width:\s*6px[\s\S]*height:\s*6px[\s\S]*border-radius:\s*50%/.test(styleSource), "main and extension buildings should be divided by a vector-like dot");
   assert(/\.company-building-pill\.extension-building-pill\s*{[\s\S]*border-color:\s*transparent[\s\S]*background:\s*transparent[\s\S]*box-shadow:\s*none/.test(styleSource), "company extension building icons should not keep the dashed extension pill frame");
-  const genericResultCountryGridIndex = styleSource.lastIndexOf(".results .country-row {\n  grid-template-columns: 64px minmax(0, 1fr) 28px;");
-  const companyResultGridIndex = styleSource.lastIndexOf(".results .company-row {\n  grid-template-columns: minmax(0, 1fr);");
+  const genericResultCountryGridIndex = styleSource.lastIndexOf(".results .country-row {");
+  const companyResultGridIndex = styleSource.lastIndexOf(".results .company-row {");
   assert(genericResultCountryGridIndex >= 0 && companyResultGridIndex > genericResultCountryGridIndex, "company row grid override should come after the generic result-row country grid");
   assert(/\.results\s+\.country-row,\s*[\s\S]*\.results\s+\.culture-row\s*{[\s\S]*max-height:\s*none[\s\S]*overflow:\s*visible/.test(styleSource), "result rows should allow wrapped content after typography changes");
   assert(/\.results\s+\.pill-line\s*{[\s\S]*max-height:\s*none[\s\S]*overflow:\s*visible/.test(styleSource), "result row chips should allow wrapping instead of clipping");
@@ -140,10 +147,14 @@ function checkTypographyContracts() {
   const companyBuildingPillSource = functionSource("companyBuildingPill");
   assert(/className:\s*`resource-pill image-pill company-building-pill\$\{classText\}`/.test(companyBuildingPillSource) && /html:\s*buildingIconHtml\(item\?\.key,\s*name\)/.test(companyBuildingPillSource), "company building pills should be icon-only and expose labels through the icon tooltip");
   assert(/label:\s*name/.test(companyBuildingPillSource) && /kind:\s*"building"/.test(companyBuildingPillSource) && /key:\s*item\?\.key\s*\|\|\s*""/.test(companyBuildingPillSource), "company building icon-only pills should keep building concept tooltip metadata");
-  assert(/data-company-detail/.test(appSource) && /openCompanyDetail/.test(appSource), "company detail should open from the right-side detail button");
-  assert(!/data-company-open/.test(appSource), "company title and icon should not open the detail page");
-  assert(/selectCompanyCard/.test(appSource) && /selectionHashForCard\("\/company",\s*`\/company\/\$\{encodeURIComponent\(companyKey\)\}`\)/.test(appSource), "company card click should select the company while staying on the company board");
-  assert(/function\s+focusCompanyOnMap/.test(appSource) && /companyStateRegionKeys/.test(appSource), "selecting a company card should focus the map on related state regions");
+  const companyListSource = functionSource("renderCompanyList");
+  assert(!/data-company-detail|rowDetailButton/.test(companyListSource), "company cards must not render a redundant detail-arrow button");
+  assert(/row\.addEventListener\("click"[\s\S]*openCompanyDetail\(row\.dataset\.company\)/.test(companyListSource), "company card click should open the company detail page");
+  assert(/row\.addEventListener\("keydown"[\s\S]*openCompanyDetail\(row\.dataset\.company\)/.test(companyListSource), "company card keyboard activation should open the company detail page");
+  assert(!/selectCompanyCard/.test(companyListSource), "company card must not stay on the company board after activation");
+  assert(/function\s+companyDetailLocationMapEnabled\s*\(/.test(appSource), "company details should classify whether a location map is allowed");
+  assert(/function\s+companyLocationStateRegionKeys\s*\(/.test(appSource), "company details should derive location states from company data");
+  assert(/data-company-location-map/.test(appSource), "historical company details should expose a dedicated location canvas");
   assert(/function\s+showConceptTooltip[\s\S]*target\.matches\("a\[href\]"\)[\s\S]*"右键搜索"/.test(appSource), "non-link icon tooltips should not claim that left click opens details");
   for (const [name, view] of [
     ["renderCountryDetail", "country"],

@@ -594,8 +594,10 @@ function renderCompanyBoard() {
   els.resultCount.textContent = `${filtered.length} 个公司`;
   els.activeHint.textContent = buildActiveHint(filtered.length);
   renderCompanyList(filtered);
-  renderMap(companyMapStateRegions(mapRuntime.companyMapCompanies));
-  focusCompanyOnMap(selectedCompany);
+  if (isDetailPageRoute() && companyDetailLocationMapEnabled(selectedCompany) && companyLocationStateRegionKeys(selectedCompany).length) {
+    renderMap(companyMapStateRegions(mapRuntime.companyMapCompanies));
+    focusCompanyOnMap(selectedCompany);
+  }
 }
 
 function renderIdeologyBoard() {

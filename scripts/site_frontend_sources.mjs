@@ -5,6 +5,7 @@ export const appSections = [
   "app/runtime.js",
   "app/data.js",
   "app/ui.js",
+  "app/company-location-rules.js",
   "app/boards.js",
   "app/filters.js",
   "app/presentation.js",

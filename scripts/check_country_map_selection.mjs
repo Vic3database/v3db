@@ -91,14 +91,16 @@ function checkMapFocusContracts() {
   const focusCompanyOnMap = functionSource("focusCompanyOnMap");
   const focusCountryOnMap = functionSource("focusCountryOnMap");
   const focusStateRegionsOnMap = functionSource("focusStateRegionsOnMap");
+  const mapTransformForStateRegions = functionSource("mapTransformForStateRegions");
 
   assert(/label:\s*association\.count\s*>\s*1\s*\?\s*String\(association\.count\)\s*:\s*""/.test(buildCompanyMapFeatures), "company map labels should omit solitary 1 markers");
   assert(/maxWorldScale:\s*2\.2/.test(focusCompanyOnMap), "company map focus should keep enough world context");
   assert(/padding:\s*260/.test(focusCompanyOnMap), "company map focus should use wider context padding");
   assert(/maxWorldScale:\s*2\.1/.test(focusCountryOnMap), "country map focus should keep enough world context");
   assert(/padding:\s*280/.test(focusCountryOnMap), "country map focus should use wider context padding");
-  assert(/const\s+worldFitScale\s*=\s*Math\.min/.test(focusStateRegionsOnMap) && /viewport\.width\s*\/\s*mapRuntime\.width/.test(focusStateRegionsOnMap) && /viewport\.height\s*\/\s*mapRuntime\.height/.test(focusStateRegionsOnMap), "map focus should derive zoom limits from the whole-world fit scale");
-  assert(/options\.maxWorldScale[\s\S]*worldFitScale\s*\*\s*options\.maxWorldScale/.test(focusStateRegionsOnMap), "map focus should support world-relative maximum zoom");
+  assert(/mapTransformForStateRegions\(stateKeys,\s*els\.mapViewport,\s*options\)/.test(focusStateRegionsOnMap), "map focus should use the shared state-region transform");
+  assert(/const\s+worldFitScale\s*=\s*Math\.min/.test(mapTransformForStateRegions) && /rect\.width\s*\/\s*mapRuntime\.width/.test(mapTransformForStateRegions) && /rect\.height\s*\/\s*mapRuntime\.height/.test(mapTransformForStateRegions), "map focus should derive zoom limits from the whole-world fit scale");
+  assert(/options\.maxWorldScale[\s\S]*worldFitScale\s*\*\s*options\.maxWorldScale/.test(mapTransformForStateRegions), "map focus should support world-relative maximum zoom");
   assert(!/maxScale:\s*2\.[48]/.test(focusCompanyOnMap + focusCountryOnMap), "map focus should not keep the old close-up absolute max scales");
 }
 
