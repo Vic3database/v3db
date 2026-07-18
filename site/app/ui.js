@@ -935,7 +935,7 @@ function syncFilterSectionOpenStates() {
   const hasPressedToken = (container) => Boolean(container?.querySelector('[data-filter-token][aria-pressed="true"]'));
   const setSection = (selector, open) => {
     document.querySelectorAll(selector).forEach((section) => {
-      if (open || !hasInitializedFilterSections) section.open = Boolean(open);
+      if (open) section.open = true;
     });
   };
 
@@ -963,7 +963,14 @@ function syncFilterSectionOpenStates() {
 }
 
 function initializeDefaultFilterSectionOpenStates() {
+  const defaultOpenFilterIds = new Set([
+    "resourceFilters",
+    "companyKindFilters",
+    "companyPrestigeFilters",
+    "companyDlcFilters",
+    "strategicRegionFilters",
+  ]);
   document.querySelectorAll(".filter-section").forEach((section) => {
-    section.open = false;
+    section.open = [...defaultOpenFilterIds].some((filterId) => section.querySelector(`#${filterId}`));
   });
 }

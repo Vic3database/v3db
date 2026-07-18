@@ -39,11 +39,18 @@ function checkFilterContracts() {
   assert(/key:\s*"agriculture"/.test(appSource), "merged agriculture filter group is missing");
   assert(/company-region-filter-section/.test(indexSource), "company region filter sections should have an ordering class");
   assert(/body\[data-view="company"\]\s+\.company-region-filter-section/.test(styleSource), "company region filters should be ordered at the bottom in company view");
-  assert(!/<details\b[^>]*class="[^"]*\bfilter-section\b[^"]*"[^>]*\sopen\b/.test(indexSource), "filter sections should not be statically open by default");
+  assert(!/<details\b[^>]*class="[^"]*\bfilter-section\b[^"]*"[^>]*\sopen\b/.test(indexSource), "filter sections should not be statically open in markup");
   assert(/syncFilterSectionOpenStates/.test(appSource), "filter sections should auto-open when a choice is active");
   assert(/collapsible-detail-section/.test(appSource), "heavy detail sections should render as collapsible detail sections");
   assert(!/setSection\("\.filter-section",\s*false\)/.test(appSource), "filter sections should not be force-collapsed on every render");
   assert(/hasInitializedFilterSections/.test(appSource), "filter section default collapse should be tracked as initial state");
+  const defaultFilterSource = functionSource("initializeDefaultFilterSectionOpenStates");
+  for (const filterId of ["resourceFilters", "companyKindFilters", "companyPrestigeFilters", "companyDlcFilters", "strategicRegionFilters"]) {
+    assert(defaultFilterSource.includes(filterId), `${filterId} should be open by default`);
+  }
+  assert(!defaultFilterSource.includes("geographicRegionFilters"), "geographic-region filter must stay collapsed by default");
+  const syncFilterSource = functionSource("syncFilterSectionOpenStates");
+  assert(/if\s*\(open\)\s*section\.open\s*=\s*true/.test(syncFilterSource), "filter synchronization must preserve default and user-controlled collapsed states");
 }
 
 function checkOverlayContracts() {
