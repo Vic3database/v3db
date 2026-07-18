@@ -292,6 +292,8 @@ function mapFeatureColor(stateRegion, color) {
   return mapRuntime.visibleStateKeys.has(stateRegion.key) ? color : MAP_MUTED_COLOR;
 }
 
+const COMPANY_LOCATION_MAP_COLOR = "#00cc66";
+
 function buildCompanyMapFeatures() {
   const selectedCompanies = mapRuntime.companyMapCompanies || companies;
   const associations = buildCompanyStateAssociations(selectedCompanies);
@@ -302,8 +304,7 @@ function buildCompanyMapFeatures() {
     const isSea = isSeaStateRegion(stateRegion);
     const association = associations.get(stateRegion.key) || emptyCompanyAssociation();
     const region = primaryStrategicRegionForState(stateRegion);
-    const baseColor = region?.map_color?.hex || "#8f8d80";
-    const color = isSea ? MAP_SEA_COLOR : companyAssociationColor(baseColor, association.count);
+    const color = isSea ? MAP_SEA_COLOR : companyAssociationColor(association.count);
     const title = isSea ? "海域" : companyAssociationTitle(association, region);
     features.set(stateRegion.key, {
       color: mapFeatureColor(stateRegion, color),
@@ -490,8 +491,8 @@ function uniqueByTag(items) {
   return [...map.values()].sort((a, b) => a.tag.localeCompare(b.tag));
 }
 
-function companyAssociationColor(baseColor, count) {
-  return interpolateColor("#f5f1e8", baseColor, count > 0 ? 0.62 : 0.18);
+function companyAssociationColor(count) {
+  return count > 0 ? COMPANY_LOCATION_MAP_COLOR : "#f5f1e8";
 }
 
 function companyAssociationTitle(association, region) {

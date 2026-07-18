@@ -1186,7 +1186,7 @@ body.results-collapsed .concept-tooltip {
 
 .company-detail-overview.has-location-map {
   display: grid;
-  grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 300px);
   gap: 20px 24px;
   align-items: start;
 }

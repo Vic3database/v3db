@@ -89,8 +89,10 @@ assert.match(app, /companyDetailLocationMapEnabled\(company\)/, "company detail 
 assert.match(app, /暂无可定位地点/, "historical companies without usable locations need an explicit message");
 assert.match(app, /queueMicrotask\(\(\)\s*=>\s*renderCompanyDetailLocationMap\(company\)\)/, "company detail must schedule its map after inserting the canvas");
 assert.match(styles, /\.company-location-map\s+canvas\s*{[\s\S]*pointer-events:\s*none[\s\S]*cursor:\s*default/, "detail map canvas must not accept pointer interaction");
-assert.match(styles, /\.company-detail-overview\s*{[\s\S]*grid-template-columns:\s*minmax\(0,\s*0\.72fr\)\s+minmax\(0,\s*1\.28fr\)/, "historical company overview must place the location map beside the base fields on wide screens");
+assert.match(styles, /\.company-detail-overview\s*{[\s\S]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s+minmax\(0,\s*300px\)/, "historical company overview must cap the location map column at 300 pixels on wide screens");
 assert.match(styles, /\.company-location-map\s*{[\s\S]*aspect-ratio:\s*4\s*\/\s*3/, "detail location map must use a 4:3 aspect ratio");
+assert.match(app, /const\s+COMPANY_LOCATION_MAP_COLOR\s*=\s*"#00cc66"/, "company location map must use La Plata green");
+assert.match(app, /function\s+companyAssociationColor\s*\([^)]*\)\s*{[\s\S]*count\s*>\s*0\s*\?\s*COMPANY_LOCATION_MAP_COLOR/, "company location states must use the fixed location color");
 assert.doesNotMatch(app.match(/function companyDetailLocationHtml[\s\S]*?\n}/)?.[0] || "", /map-toolbar|mapModeSelect|mapSubjectSelect|mapFitWidthButton/, "detail location section must not duplicate main-map controls");
 
 console.log(JSON.stringify({
