@@ -585,15 +585,20 @@ function companyDetailLocationHtml(company) {
         <div class="company-location-map">
           <canvas data-company-location-map aria-label="${escapeHtml(company.name_zh || company.key)}的关联地点地图"></canvas>
         </div>
-        <p class="minor company-location-summary">${escapeHtml(companyLocationSummary(company, stateKeys))}</p>
       ` : `<p class="empty">暂无可定位地点。</p>`}
-      <dl class="field-grid company-location-fields">
-        ${field("总部倾向", stateRegionLinks(company.preferred_headquarters))}
-        ${field("相关战略区域", strategicRegionLinks(company.referenced_strategic_regions))}
-        ${field("相关地理区域", geographicRegionLinks(company.referenced_geographic_regions))}
-        ${field("相关州地区", stateRegionLinks(company.referenced_state_regions))}
-      </dl>
     </section>
+  `;
+}
+
+function companyLocationFieldsHtml(company) {
+  if (!companyDetailLocationMapEnabled(company)) return "";
+  return `
+    <dl class="field-grid company-location-fields">
+      ${field("总部倾向", stateRegionLinks(company.preferred_headquarters))}
+      ${field("相关战略区域", strategicRegionLinks(company.referenced_strategic_regions))}
+      ${field("相关地理区域", geographicRegionLinks(company.referenced_geographic_regions))}
+      ${field("相关州地区", stateRegionLinks(company.referenced_state_regions))}
+    </dl>
   `;
 }
 
@@ -626,6 +631,7 @@ function renderCompanyDetail(company) {
           ${field("所需科技", listText(company.required_technologies))}
           ${field("AI 倾向科技", listText(company.ai_will_do_technologies))}
         </dl>
+        ${companyLocationFieldsHtml(company)}
       </section>
 
       ${companyDetailLocationHtml(company)}

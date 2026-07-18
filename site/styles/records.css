@@ -1186,7 +1186,7 @@ body.results-collapsed .concept-tooltip {
 
 .company-detail-overview.has-location-map {
   display: grid;
-  grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.81fr);
   gap: 20px 24px;
   align-items: start;
 }
@@ -1216,12 +1216,8 @@ body.results-collapsed .concept-tooltip {
   image-rendering: pixelated;
 }
 
-.company-location-summary {
-  margin: 8px 0 0;
-}
-
-.company-location-fields {
-  margin-top: 10px;
+.company-detail-base .company-location-fields {
+  margin-top: 18px;
 }
 
 @media (max-width: 1180px) {
