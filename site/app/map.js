@@ -1105,7 +1105,7 @@ function renderCompanyDetailLocationMap(company = byCompany.get(state.selectedCo
     return;
   }
   ensureMapLayer();
-  const transform = mapTransformForStateRegions(stateKeys, viewport, { maxWorldScale: 2.2, padding: 180 });
+  const transform = mapTransformForStateRegions(stateKeys, viewport, { maxWorldScale: 2.6, padding: 180 });
   if (transform) paintMapCanvasTarget(canvas, viewport, transform, false);
 }
 
