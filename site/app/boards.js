@@ -128,7 +128,7 @@ function renderHomeBoard() {
     { category: "其他", label: "游戏资源展示", text: "筹备中", icon: "assets/home/romanticism.png" },
     { category: "其他", label: "更新日志", text: "版本差异", view: "changelog", icon: "assets/home/mass_communication.png" },
   ];
-  const categoryRows = [["外交", "内政"], ["经济", "军事"], ["社会", "其他"]];
+  const categories = ["外交", "内政", "经济", "军事", "社会", "其他"];
   const homeUpdatedAt = new Intl.DateTimeFormat("zh-CN", {
     timeZone: "Asia/Hong_Kong",
     year: "numeric",
@@ -140,14 +140,13 @@ function renderHomeBoard() {
   }).format(new Date()).replace(/\//g, "-");
   els.countryList.innerHTML = `
     <div class="home-category-list">
-      ${categoryRows.map(([leftCategory, rightCategory]) => {
-        const rowEntries = [...entries.filter((entry) => entry.category === leftCategory), ...entries.filter((entry) => entry.category === rightCategory)];
+      ${categories.map((category) => {
+        const categoryEntries = entries.filter((entry) => entry.category === category);
         return `
-          <section class="home-category-row" aria-label="${escapeHtml(leftCategory)}和${escapeHtml(rightCategory)}">
-            <div class="home-category-heading"><h2>${escapeHtml(leftCategory)}</h2><span>${escapeHtml(String(entries.filter((entry) => entry.category === leftCategory).length))} 项</span></div>
-            <div class="home-category-heading"><h2>${escapeHtml(rightCategory)}</h2><span>${escapeHtml(String(entries.filter((entry) => entry.category === rightCategory).length))} 项</span></div>
+          <section class="home-category-card" data-category="${escapeHtml(category)}" aria-label="${escapeHtml(category)}">
+            <div class="home-category-heading"><h2>${escapeHtml(category)}</h2><span>${escapeHtml(String(categoryEntries.length))} 项</span></div>
             <div class="home-entry-grid">
-              ${rowEntries.map((entry) => entry.view ? `
+              ${categoryEntries.map((entry) => entry.view ? `
                 <button class="home-entry" type="button" data-home-view="${escapeHtml(entry.view)}">
                   <img class="home-entry-icon" src="${escapeHtml(entry.icon)}" alt="" aria-hidden="true">
                   <span class="home-entry-copy"><strong>${escapeHtml(entry.label)}</strong><small>${escapeHtml(entry.text)}</small></span>
