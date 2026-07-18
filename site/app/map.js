@@ -365,45 +365,104 @@ function geographicRegionStateRegions(region) {
     .sort(sortStateRegions);
 }
 
-const companyLocationHomelandCultureByKey = new Map([
-  ["company_cfr", "romanian"],
-  ["company_ottoman_tobacco_regie", "turkish"],
-]);
+const COMPANY_LOCATION_STATE_PATTERN = /\b(?:s:)?(STATE_[A-Z0-9_]+)\b/g;
+const COMPANY_LOCATION_STRATEGIC_REGION_PATTERN = /\bsr:(region_[a-z0-9_]+)\b/g;
+const COMPANY_LOCATION_GEOGRAPHIC_REGION_PATTERN = /\b(?:is_in_geographic_region\s*=\s*)(geographic_region_[a-z0-9_]+)\b/g;
+const COMPANY_LOCATION_HOMELAND_CULTURE_PATTERN = /\bis_homeland\s*=\s*cu:([a-z0-9_]+)\b/g;
+const COMPANY_LOCATION_STATE_TRAIT_PATTERN = /\bhas_state_trait\s*=\s*(state_trait_[a-z0-9_]+)\b/g;
 
-function companyLocationStateRegionKeys(company) {
-  if (companyKindKey(company) !== "historical") return [];
-  const strategicStateKeys = (company.referenced_strategic_regions || [])
-    .flatMap((regionRef) => (byStrategicRegion.get(regionRef.key)?.states || []).map((stateRef) => stateRef.key));
-  const geographicStateKeys = (company.referenced_geographic_regions || [])
-    .flatMap((regionRef) => geographicRegionStateRegions(byGeographicRegion.get(regionRef.key) || regionRef).map((stateRegion) => stateRegion.key));
-  const homelandCultureKey = companyLocationHomelandCultureByKey.get(company.key);
-  const homelandStateKeys = homelandCultureKey
-    ? stateRegions
-      .filter((stateRegion) => (stateRegion.homeland_cultures || []).some((culture) => culture.key === homelandCultureKey))
-      .map((stateRegion) => stateRegion.key)
-    : [];
+function companyLocationRule(company) {
+  return COMPANY_LOCATION_RULES?.[company?.key] || {};
+}
+
+function companyOperationalLocationRaw(company) {
+  return [
+    company?.possible_raw,
+    company?.attainable_raw,
+    company?.ai_construction_targets_raw,
+  ].filter(Boolean).join("\n");
+}
+
+function locationMatches(raw, pattern) {
+  return [...String(raw || "").matchAll(pattern)].map((match) => match[1]);
+}
+
+function homelandCultureStateRegionKeys(cultureKeys) {
+  const cultures = new Set(cultureKeys || []);
+  if (!cultures.size) return [];
+  return stateRegions
+    .filter((stateRegion) => (stateRegion.homeland_cultures || []).some((culture) => cultures.has(culture.key)))
+    .map((stateRegion) => stateRegion.key);
+}
+
+function stateTraitStateRegionKeys(traitKeys) {
+  const traits = new Set(traitKeys || []);
+  if (!traits.size) return [];
+  return stateRegions
+    .filter((stateRegion) => (stateRegion.traits || []).some((trait) => traits.has(trait.key)))
+    .map((stateRegion) => stateRegion.key);
+}
+
+function companyOperationalLocationStateRegionKeys(company) {
+  const raw = companyOperationalLocationRaw(company);
+  const directStateKeys = locationMatches(raw, COMPANY_LOCATION_STATE_PATTERN);
+  const strategicStateKeys = locationMatches(raw, COMPANY_LOCATION_STRATEGIC_REGION_PATTERN)
+    .flatMap((regionKey) => (byStrategicRegion.get(regionKey)?.states || []).map((stateRef) => stateRef.key));
+  const geographicStateKeys = locationMatches(raw, COMPANY_LOCATION_GEOGRAPHIC_REGION_PATTERN)
+    .flatMap((regionKey) => {
+      const geographicStates = geographicRegionStateRegions(byGeographicRegion.get(regionKey)).map((stateRegion) => stateRegion.key);
+      const strategicStates = (COMPANY_LOCATION_GEOGRAPHIC_REGION_STRATEGIC_REGIONS?.[regionKey] || [])
+        .flatMap((strategicKey) => (byStrategicRegion.get(strategicKey)?.states || []).map((stateRef) => stateRef.key));
+      return [...geographicStates, ...strategicStates];
+    });
+  const homelandStateKeys = homelandCultureStateRegionKeys(locationMatches(raw, COMPANY_LOCATION_HOMELAND_CULTURE_PATTERN));
+  const stateTraitKeys = stateTraitStateRegionKeys(locationMatches(raw, COMPANY_LOCATION_STATE_TRAIT_PATTERN));
   return unique([
-    ...(company.preferred_headquarters || []).map((stateRegion) => stateRegion.key),
-    ...(company.referenced_state_regions || []).map((stateRegion) => stateRegion.key),
+    ...directStateKeys,
     ...strategicStateKeys,
     ...geographicStateKeys,
     ...homelandStateKeys,
+    ...stateTraitKeys,
+  ]);
+}
+
+function companyLocationStateRegionKeys(company) {
+  if (!companyDetailLocationMapEnabled(company)) return [];
+  const rule = companyLocationRule(company);
+  const headquarters = (company.preferred_headquarters || []).map((stateRegion) => stateRegion.key);
+  const initialHeadquarters = COMPANY_INITIAL_HEADQUARTERS?.[company.key] || [];
+  const configuredHomelands = homelandCultureStateRegionKeys(rule.homelandCultureKeys);
+  const configuredStateTraits = stateTraitStateRegionKeys(rule.stateTraitKeys);
+  const derivedLocationKeys = companyOperationalLocationStateRegionKeys(company);
+  const baseLocationKeys = rule.replaceDerivedLocations ? [] : derivedLocationKeys;
+  const excludedStateKeys = new Set(rule.excludeStateKeys || []);
+  return unique([
+    ...headquarters,
+    ...initialHeadquarters,
+    ...baseLocationKeys,
+    ...configuredHomelands,
+    ...configuredStateTraits,
+    ...(rule.stateKeys || []),
   ]).filter((stateKey) => {
     const stateRegion = byStateRegion.get(stateKey);
-    return stateRegion && !isSeaStateRegion(stateRegion);
+    return stateRegion && !isSeaStateRegion(stateRegion) && !excludedStateKeys.has(stateKey);
   });
 }
 
 function companyDetailLocationMapEnabled(company) {
-  if (companyKindKey(company) !== "historical") return false;
-  return true;
+  if (!company || company.is_easter_egg_company) return false;
+  if (company.key.startsWith("company_basic_")) return false;
+  return companyLocationRule(company).map !== false;
 }
 
 function companyLocationSummary(company, stateKeys) {
-  const homelandCultureKey = companyLocationHomelandCultureByKey.get(company.key);
-  if (homelandCultureKey === "romanian") return `罗马尼亚文化本土，共 ${stateKeys.length} 个州地区`;
-  if (homelandCultureKey === "turkish") return `土耳其文化本土，共 ${stateKeys.length} 个州地区`;
-  return `总部倾向及关联地区，共 ${stateKeys.length} 个州地区`;
+  const rule = companyLocationRule(company);
+  if (rule.homelandCultureKeys?.length === 1) {
+    const cultureKey = rule.homelandCultureKeys[0];
+    const culture = (company.referenced_cultures || []).find((item) => item.key === cultureKey);
+    return `${culture?.name_zh || cultureKey}文化本土，共 ${stateKeys.length} 个州地区`;
+  }
+  return `总部及成立条件，共 ${stateKeys.length} 个州地区`;
 }
 
 function geographicRegionStrategicRegions(region) {

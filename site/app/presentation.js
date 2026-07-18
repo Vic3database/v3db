@@ -613,19 +613,23 @@ function renderCompanyDetail(company) {
       ${victorianCenturyBadge(company)}
     </div>
 
-    <h3>基础</h3>
-    <dl class="field-grid">
-      ${field("类型", tagPill(companyKindText(company), companyKindKey(company) === "historical" ? "tag-special" : "tag-type"))}
-      ${field("控股类别", tagPill(company.category_zh || company.category, "tag-tier", company.category))}
-      ${field("资料片", companyDlcIconPill(company) || tagPill(companyDlcLabel(company), "tag-dlc", company.dlc_name_en || companyDlcKey(company)))}
-      ${field("名贵商品状态", tagPill(companyPrestigeLabel(company), "tag-good"))}
-      ${field("相关文化", cultureLinks(company.referenced_cultures))}
-      ${field("相关国家", countryLinks((company.referenced_countries || []).map((item) => item.tag), (company.referenced_countries || []).map((item) => item.name_zh)))}
-      ${field("所需科技", listText(company.required_technologies))}
-      ${field("AI 倾向科技", listText(company.ai_will_do_technologies))}
-    </dl>
+    <div class="company-detail-overview${companyDetailLocationMapEnabled(company) ? " has-location-map" : ""}">
+      <section class="company-detail-base">
+        <h3>基础</h3>
+        <dl class="field-grid">
+          ${field("类型", tagPill(companyKindText(company), companyKindKey(company) === "historical" ? "tag-special" : "tag-type"))}
+          ${field("控股类别", tagPill(company.category_zh || company.category, "tag-tier", company.category))}
+          ${field("资料片", companyDlcIconPill(company) || tagPill(companyDlcLabel(company), "tag-dlc", company.dlc_name_en || companyDlcKey(company)))}
+          ${field("名贵商品状态", tagPill(companyPrestigeLabel(company), "tag-good"))}
+          ${field("相关文化", cultureLinks(company.referenced_cultures))}
+          ${field("相关国家", countryLinks((company.referenced_countries || []).map((item) => item.tag), (company.referenced_countries || []).map((item) => item.name_zh)))}
+          ${field("所需科技", listText(company.required_technologies))}
+          ${field("AI 倾向科技", listText(company.ai_will_do_technologies))}
+        </dl>
+      </section>
 
-    ${companyDetailLocationHtml(company)}
+      ${companyDetailLocationHtml(company)}
+    </div>
 
     <h3>经营</h3>
     <dl class="field-grid">

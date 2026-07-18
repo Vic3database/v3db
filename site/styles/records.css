@@ -1180,12 +1180,27 @@ body.results-collapsed .concept-tooltip {
   margin: 18px 0;
 }
 
+.company-detail-overview {
+  margin: 18px 0;
+}
+
+.company-detail-overview.has-location-map {
+  display: grid;
+  grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr);
+  gap: 20px 24px;
+  align-items: start;
+}
+
+.company-detail-overview .company-location-section {
+  margin: 0;
+}
+
 .company-location-section > h3 {
   margin-bottom: 10px;
 }
 
 .company-location-map {
-  height: clamp(156px, 22vh, 236px);
+  aspect-ratio: 4 / 3;
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 6px;
@@ -1207,6 +1222,12 @@ body.results-collapsed .concept-tooltip {
 
 .company-location-fields {
   margin-top: 10px;
+}
+
+@media (max-width: 1180px) {
+  .company-detail-overview.has-location-map {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .detail-title {
