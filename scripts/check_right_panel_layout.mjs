@@ -145,7 +145,7 @@ function checkListInteractionContracts() {
   assert(!/data-ideology-open/.test(functionSource("renderIdeologyList")), "ideology row titles should not open detail pages");
   assert(/data-country-detail/.test(functionSource("renderCountryList")), "country rows should expose a right-side detail button");
   assert(/data-culture-detail/.test(functionSource("renderCultureList")), "culture rows should expose a right-side detail button");
-  assert(/data-company-detail/.test(functionSource("renderCompanyList")), "company rows should expose a right-side detail button");
+  assert(!/data-company-detail|rowDetailButton/.test(functionSource("renderCompanyList")), "company rows should use the card itself as the only detail entry");
   assert(/data-ideology-detail/.test(functionSource("renderIdeologyList")), "ideology rows should expose a right-side detail button");
   assert(/\.row-detail-button/.test(styleSource), "detail buttons should use a shared card action style");
   assert(!/replaceHash\(`\/geographic-region/.test(eventBindingSource()), "geographic-region filters should not navigate to geographic-region detail pages");

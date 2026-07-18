@@ -242,7 +242,6 @@ function renderCompanyList(filtered) {
           <span class="tag">${escapeHtml(company.key)}</span>
         </span>
         ${companyDlcIconPill(company)}
-        ${rowDetailButton("data-company-detail", company.key)}
       </span>
       <span class="region-building-strip">${companyBuildingStrip(company)}</span>
       <span class="pill-line country-tags company-asset-line">${companyPrestigeGoodsPills(company)}</span>
@@ -260,12 +259,6 @@ function renderCompanyList(filtered) {
       if (event.target.closest("a, button, [data-concept-key]")) return;
       event.preventDefault();
       openCompanyDetail(row.dataset.company);
-    });
-  });
-  els.countryList.querySelectorAll("[data-company-detail]").forEach((button) => {
-    button.addEventListener("click", (event) => {
-      event.preventDefault();
-      openCompanyDetail(button.dataset.companyDetail);
     });
   });
 }

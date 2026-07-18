@@ -113,7 +113,7 @@ function checkTypographyContracts() {
   assert(/--results-panel-width:\s*clamp\(420px,\s*30vw,\s*570px\)/.test(styleSource), "company/list panel should be widened to roughly one and a half times the previous width");
   assert(/\.results\s+\.company-row\s*{[\s\S]*grid-template-columns:\s*minmax\(0,\s*1fr\)[\s\S]*min-height:\s*auto[\s\S]*max-height:\s*none[\s\S]*overflow:\s*visible/.test(styleSource), "company rows should use a flexible card layout");
   assert(/\.results\s+\.company-row\s*>\s*\.company-heading,\s*[\s\S]*\.results\s+\.company-row\s*>\s*\.region-building-strip,\s*[\s\S]*\.results\s+\.company-row\s*>\s*\.country-meta,\s*[\s\S]*\.results\s+\.company-row\s*>\s*\.country-tags,\s*[\s\S]*\.results\s+\.company-row\s*>\s*\.company-asset-line\s*{[\s\S]*grid-column:\s*1/.test(styleSource), "company row child sections should use the full card width");
-  assert(/\.results\s+\.company-row\s+\.company-heading\s*{[\s\S]*display:\s*grid[\s\S]*grid-template-columns:\s*48px\s+minmax\(0,\s*1fr\)\s+auto\s+28px/.test(styleSource), "company row header should combine icon, name, key, DLC, and the detail button");
+  assert(/\.results\s+\.company-row\s+\.company-heading\s*{[\s\S]*display:\s*grid[\s\S]*grid-template-columns:\s*48px\s+minmax\(0,\s*1fr\)\s+auto/.test(styleSource), "company row header should combine icon, name, key, and DLC without a detail button column");
   assert(/\.results\s+\.company-row\s+\.company-logo,\s*[\s\S]*\.results\s+\.company-row\s+\.company-icon-placeholder\s*{[\s\S]*width:\s*44px[\s\S]*height:\s*44px/.test(styleSource), "company list icons should span the two title lines");
   assert(/\.results\s+\.company-row\s+\.region-building-strip\s*{[\s\S]*gap:\s*2px/.test(styleSource), "company building icon strip should use tighter spacing");
   assert(/\.results\s+\.company-row\s+\.company-asset-line\s*{[\s\S]*display:\s*flex/.test(styleSource), "company prestige goods should use a compact asset line");
@@ -147,8 +147,8 @@ function checkTypographyContracts() {
   const companyBuildingPillSource = functionSource("companyBuildingPill");
   assert(/className:\s*`resource-pill image-pill company-building-pill\$\{classText\}`/.test(companyBuildingPillSource) && /html:\s*buildingIconHtml\(item\?\.key,\s*name\)/.test(companyBuildingPillSource), "company building pills should be icon-only and expose labels through the icon tooltip");
   assert(/label:\s*name/.test(companyBuildingPillSource) && /kind:\s*"building"/.test(companyBuildingPillSource) && /key:\s*item\?\.key\s*\|\|\s*""/.test(companyBuildingPillSource), "company building icon-only pills should keep building concept tooltip metadata");
-  assert(/data-company-detail/.test(appSource) && /openCompanyDetail/.test(appSource), "company detail should open from the right-side detail button");
   const companyListSource = functionSource("renderCompanyList");
+  assert(!/data-company-detail|rowDetailButton/.test(companyListSource), "company cards must not render a redundant detail-arrow button");
   assert(/row\.addEventListener\("click"[\s\S]*openCompanyDetail\(row\.dataset\.company\)/.test(companyListSource), "company card click should open the company detail page");
   assert(/row\.addEventListener\("keydown"[\s\S]*openCompanyDetail\(row\.dataset\.company\)/.test(companyListSource), "company card keyboard activation should open the company detail page");
   assert(!/selectCompanyCard/.test(companyListSource), "company card must not stay on the company board after activation");
