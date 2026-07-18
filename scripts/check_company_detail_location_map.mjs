@@ -91,9 +91,12 @@ assert.match(app, /queueMicrotask\(\(\)\s*=>\s*renderCompanyDetailLocationMap\(c
 assert.match(styles, /\.company-location-map\s+canvas\s*{[\s\S]*pointer-events:\s*none[\s\S]*cursor:\s*default/, "detail map canvas must not accept pointer interaction");
 assert.match(styles, /\.company-detail-overview\s*{[\s\S]*grid-template-columns:\s*minmax\(0,\s*0\.72fr\)\s+minmax\(0,\s*1\.28fr\)/, "historical company overview must restore the original wide-screen map column");
 assert.match(styles, /\.company-location-map\s*{[\s\S]*aspect-ratio:\s*4\s*\/\s*3/, "detail location map must use a 4:3 aspect ratio");
-assert.match(app, /mapTransformForStateRegions\(stateKeys,\s*viewport,\s*\{\s*maxWorldScale:\s*2\.6,\s*padding:\s*180\s*\}\)/, "detail location map must use the larger 2.6 world scale");
+assert.match(app, /mapTransformForStateRegions\(stateKeys,\s*viewport,\s*\{\s*maxWorldScale:\s*3,\s*padding:\s*180,\s*clampVerticalEdges:\s*true\s*\}\)/, "detail location map must use the larger world scale and clamp polar edges");
 assert.match(app, /const\s+COMPANY_LOCATION_MAP_COLOR\s*=\s*"#00cc66"/, "company location map must use La Plata green");
 assert.match(app, /function\s+companyAssociationColor\s*\([^)]*\)\s*{[\s\S]*count\s*>\s*0\s*\?\s*COMPANY_LOCATION_MAP_COLOR/, "company location states must use the fixed location color");
+assert.match(app, /const\s+COMPANY_LOCATION_BORDER_COLOR\s*=\s*"#c8a45b"/, "company location map must use a gold selected-state border");
+assert.match(app, /function\s+addCompanyAssociationBorders\s*\(/, "company location map must draw selected-state borders");
+assert.match(app, /function\s+clampMapTransformY\s*\(/, "detail location map must clamp vertical map edges");
 assert.doesNotMatch(app.match(/function companyDetailLocationHtml[\s\S]*?\n}/)?.[0] || "", /map-toolbar|mapModeSelect|mapSubjectSelect|mapFitWidthButton/, "detail location section must not duplicate main-map controls");
 
 console.log(JSON.stringify({

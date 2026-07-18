@@ -293,6 +293,7 @@ function mapFeatureColor(stateRegion, color) {
 }
 
 const COMPANY_LOCATION_MAP_COLOR = "#00cc66";
+const COMPANY_LOCATION_BORDER_COLOR = "#c8a45b";
 
 function buildCompanyMapFeatures() {
   const selectedCompanies = mapRuntime.companyMapCompanies || companies;
@@ -870,6 +871,7 @@ function drawMapLayer(features) {
       : 0;
   }
   addStateBorders(data, stateIndexes, mapRuntime.width, mapRuntime.height);
+  if (state.mapMode === "company") addCompanyAssociationBorders(data, stateIndexes, features, mapRuntime.width, mapRuntime.height);
   if (state.mapMode === "country" && mapRuntime.pixelOwnerIndexes) {
     addCountryBorders(data, stateIndexes, mapRuntime.pixelOwnerIndexes, mapRuntime.width, mapRuntime.height);
   }
@@ -1006,6 +1008,35 @@ function paintMapCanvas() {
   paintMapCanvasTarget(els.mapCanvas, els.mapViewport, mapRuntime.transform, true);
 }
 
+function addCompanyAssociationBorders(data, stateIndexes, features, width, height) {
+  const borderColor = hexToRgb(COMPANY_LOCATION_BORDER_COLOR);
+  const selectedIndexes = new Uint8Array(mapRuntime.stateKeysByIndex.length);
+  for (let index = 1; index < mapRuntime.stateKeysByIndex.length; index += 1) {
+    if (features.get(mapRuntime.stateKeysByIndex[index])?.companyAssociation?.count > 0) selectedIndexes[index] = 1;
+  }
+  for (let y = 0; y < height; y += 1) {
+    const rowStart = y * width;
+    const hasDown = y < height - 1;
+    for (let x = 0; x < width; x += 1) {
+      const pixel = rowStart + x;
+      const index = stateIndexes[pixel];
+      if (!index || !selectedIndexes[index]) continue;
+      const rightPixel = x === width - 1 ? rowStart : pixel + 1;
+      const downPixel = hasDown ? pixel + width : -1;
+      const rightIndex = stateIndexes[rightPixel];
+      const downIndex = hasDown ? stateIndexes[downPixel] : index;
+      if (!selectedIndexes[rightIndex]) {
+        paintBorderPixel(data, pixel, borderColor);
+        if (rightIndex) paintBorderPixel(data, rightPixel, borderColor);
+      }
+      if (hasDown && !selectedIndexes[downIndex]) {
+        paintBorderPixel(data, pixel, borderColor);
+        if (downIndex) paintBorderPixel(data, downPixel, borderColor);
+      }
+    }
+  }
+}
+
 function paintMapCanvasTarget(canvas, viewport, transform, drawLabels = false) {
   if (!mapRuntime.layerCanvas || !canvas || !viewport || !transform) return;
   const rect = viewport.getBoundingClientRect();
@@ -1105,7 +1136,7 @@ function renderCompanyDetailLocationMap(company = byCompany.get(state.selectedCo
     return;
   }
   ensureMapLayer();
-  const transform = mapTransformForStateRegions(stateKeys, viewport, { maxWorldScale: 2.6, padding: 180 });
+  const transform = mapTransformForStateRegions(stateKeys, viewport, { maxWorldScale: 3, padding: 180, clampVerticalEdges: true });
   if (transform) paintMapCanvasTarget(canvas, viewport, transform, false);
 }
 
@@ -1147,7 +1178,14 @@ function mapTransformForStateRegions(stateKeys, viewport, options = {}) {
   transform.x = rect.width / 2 - ((minX + maxX) / 2) * transform.scale;
   transform.y = rect.height / 2 - ((minY + maxY) / 2) * transform.scale;
   normalizeMapTransformX(transform);
+  if (options.clampVerticalEdges) clampMapTransformY(transform, rect.height);
   return transform;
+}
+
+function clampMapTransformY(transform, viewportHeight) {
+  const scaledMapHeight = mapRuntime.height * Math.max(transform.scale, 0.001);
+  if (!Number.isFinite(scaledMapHeight) || !Number.isFinite(viewportHeight) || scaledMapHeight <= viewportHeight) return;
+  transform.y = clampNumber(transform.y, viewportHeight - scaledMapHeight, 0);
 }
 
 function visibleMapCopyRange(viewportWidth, transform = mapRuntime.transform) {
