@@ -148,8 +148,10 @@ function checkTypographyContracts() {
   assert(/className:\s*`resource-pill image-pill company-building-pill\$\{classText\}`/.test(companyBuildingPillSource) && /html:\s*buildingIconHtml\(item\?\.key,\s*name\)/.test(companyBuildingPillSource), "company building pills should be icon-only and expose labels through the icon tooltip");
   assert(/label:\s*name/.test(companyBuildingPillSource) && /kind:\s*"building"/.test(companyBuildingPillSource) && /key:\s*item\?\.key\s*\|\|\s*""/.test(companyBuildingPillSource), "company building icon-only pills should keep building concept tooltip metadata");
   assert(/data-company-detail/.test(appSource) && /openCompanyDetail/.test(appSource), "company detail should open from the right-side detail button");
-  assert(!/data-company-open/.test(appSource), "company title and icon should not open the detail page");
-  assert(/selectCompanyCard/.test(appSource) && /selectionHashForCard\("\/company",\s*`\/company\/\$\{encodeURIComponent\(companyKey\)\}`\)/.test(appSource), "company card click should select the company while staying on the company board");
+  const companyListSource = functionSource("renderCompanyList");
+  assert(/row\.addEventListener\("click"[\s\S]*openCompanyDetail\(row\.dataset\.company\)/.test(companyListSource), "company card click should open the company detail page");
+  assert(/row\.addEventListener\("keydown"[\s\S]*openCompanyDetail\(row\.dataset\.company\)/.test(companyListSource), "company card keyboard activation should open the company detail page");
+  assert(!/selectCompanyCard/.test(companyListSource), "company card must not stay on the company board after activation");
   assert(/function\s+companyDetailLocationMapEnabled\s*\(/.test(appSource), "company details should classify whether a location map is allowed");
   assert(/function\s+companyLocationStateRegionKeys\s*\(/.test(appSource), "company details should derive location states from company data");
   assert(/data-company-location-map/.test(appSource), "historical company details should expose a dedicated location canvas");

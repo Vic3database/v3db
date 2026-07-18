@@ -253,13 +253,13 @@ function renderCompanyList(filtered) {
   els.countryList.querySelectorAll("[data-company]").forEach((row) => {
     row.addEventListener("click", (event) => {
       if (event.target.closest("a, button, [data-concept-key]")) return;
-      selectCompanyCard(row.dataset.company);
+      openCompanyDetail(row.dataset.company);
     });
     row.addEventListener("keydown", (event) => {
       if (event.key !== "Enter" && event.key !== " ") return;
       if (event.target.closest("a, button, [data-concept-key]")) return;
       event.preventDefault();
-      selectCompanyCard(row.dataset.company);
+      openCompanyDetail(row.dataset.company);
     });
   });
   els.countryList.querySelectorAll("[data-company-detail]").forEach((button) => {
