@@ -247,7 +247,7 @@ function renderAboutDialogContent() {
         <h3>开发者</h3>
         <p>这个网站由霜月制作和维护。开发者长期整理《维多利亚 3》的数据、图标和地图资料，把分散在脚本、图片和本地数据库里的内容做成可以检索、可以对照的网页。</p>
         <p>站点的主要工作包括解析游戏文件、生成资料库、整理公开发布资源、调整中文界面，以及持续检查国家、地区、公司和意识形态页面的显示结果。</p>
-        <button class="support-link" type="button" disabled title="赞助链接待补充">BUY ME A TEA</button>
+        <a class="support-link" href="https://afdian.com/a/shimotsukiyukimi" target="_blank" rel="noopener noreferrer">BUY ME A TEA</a>
         <a class="feedback-link" href="${feedbackMailto}">发送希望添加的功能到 ${feedbackEmail}</a>
       </div>
     </section>

@@ -25,7 +25,7 @@ expect(appSource.includes("function renderSettingsDialogContent()"), "app should
 expect(appSource.includes('classList.toggle("info-dialog-about", state.infoDialog === "about")'), "about dialog should receive its dedicated width class");
 expect(appSource.includes("assets/about/developer.jpg"), "about dialog should reference developer avatar");
 expect(appSource.includes("mailto:vic3database@outlook.com"), "about dialog should include the feedback email entry");
-expect(/class="support-link"[^>]*disabled[^>]*>BUY ME A TEA<\/button>[\s\S]*class="feedback-link"/.test(appSource), "about dialog should place the disabled Buy Me a Tea button above the feedback link");
+expect(/<a class="support-link" href="https:\/\/afdian\.com\/a\/shimotsukiyukimi" target="_blank" rel="noopener noreferrer">BUY ME A TEA<\/a>[\s\S]*class="feedback-link"/.test(appSource), "about dialog should place the Afadian Buy Me a Tea link above the feedback link");
 expect(stylesSource.includes(".info-dialog"), "styles should include the auxiliary dialog layout");
 expect(/\.info-dialog\s*\{[\s\S]*width:\s*min\(820px,\s*100%\)/.test(stylesSource), "settings dialog should retain its existing width");
 expect(/\.info-dialog-about\s*\{[\s\S]*width:\s*min\(1080px,\s*100%\)/.test(stylesSource), "about dialog should use the global search dialog width");
