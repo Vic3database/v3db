@@ -1097,10 +1097,6 @@ body[data-view="law"][data-results-panel="collapsed"] .detail {
   max-width: 100%;
 }
 
-.culture-detail .detail-title {
-  align-items: center;
-}
-
 .detail .pill:not([class*="tag-"]):not(.good):not(.warn):not(.special) {
   color: #f0e7d8;
   border-color: rgba(200, 164, 91, 0.38);

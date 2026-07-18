@@ -40,6 +40,10 @@ function checkDetailLayoutContracts() {
   assert(/\.detail\s*{[\s\S]*--detail-pad-x:\s*20px[\s\S]*padding:\s*0\s+var\(--detail-pad-x\)\s+32px/.test(styleSource), "detail panel should put top spacing in the sticky title instead of scrollable padding");
   assert(/\.detail\s*{[\s\S]*--detail-pad-x:\s*18px[\s\S]*padding:\s*0\s+var\(--detail-pad-x\)\s+28px/.test(styleSource), "desktop detail panel should not leave a scrollable gap above the sticky title");
   assert(detailTitleBlock.includes("position: sticky") && detailTitleBlock.includes("top: 0") && /z-index:\s*\d+/.test(detailTitleBlock), "detail title should stay fixed at the top of the scrolling detail panel");
+  assert(/align-items:\s*center/.test(detailTitleBlock), "all shared detail title content should align vertically like the culture detail title");
+  assert(/styles\.css\?v=20260718-detail-title1/.test(readText("site/index.html")), "detail title style changes should refresh the main stylesheet URL");
+  assert(/styles\/records\.css\?v=20260718-detail-title1/.test(readText("site/styles.css")), "detail title alignment should refresh the records stylesheet import");
+  assert(/styles\/shell\.css\?v=20260718-detail-title1/.test(readText("site/styles.css")), "removing the culture-only override should refresh the shell stylesheet import");
   assert(/margin:\s*0\s+calc\(-1\s*\*\s*var\(--detail-pad-x\)\)\s+0/.test(detailTitleBlock), "detail title should cover the panel width without exposing scrolling content above it");
   assert(/padding:\s*var\(--detail-pad-top\)\s+var\(--detail-pad-x\)\s+12px/.test(detailTitleBlock), "detail title should own the panel top spacing");
   assert(ideologyHeaderBlock.includes("position: sticky") && ideologyHeaderBlock.includes("top: 0") && /z-index:\s*\d+/.test(ideologyHeaderBlock), "ideology detail title should stay fixed at the top of the scrolling detail panel");
@@ -64,7 +68,7 @@ function checkDetailLayoutContracts() {
   assert(/field\("语言",\s*`<span class="grouped-trait-pills">\$\{groupedTraitPills\(country\.primaryCultureLanguageGroups/.test(appSource), "country language tags should use the shared flexible tag-row container");
   assert(/function colorValue\(hex, rgb\)\s*{[\s\S]*String\(hex\)\.toUpperCase\(\)/.test(appSource), "detail color hex values should render in uppercase");
   assert(/\.detail\s+\.grouped-trait-pills\s*{[\s\S]*gap:\s*6px/.test(styleSource), "culture heritage and language tags should use the related-country tag spacing");
-  assert(/\.culture-detail\s+\.detail-title\s*{[\s\S]*align-items:\s*center/.test(styleSource), "culture title content should align with the back button center");
+  assert(!/\.culture-detail\s+\.detail-title\s*{[\s\S]*align-items:\s*center/.test(styleSource), "culture detail should not need a one-off vertical alignment override");
 }
 
 function checkTagContrastContracts() {
