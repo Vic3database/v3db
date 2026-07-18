@@ -112,8 +112,8 @@ function checkTypographyContracts() {
   assert(/\.results\s+\.company-row\s+\.company-asset-line\s*{[\s\S]*display:\s*flex/.test(styleSource), "company prestige goods should use a compact asset line");
   assert(/\.company-building-separator\s*{[\s\S]*width:\s*6px[\s\S]*height:\s*6px[\s\S]*border-radius:\s*50%/.test(styleSource), "main and extension buildings should be divided by a vector-like dot");
   assert(/\.company-building-pill\.extension-building-pill\s*{[\s\S]*border-color:\s*transparent[\s\S]*background:\s*transparent[\s\S]*box-shadow:\s*none/.test(styleSource), "company extension building icons should not keep the dashed extension pill frame");
-  const genericResultCountryGridIndex = styleSource.lastIndexOf(".results .country-row {\n  grid-template-columns: 64px minmax(0, 1fr) 28px;");
-  const companyResultGridIndex = styleSource.lastIndexOf(".results .company-row {\n  grid-template-columns: minmax(0, 1fr);");
+  const genericResultCountryGridIndex = styleSource.lastIndexOf(".results .country-row {");
+  const companyResultGridIndex = styleSource.lastIndexOf(".results .company-row {");
   assert(genericResultCountryGridIndex >= 0 && companyResultGridIndex > genericResultCountryGridIndex, "company row grid override should come after the generic result-row country grid");
   assert(/\.results\s+\.country-row,\s*[\s\S]*\.results\s+\.culture-row\s*{[\s\S]*max-height:\s*none[\s\S]*overflow:\s*visible/.test(styleSource), "result rows should allow wrapped content after typography changes");
   assert(/\.results\s+\.pill-line\s*{[\s\S]*max-height:\s*none[\s\S]*overflow:\s*visible/.test(styleSource), "result row chips should allow wrapping instead of clipping");
@@ -143,7 +143,9 @@ function checkTypographyContracts() {
   assert(/data-company-detail/.test(appSource) && /openCompanyDetail/.test(appSource), "company detail should open from the right-side detail button");
   assert(!/data-company-open/.test(appSource), "company title and icon should not open the detail page");
   assert(/selectCompanyCard/.test(appSource) && /selectionHashForCard\("\/company",\s*`\/company\/\$\{encodeURIComponent\(companyKey\)\}`\)/.test(appSource), "company card click should select the company while staying on the company board");
-  assert(/function\s+focusCompanyOnMap/.test(appSource) && /companyStateRegionKeys/.test(appSource), "selecting a company card should focus the map on related state regions");
+  assert(/function\s+companyDetailLocationMapEnabled\s*\(/.test(appSource), "company details should classify whether a location map is allowed");
+  assert(/function\s+companyLocationStateRegionKeys\s*\(/.test(appSource), "company details should derive location states from company data");
+  assert(/data-company-location-map/.test(appSource), "historical company details should expose a dedicated location canvas");
   assert(/function\s+showConceptTooltip[\s\S]*target\.matches\("a\[href\]"\)[\s\S]*"右键搜索"/.test(appSource), "non-link icon tooltips should not claim that left click opens details");
   for (const [name, view] of [
     ["renderCountryDetail", "country"],

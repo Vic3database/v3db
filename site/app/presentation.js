@@ -575,6 +575,28 @@ function ideologyLawGroupPreviewHtml(ideology) {
   `;
 }
 
+function companyDetailLocationHtml(company) {
+  if (!companyDetailLocationMapEnabled(company)) return "";
+  const stateKeys = companyLocationStateRegionKeys(company);
+  return `
+    <section class="company-location-section" aria-label="公司位置">
+      <h3>位置</h3>
+      ${stateKeys.length ? `
+        <div class="company-location-map">
+          <canvas data-company-location-map aria-label="${escapeHtml(company.name_zh || company.key)}的关联地点地图"></canvas>
+        </div>
+        <p class="minor company-location-summary">${escapeHtml(companyLocationSummary(company, stateKeys))}</p>
+      ` : `<p class="empty">暂无可定位地点。</p>`}
+      <dl class="field-grid company-location-fields">
+        ${field("总部倾向", stateRegionLinks(company.preferred_headquarters))}
+        ${field("相关战略区域", strategicRegionLinks(company.referenced_strategic_regions))}
+        ${field("相关地理区域", geographicRegionLinks(company.referenced_geographic_regions))}
+        ${field("相关州地区", stateRegionLinks(company.referenced_state_regions))}
+      </dl>
+    </section>
+  `;
+}
+
 function renderCompanyDetail(company) {
   if (!company) {
     els.detail.innerHTML = `<p class="empty">没有匹配结果。</p>`;
@@ -597,15 +619,13 @@ function renderCompanyDetail(company) {
       ${field("控股类别", tagPill(company.category_zh || company.category, "tag-tier", company.category))}
       ${field("资料片", companyDlcIconPill(company) || tagPill(companyDlcLabel(company), "tag-dlc", company.dlc_name_en || companyDlcKey(company)))}
       ${field("名贵商品状态", tagPill(companyPrestigeLabel(company), "tag-good"))}
-      ${field("总部倾向", stateRegionLinks(company.preferred_headquarters))}
-      ${field("相关战略区域", strategicRegionLinks(company.referenced_strategic_regions))}
-      ${field("相关地理区域", geographicRegionLinks(company.referenced_geographic_regions))}
-      ${field("相关州地区", stateRegionLinks(company.referenced_state_regions))}
       ${field("相关文化", cultureLinks(company.referenced_cultures))}
       ${field("相关国家", countryLinks((company.referenced_countries || []).map((item) => item.tag), (company.referenced_countries || []).map((item) => item.name_zh)))}
       ${field("所需科技", listText(company.required_technologies))}
       ${field("AI 倾向科技", listText(company.ai_will_do_technologies))}
     </dl>
+
+    ${companyDetailLocationHtml(company)}
 
     <h3>经营</h3>
     <dl class="field-grid">
@@ -623,6 +643,7 @@ function renderCompanyDetail(company) {
     ${rawDetails("AI 倾向条件", company.ai_will_do_raw)}
     ${rawDetails("AI 建造目标", company.ai_construction_targets_raw)}
   `;
+  queueMicrotask(() => renderCompanyDetailLocationMap(company));
 }
 
 function renderIdeologyDetail(ideology) {

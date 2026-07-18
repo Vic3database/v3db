@@ -118,30 +118,33 @@ function renderMap(mapStateRegions) {
     ensureMapLoaded();
     return;
   }
+  ensureMapLayer();
+  paintMapCanvas();
+}
+
+function ensureMapLayer() {
   const signature = mapLayerSignature();
   const cachedLayer = getCachedMapLayer(signature);
-  let features = cachedLayer?.features;
   if (cachedLayer) {
     mapRuntime.featureByStateKey = cachedLayer.features;
     mapRuntime.layerCanvas = cachedLayer.canvas;
     mapRuntime.currentMaxValue = cachedLayer.currentMaxValue || 0;
     mapRuntime.currentCompanyMaxValue = cachedLayer.currentCompanyMaxValue || 0;
     mapRuntime.layerSignature = signature;
-  } else {
-    mapRuntime.currentMaxValue = 0;
-    mapRuntime.currentCompanyMaxValue = 0;
-    features = buildMapFeatures();
-    mapRuntime.featureByStateKey = features;
-    drawMapLayer(features);
-    cacheMapLayer(signature, {
-      canvas: mapRuntime.layerCanvas,
-      features,
-      currentMaxValue: mapRuntime.currentMaxValue || 0,
-      currentCompanyMaxValue: mapRuntime.currentCompanyMaxValue || 0,
-    });
-    mapRuntime.layerSignature = signature;
+    return;
   }
-  paintMapCanvas();
+  mapRuntime.currentMaxValue = 0;
+  mapRuntime.currentCompanyMaxValue = 0;
+  const features = buildMapFeatures();
+  mapRuntime.featureByStateKey = features;
+  drawMapLayer(features);
+  cacheMapLayer(signature, {
+    canvas: mapRuntime.layerCanvas,
+    features,
+    currentMaxValue: mapRuntime.currentMaxValue || 0,
+    currentCompanyMaxValue: mapRuntime.currentCompanyMaxValue || 0,
+  });
+  mapRuntime.layerSignature = signature;
 }
 
 function mapLayerSignature() {
@@ -224,6 +227,7 @@ function ensureMapLoaded() {
     resetMapTransform();
     renderMap(mapRuntime.lastMapStateRegions || landStateRegions);
     focusCurrentMapSelection();
+    renderCompanyDetailLocationMap();
   }, 0);
 }
 
@@ -317,8 +321,8 @@ function buildCompanyStateAssociations(selectedCompanies) {
   const associations = new Map();
   for (const company of selectedCompanies || []) {
     const headquarters = new Set((company.preferred_headquarters || []).map((stateRegion) => stateRegion.key).filter(Boolean));
-    const referenced = new Set((company.referenced_state_regions || []).map((stateRegion) => stateRegion.key).filter(Boolean));
-    const stateKeys = unique([...headquarters, ...referenced]);
+    const stateKeys = companyLocationStateRegionKeys(company);
+    const referenced = new Set(stateKeys.filter((stateKey) => !headquarters.has(stateKey)));
     for (const stateKey of stateKeys) {
       const stateRegion = byStateRegion.get(stateKey);
       if (!stateRegion || isSeaStateRegion(stateRegion)) continue;
@@ -359,6 +363,47 @@ function geographicRegionStateRegions(region) {
     .map((stateRef) => byStateRegion.get(stateRef.key) || stateRef)
     .filter((stateRef) => stateRef?.key))
     .sort(sortStateRegions);
+}
+
+const companyLocationHomelandCultureByKey = new Map([
+  ["company_cfr", "romanian"],
+  ["company_ottoman_tobacco_regie", "turkish"],
+]);
+
+function companyLocationStateRegionKeys(company) {
+  if (companyKindKey(company) !== "historical") return [];
+  const strategicStateKeys = (company.referenced_strategic_regions || [])
+    .flatMap((regionRef) => (byStrategicRegion.get(regionRef.key)?.states || []).map((stateRef) => stateRef.key));
+  const geographicStateKeys = (company.referenced_geographic_regions || [])
+    .flatMap((regionRef) => geographicRegionStateRegions(byGeographicRegion.get(regionRef.key) || regionRef).map((stateRegion) => stateRegion.key));
+  const homelandCultureKey = companyLocationHomelandCultureByKey.get(company.key);
+  const homelandStateKeys = homelandCultureKey
+    ? stateRegions
+      .filter((stateRegion) => (stateRegion.homeland_cultures || []).some((culture) => culture.key === homelandCultureKey))
+      .map((stateRegion) => stateRegion.key)
+    : [];
+  return unique([
+    ...(company.preferred_headquarters || []).map((stateRegion) => stateRegion.key),
+    ...(company.referenced_state_regions || []).map((stateRegion) => stateRegion.key),
+    ...strategicStateKeys,
+    ...geographicStateKeys,
+    ...homelandStateKeys,
+  ]).filter((stateKey) => {
+    const stateRegion = byStateRegion.get(stateKey);
+    return stateRegion && !isSeaStateRegion(stateRegion);
+  });
+}
+
+function companyDetailLocationMapEnabled(company) {
+  if (companyKindKey(company) !== "historical") return false;
+  return true;
+}
+
+function companyLocationSummary(company, stateKeys) {
+  const homelandCultureKey = companyLocationHomelandCultureByKey.get(company.key);
+  if (homelandCultureKey === "romanian") return `罗马尼亚文化本土，共 ${stateKeys.length} 个州地区`;
+  if (homelandCultureKey === "turkish") return `土耳其文化本土，共 ${stateKeys.length} 个州地区`;
+  return `总部倾向及关联地区，共 ${stateKeys.length} 个州地区`;
 }
 
 function geographicRegionStrategicRegions(region) {
@@ -408,7 +453,9 @@ function companyAssociationTitle(association, region) {
 }
 
 function companyMapStateRegions(selectedCompanies) {
-  return selectedCompanies ? stateRegions : stateRegions;
+  const stateKeys = unique((selectedCompanies || []).flatMap((company) => companyLocationStateRegionKeys(company)));
+  if (!stateKeys.length) return stateRegions;
+  return stateKeys.map((stateKey) => byStateRegion.get(stateKey)).filter(Boolean);
 }
 
 function regionMapStateRegions(filteredStateRegions, filteredSeaStateRegions, filteredGeographicRegions) {
@@ -895,12 +942,17 @@ function indexTouchesSea(index, neighborIndex) {
 }
 
 function paintMapCanvas() {
-  if (!mapRuntime.layerCanvas || !els.mapCanvas || !els.mapViewport) return;
-  const canvas = els.mapCanvas;
-  const rect = els.mapViewport.getBoundingClientRect();
+  if (!els.mapCanvas || !els.mapViewport) return;
+  paintMapCanvasTarget(els.mapCanvas, els.mapViewport, mapRuntime.transform, true);
+}
+
+function paintMapCanvasTarget(canvas, viewport, transform, drawLabels = false) {
+  if (!mapRuntime.layerCanvas || !canvas || !viewport || !transform) return;
+  const rect = viewport.getBoundingClientRect();
+  if (!rect.width || !rect.height) return;
   const ratio = Math.min(3, Math.max(1, window.devicePixelRatio || 1) * 1.4);
-  const width = Math.max(320, Math.floor(rect.width * ratio));
-  const height = Math.max(260, Math.floor(rect.height * ratio));
+  const width = Math.max(1, Math.floor(rect.width * ratio));
+  const height = Math.max(1, Math.floor(rect.height * ratio));
   if (canvas.width !== width || canvas.height !== height) {
     canvas.width = width;
     canvas.height = height;
@@ -911,22 +963,22 @@ function paintMapCanvas() {
   context.fillStyle = "#d7c2a4";
   context.fillRect(0, 0, width, height);
   context.setTransform(
-    mapRuntime.transform.scale * ratio,
+    transform.scale * ratio,
     0,
     0,
-    mapRuntime.transform.scale * ratio,
-    mapRuntime.transform.x * ratio,
-    mapRuntime.transform.y * ratio,
+    transform.scale * ratio,
+    transform.x * ratio,
+    transform.y * ratio,
   );
   context.imageSmoothingEnabled = false;
-  const copyRange = visibleMapCopyRange(rect.width);
+  const copyRange = visibleMapCopyRange(rect.width, transform);
   for (let copy = copyRange.start; copy <= copyRange.end; copy += 1) {
     if (mapRuntime.paperMapImage) {
       context.drawImage(mapRuntime.paperMapImage, copy * mapRuntime.width, 0, mapRuntime.width, mapRuntime.height);
     }
     context.drawImage(mapRuntime.layerCanvas, copy * mapRuntime.width, 0);
   }
-  drawMapLabels(context, copyRange);
+  if (drawLabels) drawMapLabels(context, copyRange, transform);
 }
 
 function resetMapTransform() {
@@ -982,64 +1034,83 @@ function focusCurrentMapSelection() {
   }
 }
 
+function renderCompanyDetailLocationMap(company = byCompany.get(state.selectedCompany)) {
+  if (state.view !== "company" || !isDetailPageRoute() || !companyDetailLocationMapEnabled(company)) return;
+  const canvas = els.detail?.querySelector("[data-company-location-map]");
+  const viewport = canvas?.closest(".company-location-map");
+  const stateKeys = companyLocationStateRegionKeys(company);
+  if (!canvas || !viewport || !stateKeys.length) return;
+  if (!mapRuntime.ready) {
+    ensureMapLoaded();
+    return;
+  }
+  ensureMapLayer();
+  const transform = mapTransformForStateRegions(stateKeys, viewport, { maxWorldScale: 2.2, padding: 180 });
+  if (transform) paintMapCanvasTarget(canvas, viewport, transform, false);
+}
+
 function focusStateRegionsOnMap(stateKeys, options = {}) {
-  if (!mapRuntime.ready || !els.mapViewport || !mapRuntime.stateCenters) return;
-  const centers = (stateKeys || []).map((key) => mapRuntime.stateCenters.get(key)).filter(Boolean);
-  if (!centers.length) return;
-  const viewport = els.mapViewport.getBoundingClientRect();
-  if (!viewport.width || !viewport.height) return;
-  const minX = Math.min(...centers.map((point) => point.x));
-  const maxX = Math.max(...centers.map((point) => point.x));
-  const minY = Math.min(...centers.map((point) => point.y));
-  const maxY = Math.max(...centers.map((point) => point.y));
-  const padding = options.padding ?? 70;
-  const targetWidth = Math.max(80, maxX - minX + padding * 2);
-  const targetHeight = Math.max(80, maxY - minY + padding * 2);
-  const targetScale = Math.min(viewport.width / targetWidth, viewport.height / targetHeight);
-  const worldFitScale = Math.min(viewport.width / mapRuntime.width, viewport.height / mapRuntime.height);
-  const minScale = options.minScale ?? worldFitScale;
-  const maxScale = options.maxWorldScale
-    ? worldFitScale * options.maxWorldScale
-    : options.maxScale ?? 2.8;
-  const scale = clampNumber(targetScale, minScale, maxScale);
-  const centerX = (minX + maxX) / 2;
-  const centerY = (minY + maxY) / 2;
-  mapRuntime.transform.scale = scale;
-  mapRuntime.transform.x = viewport.width / 2 - centerX * scale;
-  mapRuntime.transform.y = viewport.height / 2 - centerY * scale;
-  normalizeMapTransformX();
+  const transform = mapTransformForStateRegions(stateKeys, els.mapViewport, options);
+  if (!transform) return;
+  Object.assign(mapRuntime.transform, transform);
   hideMapTooltip();
   paintMapCanvas();
 }
 
 function companyStateRegionKeys(company) {
-  return unique([
-    ...(company?.preferred_headquarters || []).map((stateRegion) => stateRegion.key),
-    ...(company?.referenced_state_regions || []).map((stateRegion) => stateRegion.key),
-  ].filter(Boolean));
+  return companyLocationStateRegionKeys(company);
 }
 
-function visibleMapCopyRange(viewportWidth) {
-  const scale = Math.max(mapRuntime.transform.scale, 0.001);
-  const left = -mapRuntime.transform.x / scale;
-  const right = (viewportWidth - mapRuntime.transform.x) / scale;
+function mapTransformForStateRegions(stateKeys, viewport, options = {}) {
+  if (!mapRuntime.ready || !mapRuntime.stateCenters) return null;
+  const centers = (stateKeys || []).map((key) => mapRuntime.stateCenters.get(key)).filter(Boolean);
+  const rect = viewport?.getBoundingClientRect();
+  if (!centers.length || !rect?.width || !rect?.height) return null;
+  const padding = options.padding ?? 70;
+  const minX = Math.min(...centers.map((point) => point.x));
+  const maxX = Math.max(...centers.map((point) => point.x));
+  const minY = Math.min(...centers.map((point) => point.y));
+  const maxY = Math.max(...centers.map((point) => point.y));
+  const targetScale = Math.min(
+    rect.width / Math.max(80, maxX - minX + padding * 2),
+    rect.height / Math.max(80, maxY - minY + padding * 2),
+  );
+  const worldFitScale = Math.min(rect.width / mapRuntime.width, rect.height / mapRuntime.height);
+  const maxScale = options.maxWorldScale
+    ? worldFitScale * options.maxWorldScale
+    : options.maxScale ?? 2.8;
+  const transform = {
+    scale: clampNumber(targetScale, options.minScale ?? worldFitScale, maxScale),
+    x: 0,
+    y: 0,
+  };
+  transform.x = rect.width / 2 - ((minX + maxX) / 2) * transform.scale;
+  transform.y = rect.height / 2 - ((minY + maxY) / 2) * transform.scale;
+  normalizeMapTransformX(transform);
+  return transform;
+}
+
+function visibleMapCopyRange(viewportWidth, transform = mapRuntime.transform) {
+  const scale = Math.max(transform.scale, 0.001);
+  const left = -transform.x / scale;
+  const right = (viewportWidth - transform.x) / scale;
   return {
     start: Math.floor(left / mapRuntime.width) - 1,
     end: Math.ceil(right / mapRuntime.width) + 1,
   };
 }
 
-function normalizeMapTransformX() {
-  const scaledMapWidth = mapRuntime.width * Math.max(mapRuntime.transform.scale, 0.001);
+function normalizeMapTransformX(transform = mapRuntime.transform) {
+  const scaledMapWidth = mapRuntime.width * Math.max(transform.scale, 0.001);
   if (!Number.isFinite(scaledMapWidth) || scaledMapWidth <= 0) return;
-  let x = mapRuntime.transform.x % scaledMapWidth;
+  let x = transform.x % scaledMapWidth;
   if (x > 0) x -= scaledMapWidth;
-  mapRuntime.transform.x = x;
+  transform.x = x;
 }
 
-function drawMapLabels(context, copyRange = { start: 0, end: 0 }) {
+function drawMapLabels(context, copyRange = { start: 0, end: 0 }, transform = mapRuntime.transform) {
   if (!["resourceSelection", "company"].includes(state.mapMode) || !mapRuntime.stateCenters || !mapRuntime.featureByStateKey) return;
-  const inverseScale = 1 / Math.max(mapRuntime.transform.scale, 0.001);
+  const inverseScale = 1 / Math.max(transform.scale, 0.001);
   const baseFontSize = state.mapMode === "resourceSelection" ? 14 : 16;
   context.save();
   context.font = `700 ${Math.round(baseFontSize * inverseScale)}px ${MAP_LABEL_FONT_FAMILY}`;
@@ -1145,6 +1216,7 @@ function bindMapEvents() {
       resetMapTransform();
       paintMapCanvas();
     }
+    renderCompanyDetailLocationMap();
   });
 }
 

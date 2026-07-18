@@ -177,10 +177,17 @@ body:not(.detail-page) .results {
   right: 12px;
 }
 
+body[data-view="company"]:not(.detail-page) .results {
+  left: calc(12px + var(--left-panel-width) + var(--panel-gap));
+  width: auto;
+}
+
 body[data-view="ideology"] .map-panel,
 body[data-view="ideology"] .map-toolbar,
 body[data-view="law"] .map-panel,
-body[data-view="law"] .map-toolbar {
+body[data-view="law"] .map-toolbar,
+body[data-view="company"] .map-panel,
+body[data-view="company"] .map-toolbar {
   display: none;
 }
 
