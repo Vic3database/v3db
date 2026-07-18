@@ -1,13 +1,14 @@
 import fs from "node:fs";
 import path from "node:path";
 import { readChunkedSiteData } from "./site_data_reader.mjs";
+import { readSiteAppSource, readSiteStyleSource } from "./site_frontend_sources.mjs";
 
 const root = process.cwd();
 const failures = [];
 
-const appSource = readText("site/app.js");
+const appSource = readSiteAppSource(root);
 const indexSource = readText("site/index.html");
-const styleSource = readText("site/styles.css");
+const styleSource = readSiteStyleSource(root);
 const siteData = readChunkedSiteData(root);
 
 checkFilterContracts();
@@ -111,7 +112,7 @@ function checkTypographyContracts() {
   assert(/\.results\s+\.company-row\s+\.company-asset-line\s*{[\s\S]*display:\s*flex/.test(styleSource), "company prestige goods should use a compact asset line");
   assert(/\.company-building-separator\s*{[\s\S]*width:\s*6px[\s\S]*height:\s*6px[\s\S]*border-radius:\s*50%/.test(styleSource), "main and extension buildings should be divided by a vector-like dot");
   assert(/\.company-building-pill\.extension-building-pill\s*{[\s\S]*border-color:\s*transparent[\s\S]*background:\s*transparent[\s\S]*box-shadow:\s*none/.test(styleSource), "company extension building icons should not keep the dashed extension pill frame");
-  const genericResultCountryGridIndex = styleSource.lastIndexOf(".results .country-row {\n  grid-template-columns: auto minmax(0, 1fr) 28px;");
+  const genericResultCountryGridIndex = styleSource.lastIndexOf(".results .country-row {\n  grid-template-columns: 64px minmax(0, 1fr) 28px;");
   const companyResultGridIndex = styleSource.lastIndexOf(".results .company-row {\n  grid-template-columns: minmax(0, 1fr);");
   assert(genericResultCountryGridIndex >= 0 && companyResultGridIndex > genericResultCountryGridIndex, "company row grid override should come after the generic result-row country grid");
   assert(/\.results\s+\.country-row,\s*[\s\S]*\.results\s+\.culture-row\s*{[\s\S]*max-height:\s*none[\s\S]*overflow:\s*visible/.test(styleSource), "result rows should allow wrapped content after typography changes");

@@ -1,11 +1,12 @@
 import fs from "node:fs";
 import path from "node:path";
 import { readChunkedSiteData } from "./site_data_reader.mjs";
+import { readSiteAppSource } from "./site_frontend_sources.mjs";
 
 const root = process.cwd();
 const failures = [];
 
-const appSource = readText("site/app.js");
+const appSource = readSiteAppSource(root);
 const siteData = readChunkedSiteData(root);
 const andeanFederation = siteData.countries.find((country) => country.tag === "FND");
 const countryByTag = new Map(siteData.countries.map((country) => [country.tag, country]));

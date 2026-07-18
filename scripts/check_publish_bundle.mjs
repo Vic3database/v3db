@@ -1,16 +1,16 @@
 import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
+import { appSections, readSiteAppSource, styleSections } from "./site_frontend_sources.mjs";
 
 const root = process.cwd();
 const siteRoot = path.join(root, "site");
 const versionsFile = path.join(siteRoot, "versions.js");
 const indexFile = path.join(siteRoot, "index.html");
-const appFile = path.join(siteRoot, "app.js");
 const manifestFile = path.join(siteRoot, "site.webmanifest");
 
 const versionsSource = fs.readFileSync(versionsFile, "utf8");
-const appSource = fs.readFileSync(appFile, "utf8");
+const appSource = readSiteAppSource(root);
 const sandbox = { window: {} };
 vm.runInNewContext(versionsSource, sandbox, { filename: versionsFile });
 const config = sandbox.window.VIC3_VERSION_CONFIG;
@@ -23,6 +23,8 @@ const requiredFiles = new Set([
   "versions.js",
   "site.webmanifest",
 ]);
+
+for (const file of [...appSections, ...styleSections]) requiredFiles.add(file);
 
 if (!config) {
   failures.push("site/versions.js does not define window.VIC3_VERSION_CONFIG");

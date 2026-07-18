@@ -1,12 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
+import { readSiteAppSource, readSiteStyleSource } from "./site_frontend_sources.mjs";
 
 const root = process.cwd();
 const siteRoot = path.join(root, "site");
 const indexFile = path.join(siteRoot, "index.html");
-const appFile = path.join(siteRoot, "app.js");
-const stylesFile = path.join(siteRoot, "styles.css");
 const flagsFile = path.join(siteRoot, "assets", "flags", "country-flags.js");
 const dataFile = path.join(siteRoot, "data.js");
 const gbrFlagDir = path.join(siteRoot, "assets", "flags", "GBR");
@@ -15,8 +14,8 @@ const ankFlagDir = path.join(siteRoot, "assets", "flags", "ANK");
 
 const failures = [];
 const indexSource = fs.readFileSync(indexFile, "utf8");
-const appSource = fs.readFileSync(appFile, "utf8");
-const stylesSource = fs.readFileSync(stylesFile, "utf8");
+const appSource = readSiteAppSource(root);
+const stylesSource = readSiteStyleSource(root);
 const flagGridRule = cssRule(stylesSource, ".country-flag-variant-grid");
 const flagCardRule = cssRule(stylesSource, ".country-flag-variant-card");
 

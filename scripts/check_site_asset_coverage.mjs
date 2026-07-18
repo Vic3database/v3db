@@ -3,11 +3,12 @@ import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
 import { readChunkedSiteData } from "./site_data_reader.mjs";
+import { readSiteAppSource } from "./site_frontend_sources.mjs";
 
 const root = process.cwd();
 const siteRoot = path.join(root, "site");
 const gameRoot = path.join(root, "game");
-const appSource = fs.readFileSync(path.join(siteRoot, "app.js"), "utf8");
+const appSource = readSiteAppSource(root);
 const siteData = readChunkedSiteData(root);
 
 const buildingIconFileByKey = readAppObject("buildingIconFileByKey");

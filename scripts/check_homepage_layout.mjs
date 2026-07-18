@@ -1,12 +1,14 @@
 import fs from "node:fs";
 import path from "node:path";
+import { readSiteAppSource, readSiteStyleSource } from "./site_frontend_sources.mjs";
 
 const root = process.cwd();
 const indexSource = readText("site/index.html");
-const appSource = readText("site/app.js");
-const stylesSource = readText("site/styles.css");
+const appSource = readSiteAppSource(root);
+const stylesSource = readSiteStyleSource(root);
 const todoSource = readText("todolist.md");
 const homeFunction = functionSource("renderHomeBoard");
+const homeNewsFunction = functionSource("renderHomeNewsHtml");
 const failures = [];
 const icons = [
   "waving_flag.png",
@@ -45,7 +47,7 @@ expect(homeFunction.includes("日志、事件与决议"), "homepage should inclu
 expect(homeFunction.includes("角色"), "homepage should include the character entry");
 expect(homeFunction.includes("陆军") && homeFunction.includes("海军"), "homepage should include military entries");
 expect(indexSource.includes('id="homeWelcome"'), "homepage should define a welcome panel outside the navigation list");
-expect(indexSource.includes('<strong>导航</strong>'), "homepage panel heading should read 导航");
+expect(indexSource.includes('<strong>列表</strong>'), "content panel heading should read 列表");
 expect(indexSource.includes('id="homeGuideButton"'), "homepage welcome panel should include the site guide button");
 expect(indexSource.includes('id="homeLinks"'), "homepage should define an external links panel outside navigation");
 expect(indexSource.includes("home-copyright"), "welcome panel should render the copyright statement");
@@ -58,7 +60,9 @@ expect(indexSource.includes('href="https://forum.paradoxplaza.com/forum/forums/v
 expect(indexSource.includes('href="https://space.bilibili.com/3546875974126422"'), "homepage should include the official Bilibili account link");
 expect(homeFunction.includes("home-announcement"), "homepage should render an announcement panel");
 expect(homeFunction.includes("home-updated-at"), "homepage announcement should render its update time");
-expect(homeFunction.includes("home-news-placeholder"), "homepage should render a news placeholder");
+expect(homeFunction.includes("renderHomeNewsHtml") && homeNewsFunction.includes("home-news-panel"), "homepage should render the news panel");
+expect(homeNewsFunction.includes("home-news-tabs"), "homepage news panel should render category tabs");
+expect(homeNewsFunction.includes("查看更多 →"), "homepage news panel should provide a more link");
 expect(homeFunction.includes('const categoryRows = [["外交", "内政"], ["经济", "军事"], ["社会", "其他"]]'), "homepage should group categories into the requested three horizontal rows");
 expect(/\.home-category-row\s*\{[\s\S]*grid-template-columns:\s*repeat\(6,/.test(stylesSource), "homepage should render category headings on the same six-card grid as their entries");
 expect(/\.home-category-row\s+\.home-entry-grid\s*\{[\s\S]*grid-template-columns:\s*repeat\(6,/.test(stylesSource), "each category row should use one six-card grid");

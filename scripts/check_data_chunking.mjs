@@ -2,11 +2,11 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
+import { readSiteAppSource } from "./site_frontend_sources.mjs";
 
 const root = process.cwd();
 const versionDir = path.join(root, "site", "versions", "1.13.9");
 const indexFile = path.join(versionDir, "data-index.js");
-const appFile = path.join(root, "site", "app.js");
 const versionsFile = path.join(root, "site", "versions.js");
 
 assert(fs.existsSync(indexFile), "missing data index");
@@ -39,7 +39,7 @@ for (const [key, keys] of Object.entries(expectedChunks)) {
   assert.deepEqual(Array.from(chunkKeys).sort(), keys.slice().sort(), `${key} chunk files expose unexpected fields`);
 }
 
-const appSource = fs.readFileSync(appFile, "utf8");
+const appSource = readSiteAppSource(root);
 const versionSource = fs.readFileSync(versionsFile, "utf8");
 const countryRows = index.chunks.country.files.flatMap((file) => (
   readGlobal(path.join(versionDir, file), "VIC3_DATA_CHUNK").countries || []

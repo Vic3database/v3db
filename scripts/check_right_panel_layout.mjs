@@ -1,11 +1,12 @@
 import fs from "node:fs";
 import path from "node:path";
+import { readSiteAppSource, readSiteStyleSource } from "./site_frontend_sources.mjs";
 
 const root = process.cwd();
 const failures = [];
 
-const appSource = readText("site/app.js");
-const styleSource = readText("site/styles.css");
+const appSource = readSiteAppSource(root);
+const styleSource = readSiteStyleSource(root);
 
 checkDetailLayoutContracts();
 checkTagContrastContracts();

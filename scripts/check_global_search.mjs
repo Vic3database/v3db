@@ -3,11 +3,12 @@ import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
 import { readChunkedSiteData } from "./site_data_reader.mjs";
+import { readSiteAppSource, readSiteStyleSource } from "./site_frontend_sources.mjs";
 
 const root = process.cwd();
 const indexSource = readText("site/index.html");
-const appSource = readText("site/app.js");
-const styleSource = readText("site/styles.css");
+const appSource = readSiteAppSource(root);
+const styleSource = readSiteStyleSource(root);
 const todoSource = readText("todolist.md");
 const siteData = readChunkedSiteData(root);
 

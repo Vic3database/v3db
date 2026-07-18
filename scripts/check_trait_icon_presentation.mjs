@@ -2,10 +2,11 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { readSiteAppSource, readSiteStyleSource } from "./site_frontend_sources.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const appSource = readText("site/app.js");
-const styleSource = readText("site/styles.css");
+const appSource = readSiteAppSource(root);
+const styleSource = readSiteStyleSource(root);
 
 assert.match(appSource, /function\s+traitIconHtml\s*\(/, "trait icon renderer should exist");
 assert.match(appSource, /state-traits/, "state trait cards should reference state trait assets");

@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
+import { readSiteAppSource, readSiteStyleSource } from "./site_frontend_sources.mjs";
 
 const root = process.cwd();
-const app = fs.readFileSync(path.join(root, "site", "app.js"), "utf8");
+const app = readSiteAppSource(root);
 const index = fs.readFileSync(path.join(root, "site", "index.html"), "utf8");
-const styles = fs.readFileSync(path.join(root, "site", "styles.css"), "utf8");
+const styles = readSiteStyleSource(root);
 const technologyChunk = readGlobal(path.join(root, "site", "versions", "1.13.9", "data-technologies.js"));
 const technologyRenderer = app.match(/function renderTechnologyBoard\(\) \{[\s\S]*?\n}\n\nfunction renderTechnologyDetail/)[0];
 
@@ -92,7 +93,7 @@ assert.match(app, /analytical_philosophy: \{ column: 29, row: 11 \}/, "society t
 assert.match(app, /mass_propaganda: \{ column: 22, row: 11 \}/, "society technology positions must define mass propaganda at row eleven column twenty-two");
 assert.match(app, /technology-relation-tags/, "technology detail relationships must use a spaced tag container");
 assert.match(styles, /\.technology-relation-tags \{ display: flex; flex-wrap: wrap; gap: 10px; \}/, "technology detail tags must have a 10px gap");
-assert.match(fs.readFileSync(path.join(root, "site", "index.html"), "utf8"), /styles\.css\?v=20260717-technology2/, "technology stylesheet version must refresh the new tag spacing");
+assert.match(fs.readFileSync(path.join(root, "site", "index.html"), "utf8"), /styles\.css\?v=20260718-file-split1/, "stylesheet version must refresh the split source files");
 for (const technology of technologyChunk.technologies) {
   const iconFile = path.basename(technology.icon).replace(/\.dds$/i, ".webp");
   assert(fs.existsSync(path.join(root, "site", "assets", "technologies", iconFile)), `${technology.key} must have a published WebP icon`);

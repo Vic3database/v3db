@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
+import { readSiteStyleSource } from "./site_frontend_sources.mjs";
 
 const root = process.cwd();
-const styles = fs.readFileSync(path.join(root, "site", "styles.css"), "utf8");
+const styles = readSiteStyleSource(root);
 
 function styleBlock(selector) {
   const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -12,7 +13,7 @@ function styleBlock(selector) {
   return match[1] || "";
 }
 
-const ideologyDetailResults = styleBlock('body.detail-page[data-view="ideology"] .results');
+const ideologyDetailResults = styleBlock('body.detail-page[data-view="ideology"] .results,\nbody.detail-page[data-view="law"] .results');
 assert.match(
   ideologyDetailResults,
   /left:\s*calc\(12px \+ var\(--ideology-left-width\) \+ var\(--panel-gap\)\)/,
@@ -24,7 +25,7 @@ assert.match(
   "ideology detail routes should keep the ideology list width",
 );
 
-const ideologyDetailPanel = styleBlock('body.detail-page[data-view="ideology"] .detail');
+const ideologyDetailPanel = styleBlock('body.detail-page[data-view="ideology"] .detail,\nbody.detail-page[data-view="law"] .detail');
 assert.match(
   ideologyDetailPanel,
   /left:\s*calc\(12px \+ var\(--ideology-left-width\) \+ var\(--panel-gap\) \+ var\(--ideology-results-width\) \+ var\(--panel-gap\)\)/,
@@ -37,7 +38,7 @@ assert.match(
 );
 
 const detailPageResultsIndex = styles.indexOf("body.detail-page .results");
-const ideologyDetailResultsIndex = styles.indexOf('body.detail-page[data-view="ideology"] .results');
+const ideologyDetailResultsIndex = styles.indexOf('body.detail-page[data-view="ideology"] .results,\nbody.detail-page[data-view="law"] .results');
 assert.ok(
   ideologyDetailResultsIndex > detailPageResultsIndex,
   "ideology detail overrides should come after the generic detail-page layout",

@@ -1,6 +1,7 @@
 import fs from "node:fs";
+import { readSiteAppSource } from "./site_frontend_sources.mjs";
 
-const source = fs.readFileSync("site/app.js", "utf8").replace(/^\uFEFF/, "");
+const source = readSiteAppSource(process.cwd());
 const start = source.indexOf("function renderCountryList");
 const end = source.indexOf("\nfunction ", start + 1);
 const renderCountryList = source.slice(start, end < 0 ? source.length : end);

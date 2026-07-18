@@ -1,9 +1,10 @@
 import fs from "node:fs";
 import path from "node:path";
+import { readSiteAppSource, readSiteStyleSource } from "./site_frontend_sources.mjs";
 
 const root = process.cwd();
-const appSource = readText("site/app.js");
-const stylesSource = readText("site/styles.css");
+const appSource = readSiteAppSource(root);
+const stylesSource = readSiteStyleSource(root);
 const failures = [];
 
 checkRegionMapClickContracts();

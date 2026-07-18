@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
+import { readSiteStyleSource } from "./site_frontend_sources.mjs";
 
 const root = process.cwd();
-const stylesFile = path.join(root, "site", "styles.css");
-const styles = fs.readFileSync(stylesFile, "utf8");
+const styles = readSiteStyleSource(root);
 
 function assertStyle(pattern, message) {
   assert.ok(pattern.test(styles), message);
@@ -37,5 +37,5 @@ assertStyle(
 
 console.log(JSON.stringify({
   country_card_flag_alignment: "ok",
-  file: path.relative(root, stylesFile).replaceAll("\\", "/"),
+  files: "site/styles/*.css",
 }, null, 2));

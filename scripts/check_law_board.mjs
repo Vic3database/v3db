@@ -4,11 +4,13 @@ import path from "node:path";
 import vm from "node:vm";
 import { fileURLToPath } from "node:url";
 import { readChunkedSiteData } from "./site_data_reader.mjs";
+import { readSiteAppSource, readSiteStyleSource } from "./site_frontend_sources.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const siteData = readChunkedSiteData(root);
 const indexSource = readText("site/index.html");
-const appSource = readText("site/app.js");
+const appSource = readSiteAppSource(root);
+const styleSource = readSiteStyleSource(root);
 
 assert.ok(Array.isArray(siteData.laws) && siteData.laws.length > 0, "site data should include laws");
 assert.ok(Array.isArray(siteData.lawGroups) && siteData.lawGroups.length > 0, "site data should include law groups");
@@ -82,7 +84,7 @@ assert.match(appSource, /function\s+ideologyPillGroups\s*\(/, "ideology tags sho
 assert.match(appSource, /ideologyTypeOptions\.map\(\(type\)/, "ideology groups should use the ordered type definitions");
 assert.match(appSource, /ideology-pill-group-label/, "ideology group labels should be rendered");
 assert.doesNotMatch(appSource, /\$\{ideology\.name_zh \|\| ideology\.key\}\$\{ideologyTypeKey/, "movement names should not carry a suffix in individual tags");
-assert.match(readText("site/styles.css"), /\.ideology-pill-group\s*{[\s\S]*?display:\s*grid;[\s\S]*?grid-template-columns:\s*5em\s+minmax\(0,\s*1fr\)/, "ideology tag rows should share one aligned label column");
+assert.match(styleSource, /\.ideology-pill-group\s*{[\s\S]*?display:\s*grid;[\s\S]*?grid-template-columns:\s*5em\s+minmax\(0,\s*1fr\)/, "ideology tag rows should share one aligned label column");
 assert.match(appSource, /lawDisplayName\(law\)/, "law rows should render variants through their display name");
 assert.match(appSource, /lawEffectListHtml\(law\)/, "law details should render effects as a list");
 assert.match(appSource, /\$\{laws\.length\} 条法律/, "home board should expose the law entry");
@@ -96,10 +98,10 @@ assert.match(appSource, /\(运动\)/, "movement labels should identify movements
 const lawListSource = appSource.slice(appSource.indexOf("function renderLawList"), appSource.indexOf("function selectLawCard"));
 assert.doesNotMatch(lawListSource, /lawProgressivenessLabel|lawModifierListHtml|modifier_summary_zh/, "law rows should not display progressiveness or modifiers");
 assert.match(lawListSource, /<details class="law-category-section" open>/, "law categories should be collapsible");
-assert.match(readText("site/styles.css"), /\.law-effect-positive/, "positive law effects should have a color class");
-assert.match(readText("site/styles.css"), /\.law-effect-negative/, "negative law effects should have a color class");
-assert.match(readText("site/styles.css"), /\.law-effect-value/, "law effect numbers should be separately styled");
-assert.match(readText("site/styles.css"), /body\[data-view="law"\]\s+\.map-panel/, "law view should hide the map panel");
+assert.match(styleSource, /\.law-effect-positive/, "positive law effects should have a color class");
+assert.match(styleSource, /\.law-effect-negative/, "negative law effects should have a color class");
+assert.match(styleSource, /\.law-effect-value/, "law effect numbers should be separately styled");
+assert.match(styleSource, /body\[data-view="law"\]\s+\.map-panel/, "law view should hide the map panel");
 
 for (const law of siteData.laws) {
   const iconName = path.basename(String(law.icon || "")).replace(/\.dds$/i, "");
