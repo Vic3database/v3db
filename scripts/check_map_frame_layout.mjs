@@ -3,6 +3,7 @@ import path from "node:path";
 
 const root = process.cwd();
 const styleSource = fs.readFileSync(path.join(root, "site", "styles", "shell.css"), "utf8").replace(/^\uFEFF/, "");
+const entryStyleSource = fs.readFileSync(path.join(root, "site", "styles.css"), "utf8").replace(/^\uFEFF/, "");
 const failures = [];
 const desktopMapPanel = ruleBlock(".map-panel");
 
@@ -24,6 +25,11 @@ assert(
 assert(
   /\.map-viewport canvas\s*{[\s\S]*width:\s*100%[\s\S]*height:\s*100%/.test(styleSource),
   "map canvas should continue filling the framed viewport",
+);
+
+assert(
+  /styles\/shell\.css\?v=20260720-map-frame/.test(entryStyleSource),
+  "map-frame stylesheet should use a new cache version",
 );
 
 assert(
