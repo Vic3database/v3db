@@ -4,6 +4,7 @@ import path from "node:path";
 const root = process.cwd();
 const styleSource = fs.readFileSync(path.join(root, "site", "styles", "shell.css"), "utf8").replace(/^\uFEFF/, "");
 const entryStyleSource = fs.readFileSync(path.join(root, "site", "styles.css"), "utf8").replace(/^\uFEFF/, "");
+const indexSource = fs.readFileSync(path.join(root, "site", "index.html"), "utf8").replace(/^\uFEFF/, "");
 const failures = [];
 const desktopMapPanel = ruleBlock(".map-panel");
 
@@ -30,6 +31,11 @@ assert(
 assert(
   /styles\/shell\.css\?v=20260720-map-frame/.test(entryStyleSource),
   "map-frame stylesheet should use a new cache version",
+);
+
+assert(
+  /href="styles\.css\?v=20260720-map-frame"/.test(indexSource),
+  "the page entry should refresh the stylesheet cache version",
 );
 
 assert(
