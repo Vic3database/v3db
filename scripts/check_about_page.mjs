@@ -30,6 +30,8 @@ expect(stylesSource.includes(".info-dialog"), "styles should include the auxilia
 expect(/\.info-dialog\s*\{[\s\S]*width:\s*min\(820px,\s*100%\)/.test(stylesSource), "settings dialog should retain its existing width");
 expect(/\.info-dialog-about\s*\{[\s\S]*width:\s*min\(1080px,\s*100%\)/.test(stylesSource), "about dialog should use the global search dialog width");
 expect(stylesSource.includes(".support-link"), "styles should include the Buy Me a Tea button style");
+expect(!/\.support-link\s*\{[^}]*cursor:\s*not-allowed[^}]*opacity:\s*0\.64[^}]*\}/.test(stylesSource), "Buy Me a Tea link should not retain disabled cursor or opacity styles");
+expect(/\.feedback-link:hover,\s*\.support-link:hover\s*\{[\s\S]*border-color:\s*var\(--accent\)[\s\S]*color:\s*#fff7e6/.test(stylesSource), "Buy Me a Tea link should use the normal link hover state");
 expect(stylesSource.includes(".developer-avatar"), "styles should include developer avatar");
 expect(fs.existsSync(avatarFile), "developer avatar should be copied into site/assets/about");
 

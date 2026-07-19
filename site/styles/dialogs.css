@@ -95,12 +95,8 @@
   text-decoration: none;
 }
 
-.support-link {
-  cursor: not-allowed;
-  opacity: 0.64;
-}
-
-.feedback-link:hover {
+.feedback-link:hover,
+.support-link:hover {
   border-color: var(--accent);
   color: #fff7e6;
 }
