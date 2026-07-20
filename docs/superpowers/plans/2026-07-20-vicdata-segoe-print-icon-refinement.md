@@ -165,9 +165,17 @@ function Draw-CenteredLabel($graphics, [string]$text, [single]$centerX, [single]
   $format.Alignment = [System.Drawing.StringAlignment]::Center
   $format.LineAlignment = [System.Drawing.StringAlignment]::Center
   $brush = [System.Drawing.SolidBrush]::new($gold)
+  $textPath = [System.Drawing.Drawing2D.GraphicsPath]::new()
+  $layout = [System.Drawing.RectangleF]::new(0, $centerY - $fontSize, $graphics.VisibleClipBounds.Width, $fontSize * 2)
   try {
-    $graphics.DrawString($text, $font, $brush, $centerX, $centerY, $format)
+    $textPath.AddString($text, $font.FontFamily, [int]$font.Style, $font.Size, $layout, $format)
+    if ($strokeWidth -gt 0) {
+      $stroke = [System.Drawing.Pen]::new($paleGold, $strokeWidth)
+      try { $graphics.DrawPath($stroke, $textPath) } finally { $stroke.Dispose() }
+    }
+    $graphics.FillPath($brush, $textPath)
   } finally {
+    $textPath.Dispose()
     $brush.Dispose()
     $format.Dispose()
     $font.Dispose()
@@ -182,9 +190,10 @@ function Draw-Wordmark($graphics, [int]$size) {
     default { throw "Unsupported wordmark size: $size" }
   }
   $centerX = $size / 2
-  Draw-CenteredLabel $graphics 'Vic3' $centerX ($size * 0.31) $fontSize
-  Draw-CenteredLabel $graphics 'Data' $centerX ($size * 0.50) ($fontSize * 0.78)
-  Draw-CenteredLabel $graphics 'Base' $centerX ($size * 0.68) ($fontSize * 0.78)
+  $strokeWidth = [Math]::Max(1, [Math]::Round($size * 0.003))
+  Draw-CenteredLabel $graphics 'Vic3' $centerX ($size * 0.31) $fontSize $strokeWidth
+  Draw-CenteredLabel $graphics 'Data' $centerX ($size * 0.50) ($fontSize * 0.78) $strokeWidth
+  Draw-CenteredLabel $graphics 'Base' $centerX ($size * 0.68) ($fontSize * 0.78) $strokeWidth
 }
 
 function Draw-CompactV($graphics, [int]$size) {
