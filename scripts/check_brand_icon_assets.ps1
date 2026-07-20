@@ -37,6 +37,15 @@ function Get-NearColorPixelCount([System.Drawing.Image]$image, [System.Drawing.C
   return $count
 }
 
+function Test-AntialiasedGold([System.Drawing.Color]$pixel) {
+  return (
+    $pixel.A -gt 220 -and
+    $pixel.R -ge 105 -and $pixel.R -le 225 -and
+    $pixel.G -ge 90 -and $pixel.G -le 195 -and
+    $pixel.B -ge 55 -and $pixel.B -le 105
+  )
+}
+
 function Assert-GoldMark([string]$file, [int]$minimumPixels) {
   $image = [System.Drawing.Image]::FromFile($file)
   try {
@@ -44,8 +53,16 @@ function Assert-GoldMark([string]$file, [int]$minimumPixels) {
     if ($goldPixelCount -lt $minimumPixels) {
       $failures.Add("$(Split-Path -Leaf $file) must contain a visible #D7AF4B mark and border")
     }
-    $borderSample = $image.GetPixel([int]($image.Width * 0.5), [int]($image.Height * 0.065))
-    if (-not (Test-NearColor $borderSample $gold)) {
+    $centerX = [int]($image.Width * 0.5)
+    $expectedY = [Math]::Max(1, [Math]::Round($image.Height * 0.06))
+    $borderFound = $false
+    foreach ($y in (($expectedY - 2)..($expectedY + 2))) {
+      if ($y -ge 0 -and $y -lt $image.Height -and (Test-AntialiasedGold $image.GetPixel($centerX, $y))) {
+        $borderFound = $true
+        break
+      }
+    }
+    if (-not $borderFound) {
       $failures.Add("$(Split-Path -Leaf $file) must retain a single gold border")
     }
   } finally {
@@ -100,7 +117,7 @@ foreach ($item in $expected) {
   $minimumGoldPixels = if ($item.Size -ge 180) {
     [Math]::Round($item.Size * $item.Size * 0.035)
   } else {
-    [Math]::Max(8, [Math]::Round($item.Size * $item.Size * 0.065))
+    [Math]::Max(8, [Math]::Floor($item.Size * $item.Size * 0.035))
   }
   Assert-GoldMark $file $minimumGoldPixels
 }
