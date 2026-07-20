@@ -84,7 +84,11 @@ function Draw-Wordmark($graphics, [int]$size) {
 }
 
 function Draw-CompactV($graphics, [int]$size) {
-  Draw-CenteredLabel $graphics 'V' ($size / 2) ($size * 0.47) ($size * 0.82)
+  $centerY = $size * 0.54
+  if ($size -eq 48) {
+    $centerY++
+  }
+  Draw-CenteredLabel $graphics 'V' ($size / 2) $centerY ($size * 0.82)
 }
 
 function Write-Png([string]$file, [int]$size) {

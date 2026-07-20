@@ -46,6 +46,38 @@ function Test-AntialiasedGold([System.Drawing.Color]$pixel) {
   )
 }
 
+function Test-VGold([System.Drawing.Color]$pixel) {
+  return (
+    $pixel.A -gt 120 -and
+    [Math]::Abs($pixel.R - $gold.R) -le 65 -and
+    [Math]::Abs($pixel.G - $gold.G) -le 65 -and
+    [Math]::Abs($pixel.B - $gold.B) -le 40
+  )
+}
+
+function Get-CompactVVisualCenter([System.Drawing.Image]$image) {
+  $weight = 0.0
+  $weightedY = 0.0
+  $xStart = [Math]::Floor($image.Width * 0.20)
+  $xEnd = [Math]::Ceiling($image.Width * 0.80)
+  $yStart = [Math]::Floor($image.Height * 0.18)
+  $yEnd = [Math]::Ceiling($image.Height * 0.82)
+  for ($y = $yStart; $y -lt $yEnd; $y++) {
+    for ($x = $xStart; $x -lt $xEnd; $x++) {
+      $pixel = $image.GetPixel($x, $y)
+      if (Test-VGold $pixel) {
+        $pixelWeight = [Math]::Max(1, ($pixel.R - 70) + ($pixel.G - 50) - $pixel.B)
+        $weight += $pixelWeight
+        $weightedY += $y * $pixelWeight
+      }
+    }
+  }
+  if ($weight -eq 0) {
+    return $null
+  }
+  return $weightedY / $weight
+}
+
 function Assert-GoldMark([string]$file, [int]$minimumPixels) {
   $image = [System.Drawing.Image]::FromFile($file)
   try {
@@ -120,6 +152,21 @@ foreach ($item in $expected) {
     [Math]::Max(8, [Math]::Floor($item.Size * $item.Size * 0.035))
   }
   Assert-GoldMark $file $minimumGoldPixels
+}
+
+foreach ($item in $expected | Where-Object { $_.Size -lt 180 }) {
+  $file = Join-Path $brand $item.Name
+  $image = [System.Drawing.Image]::FromFile($file)
+  try {
+    $visualCenter = Get-CompactVVisualCenter $image
+    $canvasCenter = $image.Height / 2
+    $tolerance = [Math]::Max(1, $image.Height * 0.025)
+    if ($null -eq $visualCenter -or [Math]::Abs($visualCenter - $canvasCenter) -gt $tolerance) {
+      $failures.Add("$($item.Name) must center the V visual weight vertically")
+    }
+  } finally {
+    $image.Dispose()
+  }
 }
 
 $index = Get-Content -LiteralPath (Join-Path $Root 'site\index.html') -Raw
