@@ -13,6 +13,45 @@ $expected = @(
   @{ Name = 'favicon-32.png'; Size = 32 },
   @{ Name = 'favicon-16.png'; Size = 16 }
 )
+$navy = [System.Drawing.Color]::FromArgb(255, 16, 44, 60)
+$gold = [System.Drawing.Color]::FromArgb(255, 215, 175, 75)
+
+function Test-NearColor([System.Drawing.Color]$actual, [System.Drawing.Color]$target, [int]$tolerance = 14) {
+  return (
+    [Math]::Abs($actual.R - $target.R) -le $tolerance -and
+    [Math]::Abs($actual.G - $target.G) -le $tolerance -and
+    [Math]::Abs($actual.B - $target.B) -le $tolerance
+  )
+}
+
+function Get-NearColorPixelCount([System.Drawing.Image]$image, [System.Drawing.Color]$target) {
+  $count = 0
+  for ($y = 0; $y -lt $image.Height; $y++) {
+    for ($x = 0; $x -lt $image.Width; $x++) {
+      $pixel = $image.GetPixel($x, $y)
+      if ($pixel.A -gt 220 -and (Test-NearColor $pixel $target)) {
+        $count++
+      }
+    }
+  }
+  return $count
+}
+
+function Assert-GoldMark([string]$file, [int]$minimumPixels) {
+  $image = [System.Drawing.Image]::FromFile($file)
+  try {
+    $goldPixelCount = Get-NearColorPixelCount $image $gold
+    if ($goldPixelCount -lt $minimumPixels) {
+      $failures.Add("$(Split-Path -Leaf $file) must contain a visible #D7AF4B mark and border")
+    }
+    $borderSample = $image.GetPixel([int]($image.Width * 0.5), [int]($image.Height * 0.065))
+    if (-not (Test-NearColor $borderSample $gold)) {
+      $failures.Add("$(Split-Path -Leaf $file) must retain a single gold border")
+    }
+  } finally {
+    $image.Dispose()
+  }
+}
 
 foreach ($item in $expected) {
   $file = Join-Path $brand $item.Name
@@ -31,7 +70,7 @@ foreach ($item in $expected) {
     }
 
     $sample = $image.GetPixel([int]($item.Size * 0.15), [int]($item.Size * 0.5))
-    if ($sample.R -ne 16 -or $sample.G -ne 44 -or $sample.B -ne 60) {
+    if (-not (Test-NearColor $sample $navy 0)) {
       $failures.Add("$($item.Name) must use the #102C3C navy field")
     }
   } finally {
@@ -44,11 +83,26 @@ if (-not (Test-Path -LiteralPath $svg)) {
   $failures.Add('missing vicdata-icon.svg')
 } else {
   $svgText = Get-Content -LiteralPath $svg -Raw
-  foreach ($fragment in @('#102C3C', '#D7AF4B', '>V<', '>3<', '>D<', '>B<')) {
+  foreach ($fragment in @('#102C3C', '#D7AF4B', 'Segoe Print', '>Vic3<', '>Data<', '>Base<')) {
     if (-not $svgText.Contains($fragment)) {
       $failures.Add("SVG lacks $fragment")
     }
   }
+  foreach ($obsolete in @('>3<', '>D<', '>B<', 'Palatino Linotype')) {
+    if ($svgText.Contains($obsolete)) {
+      $failures.Add("SVG must not retain obsolete $obsolete content")
+    }
+  }
+}
+
+foreach ($item in $expected) {
+  $file = Join-Path $brand $item.Name
+  $minimumGoldPixels = if ($item.Size -ge 180) {
+    [Math]::Round($item.Size * $item.Size * 0.035)
+  } else {
+    [Math]::Max(8, [Math]::Round($item.Size * $item.Size * 0.065))
+  }
+  Assert-GoldMark $file $minimumGoldPixels
 }
 
 $index = Get-Content -LiteralPath (Join-Path $Root 'site\index.html') -Raw
