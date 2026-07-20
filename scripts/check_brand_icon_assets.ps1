@@ -170,10 +170,14 @@ foreach ($item in $expected | Where-Object { $_.Size -lt 180 }) {
 }
 
 $index = Get-Content -LiteralPath (Join-Path $Root 'site\index.html') -Raw
-foreach ($fragment in @('vicdata-icon.svg', 'favicon-32.png', 'apple-touch-icon.png')) {
+foreach ($fragment in @('vicdata-icon.svg', 'favicon-16.png', 'favicon-32.png', 'apple-touch-icon.png')) {
   if (-not $index.Contains($fragment)) {
     $failures.Add("index.html lacks $fragment")
   }
+}
+
+if ($index -match '<link rel="icon" type="image/svg\+xml"') {
+  $failures.Add('index.html should not use the full wordmark SVG as the browser tab icon')
 }
 
 $manifest = Get-Content -LiteralPath (Join-Path $Root 'site\site.webmanifest') -Raw | ConvertFrom-Json

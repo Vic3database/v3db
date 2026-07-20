@@ -171,10 +171,17 @@ function checkTypographyContracts() {
   assert(/\.detail-back-button\s+\.lucide-icon\s*{[\s\S]*width:\s*16px[\s\S]*height:\s*16px/.test(styleSource), "detail back button icon sizing is missing");
 }
 
-function checkRedesignContracts() {
-  assert(/class="[^"]*\btopbar-brand\b/.test(indexSource), "topbar brand entry is missing");
-  assert(/class="[^"]*\bbrand-logo\b"[^>]*assets\/brand\/vicdata-icon\.svg/.test(indexSource), "topbar brand should use the Vicdata SVG brand icon");
-  assert(/class="[^"]*\btopbar-nav\b/.test(indexSource), "topbar board navigation is missing");
+  function checkRedesignContracts() {
+    assert(/class="[^"]*\btopbar-brand\b/.test(indexSource), "topbar brand entry is missing");
+    assert(/class="[^"]*\bbrand-logo\b"[^>]*assets\/brand\/vicdata-icon\.svg/.test(indexSource), "topbar brand should use the Vicdata SVG brand icon");
+    assert(!/class="[^"]*\bbrand-text\b/.test(indexSource), "topbar brand should not repeat the Vicdata wordmark beside the icon");
+    assert(!/<link rel="icon" type="image\/svg\+xml"/.test(indexSource), "browser tab icon should not use the full wordmark SVG");
+    assert(/<link rel="icon" type="image\/png" sizes="16x16" href="assets\/brand\/favicon-16\.png\?v=20260720-v"/.test(indexSource), "browser tab should expose the 16px gold V favicon");
+    assert(/<link rel="icon" type="image\/png" sizes="32x32" href="assets\/brand\/favicon-32\.png\?v=20260720-v"/.test(indexSource), "browser tab should expose the 32px gold V favicon");
+    assert(/\.topbar-brand\s*{[\s\S]*?min-height:\s*48px[\s\S]*?padding:\s*0;[\s\S]*?border:\s*0;[\s\S]*?background:\s*transparent/.test(styleSource), "topbar brand should not add a second framed container around the icon");
+    assert(/\.brand-mark\s*{[\s\S]*?width:\s*48px[\s\S]*?height:\s*48px/.test(styleSource), "topbar brand mark should use a 48px layout box");
+    assert(/\.brand-logo\s*{[\s\S]*?width:\s*44px[\s\S]*?height:\s*44px/.test(styleSource), "topbar brand icon should render at 44px");
+    assert(/class="[^"]*\btopbar-nav\b/.test(indexSource), "topbar board navigation is missing");
   for (const view of ["country", "culture", "region", "company", "ideology"]) {
     assert(new RegExp(`data-nav-view="${view}"`).test(indexSource), `topbar board entry for ${view} is missing`);
   }

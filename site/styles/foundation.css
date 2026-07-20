@@ -108,12 +108,12 @@ body {
 }
 
 .topbar-brand {
-  gap: 8px;
-  min-height: 38px;
-  padding: 0 10px 0 6px;
-  border: 1px solid rgba(200, 164, 91, 0.22);
-  border-radius: 7px;
-  background: var(--surface);
+  gap: 0;
+  min-height: 48px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   color: var(--ink);
   font-family: var(--font-ui);
   font-weight: 900;
@@ -125,17 +125,17 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  background: rgba(200, 164, 91, 0.14);
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background: transparent;
   color: var(--accent);
 }
 
 .brand-logo {
   display: block;
-  width: 24px;
-  height: 24px;
+  width: 44px;
+  height: 44px;
   object-fit: contain;
 }
 
