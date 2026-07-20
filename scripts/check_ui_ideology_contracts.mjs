@@ -173,7 +173,7 @@ function checkTypographyContracts() {
 
 function checkRedesignContracts() {
   assert(/class="[^"]*\btopbar-brand\b/.test(indexSource), "topbar brand entry is missing");
-  assert(/class="[^"]*\bbrand-logo\b"[^>]*assets\/brand\/vicdata-icon-192\.png/.test(indexSource), "topbar brand should use the Vicdata brand icon");
+  assert(/class="[^"]*\bbrand-logo\b"[^>]*assets\/brand\/vicdata-icon\.svg/.test(indexSource), "topbar brand should use the Vicdata SVG brand icon");
   assert(/class="[^"]*\btopbar-nav\b/.test(indexSource), "topbar board navigation is missing");
   for (const view of ["country", "culture", "region", "company", "ideology"]) {
     assert(new RegExp(`data-nav-view="${view}"`).test(indexSource), `topbar board entry for ${view} is missing`);
