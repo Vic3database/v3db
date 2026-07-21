@@ -29,6 +29,44 @@ assert.match(
   /const TAG_TOOLTIP_DEFINITIONS\s*=\s*new Map\s*\(/,
   "TAG_TOOLTIP_DEFINITIONS Map declaration is missing",
 );
+const tagTooltipDefinitionsStart = source.indexOf("const TAG_TOOLTIP_DEFINITIONS");
+const tagTooltipDefinitionsEnd = source.indexOf("]);", tagTooltipDefinitionsStart);
+assert.notEqual(tagTooltipDefinitionsEnd, -1, "TAG_TOOLTIP_DEFINITIONS has no closing delimiter");
+const tagTooltipDefinitionsSource = source.slice(tagTooltipDefinitionsStart, tagTooltipDefinitionsEnd + 3);
+
+for (const semanticKey of [
+  "country-status:releasable",
+  "country-formation:major",
+  "country-formation:minor",
+  "country-status:special",
+  "country-status:dual-heritage",
+]) {
+  assert.ok(
+    tagTooltipDefinitionsSource.includes(`["${semanticKey}"`),
+    `TAG_TOOLTIP_DEFINITIONS is missing ${semanticKey}`,
+  );
+}
+
+for (const classKey of [
+  "tag-type",
+  "tag-tier",
+  "tag-region",
+  "tag-heritage",
+  "tag-language",
+  "tag-tradition",
+  "tag-dlc",
+  "tag-good",
+  "tag-vc",
+  "tag-arable",
+  "tag-more",
+  "tag-muted",
+]) {
+  assert.ok(
+    tagTooltipDefinitionsSource.includes(`["${classKey}"`),
+    `TAG_TOOLTIP_DEFINITIONS is missing the ${classKey} category`,
+  );
+}
+
 assert.match(source, /country-status:start[\s\S]{0,500}开局/);
 assert.match(source, /country-status:start[\s\S]{0,500}1836年开局时已存在/);
 assert.match(source, /country-type:殖民国家[\s\S]{0,500}殖民地/);
@@ -37,10 +75,31 @@ assert.match(source, /country-tier:公国[\s\S]{0,500}国家位阶/);
 assert.match(source, /function\s+tagTooltipMetadata\s*\(/);
 assert.match(source, /function\s+conceptDataAttributes\s*\(/);
 
+const tagTooltipMetadataSource = functionSource("tagTooltipMetadata");
+assert.match(tagTooltipMetadataSource, /definition\.category\s*\|\|\s*"属性标签"/);
+assert.match(tagTooltipMetadataSource, /“\$\{label\}”用于标示当前条目的\$\{category\}。/);
+
+const countryTagPillsSource = functionSource("countryTagPills");
+assert.match(countryTagPillsSource, /`country-type:\$\{countryTypeTagLabel\(country\)\}`/);
+assert.match(countryTagPillsSource, /`country-tier:\$\{country\.tierZh \|\| ""\}`/);
+
+const statusPillsSource = functionSource("statusPills");
+for (const semanticKey of [
+  "country-status:start",
+  "country-status:releasable",
+  "country-formation:major",
+  "country-formation:minor",
+  "country-status:special",
+  "country-status:dual-heritage",
+]) {
+  assert.ok(statusPillsSource.includes(`"${semanticKey}"`), `statusPills is missing ${semanticKey}`);
+}
+
 const tagPillSource = functionSource("tagPill");
 assert.match(tagPillSource, /conceptPill\s*\(/);
 assert.match(tagPillSource, /kind:\s*"tag"/);
 assert.match(tagPillSource, /description\s*:/);
+assert.match(tagPillSource, /category:\s*metadata\.category/);
 assert.match(tagPillSource, /hideNativeTitle:\s*true/);
 
 const conceptPillSource = functionSource("conceptPill");
@@ -54,6 +113,7 @@ assert.ok(!buildingChipSource.includes("title="));
 const companyDlcIconPillSource = functionSource("companyDlcIconPill");
 assert.match(companyDlcIconPillSource, /tagPill\s*\(/);
 assert.match(companyDlcIconPillSource, /company-dlc:/);
+assert.match(companyDlcIconPillSource, /dlcIconHtml\s*\(/);
 
 assert.ok(!functionSource("goodsIconHtml").includes("title="));
 assert.ok(!functionSource("buildingIconHtml").includes("title="));
