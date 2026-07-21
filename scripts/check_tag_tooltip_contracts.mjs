@@ -135,4 +135,45 @@ assert.match(uiSource, /dataset\.conceptDescription/, "concept tooltip must read
 assert.match(uiSource, /concept-tooltip-description/, "concept tooltip must render a readable description row");
 assert.match(recordStyles, /\.concept-tooltip-description\s*{[\s\S]*color:\s*var\(--ink\)/, "tooltip description style is missing");
 
+for (const functionName of [
+  "countryTagPills",
+  "stateRegionTagPills",
+  "strategicRegionTagPills",
+  "geographicRegionTagPills",
+  "companyTagPills",
+  "companyPrestigeGoodPill",
+  "traitPill",
+  "ideologyPill",
+]) {
+  assert.match(source, new RegExp(`function\\s+${functionName}\\s*\\(`), `${functionName} tag generator is missing`);
+}
+assert.match(source, /function\s+refConceptPill\s*\([\s\S]*conceptPill\(/, "reference tags must stay on the concept-pill path");
+assert.match(source, /function\s+buildingChip\s*\([\s\S]*conceptDataAttributes\(/, "state-region building tags must expose concept metadata");
+
+const indexSource = fs.readFileSync(path.join(process.cwd(), "site/index.html"), "utf8");
+const rootStyleSource = fs.readFileSync(path.join(process.cwd(), "site/styles.css"), "utf8");
+const presentationSource = fs.readFileSync(path.join(process.cwd(), "site/app/presentation.js"), "utf8");
+assert.match(indexSource, /styles\.css\?v=20260722-tag-tooltips1/, "main stylesheet cache version is missing");
+assert.match(indexSource, /app\/ui\.js\?v=20260722-tag-tooltips1/, "tooltip UI cache version is missing");
+assert.match(indexSource, /app\/components\.js\?v=20260722-tag-tooltips1/, "tooltip component cache version is missing");
+assert.match(rootStyleSource, /styles\/records\.css\?v=20260722-tag-tooltips1/, "tooltip record-style cache version is missing");
+
+const conceptTagSource = functionSource("conceptTag");
+assert.match(conceptTagSource, /conceptDataAttributes\s*\(/, "identity tags must use shared concept metadata");
+assert.ok(!conceptTagSource.includes("title="), "identity tags must not emit browser-native titles");
+assert.match(recordStyles, /\.concept-tag:hover/, "identity tags need the concept hover affordance");
+
+for (const [name, kind] of [
+  ["country.tag", "country"],
+  ["stateRegion.key", "stateRegion"],
+  ["culture.key", "culture"],
+  ["company.key", "company"],
+  ["ideology.key", "ideology"],
+  ["law.key", "law"],
+  ["region.key", "strategicRegion"],
+]) {
+  assert.match(presentationSource, new RegExp(`conceptTag\\(${name.replace(".", "\\.")}[^\\n]+"${kind}"`), `${kind} identity tags must use conceptTag`);
+}
+assert.doesNotMatch(presentationSource, /<span class="tag">\$\{escapeHtml\(/, "presentation identity tags must not bypass concept metadata");
+
 console.log(JSON.stringify({ tag_tooltip_components: "ok" }));

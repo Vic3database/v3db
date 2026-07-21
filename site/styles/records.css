@@ -364,7 +364,8 @@
 }
 
 a.concept-pill:hover,
-.concept-pill:hover {
+.concept-pill:hover,
+.concept-tag:hover {
   border-color: rgba(200, 164, 91, 0.44);
   background: rgba(200, 164, 91, 0.12);
   color: var(--accent);

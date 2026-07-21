@@ -205,6 +205,18 @@ function conceptDataAttributes({
   ].filter(Boolean).join(" ");
 }
 
+function conceptTag(label, kind = "", key = "", search = "") {
+  if (!label) return "";
+  const conceptKey = key || label;
+  const attrs = conceptDataAttributes({
+    kind,
+    key: conceptKey,
+    label,
+    search: search || label,
+  });
+  return `<span class="tag concept-tag" ${attrs}>${escapeHtml(label)}</span>`;
+}
+
 function conceptPill({
   label,
   className = "",
@@ -644,7 +656,7 @@ function interestGroupFlavorCard(group) {
         <span class="interest-group-title">
           <span class="interest-group-color" aria-hidden="true"></span>
           <strong>${escapeHtml(displayName)}</strong>
-          ${!group.display_name?.is_flavored ? `<span class="pill tag-pill tag-muted">基础</span>` : ""}
+          ${!group.display_name?.is_flavored ? tagPill("基础", "tag-muted") : ""}
         </span>
         <span class="minor">${escapeHtml(group.key)}</span>
       </div>
@@ -1700,7 +1712,7 @@ function countryFlagVariantSection(country) {
           <div class="country-flag-variant-body">
             <div class="rule-head country-flag-variant-head">
               <strong>${escapeHtml(variant.key)}</strong>
-              <span class="tag">${escapeHtml(variant.exportKey || variant.key)}</span>
+              ${conceptTag(variant.exportKey || variant.key, "tag", `country-flag-variant:${variant.exportKey || variant.key}`)}
             </div>
             <dl class="mini-grid country-flag-variant-meta">
               ${field("优先级", escapeHtml(String(variant.priority ?? 0)))}
