@@ -405,6 +405,10 @@ body.results-collapsed .concept-tooltip {
   font-size: var(--text-xs);
 }
 
+.concept-tooltip .concept-tooltip-description {
+  color: var(--ink);
+}
+
 .concept-tooltip.ideology-tooltip {
   display: block;
   width: min(360px, calc(100% - 28px));

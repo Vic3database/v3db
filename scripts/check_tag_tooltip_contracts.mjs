@@ -119,4 +119,20 @@ assert.ok(!functionSource("goodsIconHtml").includes("title="));
 assert.ok(!functionSource("buildingIconHtml").includes("title="));
 assert.ok(!functionSource("dlcIconHtml").includes("title="));
 
+const uiSource = fs.readFileSync(
+  path.join(process.cwd(), "site/app/ui.js"),
+  "utf8",
+);
+const recordStyles = fs.readFileSync(
+  path.join(process.cwd(), "site/styles/records.css"),
+  "utf8",
+);
+
+assert.match(uiSource, /function\s+conceptTooltipDescription\s*\(/, "concept tooltip description resolver is missing");
+assert.match(uiSource, /function\s+suppressNativeTooltip\s*\(/, "native tooltip suppression helper is missing");
+assert.match(uiSource, /scheduleConceptTooltip[\s\S]*suppressNativeTooltip\(target\)/, "native tooltip suppression must run before the hover delay");
+assert.match(uiSource, /dataset\.conceptDescription/, "concept tooltip must read explicit tag descriptions");
+assert.match(uiSource, /concept-tooltip-description/, "concept tooltip must render a readable description row");
+assert.match(recordStyles, /\.concept-tooltip-description\s*{[\s\S]*color:\s*var\(--ink\)/, "tooltip description style is missing");
+
 console.log(JSON.stringify({ tag_tooltip_components: "ok" }));

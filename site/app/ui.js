@@ -360,6 +360,7 @@ function scheduleConceptTooltip(target, event) {
     hideConceptTooltip();
     return;
   }
+  suppressNativeTooltip(target);
   clearConceptTooltipTimer();
   pendingConceptTooltipTarget = target;
   pendingConceptTooltipPoint = conceptTooltipPoint(event);
@@ -391,6 +392,7 @@ function showConceptTooltip(target, event) {
     hideConceptTooltip();
     return;
   }
+  suppressNativeTooltip(target);
   const isIdeology = target.dataset.conceptKind === "ideology";
   els.conceptTooltip.classList.toggle("ideology-tooltip", isIdeology);
   els.conceptTooltip.innerHTML = isIdeology ? ideologyTooltipRows(target) : conceptTooltipRows(target);
@@ -454,14 +456,47 @@ function conceptTooltipRows(target) {
   const label = target.dataset.conceptLabel || target.textContent?.trim() || "";
   const key = target.dataset.conceptKey || "";
   const kind = target.dataset.conceptKind || "";
-  const kindText = conceptKindLabel(kind);
+  const kindText = target.dataset.conceptCategory || conceptKindLabel(kind);
   const context = conceptTooltipContextLine(kind, key);
+  const description = conceptTooltipDescription(target, kind, key, label);
   return [
     `<strong>${escapeHtml(label || key)}</strong>`,
     `<span>${escapeHtml([kindText, key].filter(Boolean).join(" · "))}</span>`,
     context ? `<span>${escapeHtml(context)}</span>` : "",
+    description ? `<span class="concept-tooltip-description">${escapeHtml(description)}</span>` : "",
     `<small>${escapeHtml(conceptTooltipActionText(target))}</small>`,
   ].filter(Boolean).join("");
+}
+
+function suppressNativeTooltip(target) {
+  if (!target) return;
+  target.removeAttribute("title");
+  target.querySelectorAll("[title]").forEach((node) => node.removeAttribute("title"));
+}
+
+function conceptTooltipDescription(target, kind, key, label) {
+  const explicit = target.dataset.conceptDescription || "";
+  if (explicit) return explicit;
+  const entity = conceptTooltipEntity(kind, key);
+  const description = String(entity?.desc_zh || entity?.modifier_summary_zh || "").replace(/\s+/g, " ").trim();
+  if (description) return description;
+  const category = target.dataset.conceptCategory || conceptKindLabel(kind);
+  return `“${label || key}”属于${category}。`;
+}
+
+function conceptTooltipEntity(kind, key) {
+  if (kind === "country") return byTag.get(key);
+  if (kind === "culture") return byCulture.get(key);
+  if (kind === "stateRegion") return byStateRegion.get(key);
+  if (kind === "strategicRegion") return byStrategicRegion.get(key);
+  if (kind === "geographicRegion") return byGeographicRegion.get(key);
+  if (kind === "company") return byCompany.get(key);
+  if (kind === "ideology") return ideologyByKey.get(key);
+  if (kind === "law") return lawByKey.get(key);
+  if (kind === "interestGroup") return byInterestGroup.get(key);
+  if (kind === "interestGroupTrait") return interestGroupTraitByKey.get(key);
+  if (kind === "cultureTrait" || kind === "cultureTraitGroup") return cultureTraitByKey.get(key);
+  return null;
 }
 
 function conceptTooltipContextLine(kind, key) {
