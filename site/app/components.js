@@ -7,12 +7,71 @@ function matchesRefSet(selectedSet, refs) {
   return false;
 }
 
+const TAG_TOOLTIP_DEFINITIONS = new Map([
+  ["country-status:start", {
+    category: "国家状态",
+    description: "该国家在1836年开局时已存在。",
+  }],
+  ["country-status:releasable", {
+    category: "国家状态",
+    description: "该国家可由现有国家通过释放附属国等机制建立。",
+  }],
+  ["country-formation:major", {
+    category: "国家统一",
+    description: "该国家可作为重大统一国家建立。",
+  }],
+  ["country-formation:minor", {
+    category: "国家统一",
+    description: "该国家可作为次要统一国家建立。",
+  }],
+  ["country-status:special", {
+    category: "国家状态",
+    description: "该国家具有特殊的建立或显示规则。",
+  }],
+  ["country-status:dual-heritage", {
+    category: "国家状态",
+    description: "该国家同时拥有两种文化传承。",
+  }],
+  ["country-type:殖民国家", {
+    category: "国家类型",
+    description: "该国家属于殖民地类型。",
+  }],
+  ["country-tier:公国", {
+    category: "国家位阶",
+    description: "该国家的国家位阶为公国。",
+  }],
+  ["country-type", { category: "国家类型" }],
+  ["country-tier", { category: "国家位阶" }],
+  ["company-dlc", { category: "资料片" }],
+  ["tag-type", { category: "类型" }],
+  ["tag-tier", { category: "位阶" }],
+  ["tag-region", { category: "地区" }],
+  ["tag-heritage", { category: "文化传承" }],
+  ["tag-language", { category: "语言" }],
+  ["tag-tradition", { category: "文化传统" }],
+  ["tag-dlc", { category: "资料片" }],
+  ["tag-good", { category: "商品" }],
+  ["tag-vc", { category: "版本来源" }],
+  ["tag-arable", { category: "可耕地资源" }],
+  ["tag-more", { category: "数量说明" }],
+  ["tag-muted", { category: "补充信息" }],
+  ["tag-mapi", { category: "市场接入价格影响" }],
+  ["tag-effect", { category: "效果" }],
+  ["tag-release", { category: "国家状态" }],
+  ["tag-dual", { category: "国家状态" }],
+  ["tag-special", { category: "特殊属性" }],
+  ["tag-ig-changed", { category: "名称变体" }],
+  ["good", { category: "国家状态" }],
+  ["warn", { category: "国家状态" }],
+  ["special", { category: "国家状态" }],
+]);
+
 function countryTagPills(country) {
   return [
     victorianCenturyBadge(country),
     statusPills(country),
-    tagPill(countryTypeTagLabel(country), "tag-type"),
-    tagPill(country.tierZh, "tag-tier"),
+    tagPill(countryTypeTagLabel(country), "tag-type", "", `country-type:${countryTypeTagLabel(country)}`),
+    tagPill(country.tierZh, "tag-tier", "", `country-tier:${country.tierZh || ""}`),
     groupedTraitPills(country.primaryCultureHeritageGroups, country.primaryCultureHeritages, "tag-heritage-group", "tag-heritage"),
     groupedTraitPills(country.primaryCultureLanguageGroups, country.primaryCultureLanguages, "tag-language-group", "tag-language"),
     refPills(country.primaryCultureTraditions, "tag-tradition"),
@@ -22,12 +81,12 @@ function countryTagPills(country) {
 
 function statusPills(country) {
   const pills = [];
-  if (country.existsAtStart === "是") pills.push(tagPill("开局", "good"));
-  if (country.isReleasable === "是") pills.push(tagPill("释放", "tag-release"));
-  if (country.isMajorFormable === "是") pills.push(tagPill("重大统一", "warn"));
-  else if (country.isMinorFormable === "是") pills.push(tagPill("次要统一", "warn"));
-  if (country.isSpecial === "是") pills.push(tagPill("特殊", "special"));
-  if (country.isDualHeritage === "是") pills.push(tagPill("双传承", "tag-dual"));
+  if (country.existsAtStart === "是") pills.push(tagPill("开局", "good", "", "country-status:start"));
+  if (country.isReleasable === "是") pills.push(tagPill("释放", "tag-release", "", "country-status:releasable"));
+  if (country.isMajorFormable === "是") pills.push(tagPill("重大统一", "warn", "", "country-formation:major"));
+  else if (country.isMinorFormable === "是") pills.push(tagPill("次要统一", "warn", "", "country-formation:minor"));
+  if (country.isSpecial === "是") pills.push(tagPill("特殊", "special", "", "country-status:special"));
+  if (country.isDualHeritage === "是") pills.push(tagPill("双传承", "tag-dual", "", "country-status:dual-heritage"));
   return pills.join("");
 }
 
@@ -114,6 +173,38 @@ function geographicRegionTagPills(region) {
   ].filter(Boolean).join("");
 }
 
+function tagTooltipMetadata(label, className, sourceKey, semanticKey) {
+  const classKeys = String(className || "").split(/\s+/).filter(Boolean);
+  const semanticPrefix = String(semanticKey || "").split(":")[0];
+  const definitionKey = [semanticKey, semanticPrefix, sourceKey, ...classKeys]
+    .find((key) => key && TAG_TOOLTIP_DEFINITIONS.has(key));
+  const definition = TAG_TOOLTIP_DEFINITIONS.get(definitionKey) || {};
+  const key = semanticKey || sourceKey || label || "";
+  const category = definition.category || "属性标签";
+  const description = definition.description || `“${label}”用于标示当前条目的${category}。`;
+  return { key, category, description };
+}
+
+function conceptDataAttributes({
+  kind = "",
+  key = "",
+  label = "",
+  search = "",
+  category = "",
+  description = "",
+}) {
+  const conceptKey = key || label || "";
+  const conceptSearch = search || label || conceptKey;
+  return [
+    kind ? `data-concept-kind="${escapeHtml(kind)}"` : "",
+    conceptKey ? `data-concept-key="${escapeHtml(conceptKey)}"` : "",
+    label ? `data-concept-label="${escapeHtml(label)}"` : "",
+    conceptSearch ? `data-concept-search="${escapeHtml(conceptSearch)}"` : "",
+    category ? `data-concept-category="${escapeHtml(category)}"` : "",
+    description ? `data-concept-description="${escapeHtml(description)}"` : "",
+  ].filter(Boolean).join(" ");
+}
+
 function conceptPill({
   label,
   className = "",
@@ -123,19 +214,23 @@ function conceptPill({
   key = "",
   href = "",
   search = "",
+  category = "",
+  description = "",
   html = "",
 }) {
   if (!label && !html) return "";
   const classText = className ? ` ${className}` : "";
-  const conceptKey = key || label || "";
-  const tooltip = title || conceptKey;
+  const conceptKey = key || title || label || "";
   const attrs = [
     `class="pill concept-pill${classText}"`,
-    !hideNativeTitle && tooltip && tooltip !== label ? `title="${escapeHtml(tooltip)}"` : "",
-    kind ? `data-concept-kind="${escapeHtml(kind)}"` : "",
-    conceptKey ? `data-concept-key="${escapeHtml(conceptKey)}"` : "",
-    label ? `data-concept-label="${escapeHtml(label)}"` : "",
-    search || label || conceptKey ? `data-concept-search="${escapeHtml(search || label || conceptKey)}"` : "",
+    conceptDataAttributes({
+      kind,
+      key: conceptKey,
+      label,
+      search,
+      category,
+      description,
+    }),
   ].filter(Boolean).join(" ");
   const content = html || escapeHtml(label);
   if (href) return `<a ${attrs} href="${escapeHtml(href)}">${content}</a>`;
@@ -212,11 +307,20 @@ function inferConceptKind(key) {
   return "";
 }
 
-function tagPill(label, className = "", title = "") {
+function tagPill(label, className = "", title = "", semanticKey = "", html = "") {
   if (!label) return "";
-  const titleText = title && title !== label ? ` title="${escapeHtml(title)}"` : "";
-  const classText = className ? ` ${className}` : "";
-  return `<span class="pill tag-pill${classText}"${titleText}>${escapeHtml(label)}</span>`;
+  const metadata = tagTooltipMetadata(label, className, title, semanticKey);
+  return conceptPill({
+    label,
+    className: `tag-pill${className ? ` ${className}` : ""}`,
+    title,
+    hideNativeTitle: true,
+    kind: "tag",
+    key: metadata.key,
+    category: metadata.category,
+    description: metadata.description,
+    html,
+  });
 }
 
 function victorianCenturyBadge(item) {
@@ -1391,8 +1495,15 @@ function companyMetaLine(company) {
 function companyDlcIconPill(company) {
   if (companyDlcKey(company) === "base") return "";
   const option = companyDlcOptions.find((item) => item.key === companyDlcKey(company));
-  if (!option) return tagPill(companyDlcLabel(company), "tag-dlc");
-  return `<span class="pill tag-pill tag-dlc company-dlc-pill" title="${escapeHtml(companyDlcLabel(company))}">${dlcIconHtml(option)}</span>`;
+  const label = companyDlcLabel(company);
+  const key = companyDlcKey(company);
+  return tagPill(
+    label,
+    "tag-dlc company-dlc-pill",
+    key,
+    `company-dlc:${key}`,
+    option ? dlcIconHtml(option) : "",
+  );
 }
 
 function companyPrestigeGoodsPills(company) {
@@ -1415,10 +1526,9 @@ function companyPrestigeGoodPill(item) {
 }
 
 function goodsIconHtml(item, className = "prestige-good-icon") {
-  const label = item?.name_zh || item?.key || "";
   const path = prestigeGoodIconPath(item?.key || "");
   if (!path) return "";
-  return `<img class="${escapeHtml(className)}" src="${path}" alt="" title="${escapeHtml(label)}">`;
+  return `<img class="${escapeHtml(className)}" src="${path}" alt="">`;
 }
 
 function prestigeGoodIconPath(key) {
@@ -1483,10 +1593,16 @@ function stateRegionBuildingStrip(stateRegion) {
 function buildingChip(item, amount = "", className = "") {
   const name = item?.name_zh || item?.key || "";
   const count = amount !== "" && amount !== null ? `<span class="building-chip-count">${escapeHtml(amount)}</span>` : "";
-  const titleParts = [name, item?.key && item.key !== name ? item.key : "", amount !== "" && amount !== null ? String(amount) : ""].filter(Boolean);
-  const title = titleParts.length ? ` title="${escapeHtml(titleParts.join(" · "))}"` : "";
   const classText = className ? ` ${className}` : "";
-  return `<span class="building-chip${classText}"${title} data-concept-kind="building" data-concept-key="${escapeHtml(item?.key || name)}" data-concept-label="${escapeHtml(name)}" data-concept-search="${escapeHtml(name)}">${buildingIconHtml(item?.key, name)}${count}</span>`;
+  const attrs = conceptDataAttributes({
+    kind: "building",
+    key: item?.key || name,
+    label: name,
+    search: name,
+    category: "建筑",
+    description: `“${name}”用于标示当前条目的建筑。`,
+  });
+  return `<span class="building-chip${classText}" ${attrs}>${buildingIconHtml(item?.key, name)}${count}</span>`;
 }
 
 function limitedHtmlItems(items, limit) {
@@ -1676,11 +1792,11 @@ function collapsibleDetailSection(title, html, meta = "") {
   `;
 }
 
-function buildingIconHtml(key, label = "") {
+function buildingIconHtml(key) {
   const fileName = buildingIconFileByKey[key];
   if (!fileName) return "";
   const path = `assets/buildings/${encodeURIComponent(fileName)}`;
-  return `<img class="resource-icon" src="${path}" alt="" title="${escapeHtml(label || key)}">`;
+  return `<img class="resource-icon" src="${path}" alt="">`;
 }
 
 function companyIconHtml(company) {
@@ -1742,8 +1858,7 @@ function interestGroupIconPath(texture) {
 
 function dlcIconHtml(option) {
   if (!option?.icon) return "";
-  const title = option.title || option.label || option.key;
-  return `<img class="dlc-icon" src="assets/dlc/${encodeURIComponent(option.icon)}" alt="" title="${escapeHtml(title)}">`;
+  return `<img class="dlc-icon" src="assets/dlc/${encodeURIComponent(option.icon)}" alt="">`;
 }
 
 function fileBaseName(file) {
