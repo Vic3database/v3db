@@ -23,6 +23,17 @@ const TAG_TOOLTIP_DEFAULTS = {
     category: "文化特质组",
     description: "“{label}”是一组文化特质。",
   },
+  cultureRelations: {
+    empty: "无",
+    heritageGroup: "组内传承",
+    heritage: "关联文化",
+    languageGroup: "组内语言",
+    language: "关联文化",
+    tradition: "关联文化",
+    primaryCultureCountries: "主流文化国家",
+    obsessions: "痴迷",
+    taboos: "禁忌",
+  },
 };
 
 const TAG_TOOLTIP_DEFINITIONS = {
@@ -102,7 +113,7 @@ const TAG_TOOLTIP_DEFINITIONS = {
   "tag-region": { category: "地区" },
   "tag-heritage-group": {
     category: "传承组",
-    description: "“{label}”是一组文化传承。",
+    description: "将相近的文化传承归类，供文化规则和条件判断引用。",
   },
   "tag-heritage": {
     category: "文化传承",

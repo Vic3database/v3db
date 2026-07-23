@@ -410,6 +410,34 @@ body.results-collapsed .concept-tooltip {
   color: var(--ink);
 }
 
+.concept-tooltip.culture-tooltip {
+  width: min(420px, calc(100vw - 28px));
+  max-width: none;
+  max-height: min(70vh, 480px);
+  overflow-y: auto;
+}
+
+.concept-tooltip-relation {
+  display: grid;
+  gap: 2px;
+}
+
+.concept-tooltip-relation h4,
+.concept-tooltip-relation p {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: var(--text-xs);
+}
+
+.concept-tooltip-relation h4 {
+  color: var(--ink);
+}
+
+.concept-tooltip-relation p {
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
 .concept-tooltip.ideology-tooltip {
   display: block;
   width: min(360px, calc(100% - 28px));

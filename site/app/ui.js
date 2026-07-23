@@ -394,8 +394,15 @@ function showConceptTooltip(target, event) {
   }
   suppressNativeTooltip(target);
   const isIdeology = target.dataset.conceptKind === "ideology";
+  const cultureRelations = cultureTooltipRelationSections(
+    target.dataset.conceptKind || "",
+    target.dataset.conceptKey || "",
+  );
   els.conceptTooltip.classList.toggle("ideology-tooltip", isIdeology);
-  els.conceptTooltip.innerHTML = isIdeology ? ideologyTooltipRows(target) : conceptTooltipRows(target);
+  els.conceptTooltip.classList.toggle("culture-tooltip", Boolean(cultureRelations));
+  els.conceptTooltip.innerHTML = isIdeology
+    ? ideologyTooltipRows(target)
+    : conceptTooltipRows(target, cultureRelations);
   els.conceptTooltip.hidden = false;
   moveConceptTooltip(event);
 }
@@ -452,18 +459,74 @@ function ideologyTooltipAttitudeLines(stances) {
   }).join("");
 }
 
-function conceptTooltipRows(target) {
+function cultureTooltipRelationSection(title, items) {
+  if (!title) return "";
+  const labels = [...(items || [])]
+    .map((item) => item?.name_zh || item?.key || "")
+    .filter(Boolean)
+    .sort((left, right) => left.localeCompare(right, "zh-Hans-CN"));
+  const empty = TAG_TOOLTIP_DEFAULTS.cultureRelations?.empty || "无";
+  return `<section class="concept-tooltip-relation"><h4>${escapeHtml(title)}</h4><p>${escapeHtml(labels.join("、") || empty)}</p></section>`;
+}
+
+function cultureTooltipRelationSections(kind, key) {
+  const labels = TAG_TOOLTIP_DEFAULTS.cultureRelations || {};
+  if (kind === "cultureTraitGroup") {
+    const group = cultureTraitGroupByKey.get(key);
+    if (!group || !["heritage", "language"].includes(group.type)) return "";
+    const title = group.type === "heritage" ? labels.heritageGroup : labels.languageGroup;
+    const items = cultureTraits.filter((trait) => trait.group_key === key && trait.type === group.type);
+    return cultureTooltipRelationSection(title, items);
+  }
+  if (kind === "cultureTrait") {
+    const trait = cultureTraitByKey.get(key);
+    if (!trait) return "";
+    if (trait.type === "heritage") {
+      return cultureTooltipRelationSection(
+        labels.heritage,
+        cultures.filter((culture) => culture.heritage?.key === key),
+      );
+    }
+    if (trait.type === "language") {
+      return cultureTooltipRelationSection(
+        labels.language,
+        cultures.filter((culture) => culture.language?.key === key),
+      );
+    }
+    if (trait.type === "tradition") {
+      return cultureTooltipRelationSection(
+        labels.tradition,
+        cultures.filter((culture) => (culture.traditions || []).some((item) => item.key === key)),
+      );
+    }
+    return "";
+  }
+  if (kind === "culture") {
+    const culture = byCulture.get(key);
+    if (!culture) return "";
+    return [
+      cultureTooltipRelationSection(labels.primaryCultureCountries, culture.related_countries),
+      cultureTooltipRelationSection(labels.obsessions, culture.obsessions),
+      cultureTooltipRelationSection(labels.taboos, culture.taboos),
+    ].join("");
+  }
+  return "";
+}
+
+function conceptTooltipRows(target, relationSections = "") {
   const label = target.dataset.conceptLabel || target.textContent?.trim() || "";
   const key = target.dataset.conceptKey || "";
   const kind = target.dataset.conceptKind || "";
   const kindText = target.dataset.conceptCategory || conceptKindLabel(kind);
   const context = conceptTooltipContextLine(kind, key);
-  const description = conceptTooltipDescription(target, kind, key, label);
+  const resolvedRelations = relationSections || cultureTooltipRelationSections(kind, key);
+  const description = resolvedRelations ? "" : conceptTooltipDescription(target, kind, key, label);
   return [
     `<strong>${escapeHtml(label || key)}</strong>`,
     `<span>${escapeHtml([kindText, key].filter(Boolean).join(" · "))}</span>`,
     context ? `<span>${escapeHtml(context)}</span>` : "",
     description ? `<span class="concept-tooltip-description">${escapeHtml(description)}</span>` : "",
+    resolvedRelations,
     `<small>${escapeHtml(conceptTooltipActionText(target))}</small>`,
   ].filter(Boolean).join("");
 }
@@ -496,7 +559,8 @@ function conceptTooltipEntity(kind, key) {
   if (kind === "law") return lawByKey.get(key);
   if (kind === "interestGroup") return byInterestGroup.get(key);
   if (kind === "interestGroupTrait") return interestGroupTraitByKey.get(key);
-  if (kind === "cultureTrait" || kind === "cultureTraitGroup") return cultureTraitByKey.get(key);
+  if (kind === "cultureTrait") return cultureTraitByKey.get(key);
+  if (kind === "cultureTraitGroup") return cultureTraitGroupByKey.get(key);
   return null;
 }
 
@@ -570,7 +634,7 @@ function hideConceptTooltip() {
   clearConceptTooltipTimer();
   if (!els.conceptTooltip) return;
   els.conceptTooltip.hidden = true;
-  els.conceptTooltip.classList.remove("ideology-tooltip");
+  els.conceptTooltip.classList.remove("ideology-tooltip", "culture-tooltip");
 }
 
 function searchConcept(target) {

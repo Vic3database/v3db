@@ -188,7 +188,7 @@ assert.match(recordStyles, /\.concept-tooltip-description\s*{[\s\S]*color:\s*var
 
 assert.match(
   definitionsSource,
-  /cultureRelations:\s*{[\s\S]*heritageGroup:[\s\S]*heritage:[\s\S]*languageGroup:[\s\S]*language:[\s\S]*tradition:[\s\S]*culture:/,
+  /cultureRelations:\s*{[\s\S]*heritageGroup:[\s\S]*heritage:[\s\S]*languageGroup:[\s\S]*language:[\s\S]*tradition:[\s\S]*primaryCultureCountries:[\s\S]*obsessions:[\s\S]*taboos:/,
   "culture relation labels are missing from tooltip definitions",
 );
 assert.match(uiSource, /function\s+cultureTooltipRelationSections\s*\(/, "culture relation resolver is missing");
@@ -218,12 +218,12 @@ assert.match(source, /function\s+buildingChip\s*\([\s\S]*conceptDataAttributes\(
 
 const rootStyleSource = fs.readFileSync(path.join(process.cwd(), "site/styles.css"), "utf8");
 const presentationSource = fs.readFileSync(path.join(process.cwd(), "site/app/presentation.js"), "utf8");
-assert.match(indexSource, /styles\.css\?v=20260722-tag-tooltips1/, "main stylesheet cache version is missing");
+assert.match(indexSource, /styles\.css\?v=20260723-culture-tooltips1/, "main stylesheet cache version is missing");
 assert.match(indexSource, /app\/runtime\.js\?v=20260723-tag-tooltip-definitions2/, "tooltip runtime cache version is missing");
-assert.match(indexSource, /app\/ui\.js\?v=20260723-tag-tooltip-definitions2/, "tooltip UI cache version is missing");
-assert.match(indexSource, /app\/tag-tooltip-definitions\.js\?v=20260723-tag-tooltip-definitions4/, "tooltip definitions cache version is missing");
+assert.match(indexSource, /app\/ui\.js\?v=20260723-culture-tooltips1/, "tooltip UI cache version is missing");
+assert.match(indexSource, /app\/tag-tooltip-definitions\.js\?v=20260723-culture-tooltips1/, "tooltip definitions cache version is missing");
 assert.match(indexSource, /app\/components\.js\?v=20260723-tag-tooltip-definitions3/, "tooltip component cache version is missing");
-assert.match(rootStyleSource, /styles\/records\.css\?v=20260722-tag-tooltips1/, "tooltip record-style cache version is missing");
+assert.match(rootStyleSource, /styles\/records\.css\?v=20260723-culture-tooltips1/, "tooltip record-style cache version is missing");
 
 const definitionsScriptOffset = indexSource.indexOf("app/tag-tooltip-definitions.js");
 const componentsScriptOffset = indexSource.indexOf("app/components.js");
