@@ -91,6 +91,26 @@ assert.match(definitionsSource, /const TAG_TOOLTIP_DEFAULTS\s*=\s*{/, "tooltip d
 assert.match(definitionsSource, /tag:\s*{[\s\S]{0,300}description:/, "tag description template is missing");
 assert.match(definitionsSource, /concept:\s*{[\s\S]{0,300}description:/, "concept description template is missing");
 assert.match(definitionsSource, /building:\s*{[\s\S]{0,300}description:/, "building description template is missing");
+for (const defaultKey of ["culture", "cultureTrait", "cultureTraitGroup"]) {
+  assert.match(
+    definitionsSource,
+    new RegExp(`${defaultKey}:\\s*{[\\s\\S]{0,300}description:`),
+    `${defaultKey} description template is missing`,
+  );
+}
+for (const definitionKey of [
+  "tag-heritage-group",
+  "tag-heritage",
+  "tag-language-group",
+  "tag-language",
+  "tag-tradition",
+]) {
+  assert.match(
+    definitionsSource,
+    new RegExp(`"${definitionKey}"\\s*:\\s*{[\\s\\S]{0,300}description\\s*:`),
+    `${definitionKey} description definition is missing`,
+  );
+}
 assert.match(runtimeSource, /function\s+formatTooltipDescription\s*\(/, "tooltip template formatter is missing");
 
 assert.match(source, /function\s+tagTooltipMetadata\s*\(/);
@@ -100,6 +120,11 @@ const tagTooltipMetadataSource = functionSource("tagTooltipMetadata");
 assert.match(tagTooltipMetadataSource, /TAG_TOOLTIP_DEFINITIONS\[definitionKey\]/);
 assert.match(tagTooltipMetadataSource, /TAG_TOOLTIP_DEFAULTS\.tag/);
 assert.match(tagTooltipMetadataSource, /formatTooltipDescription\(/);
+assert.match(source, /function\s+conceptTooltipMetadata\s*\(/, "concept tooltip metadata resolver is missing");
+
+for (const functionName of ["groupedTraitPills", "refConceptPill", "traitPill", "traitGroupPill", "conceptTag"]) {
+  assert.match(functionSource(functionName), /conceptTooltipMetadata\(/, `${functionName} must use culture tooltip metadata`);
+}
 
 const countryTagPillsSource = functionSource("countryTagPills");
 assert.match(countryTagPillsSource, /`country-type:\$\{countryTypeTagLabel\(country\)\}`/);
@@ -181,8 +206,8 @@ const presentationSource = fs.readFileSync(path.join(process.cwd(), "site/app/pr
 assert.match(indexSource, /styles\.css\?v=20260722-tag-tooltips1/, "main stylesheet cache version is missing");
 assert.match(indexSource, /app\/runtime\.js\?v=20260723-tag-tooltip-definitions2/, "tooltip runtime cache version is missing");
 assert.match(indexSource, /app\/ui\.js\?v=20260723-tag-tooltip-definitions2/, "tooltip UI cache version is missing");
-assert.match(indexSource, /app\/tag-tooltip-definitions\.js\?v=20260723-tag-tooltip-definitions2/, "tooltip definitions cache version is missing");
-assert.match(indexSource, /app\/components\.js\?v=20260723-tag-tooltip-definitions2/, "tooltip component cache version is missing");
+assert.match(indexSource, /app\/tag-tooltip-definitions\.js\?v=20260723-tag-tooltip-definitions3/, "tooltip definitions cache version is missing");
+assert.match(indexSource, /app\/components\.js\?v=20260723-tag-tooltip-definitions3/, "tooltip component cache version is missing");
 assert.match(rootStyleSource, /styles\/records\.css\?v=20260722-tag-tooltips1/, "tooltip record-style cache version is missing");
 
 const definitionsScriptOffset = indexSource.indexOf("app/tag-tooltip-definitions.js");

@@ -46,42 +46,58 @@ function groupedTraitPills(groups, traits, groupClass, traitClass) {
   const orderedGroups = [...(groups || [])].sort(groupClass.includes("heritage") ? sortHeritageGroupRef : sortRefByName);
   for (const group of orderedGroups) {
     if (!group?.key) continue;
+    const label = group.name_zh || group.key;
+    const metadata = conceptTooltipMetadata(label, groupClass, "cultureTraitGroup", group.key);
     items.push(conceptPill({
-      label: group.name_zh || group.key,
+      label,
       className: groupClass,
       title: group.key,
       kind: "cultureTraitGroup",
       key: group.key,
+      category: metadata.category,
+      description: metadata.description,
     }));
     for (const trait of traitsByGroup.get(group.key) || []) {
+      const label = trait.name_zh || trait.key;
+      const metadata = conceptTooltipMetadata(label, traitClass, "cultureTrait", trait.key);
       items.push(conceptPill({
-        label: trait.name_zh || trait.key,
+        label,
         className: traitClass,
         title: trait.key,
         kind: "cultureTrait",
         key: trait.key,
+        category: metadata.category,
+        description: metadata.description,
       }));
     }
     traitsByGroup.delete(group.key);
   }
   for (const traits of traitsByGroup.values()) {
     for (const trait of traits) {
+      const label = trait.name_zh || trait.key;
+      const metadata = conceptTooltipMetadata(label, traitClass, "cultureTrait", trait.key);
       items.push(conceptPill({
-        label: trait.name_zh || trait.key,
+        label,
         className: traitClass,
         title: trait.key,
         kind: "cultureTrait",
         key: trait.key,
+        category: metadata.category,
+        description: metadata.description,
       }));
     }
   }
   for (const trait of remaining) {
+    const label = trait.name_zh || trait.key;
+    const metadata = conceptTooltipMetadata(label, traitClass, "cultureTrait", trait.key);
     items.push(conceptPill({
-      label: trait.name_zh || trait.key,
+      label,
       className: traitClass,
       title: trait.key,
       kind: "cultureTrait",
       key: trait.key,
+      category: metadata.category,
+      description: metadata.description,
     }));
   }
   return items.join("");
@@ -127,6 +143,17 @@ function tagTooltipMetadata(label, className, sourceKey, semanticKey) {
   return { key, category, description };
 }
 
+function conceptTooltipMetadata(label, className, kind, key) {
+  if (!["culture", "cultureTrait", "cultureTraitGroup"].includes(kind)) return {};
+  const classKeys = String(className || "").split(/\s+/).filter(Boolean);
+  const definitionKey = [key, ...classKeys].find((candidate) => candidate && TAG_TOOLTIP_DEFINITIONS[candidate]);
+  const definition = TAG_TOOLTIP_DEFINITIONS[definitionKey] || {};
+  const defaults = TAG_TOOLTIP_DEFAULTS[kind] || TAG_TOOLTIP_DEFAULTS.concept || {};
+  const category = definition.category || defaults.category || "";
+  const description = formatTooltipDescription(definition.description || defaults.description, { label, key, category });
+  return { category, description };
+}
+
 function conceptDataAttributes({
   kind = "",
   key = "",
@@ -150,11 +177,14 @@ function conceptDataAttributes({
 function conceptTag(label, kind = "", key = "", search = "") {
   if (!label) return "";
   const conceptKey = key || label;
+  const metadata = conceptTooltipMetadata(label, "", kind, conceptKey);
   const attrs = conceptDataAttributes({
     kind,
     key: conceptKey,
     label,
     search: search || label,
+    category: metadata.category,
+    description: metadata.description,
   });
   return `<span class="tag concept-tag" ${attrs}>${escapeHtml(label)}</span>`;
 }
@@ -235,6 +265,7 @@ function refConceptPill(item, className = "") {
     : kind === "geographicRegion"
       ? geographicRegionDisplayName(byGeographicRegion.get(key) || item)
     : item.name_zh || item.key || item.tag || "";
+  const metadata = conceptTooltipMetadata(label, className, kind, key);
   return conceptPill({
     label,
     className,
@@ -242,6 +273,8 @@ function refConceptPill(item, className = "") {
     kind,
     key,
     href: conceptHref(kind, key),
+    category: metadata.category,
+    description: metadata.description,
   });
 }
 
@@ -444,21 +477,29 @@ function listText(values) {
 
 function traitPill(trait) {
   if (!trait?.key) return "";
+  const label = trait.name_zh || trait.key;
+  const metadata = conceptTooltipMetadata(label, "", "cultureTrait", trait.key);
   return conceptPill({
-    label: trait.name_zh || trait.key,
+    label,
     kind: "cultureTrait",
     key: trait.key,
     title: trait.key,
+    category: metadata.category,
+    description: metadata.description,
   });
 }
 
 function traitGroupPill(group) {
   if (!group?.key) return "";
+  const label = group.name_zh || group.key;
+  const metadata = conceptTooltipMetadata(label, "", "cultureTraitGroup", group.key);
   return conceptPill({
-    label: group.name_zh || group.key,
+    label,
     kind: "cultureTraitGroup",
     key: group.key,
     title: group.key,
+    category: metadata.category,
+    description: metadata.description,
   });
 }
 

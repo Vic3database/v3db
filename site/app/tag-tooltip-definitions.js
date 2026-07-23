@@ -11,6 +11,18 @@ const TAG_TOOLTIP_DEFAULTS = {
     category: "建筑",
     description: "“{label}”用于标示当前条目的{category}。",
   },
+  culture: {
+    category: "文化",
+    description: "“{label}”是一种文化。",
+  },
+  cultureTrait: {
+    category: "文化特质",
+    description: "“{label}”是一项文化特质。",
+  },
+  cultureTraitGroup: {
+    category: "文化特质组",
+    description: "“{label}”是一组文化特质。",
+  },
 };
 
 const TAG_TOOLTIP_DEFINITIONS = {
@@ -40,7 +52,7 @@ const TAG_TOOLTIP_DEFINITIONS = {
   },
   "country-type:受认可国家": {
     category: "国家类型",
-    description: "该国家受到国际体系认可。",
+    description: "该国家开局时属于受认可国家。",
   },
   "country-type:殖民国家": {
     category: "国家类型",
@@ -48,15 +60,15 @@ const TAG_TOOLTIP_DEFINITIONS = {
   },
   "country-type:公司国家": {
     category: "国家类型",
-    description: "该国家属于公司类型。",
+    description: "该国家属于公司国家。",
   },
   "country-type:未受认可国家": {
     category: "国家类型",
-    description: "该国家尚未受到国际体系认可。",
+    description: "该国家开局时属于未受认可国家。",
   },
   "country-type:松散政权": {
     category: "国家类型",
-    description: "该条目属于松散部族政权。",
+    description: "该国家属于松散政权。",
   },
   "country-tier:城邦": {
     category: "国家位阶",
@@ -88,9 +100,26 @@ const TAG_TOOLTIP_DEFINITIONS = {
   "tag-type": { category: "类型" },
   "tag-tier": { category: "位阶" },
   "tag-region": { category: "地区" },
-  "tag-heritage": { category: "文化传承" },
-  "tag-language": { category: "语言" },
-  "tag-tradition": { category: "文化传统" },
+  "tag-heritage-group": {
+    category: "传承组",
+    description: "“{label}”是一组文化传承。",
+  },
+  "tag-heritage": {
+    category: "文化传承",
+    description: "“{label}”是一项文化传承。",
+  },
+  "tag-language-group": {
+    category: "语言组",
+    description: "“{label}”是一组语言。",
+  },
+  "tag-language": {
+    category: "语言",
+    description: "“{label}”是一种语言。",
+  },
+  "tag-tradition": {
+    category: "文化传统",
+    description: "“{label}”是一项文化传统。",
+  },
   "tag-dlc": { category: "资料片" },
   "tag-good": { category: "商品" },
   "tag-vc": { category: "版本来源" },
