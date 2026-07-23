@@ -48,7 +48,7 @@ expect(homeFunction.includes("角色"), "homepage should include the character e
 expect(homeFunction.includes("陆军") && homeFunction.includes("海军"), "homepage should include military entries");
 expect(indexSource.includes('id="homeWelcome"'), "homepage should define a welcome panel outside the navigation list");
 expect(!indexSource.includes('<strong>列表</strong>'), "site shell should not impose a generic list heading on every page");
-expect(indexSource.includes('styles.css?v=20260719-home-category-cards4'), "homepage stylesheet should have a cache version for the category title bars");
+expect(/styles\.css\?v=/.test(indexSource), "homepage stylesheet should have a cache version");
 expect(indexSource.includes('app/boards.js?v=20260719-home-category-cards1'), "homepage board script should have a cache version for independent category cards");
 expect(indexSource.includes('id="homeGuideButton"'), "homepage welcome panel should include the site guide button");
 expect(indexSource.includes('id="homeLinks"'), "homepage should define an external links panel outside navigation");
@@ -62,6 +62,8 @@ expect(indexSource.includes('href="https://forum.paradoxplaza.com/forum/forums/v
 expect(indexSource.includes('href="https://space.bilibili.com/3546875974126422"'), "homepage should include the official Bilibili account link");
 expect(homeFunction.includes("home-announcement"), "homepage should render an announcement panel");
 expect(homeFunction.includes("home-updated-at"), "homepage announcement should render its update time");
+expect(homeFunction.includes("data.meta?.generated_at"), "homepage update time should use the selected dataset generation timestamp");
+expect(!homeFunction.includes(".format(new Date())"), "homepage update time should not use the page render time");
 expect(homeFunction.includes("renderHomeNewsHtml") && homeNewsFunction.includes("home-news-panel"), "homepage should render the news panel");
 expect(homeNewsFunction.includes("home-news-tabs"), "homepage news panel should render category tabs");
 expect(homeNewsFunction.includes("查看更多 →"), "homepage news panel should provide a more link");

@@ -129,15 +129,18 @@ function renderHomeBoard() {
     { category: "其他", label: "更新日志", text: "版本差异", view: "changelog", icon: "assets/home/mass_communication.png" },
   ];
   const categories = ["外交", "内政", "经济", "军事", "社会", "其他"];
-  const homeUpdatedAt = new Intl.DateTimeFormat("zh-CN", {
-    timeZone: "Asia/Hong_Kong",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).format(new Date()).replace(/\//g, "-");
+  const datasetGeneratedAt = new Date(data.meta?.generated_at || "");
+  const homeUpdatedAt = Number.isNaN(datasetGeneratedAt.getTime())
+    ? "未知"
+    : new Intl.DateTimeFormat("zh-CN", {
+      timeZone: "Asia/Hong_Kong",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).format(datasetGeneratedAt).replace(/\//g, "-");
   els.countryList.innerHTML = `
     <div class="home-category-list">
       ${categories.map((category) => {
