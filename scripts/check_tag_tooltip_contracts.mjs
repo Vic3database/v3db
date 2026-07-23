@@ -186,6 +186,21 @@ assert.match(uiSource, /TAG_TOOLTIP_DEFAULTS\.concept/, "concept tooltip fallbac
 assert.match(uiSource, /formatTooltipDescription\(/, "concept tooltip fallback must format the definitions template");
 assert.match(recordStyles, /\.concept-tooltip-description\s*{[\s\S]*color:\s*var\(--ink\)/, "tooltip description style is missing");
 
+assert.match(
+  definitionsSource,
+  /cultureRelations:\s*{[\s\S]*heritageGroup:[\s\S]*heritage:[\s\S]*languageGroup:[\s\S]*language:[\s\S]*tradition:[\s\S]*culture:/,
+  "culture relation labels are missing from tooltip definitions",
+);
+assert.match(uiSource, /function\s+cultureTooltipRelationSections\s*\(/, "culture relation resolver is missing");
+assert.match(uiSource, /function\s+cultureTooltipRelationSection\s*\(/, "culture relation renderer is missing");
+assert.match(uiSource, /cultureTraitGroupByKey\.get\(key\)/, "culture trait groups must resolve from their own index");
+assert.match(uiSource, /related_countries/, "culture tooltip must show primary-culture countries");
+assert.match(uiSource, /obsessions/, "culture tooltip must show obsessions");
+assert.match(uiSource, /taboos/, "culture tooltip must show taboos");
+assert.match(recordStyles, /\.concept-tooltip\.culture-tooltip\s*{/, "culture tooltip layout is missing");
+assert.doesNotMatch(uiSource, /cultureTooltipRelationSection[\s\S]{0,1200}conceptPill\s*\(/, "culture relations must not create nested concept pills");
+assert.doesNotMatch(uiSource, /cultureTooltipRelationSection[\s\S]{0,1200}title=/, "culture relations must not emit native titles");
+
 for (const functionName of [
   "countryTagPills",
   "stateRegionTagPills",
@@ -206,7 +221,7 @@ const presentationSource = fs.readFileSync(path.join(process.cwd(), "site/app/pr
 assert.match(indexSource, /styles\.css\?v=20260722-tag-tooltips1/, "main stylesheet cache version is missing");
 assert.match(indexSource, /app\/runtime\.js\?v=20260723-tag-tooltip-definitions2/, "tooltip runtime cache version is missing");
 assert.match(indexSource, /app\/ui\.js\?v=20260723-tag-tooltip-definitions2/, "tooltip UI cache version is missing");
-assert.match(indexSource, /app\/tag-tooltip-definitions\.js\?v=20260723-tag-tooltip-definitions3/, "tooltip definitions cache version is missing");
+assert.match(indexSource, /app\/tag-tooltip-definitions\.js\?v=20260723-tag-tooltip-definitions4/, "tooltip definitions cache version is missing");
 assert.match(indexSource, /app\/components\.js\?v=20260723-tag-tooltip-definitions3/, "tooltip component cache version is missing");
 assert.match(rootStyleSource, /styles\/records\.css\?v=20260722-tag-tooltips1/, "tooltip record-style cache version is missing");
 
