@@ -120,9 +120,10 @@ function tagTooltipMetadata(label, className, sourceKey, semanticKey) {
   const definitionKey = [semanticKey, semanticPrefix, sourceKey, ...classKeys]
     .find((key) => key && TAG_TOOLTIP_DEFINITIONS[key]);
   const definition = TAG_TOOLTIP_DEFINITIONS[definitionKey] || {};
+  const defaults = TAG_TOOLTIP_DEFAULTS.tag || {};
   const key = semanticKey || sourceKey || label || "";
-  const category = definition.category || "属性标签";
-  const description = definition.description || `“${label}”用于标示当前条目的${category}。`;
+  const category = definition.category || defaults.category || "";
+  const description = formatTooltipDescription(definition.description || defaults.description, { label, key, category });
   return { key, category, description };
 }
 
@@ -1547,13 +1548,14 @@ function buildingChip(item, amount = "", className = "") {
   const name = item?.name_zh || item?.key || "";
   const count = amount !== "" && amount !== null ? `<span class="building-chip-count">${escapeHtml(amount)}</span>` : "";
   const classText = className ? ` ${className}` : "";
+  const defaults = TAG_TOOLTIP_DEFAULTS.building || {};
   const attrs = conceptDataAttributes({
     kind: "building",
     key: item?.key || name,
     label: name,
     search: name,
-    category: "建筑",
-    description: `“${name}”用于标示当前条目的建筑。`,
+    category: defaults.category || "",
+    description: formatTooltipDescription(defaults.description, { label: name, key: item?.key || name, category: defaults.category || "" }),
   });
   return `<span class="building-chip${classText}" ${attrs}>${buildingIconHtml(item?.key, name)}${count}</span>`;
 }

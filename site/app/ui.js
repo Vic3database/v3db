@@ -481,7 +481,8 @@ function conceptTooltipDescription(target, kind, key, label) {
   const description = String(entity?.desc_zh || entity?.modifier_summary_zh || "").replace(/\s+/g, " ").trim();
   if (description) return description;
   const category = target.dataset.conceptCategory || conceptKindLabel(kind);
-  return `“${label || key}”属于${category}。`;
+  const defaults = TAG_TOOLTIP_DEFAULTS.concept || {};
+  return formatTooltipDescription(defaults.description, { label: label || key, key, category });
 }
 
 function conceptTooltipEntity(kind, key) {

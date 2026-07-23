@@ -171,6 +171,10 @@ const countryTypeTagLabels = {
   company: "公司国家",
 };
 
+function formatTooltipDescription(template, values = {}) {
+  return String(template || "").replace(/\{(\w+)\}/g, (_, name) => String(values[name] ?? ""));
+}
+
 const buildingIconFileByKey = {
   building_coal_mine: "coal_mine.png",
   building_iron_mine: "iron_mine.png",

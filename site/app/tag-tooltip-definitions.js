@@ -1,4 +1,18 @@
 // 标签悬停的可编辑分类与说明。键应使用标签生成器传入的稳定语义键或样式类别。
+const TAG_TOOLTIP_DEFAULTS = {
+  tag: {
+    category: "属性标签",
+    description: "“{label}”用于标示当前条目的{category}。",
+  },
+  concept: {
+    description: "“{label}”属于{category}。",
+  },
+  building: {
+    category: "建筑",
+    description: "“{label}”用于标示当前条目的{category}。",
+  },
+};
+
 const TAG_TOOLTIP_DEFINITIONS = {
   "country-status:start": {
     category: "国家状态",
@@ -6,15 +20,15 @@ const TAG_TOOLTIP_DEFINITIONS = {
   },
   "country-status:releasable": {
     category: "国家状态",
-    description: "该国家可由现有国家通过释放附属国等机制建立。",
+    description: "该国家可通过释放附属国等机制建立。",
   },
   "country-formation:major": {
     category: "国家统一",
-    description: "该国家可作为重大统一国家建立。",
+    description: "该国家可通过重大统一成立。",
   },
   "country-formation:minor": {
     category: "国家统一",
-    description: "该国家可作为次要统一国家建立。",
+    description: "该国家可通过次要统一成立。",
   },
   "country-status:special": {
     category: "国家状态",
@@ -22,15 +36,51 @@ const TAG_TOOLTIP_DEFINITIONS = {
   },
   "country-status:dual-heritage": {
     category: "国家状态",
-    description: "该国家同时拥有两种文化传承。",
+    description: "该国家拥有两种不同传承组的主流文化。",
+  },
+  "country-type:受认可国家": {
+    category: "国家类型",
+    description: "该国家受到国际体系认可。",
   },
   "country-type:殖民国家": {
     category: "国家类型",
-    description: "该国家属于殖民地类型。",
+    description: "该国家属于殖民国家。",
+  },
+  "country-type:公司国家": {
+    category: "国家类型",
+    description: "该国家属于公司类型。",
+  },
+  "country-type:未受认可国家": {
+    category: "国家类型",
+    description: "该国家尚未受到国际体系认可。",
+  },
+  "country-type:松散政权": {
+    category: "国家类型",
+    description: "该条目属于松散部族政权。",
+  },
+  "country-tier:城邦": {
+    category: "国家位阶",
+    description: "该国家的位阶为城邦。",
   },
   "country-tier:公国": {
     category: "国家位阶",
-    description: "该国家的初始国家位阶为公国。",
+    description: "该国家的位阶为公国。",
+  },
+  "country-tier:大公国": {
+    category: "国家位阶",
+    description: "该国家的位阶为大公国。",
+  },
+  "country-tier:王国": {
+    category: "国家位阶",
+    description: "该国家的位阶为王国。",
+  },
+  "country-tier:帝国": {
+    category: "国家位阶",
+    description: "该国家的位阶为帝国。",
+  },
+  "country-tier:霸权": {
+    category: "国家位阶",
+    description: "该国家的位阶为霸权。",
   },
   "country-type": { category: "国家类型" },
   "country-tier": { category: "国家位阶" },
@@ -47,7 +97,7 @@ const TAG_TOOLTIP_DEFINITIONS = {
   "tag-arable": { category: "可耕地资源" },
   "tag-more": { category: "数量说明" },
   "tag-muted": { category: "补充信息" },
-  "tag-mapi": { category: "市场接入价格影响" },
+  "tag-mapi": { category: "市场接入度的价格影响" },
   "tag-effect": { category: "效果" },
   "tag-release": { category: "国家状态" },
   "tag-dual": { category: "国家状态" },

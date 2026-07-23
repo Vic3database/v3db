@@ -10,6 +10,7 @@ const definitionsPath = path.join(process.cwd(), "site/app/tag-tooltip-definitio
 assert.ok(fs.existsSync(definitionsPath), "tooltip definitions file is missing");
 const definitionsSource = fs.readFileSync(definitionsPath, "utf8");
 const indexSource = fs.readFileSync(path.join(process.cwd(), "site/index.html"), "utf8");
+const runtimeSource = fs.readFileSync(path.join(process.cwd(), "site/app/runtime.js"), "utf8");
 
 function functionSource(name) {
   const declaration = new RegExp(`function\\s+${name}\\s*\\(`).exec(source);
@@ -48,15 +49,24 @@ for (const semanticKey of [
   "country-status:dual-heritage",
   "country-type:受认可国家",
   "country-type:殖民国家",
-  "country-type:公司",
+  "country-type:公司国家",
   "country-type:未受认可国家",
-  "country-type:松散部族",
+  "country-type:松散政权",
   "country-tier:城邦",
   "country-tier:公国",
   "country-tier:大公国",
   "country-tier:王国",
   "country-tier:帝国",
   "country-tier:霸权",
+]) {
+  assert.match(
+    definitionsSource,
+    new RegExp(`"${semanticKey}"\\s*:\\s*{[\\s\\S]{0,300}description\\s*:`),
+    `TAG_TOOLTIP_DEFINITIONS is missing an explicit description for ${semanticKey}`,
+  );
+}
+
+for (const semanticKey of [
   "tag-type",
   "tag-tier",
   "tag-region",
@@ -72,14 +82,16 @@ for (const semanticKey of [
 ]) {
   assert.match(
     definitionsSource,
-    new RegExp(`"${semanticKey}"\\s*:\\s*{[\\s\\S]{0,300}description\\s*:`),
-    `TAG_TOOLTIP_DEFINITIONS is missing an explicit description for ${semanticKey}`,
+    new RegExp(`"${semanticKey}"\\s*:`),
+    `TAG_TOOLTIP_DEFINITIONS is missing ${semanticKey}`,
   );
 }
 
 assert.match(definitionsSource, /const TAG_TOOLTIP_DEFAULTS\s*=\s*{/, "tooltip defaults declaration is missing");
 assert.match(definitionsSource, /tag:\s*{[\s\S]{0,300}description:/, "tag description template is missing");
 assert.match(definitionsSource, /concept:\s*{[\s\S]{0,300}description:/, "concept description template is missing");
+assert.match(definitionsSource, /building:\s*{[\s\S]{0,300}description:/, "building description template is missing");
+assert.match(runtimeSource, /function\s+formatTooltipDescription\s*\(/, "tooltip template formatter is missing");
 
 assert.match(source, /function\s+tagTooltipMetadata\s*\(/);
 assert.match(source, /function\s+conceptDataAttributes\s*\(/);
@@ -118,6 +130,8 @@ assert.ok(!conceptPillSource.includes("title="));
 const buildingChipSource = functionSource("buildingChip");
 assert.match(buildingChipSource, /conceptDataAttributes\s*\(/);
 assert.match(buildingChipSource, /kind:\s*"building"/);
+assert.match(buildingChipSource, /TAG_TOOLTIP_DEFAULTS\.building/);
+assert.match(buildingChipSource, /formatTooltipDescription\(/);
 assert.ok(!buildingChipSource.includes("title="));
 
 const companyDlcIconPillSource = functionSource("companyDlcIconPill");
@@ -165,9 +179,10 @@ assert.match(source, /function\s+buildingChip\s*\([\s\S]*conceptDataAttributes\(
 const rootStyleSource = fs.readFileSync(path.join(process.cwd(), "site/styles.css"), "utf8");
 const presentationSource = fs.readFileSync(path.join(process.cwd(), "site/app/presentation.js"), "utf8");
 assert.match(indexSource, /styles\.css\?v=20260722-tag-tooltips1/, "main stylesheet cache version is missing");
-assert.match(indexSource, /app\/ui\.js\?v=20260722-tag-tooltips1/, "tooltip UI cache version is missing");
-assert.match(indexSource, /app\/tag-tooltip-definitions\.js\?v=20260723-tag-tooltip-definitions1/, "tooltip definitions cache version is missing");
-assert.match(indexSource, /app\/components\.js\?v=20260723-tag-tooltip-definitions1/, "tooltip component cache version is missing");
+assert.match(indexSource, /app\/runtime\.js\?v=20260723-tag-tooltip-definitions2/, "tooltip runtime cache version is missing");
+assert.match(indexSource, /app\/ui\.js\?v=20260723-tag-tooltip-definitions2/, "tooltip UI cache version is missing");
+assert.match(indexSource, /app\/tag-tooltip-definitions\.js\?v=20260723-tag-tooltip-definitions2/, "tooltip definitions cache version is missing");
+assert.match(indexSource, /app\/components\.js\?v=20260723-tag-tooltip-definitions2/, "tooltip component cache version is missing");
 assert.match(rootStyleSource, /styles\/records\.css\?v=20260722-tag-tooltips1/, "tooltip record-style cache version is missing");
 
 const definitionsScriptOffset = indexSource.indexOf("app/tag-tooltip-definitions.js");
