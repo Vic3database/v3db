@@ -46,8 +46,17 @@ for (const semanticKey of [
   "country-formation:minor",
   "country-status:special",
   "country-status:dual-heritage",
+  "country-type:受认可国家",
   "country-type:殖民国家",
+  "country-type:公司",
+  "country-type:未受认可国家",
+  "country-type:松散部族",
+  "country-tier:城邦",
   "country-tier:公国",
+  "country-tier:大公国",
+  "country-tier:王国",
+  "country-tier:帝国",
+  "country-tier:霸权",
   "tag-type",
   "tag-tier",
   "tag-region",
@@ -63,22 +72,22 @@ for (const semanticKey of [
 ]) {
   assert.match(
     definitionsSource,
-    new RegExp(`"${semanticKey}"\\s*:`),
-    `TAG_TOOLTIP_DEFINITIONS is missing ${semanticKey}`,
+    new RegExp(`"${semanticKey}"\\s*:\\s*{[\\s\\S]{0,300}description\\s*:`),
+    `TAG_TOOLTIP_DEFINITIONS is missing an explicit description for ${semanticKey}`,
   );
 }
 
-assert.match(definitionsSource, /country-status:start[\s\S]{0,500}1836年开局时已存在/);
-assert.match(definitionsSource, /country-type:殖民国家[\s\S]{0,500}殖民地类型/);
-assert.match(definitionsSource, /country-tier:公国[\s\S]{0,500}国家位阶/);
+assert.match(definitionsSource, /const TAG_TOOLTIP_DEFAULTS\s*=\s*{/, "tooltip defaults declaration is missing");
+assert.match(definitionsSource, /tag:\s*{[\s\S]{0,300}description:/, "tag description template is missing");
+assert.match(definitionsSource, /concept:\s*{[\s\S]{0,300}description:/, "concept description template is missing");
 
 assert.match(source, /function\s+tagTooltipMetadata\s*\(/);
 assert.match(source, /function\s+conceptDataAttributes\s*\(/);
 
 const tagTooltipMetadataSource = functionSource("tagTooltipMetadata");
 assert.match(tagTooltipMetadataSource, /TAG_TOOLTIP_DEFINITIONS\[definitionKey\]/);
-assert.match(tagTooltipMetadataSource, /definition\.category\s*\|\|\s*"属性标签"/);
-assert.match(tagTooltipMetadataSource, /“\$\{label\}”用于标示当前条目的\$\{category\}。/);
+assert.match(tagTooltipMetadataSource, /TAG_TOOLTIP_DEFAULTS\.tag/);
+assert.match(tagTooltipMetadataSource, /formatTooltipDescription\(/);
 
 const countryTagPillsSource = functionSource("countryTagPills");
 assert.match(countryTagPillsSource, /`country-type:\$\{countryTypeTagLabel\(country\)\}`/);
@@ -134,6 +143,8 @@ assert.match(uiSource, /function\s+suppressNativeTooltip\s*\(/, "native tooltip 
 assert.match(uiSource, /scheduleConceptTooltip[\s\S]*suppressNativeTooltip\(target\)/, "native tooltip suppression must run before the hover delay");
 assert.match(uiSource, /dataset\.conceptDescription/, "concept tooltip must read explicit tag descriptions");
 assert.match(uiSource, /concept-tooltip-description/, "concept tooltip must render a readable description row");
+assert.match(uiSource, /TAG_TOOLTIP_DEFAULTS\.concept/, "concept tooltip fallback must use the definitions file");
+assert.match(uiSource, /formatTooltipDescription\(/, "concept tooltip fallback must format the definitions template");
 assert.match(recordStyles, /\.concept-tooltip-description\s*{[\s\S]*color:\s*var\(--ink\)/, "tooltip description style is missing");
 
 for (const functionName of [
