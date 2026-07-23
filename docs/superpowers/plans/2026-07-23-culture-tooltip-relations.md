@@ -233,13 +233,13 @@ git diff --check
 
 Expected: 每个 Node 检查以零退出码结束，两个新旧悬停检查分别输出 `{"tag_tooltip_components":"ok"}` 和 `{"culture_tooltip_relations":"ok"}`，其余现有检查继续输出 `ok`。
 
-- [ ] **Step 2: 检查提交范围**
+- [x] **Step 2: 检查提交范围**
 
 Run: `git status --short`
 
 Expected: 只保留本功能的已提交改动；不执行浏览器或页面悬停验证。
 
-- [ ] **Step 3: 提交验证记录**
+- [x] **Step 3: 提交验证记录**
 
 ```bash
 git add docs/superpowers/specs/2026-07-23-culture-tooltip-relations-design.md docs/superpowers/plans/2026-07-23-culture-tooltip-relations.md
