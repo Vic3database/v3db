@@ -193,11 +193,18 @@ assert.match(
 );
 assert.match(uiSource, /function\s+cultureTooltipRelationSections\s*\(/, "culture relation resolver is missing");
 assert.match(uiSource, /function\s+cultureTooltipRelationSection\s*\(/, "culture relation renderer is missing");
+assert.match(uiSource, /function\s+cultureTooltipHeader\s*\(/, "culture tooltip header renderer is missing");
+assert.match(uiSource, /culture-tooltip-head/, "culture tooltip must use the two-column header layout");
+assert.match(uiSource, /culture-tooltip-divider/, "culture tooltip must separate its content blocks");
+assert.match(uiSource, /右键进行筛选/, "culture tooltip must use the filter action hint");
+assert.match(uiSource, /\$\{group\.type_zh\}特质组/, "heritage groups must identify themselves as trait groups");
 assert.match(uiSource, /cultureTraitGroupByKey\.get\(key\)/, "culture trait groups must resolve from their own index");
 assert.match(uiSource, /related_countries/, "culture tooltip must show primary-culture countries");
 assert.match(uiSource, /obsessions/, "culture tooltip must show obsessions");
 assert.match(uiSource, /taboos/, "culture tooltip must show taboos");
 assert.match(recordStyles, /\.concept-tooltip\.culture-tooltip\s*{/, "culture tooltip layout is missing");
+assert.match(recordStyles, /\.culture-tooltip-head\s*{/, "culture tooltip header style is missing");
+assert.match(recordStyles, /\.culture-tooltip-divider\s*{/, "culture tooltip divider style is missing");
 assert.doesNotMatch(uiSource, /cultureTooltipRelationSection[\s\S]{0,1200}conceptPill\s*\(/, "culture relations must not create nested concept pills");
 assert.doesNotMatch(uiSource, /cultureTooltipRelationSection[\s\S]{0,1200}title=/, "culture relations must not emit native titles");
 
@@ -218,12 +225,12 @@ assert.match(source, /function\s+buildingChip\s*\([\s\S]*conceptDataAttributes\(
 
 const rootStyleSource = fs.readFileSync(path.join(process.cwd(), "site/styles.css"), "utf8");
 const presentationSource = fs.readFileSync(path.join(process.cwd(), "site/app/presentation.js"), "utf8");
-assert.match(indexSource, /styles\.css\?v=20260723-culture-tooltips1/, "main stylesheet cache version is missing");
+assert.match(indexSource, /styles\.css\?v=20260723-culture-tooltips2/, "main stylesheet cache version is missing");
 assert.match(indexSource, /app\/runtime\.js\?v=20260723-tag-tooltip-definitions2/, "tooltip runtime cache version is missing");
-assert.match(indexSource, /app\/ui\.js\?v=20260723-culture-tooltips1/, "tooltip UI cache version is missing");
-assert.match(indexSource, /app\/tag-tooltip-definitions\.js\?v=20260723-culture-tooltips1/, "tooltip definitions cache version is missing");
+assert.match(indexSource, /app\/ui\.js\?v=20260723-culture-tooltips2/, "tooltip UI cache version is missing");
+assert.match(indexSource, /app\/tag-tooltip-definitions\.js\?v=20260723-culture-tooltips2/, "tooltip definitions cache version is missing");
 assert.match(indexSource, /app\/components\.js\?v=20260723-tag-tooltip-definitions3/, "tooltip component cache version is missing");
-assert.match(rootStyleSource, /styles\/records\.css\?v=20260723-culture-tooltips1/, "tooltip record-style cache version is missing");
+assert.match(rootStyleSource, /styles\/records\.css\?v=20260723-culture-tooltips2/, "tooltip record-style cache version is missing");
 
 const definitionsScriptOffset = indexSource.indexOf("app/tag-tooltip-definitions.js");
 const componentsScriptOffset = indexSource.indexOf("app/components.js");

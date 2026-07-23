@@ -513,6 +513,31 @@ function cultureTooltipRelationSections(kind, key) {
   return "";
 }
 
+function cultureTooltipType(kind, key) {
+  if (kind === "cultureTraitGroup") {
+    const group = cultureTraitGroupByKey.get(key);
+    return group?.type_zh ? `${group.type_zh}特质组` : "文化特质组";
+  }
+  if (kind === "cultureTrait") {
+    const trait = cultureTraitByKey.get(key);
+    return trait?.type_zh ? `${trait.type_zh}特质` : "文化特质";
+  }
+  if (kind === "culture") return "文化";
+  return conceptKindLabel(kind);
+}
+
+function cultureTooltipHeader(kind, key, label) {
+  return `
+    <div class="culture-tooltip-head">
+      <div class="culture-tooltip-identity">
+        <strong>${escapeHtml(label || key)}</strong>
+        <div class="culture-tooltip-key">${escapeHtml(key)}</div>
+      </div>
+      <div class="culture-tooltip-type">${escapeHtml(cultureTooltipType(kind, key))}</div>
+    </div>
+  `;
+}
+
 function conceptTooltipRows(target, relationSections = "") {
   const label = target.dataset.conceptLabel || target.textContent?.trim() || "";
   const key = target.dataset.conceptKey || "";
@@ -520,7 +545,16 @@ function conceptTooltipRows(target, relationSections = "") {
   const kindText = target.dataset.conceptCategory || conceptKindLabel(kind);
   const context = conceptTooltipContextLine(kind, key);
   const resolvedRelations = relationSections || cultureTooltipRelationSections(kind, key);
-  const description = resolvedRelations ? "" : conceptTooltipDescription(target, kind, key, label);
+  if (resolvedRelations) {
+    return [
+      cultureTooltipHeader(kind, key, label),
+      `<div class="culture-tooltip-divider"></div>`,
+      `<div class="culture-tooltip-relations">${resolvedRelations}</div>`,
+      `<div class="culture-tooltip-divider"></div>`,
+      `<small>${escapeHtml(conceptTooltipActionText(target))}</small>`,
+    ].join("");
+  }
+  const description = conceptTooltipDescription(target, kind, key, label);
   return [
     `<strong>${escapeHtml(label || key)}</strong>`,
     `<span>${escapeHtml([kindText, key].filter(Boolean).join(" · "))}</span>`,
@@ -617,6 +651,9 @@ function conceptTooltipIdeologyLawStance(ideology) {
 }
 
 function conceptTooltipActionText(target) {
+  if (["culture", "cultureTrait", "cultureTraitGroup"].includes(target.dataset.conceptKind || "")) {
+    return "右键进行筛选";
+  }
   return target.matches("a[href]") ? "打开详情，右键搜索" : "右键搜索";
 }
 

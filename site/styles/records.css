@@ -411,10 +411,47 @@ body.results-collapsed .concept-tooltip {
 }
 
 .concept-tooltip.culture-tooltip {
+  display: block;
   width: min(420px, calc(100vw - 28px));
   max-width: none;
   max-height: min(70vh, 480px);
   overflow-y: auto;
+}
+
+.culture-tooltip-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(104px, 0.45fr);
+  align-items: center;
+  gap: 12px;
+}
+
+.culture-tooltip-identity {
+  min-width: 0;
+}
+
+.culture-tooltip-key {
+  color: var(--muted);
+  font-family: var(--font-ui);
+  font-size: var(--text-xs);
+  overflow-wrap: anywhere;
+}
+
+.culture-tooltip-type {
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: var(--text-xs);
+  text-align: center;
+}
+
+.culture-tooltip-divider {
+  height: 1px;
+  margin: 10px 0;
+  background: rgba(200, 164, 91, 0.24);
+}
+
+.culture-tooltip-relations {
+  display: grid;
+  gap: 10px;
 }
 
 .concept-tooltip-relation {
