@@ -6,6 +6,10 @@ const source = fs.readFileSync(
   path.join(process.cwd(), "site/app/components.js"),
   "utf8",
 );
+const definitionsPath = path.join(process.cwd(), "site/app/tag-tooltip-definitions.js");
+assert.ok(fs.existsSync(definitionsPath), "tooltip definitions file is missing");
+const definitionsSource = fs.readFileSync(definitionsPath, "utf8");
+const indexSource = fs.readFileSync(path.join(process.cwd(), "site/index.html"), "utf8");
 
 function functionSource(name) {
   const declaration = new RegExp(`function\\s+${name}\\s*\\(`).exec(source);
@@ -25,29 +29,25 @@ function functionSource(name) {
 }
 
 assert.match(
-  source,
-  /const TAG_TOOLTIP_DEFINITIONS\s*=\s*new Map\s*\(/,
-  "TAG_TOOLTIP_DEFINITIONS Map declaration is missing",
+  definitionsSource,
+  /const TAG_TOOLTIP_DEFINITIONS\s*=\s*{/,
+  "TAG_TOOLTIP_DEFINITIONS object declaration is missing",
 );
-const tagTooltipDefinitionsStart = source.indexOf("const TAG_TOOLTIP_DEFINITIONS");
-const tagTooltipDefinitionsEnd = source.indexOf("]);", tagTooltipDefinitionsStart);
-assert.notEqual(tagTooltipDefinitionsEnd, -1, "TAG_TOOLTIP_DEFINITIONS has no closing delimiter");
-const tagTooltipDefinitionsSource = source.slice(tagTooltipDefinitionsStart, tagTooltipDefinitionsEnd + 3);
+assert.doesNotMatch(
+  source,
+  /const TAG_TOOLTIP_DEFINITIONS\s*=/,
+  "components.js must not own editable tooltip definitions",
+);
 
 for (const semanticKey of [
+  "country-status:start",
   "country-status:releasable",
   "country-formation:major",
   "country-formation:minor",
   "country-status:special",
   "country-status:dual-heritage",
-]) {
-  assert.ok(
-    tagTooltipDefinitionsSource.includes(`["${semanticKey}"`),
-    `TAG_TOOLTIP_DEFINITIONS is missing ${semanticKey}`,
-  );
-}
-
-for (const classKey of [
+  "country-type:殖民国家",
+  "country-tier:公国",
   "tag-type",
   "tag-tier",
   "tag-region",
@@ -61,21 +61,22 @@ for (const classKey of [
   "tag-more",
   "tag-muted",
 ]) {
-  assert.ok(
-    tagTooltipDefinitionsSource.includes(`["${classKey}"`),
-    `TAG_TOOLTIP_DEFINITIONS is missing the ${classKey} category`,
+  assert.match(
+    definitionsSource,
+    new RegExp(`"${semanticKey}"\\s*:`),
+    `TAG_TOOLTIP_DEFINITIONS is missing ${semanticKey}`,
   );
 }
 
-assert.match(source, /country-status:start[\s\S]{0,500}开局/);
-assert.match(source, /country-status:start[\s\S]{0,500}1836年开局时已存在/);
-assert.match(source, /country-type:殖民国家[\s\S]{0,500}殖民地/);
-assert.match(source, /country-tier:公国[\s\S]{0,500}国家位阶/);
+assert.match(definitionsSource, /country-status:start[\s\S]{0,500}1836年开局时已存在/);
+assert.match(definitionsSource, /country-type:殖民国家[\s\S]{0,500}殖民地类型/);
+assert.match(definitionsSource, /country-tier:公国[\s\S]{0,500}国家位阶/);
 
 assert.match(source, /function\s+tagTooltipMetadata\s*\(/);
 assert.match(source, /function\s+conceptDataAttributes\s*\(/);
 
 const tagTooltipMetadataSource = functionSource("tagTooltipMetadata");
+assert.match(tagTooltipMetadataSource, /TAG_TOOLTIP_DEFINITIONS\[definitionKey\]/);
 assert.match(tagTooltipMetadataSource, /definition\.category\s*\|\|\s*"属性标签"/);
 assert.match(tagTooltipMetadataSource, /“\$\{label\}”用于标示当前条目的\$\{category\}。/);
 
@@ -150,13 +151,18 @@ for (const functionName of [
 assert.match(source, /function\s+refConceptPill\s*\([\s\S]*conceptPill\(/, "reference tags must stay on the concept-pill path");
 assert.match(source, /function\s+buildingChip\s*\([\s\S]*conceptDataAttributes\(/, "state-region building tags must expose concept metadata");
 
-const indexSource = fs.readFileSync(path.join(process.cwd(), "site/index.html"), "utf8");
 const rootStyleSource = fs.readFileSync(path.join(process.cwd(), "site/styles.css"), "utf8");
 const presentationSource = fs.readFileSync(path.join(process.cwd(), "site/app/presentation.js"), "utf8");
 assert.match(indexSource, /styles\.css\?v=20260722-tag-tooltips1/, "main stylesheet cache version is missing");
 assert.match(indexSource, /app\/ui\.js\?v=20260722-tag-tooltips1/, "tooltip UI cache version is missing");
-assert.match(indexSource, /app\/components\.js\?v=20260722-tag-tooltips1/, "tooltip component cache version is missing");
+assert.match(indexSource, /app\/tag-tooltip-definitions\.js\?v=20260723-tag-tooltip-definitions1/, "tooltip definitions cache version is missing");
+assert.match(indexSource, /app\/components\.js\?v=20260723-tag-tooltip-definitions1/, "tooltip component cache version is missing");
 assert.match(rootStyleSource, /styles\/records\.css\?v=20260722-tag-tooltips1/, "tooltip record-style cache version is missing");
+
+const definitionsScriptOffset = indexSource.indexOf("app/tag-tooltip-definitions.js");
+const componentsScriptOffset = indexSource.indexOf("app/components.js");
+assert.ok(definitionsScriptOffset >= 0, "tooltip definitions script is missing");
+assert.ok(componentsScriptOffset > definitionsScriptOffset, "tooltip definitions must load before components");
 
 const conceptTagSource = functionSource("conceptTag");
 assert.match(conceptTagSource, /conceptDataAttributes\s*\(/, "identity tags must use shared concept metadata");
