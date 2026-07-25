@@ -360,6 +360,7 @@ function scheduleConceptTooltip(target, event) {
     hideConceptTooltip();
     return;
   }
+  suppressNativeTooltip(target);
   clearConceptTooltipTimer();
   pendingConceptTooltipTarget = target;
   pendingConceptTooltipPoint = conceptTooltipPoint(event);
@@ -391,9 +392,17 @@ function showConceptTooltip(target, event) {
     hideConceptTooltip();
     return;
   }
+  suppressNativeTooltip(target);
   const isIdeology = target.dataset.conceptKind === "ideology";
+  const cultureRelations = cultureTooltipRelationSections(
+    target.dataset.conceptKind || "",
+    target.dataset.conceptKey || "",
+  );
   els.conceptTooltip.classList.toggle("ideology-tooltip", isIdeology);
-  els.conceptTooltip.innerHTML = isIdeology ? ideologyTooltipRows(target) : conceptTooltipRows(target);
+  els.conceptTooltip.classList.toggle("culture-tooltip", Boolean(cultureRelations));
+  els.conceptTooltip.innerHTML = isIdeology
+    ? ideologyTooltipRows(target)
+    : conceptTooltipRows(target, cultureRelations);
   els.conceptTooltip.hidden = false;
   moveConceptTooltip(event);
 }
@@ -450,18 +459,143 @@ function ideologyTooltipAttitudeLines(stances) {
   }).join("");
 }
 
-function conceptTooltipRows(target) {
+function cultureTooltipRelationSection(title, items) {
+  if (!title) return "";
+  const labels = [...(items || [])]
+    .map((item) => item?.name_zh || item?.key || "")
+    .filter(Boolean)
+    .sort((left, right) => left.localeCompare(right, "zh-Hans-CN"));
+  const empty = TAG_TOOLTIP_DEFAULTS.cultureRelations?.empty || "无";
+  return `<section class="concept-tooltip-relation"><h4>${escapeHtml(title)}</h4><p>${escapeHtml(labels.join("、") || empty)}</p></section>`;
+}
+
+function cultureTooltipRelationSections(kind, key) {
+  const labels = TAG_TOOLTIP_DEFAULTS.cultureRelations || {};
+  if (kind === "cultureTraitGroup") {
+    const group = cultureTraitGroupByKey.get(key);
+    if (!group || !["heritage", "language"].includes(group.type)) return "";
+    const title = group.type === "heritage" ? labels.heritageGroup : labels.languageGroup;
+    const items = cultureTraits.filter((trait) => trait.group_key === key && trait.type === group.type);
+    return cultureTooltipRelationSection(title, items);
+  }
+  if (kind === "cultureTrait") {
+    const trait = cultureTraitByKey.get(key);
+    if (!trait) return "";
+    if (trait.type === "heritage") {
+      return cultureTooltipRelationSection(
+        labels.heritage,
+        cultures.filter((culture) => culture.heritage?.key === key),
+      );
+    }
+    if (trait.type === "language") {
+      return cultureTooltipRelationSection(
+        labels.language,
+        cultures.filter((culture) => culture.language?.key === key),
+      );
+    }
+    if (trait.type === "tradition") {
+      return cultureTooltipRelationSection(
+        labels.tradition,
+        cultures.filter((culture) => (culture.traditions || []).some((item) => item.key === key)),
+      );
+    }
+    return "";
+  }
+  if (kind === "culture") {
+    const culture = byCulture.get(key);
+    if (!culture) return "";
+    return [
+      cultureTooltipRelationSection(labels.primaryCultureCountries, culture.related_countries),
+      cultureTooltipRelationSection(labels.obsessions, culture.obsessions),
+      cultureTooltipRelationSection(labels.taboos, culture.taboos),
+    ].join("");
+  }
+  return "";
+}
+
+function cultureTooltipType(kind, key) {
+  if (kind === "cultureTraitGroup") {
+    const group = cultureTraitGroupByKey.get(key);
+    return group?.type_zh ? `${group.type_zh}特质组` : "文化特质组";
+  }
+  if (kind === "cultureTrait") {
+    const trait = cultureTraitByKey.get(key);
+    return trait?.type_zh ? `${trait.type_zh}特质` : "文化特质";
+  }
+  if (kind === "culture") return "文化";
+  return conceptKindLabel(kind);
+}
+
+function cultureTooltipHeader(kind, key, label) {
+  return `
+    <div class="culture-tooltip-head">
+      <div class="culture-tooltip-identity">
+        <strong>${escapeHtml(label || key)}</strong>
+        <div class="culture-tooltip-key">${escapeHtml(key)}</div>
+      </div>
+      <div class="culture-tooltip-type">${escapeHtml(cultureTooltipType(kind, key))}</div>
+    </div>
+  `;
+}
+
+function conceptTooltipRows(target, relationSections = "") {
   const label = target.dataset.conceptLabel || target.textContent?.trim() || "";
   const key = target.dataset.conceptKey || "";
   const kind = target.dataset.conceptKind || "";
-  const kindText = conceptKindLabel(kind);
+  const kindText = target.dataset.conceptCategory || conceptKindLabel(kind);
   const context = conceptTooltipContextLine(kind, key);
+  const resolvedRelations = relationSections || cultureTooltipRelationSections(kind, key);
+  if (resolvedRelations) {
+    return [
+      cultureTooltipHeader(kind, key, label),
+      `<div class="culture-tooltip-divider"></div>`,
+      `<div class="culture-tooltip-relations">${resolvedRelations}</div>`,
+      `<div class="culture-tooltip-divider"></div>`,
+      `<small>${escapeHtml(conceptTooltipActionText(target))}</small>`,
+    ].join("");
+  }
+  const description = conceptTooltipDescription(target, kind, key, label);
   return [
     `<strong>${escapeHtml(label || key)}</strong>`,
     `<span>${escapeHtml([kindText, key].filter(Boolean).join(" · "))}</span>`,
     context ? `<span>${escapeHtml(context)}</span>` : "",
+    description ? `<span class="concept-tooltip-description">${escapeHtml(description)}</span>` : "",
+    resolvedRelations,
     `<small>${escapeHtml(conceptTooltipActionText(target))}</small>`,
   ].filter(Boolean).join("");
+}
+
+function suppressNativeTooltip(target) {
+  if (!target) return;
+  target.removeAttribute("title");
+  target.querySelectorAll("[title]").forEach((node) => node.removeAttribute("title"));
+}
+
+function conceptTooltipDescription(target, kind, key, label) {
+  const explicit = target.dataset.conceptDescription || "";
+  if (explicit) return explicit;
+  const entity = conceptTooltipEntity(kind, key);
+  const description = String(entity?.desc_zh || entity?.modifier_summary_zh || "").replace(/\s+/g, " ").trim();
+  if (description) return description;
+  const category = target.dataset.conceptCategory || conceptKindLabel(kind);
+  const defaults = TAG_TOOLTIP_DEFAULTS.concept || {};
+  return formatTooltipDescription(defaults.description, { label: label || key, key, category });
+}
+
+function conceptTooltipEntity(kind, key) {
+  if (kind === "country") return byTag.get(key);
+  if (kind === "culture") return byCulture.get(key);
+  if (kind === "stateRegion") return byStateRegion.get(key);
+  if (kind === "strategicRegion") return byStrategicRegion.get(key);
+  if (kind === "geographicRegion") return byGeographicRegion.get(key);
+  if (kind === "company") return byCompany.get(key);
+  if (kind === "ideology") return ideologyByKey.get(key);
+  if (kind === "law") return lawByKey.get(key);
+  if (kind === "interestGroup") return byInterestGroup.get(key);
+  if (kind === "interestGroupTrait") return interestGroupTraitByKey.get(key);
+  if (kind === "cultureTrait") return cultureTraitByKey.get(key);
+  if (kind === "cultureTraitGroup") return cultureTraitGroupByKey.get(key);
+  return null;
 }
 
 function conceptTooltipContextLine(kind, key) {
@@ -517,6 +651,9 @@ function conceptTooltipIdeologyLawStance(ideology) {
 }
 
 function conceptTooltipActionText(target) {
+  if (["culture", "cultureTrait", "cultureTraitGroup"].includes(target.dataset.conceptKind || "")) {
+    return "右键进行筛选";
+  }
   return target.matches("a[href]") ? "打开详情，右键搜索" : "右键搜索";
 }
 
@@ -534,7 +671,7 @@ function hideConceptTooltip() {
   clearConceptTooltipTimer();
   if (!els.conceptTooltip) return;
   els.conceptTooltip.hidden = true;
-  els.conceptTooltip.classList.remove("ideology-tooltip");
+  els.conceptTooltip.classList.remove("ideology-tooltip", "culture-tooltip");
 }
 
 function searchConcept(target) {

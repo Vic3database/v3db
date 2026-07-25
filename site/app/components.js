@@ -11,8 +11,8 @@ function countryTagPills(country) {
   return [
     victorianCenturyBadge(country),
     statusPills(country),
-    tagPill(countryTypeTagLabel(country), "tag-type"),
-    tagPill(country.tierZh, "tag-tier"),
+    tagPill(countryTypeTagLabel(country), "tag-type", "", `country-type:${countryTypeTagLabel(country)}`),
+    tagPill(country.tierZh, "tag-tier", "", `country-tier:${country.tierZh || ""}`),
     groupedTraitPills(country.primaryCultureHeritageGroups, country.primaryCultureHeritages, "tag-heritage-group", "tag-heritage"),
     groupedTraitPills(country.primaryCultureLanguageGroups, country.primaryCultureLanguages, "tag-language-group", "tag-language"),
     refPills(country.primaryCultureTraditions, "tag-tradition"),
@@ -22,12 +22,12 @@ function countryTagPills(country) {
 
 function statusPills(country) {
   const pills = [];
-  if (country.existsAtStart === "是") pills.push(tagPill("开局", "good"));
-  if (country.isReleasable === "是") pills.push(tagPill("释放", "tag-release"));
-  if (country.isMajorFormable === "是") pills.push(tagPill("重大统一", "warn"));
-  else if (country.isMinorFormable === "是") pills.push(tagPill("次要统一", "warn"));
-  if (country.isSpecial === "是") pills.push(tagPill("特殊", "special"));
-  if (country.isDualHeritage === "是") pills.push(tagPill("双传承", "tag-dual"));
+  if (country.existsAtStart === "是") pills.push(tagPill("开局", "good", "", "country-status:start"));
+  if (country.isReleasable === "是") pills.push(tagPill("释放", "tag-release", "", "country-status:releasable"));
+  if (country.isMajorFormable === "是") pills.push(tagPill("重大统一", "warn", "", "country-formation:major"));
+  else if (country.isMinorFormable === "是") pills.push(tagPill("次要统一", "warn", "", "country-formation:minor"));
+  if (country.isSpecial === "是") pills.push(tagPill("特殊", "special", "", "country-status:special"));
+  if (country.isDualHeritage === "是") pills.push(tagPill("双传承", "tag-dual", "", "country-status:dual-heritage"));
   return pills.join("");
 }
 
@@ -46,42 +46,58 @@ function groupedTraitPills(groups, traits, groupClass, traitClass) {
   const orderedGroups = [...(groups || [])].sort(groupClass.includes("heritage") ? sortHeritageGroupRef : sortRefByName);
   for (const group of orderedGroups) {
     if (!group?.key) continue;
+    const label = group.name_zh || group.key;
+    const metadata = conceptTooltipMetadata(label, groupClass, "cultureTraitGroup", group.key);
     items.push(conceptPill({
-      label: group.name_zh || group.key,
+      label,
       className: groupClass,
       title: group.key,
       kind: "cultureTraitGroup",
       key: group.key,
+      category: metadata.category,
+      description: metadata.description,
     }));
     for (const trait of traitsByGroup.get(group.key) || []) {
+      const label = trait.name_zh || trait.key;
+      const metadata = conceptTooltipMetadata(label, traitClass, "cultureTrait", trait.key);
       items.push(conceptPill({
-        label: trait.name_zh || trait.key,
+        label,
         className: traitClass,
         title: trait.key,
         kind: "cultureTrait",
         key: trait.key,
+        category: metadata.category,
+        description: metadata.description,
       }));
     }
     traitsByGroup.delete(group.key);
   }
   for (const traits of traitsByGroup.values()) {
     for (const trait of traits) {
+      const label = trait.name_zh || trait.key;
+      const metadata = conceptTooltipMetadata(label, traitClass, "cultureTrait", trait.key);
       items.push(conceptPill({
-        label: trait.name_zh || trait.key,
+        label,
         className: traitClass,
         title: trait.key,
         kind: "cultureTrait",
         key: trait.key,
+        category: metadata.category,
+        description: metadata.description,
       }));
     }
   }
   for (const trait of remaining) {
+    const label = trait.name_zh || trait.key;
+    const metadata = conceptTooltipMetadata(label, traitClass, "cultureTrait", trait.key);
     items.push(conceptPill({
-      label: trait.name_zh || trait.key,
+      label,
       className: traitClass,
       title: trait.key,
       kind: "cultureTrait",
       key: trait.key,
+      category: metadata.category,
+      description: metadata.description,
     }));
   }
   return items.join("");
@@ -114,6 +130,65 @@ function geographicRegionTagPills(region) {
   ].filter(Boolean).join("");
 }
 
+function tagTooltipMetadata(label, className, sourceKey, semanticKey) {
+  const classKeys = String(className || "").split(/\s+/).filter(Boolean);
+  const semanticPrefix = String(semanticKey || "").split(":")[0];
+  const definitionKey = [semanticKey, semanticPrefix, sourceKey, ...classKeys]
+    .find((key) => key && TAG_TOOLTIP_DEFINITIONS[key]);
+  const definition = TAG_TOOLTIP_DEFINITIONS[definitionKey] || {};
+  const defaults = TAG_TOOLTIP_DEFAULTS.tag || {};
+  const key = semanticKey || sourceKey || label || "";
+  const category = definition.category || defaults.category || "";
+  const description = formatTooltipDescription(definition.description || defaults.description, { label, key, category });
+  return { key, category, description };
+}
+
+function conceptTooltipMetadata(label, className, kind, key) {
+  if (!["culture", "cultureTrait", "cultureTraitGroup"].includes(kind)) return {};
+  const classKeys = String(className || "").split(/\s+/).filter(Boolean);
+  const definitionKey = [key, ...classKeys].find((candidate) => candidate && TAG_TOOLTIP_DEFINITIONS[candidate]);
+  const definition = TAG_TOOLTIP_DEFINITIONS[definitionKey] || {};
+  const defaults = TAG_TOOLTIP_DEFAULTS[kind] || TAG_TOOLTIP_DEFAULTS.concept || {};
+  const category = definition.category || defaults.category || "";
+  const description = formatTooltipDescription(definition.description || defaults.description, { label, key, category });
+  return { category, description };
+}
+
+function conceptDataAttributes({
+  kind = "",
+  key = "",
+  label = "",
+  search = "",
+  category = "",
+  description = "",
+}) {
+  const conceptKey = key || label || "";
+  const conceptSearch = search || label || conceptKey;
+  return [
+    kind ? `data-concept-kind="${escapeHtml(kind)}"` : "",
+    conceptKey ? `data-concept-key="${escapeHtml(conceptKey)}"` : "",
+    label ? `data-concept-label="${escapeHtml(label)}"` : "",
+    conceptSearch ? `data-concept-search="${escapeHtml(conceptSearch)}"` : "",
+    category ? `data-concept-category="${escapeHtml(category)}"` : "",
+    description ? `data-concept-description="${escapeHtml(description)}"` : "",
+  ].filter(Boolean).join(" ");
+}
+
+function conceptTag(label, kind = "", key = "", search = "") {
+  if (!label) return "";
+  const conceptKey = key || label;
+  const metadata = conceptTooltipMetadata(label, "", kind, conceptKey);
+  const attrs = conceptDataAttributes({
+    kind,
+    key: conceptKey,
+    label,
+    search: search || label,
+    category: metadata.category,
+    description: metadata.description,
+  });
+  return `<span class="tag concept-tag" ${attrs}>${escapeHtml(label)}</span>`;
+}
+
 function conceptPill({
   label,
   className = "",
@@ -123,19 +198,23 @@ function conceptPill({
   key = "",
   href = "",
   search = "",
+  category = "",
+  description = "",
   html = "",
 }) {
   if (!label && !html) return "";
   const classText = className ? ` ${className}` : "";
-  const conceptKey = key || label || "";
-  const tooltip = title || conceptKey;
+  const conceptKey = key || title || label || "";
   const attrs = [
     `class="pill concept-pill${classText}"`,
-    !hideNativeTitle && tooltip && tooltip !== label ? `title="${escapeHtml(tooltip)}"` : "",
-    kind ? `data-concept-kind="${escapeHtml(kind)}"` : "",
-    conceptKey ? `data-concept-key="${escapeHtml(conceptKey)}"` : "",
-    label ? `data-concept-label="${escapeHtml(label)}"` : "",
-    search || label || conceptKey ? `data-concept-search="${escapeHtml(search || label || conceptKey)}"` : "",
+    conceptDataAttributes({
+      kind,
+      key: conceptKey,
+      label,
+      search,
+      category,
+      description,
+    }),
   ].filter(Boolean).join(" ");
   const content = html || escapeHtml(label);
   if (href) return `<a ${attrs} href="${escapeHtml(href)}">${content}</a>`;
@@ -186,6 +265,7 @@ function refConceptPill(item, className = "") {
     : kind === "geographicRegion"
       ? geographicRegionDisplayName(byGeographicRegion.get(key) || item)
     : item.name_zh || item.key || item.tag || "";
+  const metadata = conceptTooltipMetadata(label, className, kind, key);
   return conceptPill({
     label,
     className,
@@ -193,6 +273,8 @@ function refConceptPill(item, className = "") {
     kind,
     key,
     href: conceptHref(kind, key),
+    category: metadata.category,
+    description: metadata.description,
   });
 }
 
@@ -212,11 +294,20 @@ function inferConceptKind(key) {
   return "";
 }
 
-function tagPill(label, className = "", title = "") {
+function tagPill(label, className = "", title = "", semanticKey = "", html = "") {
   if (!label) return "";
-  const titleText = title && title !== label ? ` title="${escapeHtml(title)}"` : "";
-  const classText = className ? ` ${className}` : "";
-  return `<span class="pill tag-pill${classText}"${titleText}>${escapeHtml(label)}</span>`;
+  const metadata = tagTooltipMetadata(label, className, title, semanticKey);
+  return conceptPill({
+    label,
+    className: `tag-pill${className ? ` ${className}` : ""}`,
+    title,
+    hideNativeTitle: true,
+    kind: "tag",
+    key: metadata.key,
+    category: metadata.category,
+    description: metadata.description,
+    html,
+  });
 }
 
 function victorianCenturyBadge(item) {
@@ -386,21 +477,29 @@ function listText(values) {
 
 function traitPill(trait) {
   if (!trait?.key) return "";
+  const label = trait.name_zh || trait.key;
+  const metadata = conceptTooltipMetadata(label, "", "cultureTrait", trait.key);
   return conceptPill({
-    label: trait.name_zh || trait.key,
+    label,
     kind: "cultureTrait",
     key: trait.key,
     title: trait.key,
+    category: metadata.category,
+    description: metadata.description,
   });
 }
 
 function traitGroupPill(group) {
   if (!group?.key) return "";
+  const label = group.name_zh || group.key;
+  const metadata = conceptTooltipMetadata(label, "", "cultureTraitGroup", group.key);
   return conceptPill({
-    label: group.name_zh || group.key,
+    label,
     kind: "cultureTraitGroup",
     key: group.key,
     title: group.key,
+    category: metadata.category,
+    description: metadata.description,
   });
 }
 
@@ -540,7 +639,7 @@ function interestGroupFlavorCard(group) {
         <span class="interest-group-title">
           <span class="interest-group-color" aria-hidden="true"></span>
           <strong>${escapeHtml(displayName)}</strong>
-          ${!group.display_name?.is_flavored ? `<span class="pill tag-pill tag-muted">基础</span>` : ""}
+          ${!group.display_name?.is_flavored ? tagPill("基础", "tag-muted") : ""}
         </span>
         <span class="minor">${escapeHtml(group.key)}</span>
       </div>
@@ -1391,8 +1490,15 @@ function companyMetaLine(company) {
 function companyDlcIconPill(company) {
   if (companyDlcKey(company) === "base") return "";
   const option = companyDlcOptions.find((item) => item.key === companyDlcKey(company));
-  if (!option) return tagPill(companyDlcLabel(company), "tag-dlc");
-  return `<span class="pill tag-pill tag-dlc company-dlc-pill" title="${escapeHtml(companyDlcLabel(company))}">${dlcIconHtml(option)}</span>`;
+  const label = companyDlcLabel(company);
+  const key = companyDlcKey(company);
+  return tagPill(
+    label,
+    "tag-dlc company-dlc-pill",
+    key,
+    `company-dlc:${key}`,
+    option ? dlcIconHtml(option) : "",
+  );
 }
 
 function companyPrestigeGoodsPills(company) {
@@ -1415,10 +1521,9 @@ function companyPrestigeGoodPill(item) {
 }
 
 function goodsIconHtml(item, className = "prestige-good-icon") {
-  const label = item?.name_zh || item?.key || "";
   const path = prestigeGoodIconPath(item?.key || "");
   if (!path) return "";
-  return `<img class="${escapeHtml(className)}" src="${path}" alt="" title="${escapeHtml(label)}">`;
+  return `<img class="${escapeHtml(className)}" src="${path}" alt="">`;
 }
 
 function prestigeGoodIconPath(key) {
@@ -1483,10 +1588,17 @@ function stateRegionBuildingStrip(stateRegion) {
 function buildingChip(item, amount = "", className = "") {
   const name = item?.name_zh || item?.key || "";
   const count = amount !== "" && amount !== null ? `<span class="building-chip-count">${escapeHtml(amount)}</span>` : "";
-  const titleParts = [name, item?.key && item.key !== name ? item.key : "", amount !== "" && amount !== null ? String(amount) : ""].filter(Boolean);
-  const title = titleParts.length ? ` title="${escapeHtml(titleParts.join(" · "))}"` : "";
   const classText = className ? ` ${className}` : "";
-  return `<span class="building-chip${classText}"${title} data-concept-kind="building" data-concept-key="${escapeHtml(item?.key || name)}" data-concept-label="${escapeHtml(name)}" data-concept-search="${escapeHtml(name)}">${buildingIconHtml(item?.key, name)}${count}</span>`;
+  const defaults = TAG_TOOLTIP_DEFAULTS.building || {};
+  const attrs = conceptDataAttributes({
+    kind: "building",
+    key: item?.key || name,
+    label: name,
+    search: name,
+    category: defaults.category || "",
+    description: formatTooltipDescription(defaults.description, { label: name, key: item?.key || name, category: defaults.category || "" }),
+  });
+  return `<span class="building-chip${classText}" ${attrs}>${buildingIconHtml(item?.key, name)}${count}</span>`;
 }
 
 function limitedHtmlItems(items, limit) {
@@ -1584,7 +1696,7 @@ function countryFlagVariantSection(country) {
           <div class="country-flag-variant-body">
             <div class="rule-head country-flag-variant-head">
               <strong>${escapeHtml(variant.key)}</strong>
-              <span class="tag">${escapeHtml(variant.exportKey || variant.key)}</span>
+              ${conceptTag(variant.exportKey || variant.key, "tag", `country-flag-variant:${variant.exportKey || variant.key}`)}
             </div>
             <dl class="mini-grid country-flag-variant-meta">
               ${field("优先级", escapeHtml(String(variant.priority ?? 0)))}
@@ -1676,11 +1788,11 @@ function collapsibleDetailSection(title, html, meta = "") {
   `;
 }
 
-function buildingIconHtml(key, label = "") {
+function buildingIconHtml(key) {
   const fileName = buildingIconFileByKey[key];
   if (!fileName) return "";
   const path = `assets/buildings/${encodeURIComponent(fileName)}`;
-  return `<img class="resource-icon" src="${path}" alt="" title="${escapeHtml(label || key)}">`;
+  return `<img class="resource-icon" src="${path}" alt="">`;
 }
 
 function companyIconHtml(company) {
@@ -1742,8 +1854,7 @@ function interestGroupIconPath(texture) {
 
 function dlcIconHtml(option) {
   if (!option?.icon) return "";
-  const title = option.title || option.label || option.key;
-  return `<img class="dlc-icon" src="assets/dlc/${encodeURIComponent(option.icon)}" alt="" title="${escapeHtml(title)}">`;
+  return `<img class="dlc-icon" src="assets/dlc/${encodeURIComponent(option.icon)}" alt="">`;
 }
 
 function fileBaseName(file) {

@@ -33,7 +33,7 @@ function renderCountryList(filtered) {
     <article class="country-row selectable-row" data-country="${country.tag}" style="${countryBorderStyle(country.colorHex)}" aria-current="${country.tag === state.selectedTag && state.detailKind === "country"}" tabindex="0">
       ${renderEntityBadge("country", country, country.name)}
       <span class="country-heading">
-        <span class="tag">${escapeHtml(country.tag)}</span>
+        ${conceptTag(country.tag, "country", country.tag, country.name)}
         <span class="name">${countryNameText(country)}</span>
         ${rowDetailButton("data-country-detail", country.tag)}
       </span>
@@ -97,7 +97,7 @@ function renderRegionList(filteredStrategicRegions, filteredStateRegions, filter
   const selectedFromMapHtml = mapSelectionIsFilteredOut ? `
     <article class="country-row region-row region-map-selected selectable-row" data-state-region="${escapeHtml(selectedStateRegionFromMap.key)}" style="${stateRegionBorderStyle(selectedStateRegionFromMap)}" aria-current="true" tabindex="0">
       <span class="country-heading">
-        <span class="tag">${escapeHtml(selectedStateRegionFromMap.key)}</span>
+        ${conceptTag(selectedStateRegionFromMap.key, "stateRegion", selectedStateRegionFromMap.key, selectedStateRegionFromMap.name_zh)}
         <span class="name">${stateRegionNameText(selectedStateRegionFromMap)}</span>
         ${rowDetailButton("data-state-region-detail", selectedStateRegionFromMap.key)}
       </span>
@@ -112,7 +112,7 @@ function renderRegionList(filteredStrategicRegions, filteredStateRegions, filter
     ${visibleStateRegions.map((stateRegion) => `
       <article class="country-row region-row selectable-row" data-state-region="${escapeHtml(stateRegion.key)}" style="${stateRegionBorderStyle(stateRegion)}" aria-current="${stateRegion.key === state.selectedStateRegion && state.detailKind === "stateRegion"}" tabindex="0">
         <span class="country-heading">
-          <span class="tag">${escapeHtml(stateRegion.key)}</span>
+          ${conceptTag(stateRegion.key, "stateRegion", stateRegion.key, stateRegion.name_zh)}
           <span class="name">${stateRegionNameText(stateRegion)}</span>
           ${rowDetailButton("data-state-region-detail", stateRegion.key)}
         </span>
@@ -184,7 +184,7 @@ function renderCultureList(filtered) {
   els.countryList.innerHTML = visible.map((culture) => `
     <article class="culture-row selectable-row" data-culture="${escapeHtml(culture.key)}" aria-current="${culture.key === state.selectedCulture && state.detailKind === "culture"}" tabindex="0">
       <span class="country-color" style="${colorStyle(culture.color?.hex)}" aria-hidden="true"></span>
-      <span class="tag">${escapeHtml(culture.key)}</span>
+      ${conceptTag(culture.key, "culture", culture.key, culture.name_zh)}
       <span>
         <span class="name">${escapeHtml(culture.name_zh)}</span>
         <span class="minor">${escapeHtml([culture.heritage?.name_zh, culture.language?.name_zh].filter(Boolean).join("、"))}</span>
@@ -239,7 +239,7 @@ function renderCompanyList(filtered) {
         ${companyIconHtml(company)}
         <span class="company-title-text">
           <span class="name">${escapeHtml(company.name_zh || company.key)}</span>
-          <span class="tag">${escapeHtml(company.key)}</span>
+          ${conceptTag(company.key, "company", company.key, company.name_zh)}
         </span>
         ${companyDlcIconPill(company)}
       </span>
@@ -297,7 +297,7 @@ function renderIdeologyList(filtered) {
         <span class="country-heading ideology-row-heading">
           ${ideologyIconHtml(ideology, "ideology-icon ideology-row-icon")}
           <span class="ideology-row-title">
-            <span class="tag">${escapeHtml(ideology.key)}</span>
+            ${conceptTag(ideology.key, "ideology", ideology.key, ideology.name_zh)}
             <span class="name">${escapeHtml(ideology.name_zh || ideology.key)}</span>
           </span>
           ${rowDetailButton("data-ideology-detail", ideology.key)}
@@ -376,7 +376,7 @@ function renderLawList(filtered) {
       <article class="country-row law-row selectable-row" data-law="${escapeHtml(law.key)}" aria-current="${law.key === state.selectedLaw && state.detailKind === "law"}" tabindex="0">
         <span class="country-heading law-row-heading">
           ${lawIconHtml(law, "law-icon law-row-icon")}
-          <span class="law-row-title"><span class="tag">${escapeHtml(law.key)}</span><span class="name">${escapeHtml(lawDisplayName(law))}</span></span>
+          <span class="law-row-title">${conceptTag(law.key, "law", law.key, lawDisplayName(law))}<span class="name">${escapeHtml(lawDisplayName(law))}</span></span>
           ${rowDetailButton("data-law-detail", law.key)}
         </span>
       </article>
@@ -607,7 +607,7 @@ function renderCompanyDetail(company) {
         <span class="company-icon-box">${companyIconHtml(company)}</span>
         <h2>${escapeHtml(company.name_zh || company.key)}</h2>
       </div>
-      <span class="tag">${escapeHtml(company.key)}</span>
+      ${conceptTag(company.key, "company", company.key, company.name_zh)}
       ${victorianCenturyBadge(company)}
     </div>
 
@@ -705,7 +705,7 @@ function renderCountryDetail(country) {
         ${countryFlagIconHtml(country, "country-flag-title") || `<span class="country-color large" style="${colorStyle(country.colorHex)}" aria-hidden="true"></span>`}
         <h2>${escapeHtml(country.name)}</h2>
       </div>
-      <span class="tag">${country.tag}</span>
+      ${conceptTag(country.tag, "country", country.tag, country.name)}
       ${victorianCenturyBadge(country)}
     </div>
 
@@ -792,7 +792,7 @@ function renderCultureDetail(culture) {
         <span class="country-color large" style="${colorStyle(culture.color?.hex)}" aria-hidden="true"></span>
         <h2>${escapeHtml(culture.name_zh)}</h2>
       </div>
-      <span class="tag">${escapeHtml(culture.key)}</span>
+      ${conceptTag(culture.key, "culture", culture.key, culture.name_zh)}
       ${victorianCenturyBadge(culture)}
     </div>
 
@@ -837,7 +837,7 @@ function renderStateRegionDetail(stateRegion) {
       <div class="detail-title-main">
         <h2>${stateRegionNameText(stateRegion)}</h2>
       </div>
-      <span class="tag">${escapeHtml(stateRegion.key)}</span>
+      ${conceptTag(stateRegion.key, "stateRegion", stateRegion.key, stateRegion.name_zh)}
       ${victorianCenturyBadge(stateRegion)}
     </div>
     <h3>基础</h3>
@@ -872,7 +872,7 @@ function renderStrategicRegionDetail(region) {
         <span class="country-color large" style="${colorStyle(region.map_color?.hex)}" aria-hidden="true"></span>
         <h2>${escapeHtml(strategicRegionName(region))}</h2>
       </div>
-      <span class="tag">${escapeHtml(region.key)}</span>
+      ${conceptTag(region.key, "strategicRegion", region.key, strategicRegionName(region))}
       ${victorianCenturyBadge(region)}
     </div>
     <h3>基础</h3>
@@ -897,7 +897,7 @@ function renderGeographicRegionDetail(region) {
       <div class="detail-title-main">
         <h2>${escapeHtml(geographicRegionDisplayName(region))}</h2>
       </div>
-      <span class="tag">${escapeHtml(region.key)}</span>
+      ${conceptTag(region.key, "geographicRegion", region.key, geographicRegionDisplayName(region))}
       ${victorianCenturyBadge(region)}
     </div>
     <h3>基础</h3>

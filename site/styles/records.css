@@ -364,7 +364,8 @@
 }
 
 a.concept-pill:hover,
-.concept-pill:hover {
+.concept-pill:hover,
+.concept-tag:hover {
   border-color: rgba(200, 164, 91, 0.44);
   background: rgba(200, 164, 91, 0.12);
   color: var(--accent);
@@ -403,6 +404,75 @@ body.results-collapsed .concept-tooltip {
 
 .concept-tooltip small {
   font-size: var(--text-xs);
+}
+
+.concept-tooltip .concept-tooltip-description {
+  color: var(--ink);
+}
+
+.concept-tooltip.culture-tooltip {
+  display: block;
+  width: min(420px, calc(100vw - 28px));
+  max-width: none;
+  max-height: min(70vh, 480px);
+  overflow-y: auto;
+}
+
+.culture-tooltip-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(104px, 0.45fr);
+  align-items: center;
+  gap: 12px;
+}
+
+.culture-tooltip-identity {
+  min-width: 0;
+}
+
+.culture-tooltip-key {
+  color: var(--muted);
+  font-family: var(--font-ui);
+  font-size: var(--text-xs);
+  overflow-wrap: anywhere;
+}
+
+.culture-tooltip-type {
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: var(--text-xs);
+  text-align: center;
+}
+
+.culture-tooltip-divider {
+  height: 1px;
+  margin: 10px 0;
+  background: rgba(200, 164, 91, 0.24);
+}
+
+.culture-tooltip-relations {
+  display: grid;
+  gap: 10px;
+}
+
+.concept-tooltip-relation {
+  display: grid;
+  gap: 2px;
+}
+
+.concept-tooltip-relation h4,
+.concept-tooltip-relation p {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: var(--text-xs);
+}
+
+.concept-tooltip-relation h4 {
+  color: var(--ink);
+}
+
+.concept-tooltip-relation p {
+  color: var(--muted);
+  overflow-wrap: anywhere;
 }
 
 .concept-tooltip.ideology-tooltip {
