@@ -622,12 +622,12 @@ function conceptTooltipContextLine(kind, key) {
   if (kind === "strategicRegion") {
     const region = byStrategicRegion.get(key);
     const count = (region?.states || []).length;
-    return count ? `${count} 个州地区` : "";
+    return count ? `${count} 个地域` : "";
   }
   if (kind === "geographicRegion") {
     const region = byGeographicRegion.get(key);
     const count = geographicRegionStateRegions(region).length;
-    return count ? `${count} 个州地区` : "";
+    return count ? `${count} 个地域` : "";
   }
   if (kind === "company") {
     const company = byCompany.get(key);
@@ -688,7 +688,7 @@ function conceptKindLabel(kind) {
   return {
     country: "国家",
     culture: "文化",
-    stateRegion: "州地区",
+    stateRegion: "地域",
     strategicRegion: "战略区域",
     geographicRegion: "地理区域",
     company: "公司",

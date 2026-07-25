@@ -462,9 +462,9 @@ function companyLocationSummary(company, stateKeys) {
   if (rule.homelandCultureKeys?.length === 1) {
     const cultureKey = rule.homelandCultureKeys[0];
     const culture = (company.referenced_cultures || []).find((item) => item.key === cultureKey);
-    return `${culture?.name_zh || cultureKey}文化本土，共 ${stateKeys.length} 个州地区`;
+    return `${culture?.name_zh || cultureKey}文化本土，共 ${stateKeys.length} 个地域`;
   }
-  return `总部及成立条件，共 ${stateKeys.length} 个州地区`;
+  return `总部及成立条件，共 ${stateKeys.length} 个地域`;
 }
 
 function geographicRegionStrategicRegions(region) {
@@ -1380,7 +1380,7 @@ function wrapMapX(x) {
 
 function mapTooltipHtml(stateRegion, feature, ownerTag = "") {
   const isSea = isSeaStateRegion(stateRegion);
-  const kind = isSea ? "海域" : "州地区";
+  const kind = isSea ? "海域" : "地域";
   const variants = stateRegionVariantNames(stateRegion);
   const variantText = variants.length ? `（${escapeHtml(variants.join("/"))}）` : "";
   if (isSea) {

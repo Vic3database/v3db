@@ -1135,6 +1135,7 @@ body[data-view="law"][data-results-panel="collapsed"] .detail {
 }
 
 .pill.tag-tier,
+.pill.tag-company-ownership,
 .pill.tag-good,
 .pill.tag-vc,
 .pill.tag-mapi,

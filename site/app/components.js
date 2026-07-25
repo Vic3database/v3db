@@ -126,7 +126,7 @@ function geographicRegionTagPills(region) {
   return [
     victorianCenturyBadge(region),
     limitedRefPills(geographicRegionStrategicRegions(region), "tag-region", 6),
-    tagPill(`${geographicRegionStateRegions(region).length} 个州地区`, "tag-muted"),
+    tagPill(`${geographicRegionStateRegions(region).length} 个地域`, "tag-muted"),
   ].filter(Boolean).join("");
 }
 
@@ -975,7 +975,7 @@ function ideologyUnlockTagsHtml(ideology) {
       search: item.name_zh || item.key,
     })),
     ...(ideology.unlock_journal_entries || []).map((item) => conceptPill({
-      label: `日志：${item.name_zh || item.key}`,
+      label: `日志条目：${item.name_zh || item.key}`,
       className: "tag-journal",
       title: item.key,
       key: item.key,
@@ -1019,7 +1019,7 @@ function ideologySourceKindLabel(kind) {
   return {
     interest_group_flavor: "风味规则",
     political_movement: "政治运动",
-    event_or_journal: "事件/日志",
+    event_or_journal: "事件/日志条目",
   }[kind] || "来源";
 }
 
@@ -1475,7 +1475,7 @@ function companyTagPills(company) {
     victorianCenturyBadge(company),
     limitedRefPills(company.referenced_strategic_regions, "tag-region", 4),
     limitedRefPills(company.referenced_geographic_regions, "tag-region", 3),
-    tagPill(company.category_zh || company.category, "tag-tier", company.category),
+    tagPill(company.category_zh || company.category, "tag-company-ownership", company.category, `company-ownership-category:${company.category || ""}`),
     companyKindKey(company) === "easter_egg" ? tagPill(companyKindText(company), "tag-special") : "",
   ].filter(Boolean).join("");
 }
@@ -1729,7 +1729,7 @@ function refsText(rule) {
   if (rule.referenced_tags) parts.push(`国家：${rule.referenced_tags}`);
   if (rule.referenced_cultures) parts.push(`文化：${rule.referenced_cultures}`);
   if (rule.referenced_laws) parts.push(`法律：${rule.referenced_laws}`);
-  if (rule.referenced_journal_entries) parts.push(`日志：${rule.referenced_journal_entries}`);
+  if (rule.referenced_journal_entries) parts.push(`日志条目：${rule.referenced_journal_entries}`);
   if (rule.referenced_variables) parts.push(`变量：${rule.referenced_variables}`);
   return parts.length ? escapeHtml(parts.join("；")) : "";
 }
@@ -2185,12 +2185,12 @@ function clampNumber(value, min, max) {
 }
 
 function searchPlaceholder() {
-  if (state.view === "culture") return "文化、特质、宗教、本土战略区域、州地区";
-  if (state.view === "region") return "州地区、战略区域、海域、资源、地区特质、国家、文化";
+  if (state.view === "culture") return "文化、特质、宗教、本土战略区域、地域";
+  if (state.view === "region") return "地域、战略区域、海域、资源、地区特质、国家、文化";
   if (state.view === "company") return "公司、建筑、名贵商品、总部、战略区域、条件";
   if (state.view === "ideology") return "板块内搜索：意识形态、利益集团、法律组、法律";
   if (state.view === "law") return "法律、法律组、修正、条件";
-  return "国家、Tag、文化、宗教、州地区";
+  return "国家、Tag、文化、宗教、地域";
 }
 
 function unitColorText(country) {

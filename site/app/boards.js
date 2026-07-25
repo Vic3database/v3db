@@ -118,7 +118,7 @@ function renderHomeBoard() {
     { category: "社会", label: "文化", text: `${dataCount("cultures", cultures)} 个文化`, view: "culture", icon: "assets/home/nationalism.png" },
     { category: "社会", label: "科技", text: `${dataCount("technologies", technologies)} 项科技`, view: "technology", icon: "assets/home/academia.png" },
     { category: "社会", label: "角色", text: "筹备中", icon: "assets/home/event_portrait.png" },
-    { category: "经济", label: "地区", text: `${landStateRegions.length} 个州地区`, view: "region", icon: "assets/home/state.png" },
+    { category: "经济", label: "地域", text: `${landStateRegions.length} 个地域`, view: "region", icon: "assets/home/state.png" },
     { category: "经济", label: "建筑", text: "筹备中", icon: "assets/home/manufacturies.png" },
     { category: "经济", label: "商品", text: "筹备中", icon: "assets/home/grand_strategy_games_prestige.png" },
     { category: "经济", label: "公司", text: `${dataCount("companies", companies)} 个公司`, view: "company", icon: "assets/home/companies.png" },
@@ -233,7 +233,7 @@ function renderAboutDialogContent() {
       <section class="about-stat-grid" aria-label="站点数据范围">
         ${aboutStat("当前版本", version)}
         ${aboutStat("国家", `${dataCount("countries", countries)} 个`)}
-        ${aboutStat("州地区", `${landStateRegions.length} 个`)}
+        ${aboutStat("地域", `${landStateRegions.length} 个`)}
         ${aboutStat("文化", `${dataCount("cultures", cultures)} 个`)}
         ${aboutStat("公司", `${dataCount("companies", companies)} 个`)}
         ${aboutStat("意识形态", `${dataCount("ideologies", ideologies)} 个`)}
@@ -580,7 +580,7 @@ function renderRegionBoard() {
     state.detailKind = regionListModeDetailKind();
   }
   const selectedStateRegion = byStateRegion.get(state.selectedStateRegion);
-  els.resultCount.textContent = `州地区 ${filteredStateRegions.length} 个`;
+  els.resultCount.textContent = `地域 ${filteredStateRegions.length} 个`;
   els.activeHint.textContent = buildActiveHint(filteredStateRegions.length);
   renderRegionList(filteredStrategicRegions, filteredStateRegions, filteredSeaRegions, filteredGeographicRegions);
   renderMap(regionMapStateRegions(filteredStateRegions, filteredSeaStateRegions, filteredGeographicRegions));
@@ -1167,7 +1167,7 @@ function globalSearchResults(query) {
     typeLabel: "战略区域",
     key: region.key,
     title: strategicRegionName(region),
-    subtitle: `州地区 ${(region.states || []).length} 个`,
+    subtitle: `地域 ${(region.states || []).length} 个`,
     color: region.map_color?.hex || "",
     raw: region,
     searchText: strategicRegionSearchBlob(region),
@@ -1178,7 +1178,7 @@ function globalSearchResults(query) {
     typeLabel: "地理区域",
     key: region.key,
     title: geographicRegionDisplayName(region),
-    subtitle: `州地区 ${geographicRegionStateRegions(region).length} 个`,
+    subtitle: `地域 ${geographicRegionStateRegions(region).length} 个`,
     raw: region,
     searchText: geographicRegionSearchBlob(region),
   }));

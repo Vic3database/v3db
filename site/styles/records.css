@@ -621,7 +621,8 @@ body.results-collapsed .concept-tooltip {
   background: rgba(55, 87, 119, 0.08);
 }
 
-.pill.tag-tier {
+.pill.tag-tier,
+.pill.tag-company-ownership {
   color: #7d5b20;
   border-color: rgba(125, 91, 32, 0.24);
   background: rgba(125, 91, 32, 0.08);

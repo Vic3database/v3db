@@ -108,9 +108,10 @@ const TAG_TOOLTIP_DEFINITIONS = {
   "country-type": { category: "国家类型" },
   "country-tier": { category: "国家位阶" },
   "company-dlc": { category: "资料片" },
+  "company-ownership-category": { category: "控股类别" },
   "tag-type": { category: "类型" },
   "tag-tier": { category: "位阶" },
-  "tag-region": { category: "地区" },
+  "tag-region": { category: "区域关系" },
   "tag-heritage-group": {
     category: "传承组",
     description: "将相近的文化传承归类，供文化规则和条件判断引用。",

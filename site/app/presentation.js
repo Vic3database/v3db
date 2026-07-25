@@ -108,7 +108,7 @@ function renderRegionList(filteredStrategicRegions, filteredStateRegions, filter
     </article>
   ` : "";
   const stateRegionHtml = visibleStateRegions.length ? `
-    <div class="list-section-title">州地区</div>
+    <div class="list-section-title">地域</div>
     ${visibleStateRegions.map((stateRegion) => `
       <article class="country-row region-row selectable-row" data-state-region="${escapeHtml(stateRegion.key)}" style="${stateRegionBorderStyle(stateRegion)}" aria-current="${stateRegion.key === state.selectedStateRegion && state.detailKind === "stateRegion"}" tabindex="0">
         <span class="country-heading">
@@ -590,7 +590,7 @@ function companyLocationFieldsHtml(company) {
       ${field("总部倾向", stateRegionLinks(company.preferred_headquarters))}
       ${field("相关战略区域", strategicRegionLinks(company.referenced_strategic_regions))}
       ${field("相关地理区域", geographicRegionLinks(company.referenced_geographic_regions))}
-      ${field("相关州地区", stateRegionLinks(company.referenced_state_regions))}
+      ${field("相关地域", stateRegionLinks(company.referenced_state_regions))}
     </dl>
   `;
 }
@@ -616,7 +616,7 @@ function renderCompanyDetail(company) {
         <h3>基础</h3>
         <dl class="field-grid">
           ${field("类型", tagPill(companyKindText(company), companyKindKey(company) === "historical" ? "tag-special" : "tag-type"))}
-          ${field("控股类别", tagPill(company.category_zh || company.category, "tag-tier", company.category))}
+          ${field("控股类别", tagPill(company.category_zh || company.category, "tag-company-ownership", company.category, `company-ownership-category:${company.category || ""}`))}
           ${field("资料片", companyDlcIconPill(company) || tagPill(companyDlcLabel(company), "tag-dlc", company.dlc_name_en || companyDlcKey(company)))}
           ${field("名贵商品状态", tagPill(companyPrestigeLabel(company), "tag-good"))}
           ${field("相关文化", cultureLinks(company.referenced_cultures))}
@@ -717,7 +717,7 @@ function renderCountryDetail(country) {
       ${field("部队颜色", unitColorText(country))}
       ${field("主流文化", linkedTerms(country.primaryCultures, country.primaryCulturesZh, "culture"))}
       ${field("所在战略区域", strategicRegionLinks(country.locationStrategicRegions))}
-      ${field("所在州地区", stateRegionLinks(country.locationStateRegions))}
+      ${field("所在地域", stateRegionLinks(country.locationStateRegions))}
       ${field("主流文化本土战略区域", strategicRegionLinks(country.primaryCultureHomelandStrategicRegions))}
       ${field("传承", `<span class="grouped-trait-pills">${groupedTraitPills(country.primaryCultureHeritageGroups, country.primaryCultureHeritages, "tag-heritage-group", "tag-heritage")}</span>`)}
       ${field("语言", `<span class="grouped-trait-pills">${groupedTraitPills(country.primaryCultureLanguageGroups, country.primaryCultureLanguages, "tag-language-group", "tag-language")}</span>`)}
@@ -752,7 +752,7 @@ function renderCountryDetail(country) {
       ${field("同文化可成立", countryLinks(country.canFormTags, country.canFormNames))}
       ${field("成立文化", linkedTerms(country.formationRequiredCultures, country.formationRequiredCulturesZh, "culture"))}
       ${field("成立范围战略区域", strategicRegionLinks(country.formationStrategicRegions))}
-      ${field("成立范围州地区", stateRegionLinks(country.formationStateRegions))}
+      ${field("成立范围地域", stateRegionLinks(country.formationStateRegions))}
       ${field("规则直接列州", stateRegionLinks((country.formationStates || []).map((key) => ({ key, name_zh: byStateRegion.get(key)?.name_zh || key }))))}
       ${field("成立地区", escapeHtml(country.formationRegion || ""))}
     </dl>
@@ -804,7 +804,7 @@ function renderCultureDetail(culture) {
       ${field("语言", `<span class="grouped-trait-pills">${groupedTraitPills(compactRefs([culture.language_group]), compactRefs([culture.language]), "tag-language-group", "tag-language")}</span>`)}
       ${field("传统", traitList(culture.traditions))}
       ${field("本土战略区域", strategicRegionLinks(culture.homeland_strategic_regions))}
-      ${field("本土州", stateRegionLinks(culture.homeland_state_regions))}
+      ${field("本土地域", stateRegionLinks(culture.homeland_state_regions))}
     </dl>
 
     <h3>消费</h3>
@@ -879,7 +879,7 @@ function renderStrategicRegionDetail(region) {
     <dl class="field-grid">
       ${field("类型", tagPill(regionKind, isSeaStrategicRegion(region) ? "tag-sea" : "tag-region"))}
       ${field("颜色", colorValue(region.map_color?.hex, region.map_color?.rgb))}
-      ${field("州地区", stateRegionLinks(region.states))}
+      ${field("地域", stateRegionLinks(region.states))}
       ${field("本土文化", cultureLinks(region.homeland_cultures))}
       ${field("开局国家", countryLinks((region.starting_owners || []).map((country) => country.tag), (region.starting_owners || []).map((country) => country.name_zh)))}
     </dl>
@@ -905,8 +905,8 @@ function renderGeographicRegionDetail(region) {
       ${field("类型", tagPill("地理区域", "tag-region"))}
       ${field("分组", tagPill(geographicRegionGroupLabels.get(region.geographic_region_group) || region.geographic_region_group_zh || region.geographic_region_group || "暂置", "tag-muted"))}
       ${field("战略区域", strategicRegionLinks(strategicRefs))}
-      ${field("州地区", stateRegionLinks(stateRefs))}
-      ${field("州地区数量", escapeHtml(String(stateRefs.length)))}
+      ${field("地域", stateRegionLinks(stateRefs))}
+      ${field("地域数量", escapeHtml(String(stateRefs.length)))}
       ${field("开局国家", countryLinks(startingOwners.map((country) => country.tag), startingOwners.map((country) => country.name_zh)))}
       ${field("本土文化", cultureLinks(homelandCultures))}
     </dl>

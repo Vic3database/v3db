@@ -390,7 +390,7 @@ function renderSortOptions() {
     ? [
       ["key", "按 Key"],
       ["name", "按名称"],
-      ["homelands", "按本土州数"],
+      ["homelands", "按本土地域数"],
     ]
     : state.view === "region"
       ? [

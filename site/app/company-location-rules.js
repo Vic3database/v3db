@@ -1,6 +1,6 @@
 /*
  * 公司详情小地图的人工审计规则。
- * 未列出的公司由总部与成立条件中的州地区、战略区域、地理区域、文化本土和州地区特质自动定位。
+ * 未列出的公司由总部与成立条件中的地域、战略区域、地理区域、文化本土和地区特质自动定位。
  */
 var COMPANY_LOCATION_RULES = Object.freeze({
   company_construction_power_bloc: {

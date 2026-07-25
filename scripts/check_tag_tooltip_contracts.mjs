@@ -251,12 +251,12 @@ assert.match(source, /function\s+buildingChip\s*\([\s\S]*conceptDataAttributes\(
 
 const rootStyleSource = fs.readFileSync(path.join(process.cwd(), "site/styles.css"), "utf8");
 const presentationSource = fs.readFileSync(path.join(process.cwd(), "site/app/presentation.js"), "utf8");
-assert.match(indexSource, /styles\.css\?v=20260725-global-tag-layout1/, "main stylesheet cache version is missing");
+assert.match(indexSource, /styles\.css\?v=20260725-localized-terms1/, "main stylesheet cache version is missing");
 assert.match(indexSource, /app\/runtime\.js\?v=20260723-tag-tooltip-definitions2/, "tooltip runtime cache version is missing");
-assert.match(indexSource, /app\/ui\.js\?v=20260725-global-tag-layout1/, "tooltip UI cache version is missing");
-assert.match(indexSource, /app\/tag-tooltip-definitions\.js\?v=20260723-culture-tooltips2/, "tooltip definitions cache version is missing");
-assert.match(indexSource, /app\/components\.js\?v=20260723-tag-tooltip-definitions3/, "tooltip component cache version is missing");
-assert.match(rootStyleSource, /styles\/records\.css\?v=20260725-global-tag-layout1/, "tooltip record-style cache version is missing");
+assert.match(indexSource, /app\/ui\.js\?v=20260725-localized-terms1/, "tooltip UI cache version is missing");
+assert.match(indexSource, /app\/tag-tooltip-definitions\.js\?v=20260725-localized-terms1/, "tooltip definitions cache version is missing");
+assert.match(indexSource, /app\/components\.js\?v=20260725-localized-terms1/, "tooltip component cache version is missing");
+assert.match(rootStyleSource, /styles\/records\.css\?v=20260725-localized-terms1/, "tooltip record-style cache version is missing");
 
 const definitionsScriptOffset = indexSource.indexOf("app/tag-tooltip-definitions.js");
 const componentsScriptOffset = indexSource.indexOf("app/components.js");
