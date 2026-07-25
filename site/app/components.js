@@ -163,6 +163,7 @@ function conceptDataAttributes({
   search = "",
   category = "",
   description = "",
+  secondaryDescription = "",
 }) {
   const conceptKey = key || label || "";
   const conceptSearch = search || label || conceptKey;
@@ -173,6 +174,7 @@ function conceptDataAttributes({
     conceptSearch ? `data-concept-search="${escapeHtml(conceptSearch)}"` : "",
     category ? `data-concept-category="${escapeHtml(category)}"` : "",
     description ? `data-concept-description="${escapeHtml(description)}"` : "",
+    secondaryDescription ? `data-concept-secondary-description="${escapeHtml(secondaryDescription)}"` : "",
   ].filter(Boolean).join(" ");
 }
 
@@ -202,6 +204,7 @@ function conceptPill({
   search = "",
   category = "",
   description = "",
+  secondaryDescription = "",
   html = "",
 }) {
   if (!label && !html) return "";
@@ -216,6 +219,7 @@ function conceptPill({
       search,
       category,
       description,
+      secondaryDescription,
     }),
   ].filter(Boolean).join(" ");
   const content = html || escapeHtml(label);
@@ -608,6 +612,8 @@ function stateTraitPills(traits, stateRegion = null) {
 function stateTraitPill(trait, stateRegion = null) {
   const label = trait?.name_zh || trait?.key || "";
   const metadata = conceptTooltipMetadata(label, "", "stateTrait", trait?.key || label);
+  const description = stateTraitTooltipDescription(trait);
+  const secondaryDescription = stateTraitTooltipSecondaryDescription(trait, stateRegion);
   return conceptPill({
     label,
     className: trait?.has_mapi ? "tag-mapi" : "tag-tradition",
@@ -615,23 +621,26 @@ function stateTraitPill(trait, stateRegion = null) {
     kind: "stateTrait",
     key: trait?.key || "",
     category: metadata.category,
-    description: stateTraitTooltipDescription(trait, stateRegion),
+    description,
+    secondaryDescription,
   });
 }
 
-function stateTraitTooltipDescription(trait, stateRegion = null) {
+function stateTraitTooltipDescription(trait) {
   const summary = String(trait?.modifier_summary_zh || "").split(/;\s*/).map((item) => item.trim()).filter(Boolean);
   const parts = [];
-  if (summary.length) parts.push(`效果：\n${summary.join("\n")}`);
+  if (summary.length) parts.push(summary.join("\n"));
   if ((trait?.required_techs_for_colonization || []).length) parts.push(`殖民所需科技：${technologyRefNames(trait.required_techs_for_colonization)}`);
   if ((trait?.disabling_technologies || []).length) parts.push(`失效科技：${technologyRefNames(trait.disabling_technologies)}`);
+  return parts.join("\n");
+}
 
+function stateTraitTooltipSecondaryDescription(trait, stateRegion = null) {
   const isGeneric = /(?:^|[\\/])00_generic_traits\.txt$/i.test(String(trait?.source_file || ""));
   const otherRegions = (stateTraitRegionsByKey.get(trait?.key || "") || [])
     .filter((region) => region.key && region.key !== stateRegion?.key)
     .map((region) => region.name_zh || region.key);
-  if (!isGeneric && otherRegions.length) parts.push(`其他拥有该地区特质的地区：\n${otherRegions.join("、")}`);
-  return parts.join("\n");
+  return !isGeneric && otherRegions.length ? `拥有该特质的地区：\n${otherRegions.join("、")}` : "";
 }
 
 function stateTraitEffectList(traits) {
@@ -649,7 +658,7 @@ function stateTraitEffectList(traits) {
           </div>
           <dl class="mini-grid">
             ${field("类型", traitCategoryPills(trait.categories))}
-            ${field("效果", modifierPills(trait.modifiers, "state-trait-effect"))}
+            ${field("效果", modifierPills(trait.modifiers))}
             ${field("殖民科技", technologyPills(trait.required_techs_for_colonization))}
             ${field("失效科技", technologyPills(trait.disabling_technologies))}
           </dl>
@@ -669,26 +678,10 @@ function traitCategoryPills(categories) {
   return items.length ? `<span class="link-list">${items.join("")}</span>` : "";
 }
 
-function modifierPills(modifiers, semanticKey = "modifier-effect") {
+function modifierPills(modifiers) {
   const items = (modifiers || []).map((modifier) => {
-    const title = [modifier.key, modifier.desc_zh].filter(Boolean).join("；");
     const isMapi = modifier.key === "state_market_access_price_impact";
-    const metadata = tagTooltipMetadata(
-      modifierSummaryLabel(modifier),
-      isMapi ? "tag-mapi" : "tag-effect",
-      title,
-      isMapi ? "mapi-effect" : semanticKey,
-    );
-    return conceptPill({
-      label: modifierSummaryLabel(modifier),
-      className: `tag-pill ${isMapi ? "tag-mapi" : "tag-effect"}`,
-      title,
-      hideNativeTitle: true,
-      kind: "tag",
-      key: metadata.key,
-      category: metadata.category,
-      description: [modifier.summary_zh, modifier.desc_zh].filter(Boolean).join("；") || metadata.description,
-    });
+    return `<span class="pill tag-pill ${isMapi ? "tag-mapi" : "tag-effect"}">${escapeHtml(modifierSummaryLabel(modifier))}</span>`;
   });
   return items.length ? `<span class="link-list">${items.join("")}</span>` : "";
 }

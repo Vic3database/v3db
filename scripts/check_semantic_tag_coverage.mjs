@@ -20,13 +20,17 @@ requireMatch(functionSource(data, "applyLoadedDataset"), /buildSemanticTagIndexe
 
 const stateTraitPills = functionSource(components, "stateTraitPills");
 const stateTraitPill = functionSource(components, "stateTraitPill");
+const stateTraitTooltipDescription = functionSource(components, "stateTraitTooltipDescription");
 requireMatch(stateTraitPills, /stateTraitPill/, "state trait pill list must use the dedicated entity tag renderer");
 requireMatch(stateTraitPill, /kind:\s*"stateTrait"/, "state trait pills must use the stateTrait entity type");
 requireMatch(stateTraitPill, /stateTraitTooltipDescription\(/, "state trait pills must bind their effect summary");
 requireMatch(stateTraitPill, /conceptTooltipMetadata\(label, "", "stateTrait"/, "state trait type must not be replaced by its color class");
 requireMatch(stateTraitPills, /stateTraitPill\(trait, stateRegion\)/, "state trait pills must know their current region");
-requireMatch(functionSource(components, "stateTraitTooltipDescription"), /00_generic_traits/, "generic state traits must be identified by their source file");
-requireMatch(functionSource(components, "stateTraitTooltipDescription"), /stateTraitRegionsByKey/, "regional state traits must list their other regions");
+assert.equal(stateTraitTooltipDescription.includes("\u6548\u679c\uFF1A"), false, "state trait effect summaries must not add a redundant effect heading");
+requireMatch(components, /function\s+stateTraitTooltipSecondaryDescription\s*\(/, "state trait region lists need their own tooltip section");
+requireMatch(stateTraitPill, /secondaryDescription/, "state trait pills must pass their region list as a separate tooltip section");
+requireMatch(functionSource(components, "stateTraitTooltipSecondaryDescription"), /00_generic_traits/, "generic state traits must be identified by their source file");
+requireMatch(functionSource(components, "stateTraitTooltipSecondaryDescription"), /stateTraitRegionsByKey/, "regional state traits must list their other regions");
 requireMatch(functionSource(components, "buildingTooltipMetadata"), /conceptTooltipMetadata\(label, "", "building"/, "building type must not be replaced by its color class");
 requireMatch(functionSource(components, "technologyPill"), /conceptTooltipMetadata\(label, "", "technology"/, "technology type must not be replaced by its color class");
 assert.equal(functionSource(components, "agricultureSummaryPills").includes("limitedHtmlItems"), false, "agricultural resources must not be truncated");
@@ -37,7 +41,7 @@ requireMatch(recordStyles, /\.concept-tooltip \.concept-tooltip-description\s*\{
 assert.equal(definitions.includes("属于"), false, "tooltip descriptions must not restate a category membership without adding information");
 
 const modifierPills = functionSource(components, "modifierPills");
-requireMatch(modifierPills, /mapi-effect/, "MAPI effects need a dedicated semantic key");
+assert.equal(modifierPills.includes("conceptPill("), false, "numeric modifier values must not create hover tooltips");
 requireMatch(components, /mapi-summary/, "MAPI summaries need a dedicated semantic key");
 requireMatch(components, /mapi-category/, "MAPI categories need a dedicated semantic key");
 requireMatch(components, /state-trait-category/, "state trait categories need a dedicated semantic key");
@@ -46,6 +50,13 @@ for (const kind of ["stateTrait", "building", "goods", "technology"]) {
   requireMatch(ui, new RegExp(`kind === "${kind}"`), `${kind} tooltip entity resolver is missing`);
   requireMatch(ui, new RegExp(`${kind}: "`), `${kind} tooltip label is missing`);
 }
+const conceptTooltipContent = functionSource(ui, "conceptTooltipContent");
+requireMatch(conceptTooltipContent, /conceptSecondaryDescription/, "tooltip content must render a secondary description section");
+requireMatch(conceptTooltipContent, /concept-tooltip-divider/, "tooltip content must divide its secondary description section");
+const countryTooltipMainInfo = functionSource(ui, "countryTooltipMainInfo");
+requireMatch(countryTooltipMainInfo, /primaryCulturesZh/, "country tooltip main information must include primary cultures");
+requireMatch(countryTooltipMainInfo, /religionZh/, "country tooltip main information must include religion");
+requireMatch(countryTooltipMainInfo, /capitalZh/, "country tooltip main information must include capital location");
 requireMatch(components, /if \(kind === "technology"\) return `#\/technology\//, "technology tags must link to the technology detail page");
 requireMatch(functionSource(components, "ideologyUnlockTagsHtml"), /technologyPill\(/, "ideology technology tags must be technology entities");
 requireMatch(functionSource(components, "conditionRefPills"), /"technology",\s*"tag-technology"/, "condition technology tags must be technology entities");
@@ -71,17 +82,20 @@ for (const key of [
 const regions = readChunk("site/versions/1.13.9/data-regions.js");
 const companies = readChunk("site/versions/1.13.9/data-companies.js");
 const technologies = readChunk("site/versions/1.13.9/data-technologies.js");
+const countries = [1, 2, 3, 4].flatMap((index) => readChunk(`site/versions/1.13.9/data-countries-${index}.js`).countries);
 const technologyKeys = new Set(technologies.technologies.map((technology) => technology.key));
 const mapiTrait = regions.stateRegions.flatMap((region) => region.traits).find((trait) => trait.has_mapi);
 const companyTechnology = companies.companies.flatMap((company) => company.required_technologies).find(Boolean);
 const scandinavianForests = regions.stateRegions.flatMap((region) => region.traits).filter((trait) => trait.key === "state_trait_scandinavian_forests");
 const naturalHarbors = regions.stateRegions.flatMap((region) => region.traits).filter((trait) => trait.key === "state_trait_natural_harbors");
+const sweden = countries.find((country) => country.tag === "SWE");
 
 assert.ok(mapiTrait?.modifiers?.some((modifier) => modifier.key === "state_market_access_price_impact"), "fixture data must contain a MAPI effect");
 assert.ok(companyTechnology && technologyKeys.has(companyTechnology.key), "company technology references must resolve to a technology");
 assert.ok(companies.companies.some((company) => company.possible_prestige_goods?.length), "fixture data must contain prestige goods");
 assert.ok(scandinavianForests.length > 1 && scandinavianForests.every((trait) => !/00_generic_traits\.txt$/i.test(trait.source_file || "")), "fixture data must contain a shared regional state trait");
 assert.ok(naturalHarbors.length > 1 && naturalHarbors.every((trait) => /00_generic_traits\.txt$/i.test(trait.source_file || "")), "fixture data must contain a shared generic state trait");
+assert.ok(sweden, "fixture data must contain Sweden for country tooltip coverage");
 
 const stateTraitRegionsByKey = new Map();
 for (const region of regions.stateRegions) {
@@ -96,10 +110,19 @@ const descriptionContext = {
   technologyRefNames: (items) => items.map((item) => item.name_zh || item.key).join("、"),
 };
 vm.runInNewContext(`${functionSource(components, "stateTraitTooltipDescription")}; this.describeStateTrait = stateTraitTooltipDescription;`, descriptionContext);
+vm.runInNewContext(`${functionSource(components, "stateTraitTooltipSecondaryDescription")}; this.describeStateTraitSecondary = stateTraitTooltipSecondaryDescription;`, descriptionContext);
 const regionalDescription = descriptionContext.describeStateTrait(scandinavianForests[0], regions.stateRegions.find((region) => region.key === "STATE_SVEALAND"));
+const regionalSecondaryDescription = descriptionContext.describeStateTraitSecondary(scandinavianForests[0], regions.stateRegions.find((region) => region.key === "STATE_SVEALAND"));
 const genericDescription = descriptionContext.describeStateTrait(naturalHarbors[0], regions.stateRegions.find((region) => region.key === "STATE_SVEALAND"));
-assert.match(regionalDescription, /其他拥有该地区特质的地区：\n约塔兰/, "regional state traits must name their other regions on a new line");
-assert.doesNotMatch(genericDescription, /其他拥有该地区特质的地区/, "generic state traits must not list every region that uses them");
+const genericSecondaryDescription = descriptionContext.describeStateTraitSecondary(naturalHarbors[0], regions.stateRegions.find((region) => region.key === "STATE_SVEALAND"));
+assert.equal(regionalDescription, "伐木业吞吐量 +20%", "state trait effects must display without a redundant heading");
+assert.match(regionalSecondaryDescription, /拥有该特质的地区：\n约塔兰/, "regional state traits must name their other regions in a separate section");
+assert.equal(genericDescription.includes("\u6548\u679c\uFF1A"), false, "generic state trait effects must not add a redundant heading");
+assert.equal(genericSecondaryDescription, "", "generic state traits must not list every region that uses them");
+
+const countryContext = {};
+vm.runInNewContext(`${countryTooltipMainInfo}; this.describeCountry = countryTooltipMainInfo;`, countryContext);
+assert.equal(countryContext.describeCountry(sweden), "主流文化：瑞典\n宗教：新教\n首都：斯韦阿兰", "country tooltips must show primary culture, religion, and capital location");
 
 console.log(JSON.stringify({ semantic_tag_coverage: "ok" }));
 

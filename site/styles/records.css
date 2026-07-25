@@ -413,6 +413,10 @@ body.results-collapsed .concept-tooltip {
   line-height: 1.55;
 }
 
+.concept-tooltip-content > .concept-tooltip-divider {
+  margin: 0;
+}
+
 .concept-tooltip.standard-tooltip {
   display: block;
   width: min(420px, calc(100vw - 28px));

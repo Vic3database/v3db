@@ -543,11 +543,14 @@ function conceptTooltipContent(target, relationSections = "") {
   const key = target.dataset.conceptKey || "";
   const kind = target.dataset.conceptKind || "";
   const relations = relationSections || cultureTooltipRelationSections(kind, key);
-  const context = relations ? "" : conceptTooltipContextLine(kind, key);
+  const context = relations || kind === "country" ? "" : conceptTooltipContextLine(kind, key);
   const description = relations ? "" : conceptTooltipDescription(target, kind, key, label);
+  const secondaryDescription = relations ? "" : target.dataset.conceptSecondaryDescription || "";
   const rows = [
     context ? `<span>${escapeHtml(context)}</span>` : "",
     description ? `<span class="concept-tooltip-description">${escapeHtml(description)}</span>` : "",
+    description && secondaryDescription ? `<div class="concept-tooltip-divider"></div>` : "",
+    secondaryDescription ? `<span class="concept-tooltip-description">${escapeHtml(secondaryDescription)}</span>` : "",
     relations ? `<div class="concept-tooltip-relations">${relations}</div>` : "",
   ].filter(Boolean).join("");
   return rows ? `<div class="concept-tooltip-content">${rows}</div>` : "";
@@ -580,13 +583,26 @@ function suppressNativeTooltip(target) {
 
 function conceptTooltipDescription(target, kind, key, label) {
   const explicit = target.dataset.conceptDescription || "";
-  if (explicit) return explicit;
   const entity = conceptTooltipEntity(kind, key);
+  if (kind === "country") return [countryTooltipMainInfo(entity), explicit].filter(Boolean).join("\n");
+  if (explicit) return explicit;
   const description = String(entity?.desc_zh || entity?.modifier_summary_zh || "").replace(/\s+/g, " ").trim();
   if (description) return description;
   const category = target.dataset.conceptCategory || conceptKindLabel(kind);
   const defaults = TAG_TOOLTIP_DEFAULTS.concept || {};
   return formatTooltipDescription(defaults.description, { label: label || key, key, category });
+}
+
+function countryTooltipMainInfo(country) {
+  if (!country) return "";
+  const primaryCultures = (country.primaryCulturesZh || []).filter(Boolean).join("、");
+  const religion = country.religionZh || country.religion || "";
+  const capital = country.capitalZh || country.capital || "";
+  return [
+    primaryCultures ? `主流文化：${primaryCultures}` : "",
+    religion ? `宗教：${religion}` : "",
+    capital ? `首都：${capital}` : "",
+  ].filter(Boolean).join("\n");
 }
 
 function conceptTooltipEntity(kind, key) {
