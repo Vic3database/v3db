@@ -544,10 +544,12 @@ function conceptTooltipContent(target, relationSections = "") {
   const kind = target.dataset.conceptKind || "";
   const relations = relationSections || cultureTooltipRelationSections(kind, key);
   const context = relations || kind === "country" ? "" : conceptTooltipContextLine(kind, key);
+  const resourceSummary = relations || kind !== "stateRegion" ? "" : stateRegionTooltipResourceHtml(conceptTooltipEntity(kind, key));
   const description = relations ? "" : conceptTooltipDescription(target, kind, key, label);
   const secondaryDescription = relations ? "" : target.dataset.conceptSecondaryDescription || "";
   const rows = [
     context ? `<span>${escapeHtml(context)}</span>` : "",
+    resourceSummary,
     description ? `<span class="concept-tooltip-description">${escapeHtml(description)}</span>` : "",
     description && secondaryDescription ? `<div class="concept-tooltip-divider"></div>` : "",
     secondaryDescription ? `<span class="concept-tooltip-description">${escapeHtml(secondaryDescription)}</span>` : "",
@@ -637,7 +639,7 @@ function conceptTooltipContextLine(kind, key) {
   }
   if (kind === "stateRegion") {
     const stateRegion = byStateRegion.get(key);
-    return [refNames(stateRegion?.strategic_regions), resourceSummaryText(stateRegion)].filter(Boolean).join(" · ");
+    return refNames(stateRegion?.strategic_regions);
   }
   if (kind === "strategicRegion") {
     const region = byStrategicRegion.get(key);

@@ -417,6 +417,38 @@ body.results-collapsed .concept-tooltip {
   margin: 0;
 }
 
+.tooltip-resource-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.tooltip-resource-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 1px 3px;
+  border: 1px solid rgba(72, 68, 60, 0.34);
+  border-radius: 5px;
+  background: rgba(52, 49, 45, 0.9);
+  color: #efe5d2;
+}
+
+.tooltip-resource-chip .resource-icon {
+  width: 22px;
+  height: 22px;
+}
+
+.tooltip-resource-count,
+.tooltip-resource-fallback {
+  padding-left: 3px;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
 .concept-tooltip.standard-tooltip {
   display: block;
   width: min(420px, calc(100vw - 28px));

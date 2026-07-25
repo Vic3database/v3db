@@ -1684,6 +1684,27 @@ function resourceSummaryPills(stateRegion) {
   return limitedHtmlItems(resourcePills, 6);
 }
 
+function stateRegionTooltipResourceHtml(stateRegion) {
+  const resources = [
+    ...(stateRegion?.capped_resources || []).map((item) => stateRegionTooltipResourceChip(item, item.amount)),
+    ...(stateRegion?.discoverable_resources || []).map((item) => {
+      const amount = item.undiscovered_amount ?? item.discovered_amount ?? item.amount ?? "";
+      return stateRegionTooltipResourceChip(item, amount);
+    }),
+    ...(stateRegion?.arable_resources || []).map((item) => stateRegionTooltipResourceChip(item)),
+  ].filter(Boolean);
+  return resources.length ? `<span class="tooltip-resource-summary">${resources.join("")}</span>` : "";
+}
+
+function stateRegionTooltipResourceChip(item, amount = "") {
+  const label = item?.name_zh || item?.key || "";
+  if (!label) return "";
+  const icon = buildingIconHtml(item?.key);
+  const count = amount !== "" && amount !== null ? `<span class="tooltip-resource-count">${escapeHtml(amount)}</span>` : "";
+  const fallback = icon ? "" : `<span class="tooltip-resource-fallback">${escapeHtml(label)}</span>`;
+  return `<span class="tooltip-resource-chip" aria-label="${escapeHtml(label)}">${icon}${fallback}${count}</span>`;
+}
+
 function agricultureSummaryPills(stateRegion) {
   const arableResources = (stateRegion.arable_resources || []).map((item) => buildingPill(item, "tag-arable"));
   return arableResources.join("");
