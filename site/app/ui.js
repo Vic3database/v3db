@@ -297,7 +297,7 @@ function bindTokenChoice(container, datasetKey, onChange) {
 function bindConceptEvents() {
   document.addEventListener("contextmenu", (event) => {
     const target = event.target.closest("[data-concept-key]");
-    if (!target) return;
+    if (!target?.dataset.conceptSearch?.trim()) return;
     event.preventDefault();
     searchConcept(target);
     hideConceptTooltip();
@@ -394,15 +394,11 @@ function showConceptTooltip(target, event) {
   }
   suppressNativeTooltip(target);
   const isIdeology = target.dataset.conceptKind === "ideology";
-  const cultureRelations = cultureTooltipRelationSections(
-    target.dataset.conceptKind || "",
-    target.dataset.conceptKey || "",
-  );
   els.conceptTooltip.classList.toggle("ideology-tooltip", isIdeology);
-  els.conceptTooltip.classList.toggle("culture-tooltip", Boolean(cultureRelations));
+  els.conceptTooltip.classList.toggle("standard-tooltip", !isIdeology);
   els.conceptTooltip.innerHTML = isIdeology
     ? ideologyTooltipRows(target)
-    : conceptTooltipRows(target, cultureRelations);
+    : conceptTooltipRows(target);
   els.conceptTooltip.hidden = false;
   moveConceptTooltip(event);
 }
@@ -513,7 +509,24 @@ function cultureTooltipRelationSections(kind, key) {
   return "";
 }
 
-function cultureTooltipType(kind, key) {
+function conceptTooltipHeader(target) {
+  const label = target.dataset.conceptLabel || target.textContent?.trim() || "";
+  const key = target.dataset.conceptKey || "";
+  const type = conceptTooltipType(target);
+  return `
+    <div class="concept-tooltip-head">
+      <div class="concept-tooltip-identity">
+        <strong>${escapeHtml(label || key)}</strong>
+        <div class="concept-tooltip-key">${escapeHtml(key)}</div>
+      </div>
+      <div class="concept-tooltip-type">${escapeHtml(type)}</div>
+    </div>
+  `;
+}
+
+function conceptTooltipType(target) {
+  const kind = target.dataset.conceptKind || "";
+  const key = target.dataset.conceptKey || "";
   if (kind === "cultureTraitGroup") {
     const group = cultureTraitGroupByKey.get(key);
     return group?.type_zh ? `${group.type_zh}特质组` : "文化特质组";
@@ -522,46 +535,40 @@ function cultureTooltipType(kind, key) {
     const trait = cultureTraitByKey.get(key);
     return trait?.type_zh ? `${trait.type_zh}特质` : "文化特质";
   }
-  if (kind === "culture") return "文化";
-  return conceptKindLabel(kind);
+  return target.dataset.conceptCategory || conceptKindLabel(kind);
 }
 
-function cultureTooltipHeader(kind, key, label) {
-  return `
-    <div class="culture-tooltip-head">
-      <div class="culture-tooltip-identity">
-        <strong>${escapeHtml(label || key)}</strong>
-        <div class="culture-tooltip-key">${escapeHtml(key)}</div>
-      </div>
-      <div class="culture-tooltip-type">${escapeHtml(cultureTooltipType(kind, key))}</div>
-    </div>
-  `;
-}
-
-function conceptTooltipRows(target, relationSections = "") {
+function conceptTooltipContent(target, relationSections = "") {
   const label = target.dataset.conceptLabel || target.textContent?.trim() || "";
   const key = target.dataset.conceptKey || "";
   const kind = target.dataset.conceptKind || "";
-  const kindText = target.dataset.conceptCategory || conceptKindLabel(kind);
-  const context = conceptTooltipContextLine(kind, key);
-  const resolvedRelations = relationSections || cultureTooltipRelationSections(kind, key);
-  if (resolvedRelations) {
-    return [
-      cultureTooltipHeader(kind, key, label),
-      `<div class="culture-tooltip-divider"></div>`,
-      `<div class="culture-tooltip-relations">${resolvedRelations}</div>`,
-      `<div class="culture-tooltip-divider"></div>`,
-      `<small>${escapeHtml(conceptTooltipActionText(target))}</small>`,
-    ].join("");
-  }
-  const description = conceptTooltipDescription(target, kind, key, label);
-  return [
-    `<strong>${escapeHtml(label || key)}</strong>`,
-    `<span>${escapeHtml([kindText, key].filter(Boolean).join(" · "))}</span>`,
+  const relations = relationSections || cultureTooltipRelationSections(kind, key);
+  const context = relations ? "" : conceptTooltipContextLine(kind, key);
+  const description = relations ? "" : conceptTooltipDescription(target, kind, key, label);
+  const rows = [
     context ? `<span>${escapeHtml(context)}</span>` : "",
     description ? `<span class="concept-tooltip-description">${escapeHtml(description)}</span>` : "",
-    resolvedRelations,
-    `<small>${escapeHtml(conceptTooltipActionText(target))}</small>`,
+    relations ? `<div class="concept-tooltip-relations">${relations}</div>` : "",
+  ].filter(Boolean).join("");
+  return rows ? `<div class="concept-tooltip-content">${rows}</div>` : "";
+}
+
+function conceptTooltipActionHints(target) {
+  return [
+    target.matches("a[href]") ? "左键进入详情页" : "",
+    target.dataset.conceptSearch?.trim() ? "右键进行筛选" : "",
+  ].filter(Boolean).join("　");
+}
+
+function conceptTooltipRows(target, relationSections = "") {
+  const content = conceptTooltipContent(target, relationSections);
+  const actions = conceptTooltipActionHints(target);
+  return [
+    conceptTooltipHeader(target),
+    content ? `<div class="concept-tooltip-divider"></div>` : "",
+    content,
+    actions ? `<div class="concept-tooltip-divider"></div>` : "",
+    actions ? `<small class="concept-tooltip-actions">${escapeHtml(actions)}</small>` : "",
   ].filter(Boolean).join("");
 }
 
@@ -650,13 +657,6 @@ function conceptTooltipIdeologyLawStance(ideology) {
   return stance ? `对${lawDisplayName(law)}：${lawStanceLabel(stance.stance)}` : "";
 }
 
-function conceptTooltipActionText(target) {
-  if (["culture", "cultureTrait", "cultureTraitGroup"].includes(target.dataset.conceptKind || "")) {
-    return "右键进行筛选";
-  }
-  return target.matches("a[href]") ? "打开详情，右键搜索" : "右键搜索";
-}
-
 function moveConceptTooltip(event) {
   if (!els.conceptTooltip) return;
   const margin = 14;
@@ -671,7 +671,7 @@ function hideConceptTooltip() {
   clearConceptTooltipTimer();
   if (!els.conceptTooltip) return;
   els.conceptTooltip.hidden = true;
-  els.conceptTooltip.classList.remove("ideology-tooltip", "culture-tooltip");
+  els.conceptTooltip.classList.remove("ideology-tooltip", "standard-tooltip");
 }
 
 function searchConcept(target) {

@@ -155,7 +155,9 @@ function checkTypographyContracts() {
   assert(/function\s+companyDetailLocationMapEnabled\s*\(/.test(appSource), "company details should classify whether a location map is allowed");
   assert(/function\s+companyLocationStateRegionKeys\s*\(/.test(appSource), "company details should derive location states from company data");
   assert(/data-company-location-map/.test(appSource), "historical company details should expose a dedicated location canvas");
-  assert(/function\s+showConceptTooltip[\s\S]*target\.matches\("a\[href\]"\)[\s\S]*"右键搜索"/.test(appSource), "non-link icon tooltips should not claim that left click opens details");
+  const conceptTooltipActionHintsSource = functionSource("conceptTooltipActionHints");
+  assert(/target\.matches\("a\[href\]"\)\s*\?\s*"左键进入详情页"\s*:\s*""/.test(conceptTooltipActionHintsSource), "non-link icon tooltips should not claim that left click opens details");
+  assert(/conceptSearch\?\.trim\(\)\s*\?\s*"右键进行筛选"\s*:\s*""/.test(conceptTooltipActionHintsSource), "filterable icon tooltips should name the right-click filter action");
   for (const [name, view] of [
     ["renderCountryDetail", "country"],
     ["renderCultureDetail", "culture"],

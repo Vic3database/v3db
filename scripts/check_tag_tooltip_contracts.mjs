@@ -177,6 +177,23 @@ const recordStyles = fs.readFileSync(
   "utf8",
 );
 
+function sourceFunction(sourceText, name) {
+  const declaration = new RegExp(`function\\s+${name}\\s*\\(`).exec(sourceText);
+  assert.ok(declaration, `function ${name} is missing`);
+
+  const openingBrace = sourceText.indexOf("{", declaration.index);
+  assert.notEqual(openingBrace, -1, `function ${name} has no body`);
+
+  let depth = 0;
+  for (let index = openingBrace; index < sourceText.length; index += 1) {
+    if (sourceText[index] === "{") depth += 1;
+    if (sourceText[index] === "}") depth -= 1;
+    if (depth === 0) return sourceText.slice(declaration.index, index + 1);
+  }
+
+  assert.fail(`function ${name} has an unterminated body`);
+}
+
 assert.match(uiSource, /function\s+conceptTooltipDescription\s*\(/, "concept tooltip description resolver is missing");
 assert.match(uiSource, /function\s+suppressNativeTooltip\s*\(/, "native tooltip suppression helper is missing");
 assert.match(uiSource, /scheduleConceptTooltip[\s\S]*suppressNativeTooltip\(target\)/, "native tooltip suppression must run before the hover delay");
@@ -193,20 +210,29 @@ assert.match(
 );
 assert.match(uiSource, /function\s+cultureTooltipRelationSections\s*\(/, "culture relation resolver is missing");
 assert.match(uiSource, /function\s+cultureTooltipRelationSection\s*\(/, "culture relation renderer is missing");
-assert.match(uiSource, /function\s+cultureTooltipHeader\s*\(/, "culture tooltip header renderer is missing");
-assert.match(uiSource, /culture-tooltip-head/, "culture tooltip must use the two-column header layout");
-assert.match(uiSource, /culture-tooltip-divider/, "culture tooltip must separate its content blocks");
-assert.match(uiSource, /右键进行筛选/, "culture tooltip must use the filter action hint");
+assert.ok(/function\s+conceptTooltipHeader\s*\(/.test(uiSource), "generic tooltip header renderer is missing");
+assert.ok(/function\s+conceptTooltipContent\s*\(/.test(uiSource), "generic tooltip content renderer is missing");
+assert.ok(/function\s+conceptTooltipActionHints\s*\(/.test(uiSource), "generic tooltip action resolver is missing");
+assert.ok(/concept-tooltip-head/.test(uiSource), "generic tooltip must render a two-column header");
+assert.ok(/concept-tooltip-divider/.test(uiSource), "generic tooltip must separate header, content, and actions");
+assert.match(uiSource, /左键进入详情页/, "generic tooltip must name the detail action");
+assert.match(uiSource, /右键进行筛选/, "generic tooltip must name the filter action");
 assert.match(uiSource, /\$\{group\.type_zh\}特质组/, "heritage groups must identify themselves as trait groups");
 assert.match(uiSource, /cultureTraitGroupByKey\.get\(key\)/, "culture trait groups must resolve from their own index");
 assert.match(uiSource, /related_countries/, "culture tooltip must show primary-culture countries");
 assert.match(uiSource, /obsessions/, "culture tooltip must show obsessions");
 assert.match(uiSource, /taboos/, "culture tooltip must show taboos");
-assert.match(recordStyles, /\.concept-tooltip\.culture-tooltip\s*{/, "culture tooltip layout is missing");
-assert.match(recordStyles, /\.culture-tooltip-head\s*{/, "culture tooltip header style is missing");
-assert.match(recordStyles, /\.culture-tooltip-divider\s*{/, "culture tooltip divider style is missing");
+assert.ok(/\.concept-tooltip\.standard-tooltip\s*{/.test(recordStyles), "generic tooltip layout is missing");
+assert.ok(/\.concept-tooltip-head\s*{/.test(recordStyles), "generic tooltip header style is missing");
+assert.ok(/\.concept-tooltip-divider\s*{/.test(recordStyles), "generic tooltip divider style is missing");
 assert.doesNotMatch(uiSource, /cultureTooltipRelationSection[\s\S]{0,1200}conceptPill\s*\(/, "culture relations must not create nested concept pills");
 assert.doesNotMatch(uiSource, /cultureTooltipRelationSection[\s\S]{0,1200}title=/, "culture relations must not emit native titles");
+assert.doesNotMatch(sourceFunction(uiSource, "ideologyTooltipRows"), /conceptTooltipHeader|conceptTooltipContent/, "ideology tooltip must retain its dedicated layout");
+assert.equal(
+  [...sourceFunction(uiSource, "conceptTooltipRows").matchAll(/concept-tooltip-divider/g)].length,
+  2,
+  "generic tooltip must render two divider positions",
+);
 
 for (const functionName of [
   "countryTagPills",
@@ -225,12 +251,12 @@ assert.match(source, /function\s+buildingChip\s*\([\s\S]*conceptDataAttributes\(
 
 const rootStyleSource = fs.readFileSync(path.join(process.cwd(), "site/styles.css"), "utf8");
 const presentationSource = fs.readFileSync(path.join(process.cwd(), "site/app/presentation.js"), "utf8");
-assert.match(indexSource, /styles\.css\?v=20260723-culture-tooltips2/, "main stylesheet cache version is missing");
+assert.match(indexSource, /styles\.css\?v=20260725-global-tag-layout1/, "main stylesheet cache version is missing");
 assert.match(indexSource, /app\/runtime\.js\?v=20260723-tag-tooltip-definitions2/, "tooltip runtime cache version is missing");
-assert.match(indexSource, /app\/ui\.js\?v=20260723-culture-tooltips2/, "tooltip UI cache version is missing");
+assert.match(indexSource, /app\/ui\.js\?v=20260725-global-tag-layout1/, "tooltip UI cache version is missing");
 assert.match(indexSource, /app\/tag-tooltip-definitions\.js\?v=20260723-culture-tooltips2/, "tooltip definitions cache version is missing");
 assert.match(indexSource, /app\/components\.js\?v=20260723-tag-tooltip-definitions3/, "tooltip component cache version is missing");
-assert.match(rootStyleSource, /styles\/records\.css\?v=20260723-culture-tooltips2/, "tooltip record-style cache version is missing");
+assert.match(rootStyleSource, /styles\/records\.css\?v=20260725-global-tag-layout1/, "tooltip record-style cache version is missing");
 
 const definitionsScriptOffset = indexSource.indexOf("app/tag-tooltip-definitions.js");
 const componentsScriptOffset = indexSource.indexOf("app/components.js");
