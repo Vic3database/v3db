@@ -189,11 +189,13 @@ function applyLoadedDataset(nextData, nextMapData) {
 
 function buildSemanticTagIndexes() {
   stateTraitByKey = new Map();
+  stateTraitRegionsByKey = new Map();
   buildingByKey = new Map();
   goodsByKey = new Map();
 
   for (const stateRegion of stateRegions) {
     indexSemanticItems(stateTraitByKey, stateRegion.traits);
+    indexStateTraitRegions(stateRegion);
     indexSemanticItems(buildingByKey, stateRegion.arable_resources);
     indexSemanticItems(buildingByKey, stateRegion.capped_resources);
     indexSemanticItems(buildingByKey, stateRegion.discoverable_resources);
@@ -204,6 +206,18 @@ function buildSemanticTagIndexes() {
     indexSemanticItems(buildingByKey, company.extension_building_types);
     indexSemanticItems(buildingByKey, company.referenced_buildings);
     indexSemanticItems(goodsByKey, company.possible_prestige_goods);
+  }
+}
+
+function indexStateTraitRegions(stateRegion) {
+  const region = { key: stateRegion?.key || "", name_zh: stateRegion?.name_zh || "" };
+  if (!region.key) return;
+  for (const trait of stateRegion?.traits || []) {
+    const key = trait?.key || "";
+    if (!key) continue;
+    const regions = stateTraitRegionsByKey.get(key) || [];
+    if (!regions.some((item) => item.key === region.key)) regions.push(region);
+    stateTraitRegionsByKey.set(key, regions);
   }
 }
 

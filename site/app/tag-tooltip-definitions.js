@@ -2,38 +2,28 @@
 const TAG_TOOLTIP_DEFAULTS = {
   tag: {
     category: "属性标签",
-    description: "“{label}”用于标示当前条目的{category}。",
   },
-  concept: {
-    description: "“{label}”属于{category}。",
-  },
+  concept: {},
   building: {
     category: "建筑",
-    description: "“{label}”是一种建筑。",
   },
   goods: {
     category: "商品",
-    description: "“{label}”是一种商品。",
   },
   technology: {
     category: "科技",
-    description: "“{label}”是一项科技。",
   },
   stateTrait: {
     category: "地区特质",
-    description: "“{label}”是一项地区特质。",
   },
   culture: {
     category: "文化",
-    description: "“{label}”是一种文化。",
   },
   cultureTrait: {
     category: "文化特质",
-    description: "“{label}”是一项文化特质。",
   },
   cultureTraitGroup: {
     category: "文化特质组",
-    description: "“{label}”是一组文化特质。",
   },
   cultureRelations: {
     empty: "无",
@@ -75,47 +65,36 @@ const TAG_TOOLTIP_DEFINITIONS = {
   },
   "country-type:受认可国家": {
     category: "国家类型",
-    description: "该国家开局时属于受认可国家。",
   },
   "country-type:殖民国家": {
     category: "国家类型",
-    description: "该国家属于殖民国家。",
   },
   "country-type:公司国家": {
     category: "国家类型",
-    description: "该国家属于公司国家。",
   },
   "country-type:未受认可国家": {
     category: "国家类型",
-    description: "该国家开局时属于未受认可国家。",
   },
   "country-type:松散政权": {
     category: "国家类型",
-    description: "该国家属于松散政权。",
   },
   "country-tier:城邦": {
     category: "国家位阶",
-    description: "该国家的位阶为城邦。",
   },
   "country-tier:公国": {
     category: "国家位阶",
-    description: "该国家的位阶为公国。",
   },
   "country-tier:大公国": {
     category: "国家位阶",
-    description: "该国家的位阶为大公国。",
   },
   "country-tier:王国": {
     category: "国家位阶",
-    description: "该国家的位阶为王国。",
   },
   "country-tier:帝国": {
     category: "国家位阶",
-    description: "该国家的位阶为帝国。",
   },
   "country-tier:霸权": {
     category: "国家位阶",
-    description: "该国家的位阶为霸权。",
   },
   "country-type": { category: "国家类型" },
   "country-tier": { category: "国家位阶" },
@@ -123,15 +102,12 @@ const TAG_TOOLTIP_DEFINITIONS = {
   "company-ownership-category": { category: "控股类别" },
   "state-trait-category": {
     category: "地区特质类别",
-    description: "该标签标示地区特质所属的类别。",
   },
   "state-trait-effect": {
     category: "地区特质效果",
-    description: "该修正由地区特质提供。",
   },
   "modifier-effect": {
     category: "修正效果",
-    description: "该标签标示一项修正效果。",
   },
   "mapi-summary": {
     category: "市场接入度的价格影响",
@@ -155,11 +131,9 @@ const TAG_TOOLTIP_DEFINITIONS = {
   },
   "geographic-region-strategic-region": {
     category: "地理区域的战略区域",
-    description: "该战略区域属于该地理区域。",
   },
   "geographic-region-state-region-count": {
     category: "地理区域的地域数量",
-    description: "该标签表示地理区域包含的地域数量。",
   },
   "tag-type": { category: "类型" },
   "tag-tier": { category: "位阶" },
@@ -170,19 +144,15 @@ const TAG_TOOLTIP_DEFINITIONS = {
   },
   "tag-heritage": {
     category: "文化传承",
-    description: "“{label}”是一项文化传承。",
   },
   "tag-language-group": {
     category: "语言组",
-    description: "“{label}”是一组语言。",
   },
   "tag-language": {
     category: "语言",
-    description: "“{label}”是一种语言。",
   },
   "tag-tradition": {
     category: "文化传统",
-    description: "“{label}”是一项文化传统。",
   },
   "tag-dlc": { category: "资料片" },
   "tag-good": { category: "商品" },

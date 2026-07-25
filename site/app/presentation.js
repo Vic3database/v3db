@@ -843,7 +843,7 @@ function renderStateRegionDetail(stateRegion) {
       ${field("战略区域", strategicRegionLinks(stateRegion.strategic_regions))}
       ${field("开局归属", countryLinks((stateRegion.starting_owners || []).map((country) => country.tag), (stateRegion.starting_owners || []).map((country) => country.name_zh)))}
       ${field("本土文化", cultureLinks(stateRegion.homeland_cultures))}
-      ${field("地区特质", stateTraitPills(stateRegion.traits))}
+      ${field("地区特质", stateTraitPills(stateRegion.traits, stateRegion))}
       ${field("固定资源", cappedResourceList(stateRegion.capped_resources))}
       ${field("可发现资源", discoverableResourceList(stateRegion.discoverable_resources))}
       ${field("农业建筑", buildingList(stateRegion.arable_resources))}

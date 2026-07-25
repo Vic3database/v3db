@@ -38,6 +38,7 @@ let lawByKey = new Map();
 let lawGroupByKey = new Map();
 let technologyByKey = new Map();
 let stateTraitByKey = new Map();
+let stateTraitRegionsByKey = new Map();
 let buildingByKey = new Map();
 let goodsByKey = new Map();
 const ideologyUsageCache = new Map();

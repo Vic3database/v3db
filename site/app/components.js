@@ -600,12 +600,12 @@ function buildingTooltipMetadata(item) {
   return conceptTooltipMetadata(label, "", "building", item?.key || label);
 }
 
-function stateTraitPills(traits) {
-  const items = (traits || []).map(stateTraitPill);
+function stateTraitPills(traits, stateRegion = null) {
+  const items = (traits || []).map((trait) => stateTraitPill(trait, stateRegion));
   return items.length ? `<span class="link-list">${items.join("")}</span>` : "";
 }
 
-function stateTraitPill(trait) {
+function stateTraitPill(trait, stateRegion = null) {
   const label = trait?.name_zh || trait?.key || "";
   const metadata = conceptTooltipMetadata(label, "", "stateTrait", trait?.key || label);
   return conceptPill({
@@ -615,16 +615,23 @@ function stateTraitPill(trait) {
     kind: "stateTrait",
     key: trait?.key || "",
     category: metadata.category,
-    description: stateTraitTooltipDescription(trait),
+    description: stateTraitTooltipDescription(trait, stateRegion),
   });
 }
 
-function stateTraitTooltipDescription(trait) {
-  const summary = String(trait?.modifier_summary_zh || "").replace(/;\s*/g, "；").trim();
-  const parts = [summary ? `效果：${summary}` : "该地区特质没有记录直接效果。"];
+function stateTraitTooltipDescription(trait, stateRegion = null) {
+  const summary = String(trait?.modifier_summary_zh || "").split(/;\s*/).map((item) => item.trim()).filter(Boolean);
+  const parts = [];
+  if (summary.length) parts.push(`效果：\n${summary.join("\n")}`);
   if ((trait?.required_techs_for_colonization || []).length) parts.push(`殖民所需科技：${technologyRefNames(trait.required_techs_for_colonization)}`);
   if ((trait?.disabling_technologies || []).length) parts.push(`失效科技：${technologyRefNames(trait.disabling_technologies)}`);
-  return parts.join("；");
+
+  const isGeneric = /(?:^|[\\/])00_generic_traits\.txt$/i.test(String(trait?.source_file || ""));
+  const otherRegions = (stateTraitRegionsByKey.get(trait?.key || "") || [])
+    .filter((region) => region.key && region.key !== stateRegion?.key)
+    .map((region) => region.name_zh || region.key);
+  if (!isGeneric && otherRegions.length) parts.push(`其他拥有该地区特质的地区：\n${otherRegions.join("、")}`);
+  return parts.join("\n");
 }
 
 function stateTraitEffectList(traits) {
@@ -1535,7 +1542,7 @@ function stateRegionTagPills(stateRegion) {
     victorianCenturyBadge(stateRegion),
     refPills(stateRegion.strategic_regions, "tag-region"),
     stateRegionMapiPill(stateRegion),
-    stateTraitPills(stateRegion.traits),
+    stateTraitPills(stateRegion.traits, stateRegion),
   ].filter(Boolean).join("");
 }
 
@@ -1686,7 +1693,7 @@ function resourceSummaryPills(stateRegion) {
 
 function agricultureSummaryPills(stateRegion) {
   const arableResources = (stateRegion.arable_resources || []).map((item) => buildingPill(item, "tag-arable"));
-  return limitedHtmlItems(arableResources, 8);
+  return arableResources.join("");
 }
 
 function stateRegionBuildingStrip(stateRegion) {

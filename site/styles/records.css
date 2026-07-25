@@ -408,6 +408,9 @@ body.results-collapsed .concept-tooltip {
 
 .concept-tooltip .concept-tooltip-description {
   color: var(--ink);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  line-height: 1.55;
 }
 
 .concept-tooltip.standard-tooltip {
