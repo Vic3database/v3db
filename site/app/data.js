@@ -171,6 +171,7 @@ function applyLoadedDataset(nextData, nextMapData) {
   technologyByKey = new Map(technologies.map((technology) => [technology.key, technology]));
   cultureTraitByKey = new Map(cultureTraits.map((trait) => [trait.key, trait]));
   cultureTraitGroupByKey = new Map(cultureTraitGroups.map((group) => [group.key, group]));
+  buildSemanticTagIndexes();
   stateKeyByProvinceColor = buildStateKeyByProvinceColor();
   landStrategicRegions = strategicRegions.filter((region) => !isSeaStrategicRegion(region));
   seaStrategicRegions = strategicRegions.filter(isSeaStrategicRegion);
@@ -184,6 +185,34 @@ function applyLoadedDataset(nextData, nextMapData) {
   resetMapRuntime();
   updateMetaLine();
   renderVersionOptions();
+}
+
+function buildSemanticTagIndexes() {
+  stateTraitByKey = new Map();
+  buildingByKey = new Map();
+  goodsByKey = new Map();
+
+  for (const stateRegion of stateRegions) {
+    indexSemanticItems(stateTraitByKey, stateRegion.traits);
+    indexSemanticItems(buildingByKey, stateRegion.arable_resources);
+    indexSemanticItems(buildingByKey, stateRegion.capped_resources);
+    indexSemanticItems(buildingByKey, stateRegion.discoverable_resources);
+  }
+
+  for (const company of companies) {
+    indexSemanticItems(buildingByKey, company.building_types);
+    indexSemanticItems(buildingByKey, company.extension_building_types);
+    indexSemanticItems(buildingByKey, company.referenced_buildings);
+    indexSemanticItems(goodsByKey, company.possible_prestige_goods);
+  }
+}
+
+function indexSemanticItems(index, items) {
+  for (const item of items || []) {
+    const key = item?.key || "";
+    if (!key || index.has(key)) continue;
+    index.set(key, item);
+  }
 }
 
 function dataCount(field, loadedRows) {

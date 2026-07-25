@@ -602,6 +602,10 @@ function conceptTooltipEntity(kind, key) {
   if (kind === "interestGroupTrait") return interestGroupTraitByKey.get(key);
   if (kind === "cultureTrait") return cultureTraitByKey.get(key);
   if (kind === "cultureTraitGroup") return cultureTraitGroupByKey.get(key);
+  if (kind === "stateTrait") return stateTraitByKey.get(key);
+  if (kind === "building") return buildingByKey.get(key);
+  if (kind === "goods") return goodsByKey.get(key);
+  if (kind === "technology") return technologyByKey.get(key);
   return null;
 }
 
@@ -641,8 +645,14 @@ function conceptTooltipContextLine(kind, key) {
       conceptTooltipIdeologyLawStance(ideology),
     ].filter(Boolean).join(" · ");
   }
-  if (kind === "building") return "建筑";
-  if (kind === "goods") return "商品";
+  if (kind === "stateTrait") {
+    return (stateTraitByKey.get(key)?.categories || []).map((category) => category.name_zh || category.key).filter(Boolean).join(" · ");
+  }
+  if (kind === "technology") {
+    const technology = technologyByKey.get(key);
+    return [technology?.category_zh, technology?.era_label_zh].filter(Boolean).join(" · ");
+  }
+  if (kind === "building" || kind === "goods") return "";
   if (kind === "cultureTrait" || kind === "cultureTraitGroup") return "文化特质";
   if (kind === "interestGroup") return "利益集团";
   if (kind === "interestGroupTrait") return "利益集团特质";
@@ -697,6 +707,7 @@ function conceptKindLabel(kind) {
     ideology: "意识形态",
     law: "法律",
     building: "建筑",
+    technology: "科技",
     cultureTrait: "文化特质",
     cultureTraitGroup: "文化特质组",
     stateTrait: "地区特质",

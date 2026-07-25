@@ -252,10 +252,10 @@ assert.match(source, /function\s+buildingChip\s*\([\s\S]*conceptDataAttributes\(
 const rootStyleSource = fs.readFileSync(path.join(process.cwd(), "site/styles.css"), "utf8");
 const presentationSource = fs.readFileSync(path.join(process.cwd(), "site/app/presentation.js"), "utf8");
 assert.match(indexSource, /styles\.css\?v=20260725-localized-terms1/, "main stylesheet cache version is missing");
-assert.match(indexSource, /app\/runtime\.js\?v=20260723-tag-tooltip-definitions2/, "tooltip runtime cache version is missing");
-assert.match(indexSource, /app\/ui\.js\?v=20260725-localized-terms1/, "tooltip UI cache version is missing");
-assert.match(indexSource, /app\/tag-tooltip-definitions\.js\?v=20260725-localized-terms1/, "tooltip definitions cache version is missing");
-assert.match(indexSource, /app\/components\.js\?v=20260725-localized-terms1/, "tooltip component cache version is missing");
+assert.match(indexSource, /app\/runtime\.js\?v=20260725-semantic-tag-coverage1/, "tooltip runtime cache version is missing");
+assert.match(indexSource, /app\/ui\.js\?v=20260725-semantic-tag-coverage1/, "tooltip UI cache version is missing");
+assert.match(indexSource, /app\/tag-tooltip-definitions\.js\?v=20260725-semantic-tag-coverage1/, "tooltip definitions cache version is missing");
+assert.match(indexSource, /app\/components\.js\?v=20260725-semantic-tag-coverage1/, "tooltip component cache version is missing");
 assert.match(rootStyleSource, /styles\/records\.css\?v=20260725-localized-terms1/, "tooltip record-style cache version is missing");
 
 const definitionsScriptOffset = indexSource.indexOf("app/tag-tooltip-definitions.js");
@@ -272,13 +272,13 @@ for (const [name, kind] of [
   ["country.tag", "country"],
   ["stateRegion.key", "stateRegion"],
   ["culture.key", "culture"],
-  ["company.key", "company"],
   ["ideology.key", "ideology"],
   ["law.key", "law"],
   ["region.key", "strategicRegion"],
 ]) {
   assert.match(presentationSource, new RegExp(`conceptTag\\(${name.replace(".", "\\.")}[^\\n]+"${kind}"`), `${kind} identity tags must use conceptTag`);
 }
+assert.doesNotMatch(presentationSource, /conceptTag\(company\.key[^\n]+"company"/, "company IDs must not render as tags");
 assert.doesNotMatch(presentationSource, /<span class="tag">\$\{escapeHtml\(/, "presentation identity tags must not bypass concept metadata");
 
 console.log(JSON.stringify({ tag_tooltip_components: "ok" }));

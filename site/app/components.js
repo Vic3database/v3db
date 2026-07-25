@@ -115,18 +115,20 @@ function limitedRefPills(items, className, limit = 10) {
 }
 
 function strategicRegionTagPills(region) {
+  const regionName = strategicRegionName(region);
   return [
     victorianCenturyBadge(region),
-    limitedRefPills(region.starting_owners, "tag-type", 8),
-    limitedRefPills(region.homeland_cultures, "tag-heritage", 10),
+    relationshipRefPills(region.starting_owners, "tag-type", "strategic-region-starting-owner", (label) => `“${regionName}”在1836年开局时由${label}拥有。`, 8),
+    relationshipRefPills(region.homeland_cultures, "tag-heritage", "strategic-region-homeland-culture", (label) => `“${label}”在“${regionName}”拥有本土地域。`, 10),
   ].filter(Boolean).join("");
 }
 
 function geographicRegionTagPills(region) {
+  const regionName = geographicRegionDisplayName(region);
   return [
     victorianCenturyBadge(region),
-    limitedRefPills(geographicRegionStrategicRegions(region), "tag-region", 6),
-    tagPill(`${geographicRegionStateRegions(region).length} 个地域`, "tag-muted"),
+    relationshipRefPills(geographicRegionStrategicRegions(region), "tag-region", "geographic-region-strategic-region", () => `“${regionName}”包含该战略区域。`, 6),
+    tagPill(`${geographicRegionStateRegions(region).length} 个地域`, "tag-muted", "", "geographic-region-state-region-count"),
   ].filter(Boolean).join("");
 }
 
@@ -144,13 +146,13 @@ function tagTooltipMetadata(label, className, sourceKey, semanticKey) {
 }
 
 function conceptTooltipMetadata(label, className, kind, key) {
-  if (!["culture", "cultureTrait", "cultureTraitGroup"].includes(kind)) return {};
   const classKeys = String(className || "").split(/\s+/).filter(Boolean);
-  const definitionKey = [key, ...classKeys].find((candidate) => candidate && TAG_TOOLTIP_DEFINITIONS[candidate]);
+  const definitionKey = [key, kind, ...classKeys].find((candidate) => candidate && TAG_TOOLTIP_DEFINITIONS[candidate]);
   const definition = TAG_TOOLTIP_DEFINITIONS[definitionKey] || {};
-  const defaults = TAG_TOOLTIP_DEFAULTS[kind] || TAG_TOOLTIP_DEFAULTS.concept || {};
+  const defaults = TAG_TOOLTIP_DEFAULTS[kind] || {};
+  if (!definition.category && !definition.description && !defaults.category && !defaults.description) return {};
   const category = definition.category || defaults.category || "";
-  const description = formatTooltipDescription(definition.description || defaults.description, { label, key, category });
+  const description = formatTooltipDescription(definition.description || defaults.description || "", { label, key, category });
   return { category, description };
 }
 
@@ -231,6 +233,7 @@ function conceptHref(kind, key) {
   if (kind === "company") return `#/company/${encodeURIComponent(key)}`;
   if (kind === "ideology") return `#/ideology/${encodeURIComponent(key)}`;
   if (kind === "law") return `#/law/${encodeURIComponent(key)}`;
+  if (kind === "technology") return `#/technology/${encodeURIComponent(key)}`;
   if (kind === "religion") return `#/religion/${encodeURIComponent(key)}`;
   return "";
 }
@@ -254,7 +257,15 @@ function kindFromRef(item) {
   return "";
 }
 
-function refConceptPill(item, className = "") {
+function relationshipRefPills(items, className, semanticKey, description, limit = 10) {
+  const refs = items || [];
+  const relation = { semanticKey, description };
+  const visible = refs.slice(0, limit).map((item) => refConceptPill(item, className, relation)).join("");
+  const more = refs.length > limit ? tagPill(`另有 ${refs.length - limit} 项`, "tag-more") : "";
+  return `${visible}${more}`;
+}
+
+function refConceptPill(item, className = "", relation = null) {
   if (!item) return "";
   const key = item.tag || item.key || "";
   const kind = kindFromRef(item) || inferConceptKind(key);
@@ -266,6 +277,12 @@ function refConceptPill(item, className = "") {
       ? geographicRegionDisplayName(byGeographicRegion.get(key) || item)
     : item.name_zh || item.key || item.tag || "";
   const metadata = conceptTooltipMetadata(label, className, kind, key);
+  const relationMetadata = relation?.semanticKey
+    ? tagTooltipMetadata(label, className, "", relation.semanticKey)
+    : null;
+  const relationDescription = typeof relation?.description === "function"
+    ? relation.description(label, item)
+    : "";
   return conceptPill({
     label,
     className,
@@ -273,8 +290,8 @@ function refConceptPill(item, className = "") {
     kind,
     key,
     href: conceptHref(kind, key),
-    category: metadata.category,
-    description: metadata.description,
+    category: relationMetadata?.category || metadata.category,
+    description: relationDescription || relationMetadata?.description || metadata.description,
   });
 }
 
@@ -289,6 +306,10 @@ function inferConceptKind(key) {
   if (interestGroupTraitByKey.has(key)) return "interestGroupTrait";
   if (ideologyByKey.has(key)) return "ideology";
   if (cultureTraitByKey.has(key)) return "cultureTrait";
+  if (stateTraitByKey.has(key)) return "stateTrait";
+  if (buildingByKey.has(key)) return "building";
+  if (goodsByKey.has(key)) return "goods";
+  if (technologyByKey.has(key)) return "technology";
   if (String(key).startsWith("building_")) return "building";
   if (String(key).startsWith("goods_") || String(key).startsWith("prestige_good_")) return "goods";
   return "";
@@ -544,12 +565,15 @@ function buildingList(buildings, className = "tag-arable") {
 function resourcePill(item, amount = "") {
   const name = item?.name_zh || item?.key || "";
   const suffix = amount !== "" && amount !== null ? ` · ${escapeHtml(amount)}` : "";
+  const metadata = buildingTooltipMetadata(item);
   return conceptPill({
     label: `${name}${amount !== "" && amount !== null ? ` ${amount}` : ""}`,
     className: "resource-pill image-pill",
     title: item?.key || "",
     kind: "building",
     key: item?.key || "",
+    category: metadata.category,
+    description: metadata.description,
     html: `${buildingIconHtml(item?.key, name)}<span>${escapeHtml(name)}${suffix}</span>`,
   });
 }
@@ -558,21 +582,49 @@ function buildingPill(item, className = "") {
   const name = item?.name_zh || item?.key || "";
   const classText = className ? ` ${className}` : "";
   const extensionBadge = className.includes("extension-building-pill") ? `<span class="building-kind-badge">扩展</span>` : "";
+  const metadata = buildingTooltipMetadata(item);
   return conceptPill({
     label: name,
     className: `resource-pill image-pill${classText}`,
     title: item?.key || "",
     kind: "building",
     key: item?.key || "",
+    category: metadata.category,
+    description: metadata.description,
     html: `${buildingIconHtml(item?.key, name)}${extensionBadge}<span>${escapeHtml(name)}</span>`,
   });
 }
 
+function buildingTooltipMetadata(item) {
+  const label = item?.name_zh || item?.key || "";
+  return conceptTooltipMetadata(label, "", "building", item?.key || label);
+}
+
 function stateTraitPills(traits) {
-  const items = (traits || []).map((trait) => (
-    tagPill(trait.name_zh || trait.key, trait.has_mapi ? "tag-mapi" : "tag-tradition", trait.key)
-  ));
+  const items = (traits || []).map(stateTraitPill);
   return items.length ? `<span class="link-list">${items.join("")}</span>` : "";
+}
+
+function stateTraitPill(trait) {
+  const label = trait?.name_zh || trait?.key || "";
+  const metadata = conceptTooltipMetadata(label, "", "stateTrait", trait?.key || label);
+  return conceptPill({
+    label,
+    className: trait?.has_mapi ? "tag-mapi" : "tag-tradition",
+    title: trait?.key || "",
+    kind: "stateTrait",
+    key: trait?.key || "",
+    category: metadata.category,
+    description: stateTraitTooltipDescription(trait),
+  });
+}
+
+function stateTraitTooltipDescription(trait) {
+  const summary = String(trait?.modifier_summary_zh || "").replace(/;\s*/g, "；").trim();
+  const parts = [summary ? `效果：${summary}` : "该地区特质没有记录直接效果。"];
+  if ((trait?.required_techs_for_colonization || []).length) parts.push(`殖民所需科技：${technologyRefNames(trait.required_techs_for_colonization)}`);
+  if ((trait?.disabling_technologies || []).length) parts.push(`失效科技：${technologyRefNames(trait.disabling_technologies)}`);
+  return parts.join("；");
 }
 
 function stateTraitEffectList(traits) {
@@ -590,9 +642,9 @@ function stateTraitEffectList(traits) {
           </div>
           <dl class="mini-grid">
             ${field("类型", traitCategoryPills(trait.categories))}
-            ${field("效果", modifierPills(trait.modifiers))}
-            ${field("殖民科技", escapeHtml((trait.required_techs_for_colonization || []).join("、")))}
-            ${field("失效科技", escapeHtml((trait.disabling_technologies || []).join("、")))}
+            ${field("效果", modifierPills(trait.modifiers, "state-trait-effect"))}
+            ${field("殖民科技", technologyPills(trait.required_techs_for_colonization))}
+            ${field("失效科技", technologyPills(trait.disabling_technologies))}
           </dl>
         </div>
       </div>
@@ -601,16 +653,56 @@ function stateTraitEffectList(traits) {
 }
 
 function traitCategoryPills(categories) {
-  const items = (categories || []).map((category) => tagPill(category.name_zh || category.key, category.key === "mapi" ? "tag-mapi" : "tag-tradition", category.key));
+  const items = (categories || []).map((category) => tagPill(
+    category.name_zh || category.key,
+    category.key === "mapi" ? "tag-mapi" : "tag-tradition",
+    category.key,
+    category.key === "mapi" ? "mapi-category" : "state-trait-category",
+  ));
   return items.length ? `<span class="link-list">${items.join("")}</span>` : "";
 }
 
-function modifierPills(modifiers) {
+function modifierPills(modifiers, semanticKey = "modifier-effect") {
   const items = (modifiers || []).map((modifier) => {
     const title = [modifier.key, modifier.desc_zh].filter(Boolean).join("；");
-    return tagPill(modifierSummaryLabel(modifier), modifier.key === "state_market_access_price_impact" ? "tag-mapi" : "tag-effect", title);
+    const isMapi = modifier.key === "state_market_access_price_impact";
+    const metadata = tagTooltipMetadata(
+      modifierSummaryLabel(modifier),
+      isMapi ? "tag-mapi" : "tag-effect",
+      title,
+      isMapi ? "mapi-effect" : semanticKey,
+    );
+    return conceptPill({
+      label: modifierSummaryLabel(modifier),
+      className: `tag-pill ${isMapi ? "tag-mapi" : "tag-effect"}`,
+      title,
+      hideNativeTitle: true,
+      kind: "tag",
+      key: metadata.key,
+      category: metadata.category,
+      description: [modifier.summary_zh, modifier.desc_zh].filter(Boolean).join("；") || metadata.description,
+    });
   });
   return items.length ? `<span class="link-list">${items.join("")}</span>` : "";
+}
+
+function technologyPills(items, className = "tag-technology") {
+  const refs = (items || []).map((item) => {
+    const key = typeof item === "string" ? item : item?.key;
+    const technology = technologyByKey.get(key);
+    return {
+      key,
+      name_zh: technology?.name_zh || (typeof item === "string" ? "" : item?.name_zh) || key,
+    };
+  }).filter((item) => item.key);
+  return refItemsPills(refs, "technology", className);
+}
+
+function technologyRefNames(items) {
+  return (items || []).map((item) => {
+    const key = typeof item === "string" ? item : item?.key;
+    return technologyByKey.get(key)?.name_zh || (typeof item === "string" ? item : item?.name_zh || key);
+  }).filter(Boolean).join("、");
 }
 
 function modifierSummaryLabel(modifier) {
@@ -967,13 +1059,7 @@ function lawStanceSentencePrefix(stance) {
 
 function ideologyUnlockTagsHtml(ideology) {
   const tags = [
-    ...(ideology.unlock_technologies || []).map((item) => conceptPill({
-      label: `科技：${item.name_zh || item.key}`,
-      className: "tag-technology",
-      title: item.key,
-      key: item.key,
-      search: item.name_zh || item.key,
-    })),
+    ...(ideology.unlock_technologies || []).map((item) => technologyPill(item, "tag-technology")),
     ...(ideology.unlock_journal_entries || []).map((item) => conceptPill({
       label: `日志条目：${item.name_zh || item.key}`,
       className: "tag-journal",
@@ -1027,7 +1113,7 @@ function ideologySourceText(source) {
   const parts = [
     source.source_name_zh && source.source_name_zh !== source.source_key ? `${source.source_name_zh}（${source.source_key}）` : source.source_key,
     ideologyUnlockRefsText(source.technologies, "科技"),
-    ideologyUnlockRefsText(source.journal_entries, "日志"),
+    ideologyUnlockRefsText(source.journal_entries, "日志条目"),
     source.condition_summary_zh && source.condition_summary_zh !== "脚本条件" ? source.condition_summary_zh : "",
     fileBaseName(source.source_file),
   ].filter(Boolean);
@@ -1158,7 +1244,7 @@ function conditionRefPills(condition) {
   const parts = [
     refItemsPills(condition.interest_groups, "interestGroup", "tag-ig-changed"),
     refItemsPills(condition.laws, "law", "tag-law"),
-    refItemsPills(condition.technologies, "", "tag-technology"),
+    refItemsPills(condition.technologies, "technology", "tag-technology"),
     refItemsPills(condition.journal_entries, "", "tag-journal"),
     refItemsPills(condition.traits, "trait", "tag-tradition"),
   ].filter(Boolean);
@@ -1166,15 +1252,41 @@ function conditionRefPills(condition) {
 }
 
 function refItemsPills(items, kind, className) {
-  const pills = (items || []).map((item) => conceptPill({
-    label: item.name_zh || item.key,
-    className,
-    title: item.key,
-    kind,
-    key: item.key,
-    href: conceptHref(kind, item.key),
-  })).filter(Boolean);
+  const pills = (items || []).map((item) => {
+    if (kind === "technology") return technologyPill(item, className);
+    const label = item.name_zh || item.key;
+    const metadata = conceptTooltipMetadata(label, className, kind, item.key);
+    return conceptPill({
+      label,
+      className,
+      title: item.key,
+      kind,
+      key: item.key,
+      href: conceptHref(kind, item.key),
+      category: metadata.category,
+      description: metadata.description,
+    });
+  }).filter(Boolean);
   return pills.length ? `<span class="link-list">${pills.join("")}</span>` : "";
+}
+
+function technologyPill(item, className = "tag-technology") {
+  const key = typeof item === "string" ? item : item?.key || "";
+  if (!key) return "";
+  const technology = technologyByKey.get(key);
+  const label = technology?.name_zh || (typeof item === "string" ? "" : item?.name_zh) || key;
+  const metadata = conceptTooltipMetadata(label, "", "technology", key);
+  return conceptPill({
+    label,
+    className,
+    title: key,
+    kind: "technology",
+    key,
+    href: conceptHref("technology", key),
+    search: label,
+    category: metadata.category,
+    description: metadata.description,
+  });
 }
 
 function formatSignedWeight(value) {
@@ -1423,7 +1535,7 @@ function stateRegionTagPills(stateRegion) {
     victorianCenturyBadge(stateRegion),
     refPills(stateRegion.strategic_regions, "tag-region"),
     stateRegionMapiPill(stateRegion),
-    refPills(stateRegion.traits, "tag-tradition"),
+    stateTraitPills(stateRegion.traits),
   ].filter(Boolean).join("");
 }
 
@@ -1433,7 +1545,7 @@ function stateRegionMapiPill(stateRegion) {
     .map((trait) => trait.mapi_value_zh)
     .filter(Boolean));
   if (!values.length) return "";
-  return tagPill(`MAPI ${values.join("/")}`, "tag-mapi", "MAPI");
+  return tagPill(`MAPI ${values.join("/")}`, "tag-mapi", "MAPI", "mapi-summary");
 }
 
 function companyKindText(company) {
@@ -1516,6 +1628,8 @@ function companyPrestigeGoodPill(item) {
     title: key,
     kind: "goods",
     key,
+    category: "名贵商品",
+    description: `“${label}”是一种名贵商品。`,
     html: `${goodsIconHtml(item, "prestige-good-icon")}<span>${escapeHtml(label)}</span>`,
   });
 }
@@ -1546,12 +1660,15 @@ function companyBuildingPill(item, className = "") {
   const name = item?.name_zh || item?.key || "";
   if (!name) return "";
   const classText = className ? ` ${className}` : "";
+  const metadata = buildingTooltipMetadata(item);
   return conceptPill({
     label: name,
     className: `resource-pill image-pill company-building-pill${classText}`,
     title: item?.key || "",
     kind: "building",
     key: item?.key || "",
+    category: metadata.category,
+    description: metadata.description,
     html: buildingIconHtml(item?.key, name),
   });
 }

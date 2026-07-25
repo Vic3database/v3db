@@ -239,7 +239,6 @@ function renderCompanyList(filtered) {
         ${companyIconHtml(company)}
         <span class="company-title-text">
           <span class="name">${escapeHtml(company.name_zh || company.key)}</span>
-          ${conceptTag(company.key, "company", company.key, company.name_zh)}
         </span>
         ${companyDlcIconPill(company)}
       </span>
@@ -607,7 +606,6 @@ function renderCompanyDetail(company) {
         <span class="company-icon-box">${companyIconHtml(company)}</span>
         <h2>${escapeHtml(company.name_zh || company.key)}</h2>
       </div>
-      ${conceptTag(company.key, "company", company.key, company.name_zh)}
       ${victorianCenturyBadge(company)}
     </div>
 
@@ -621,8 +619,8 @@ function renderCompanyDetail(company) {
           ${field("名贵商品状态", tagPill(companyPrestigeLabel(company), "tag-good"))}
           ${field("相关文化", cultureLinks(company.referenced_cultures))}
           ${field("相关国家", countryLinks((company.referenced_countries || []).map((item) => item.tag), (company.referenced_countries || []).map((item) => item.name_zh)))}
-          ${field("所需科技", listText(company.required_technologies))}
-          ${field("AI 倾向科技", listText(company.ai_will_do_technologies))}
+          ${field("所需科技", technologyPills(company.required_technologies))}
+          ${field("AI 倾向科技", technologyPills(company.ai_will_do_technologies))}
         </dl>
         ${companyLocationFieldsHtml(company)}
       </section>

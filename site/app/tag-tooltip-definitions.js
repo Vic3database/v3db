@@ -9,7 +9,19 @@ const TAG_TOOLTIP_DEFAULTS = {
   },
   building: {
     category: "建筑",
-    description: "“{label}”用于标示当前条目的{category}。",
+    description: "“{label}”是一种建筑。",
+  },
+  goods: {
+    category: "商品",
+    description: "“{label}”是一种商品。",
+  },
+  technology: {
+    category: "科技",
+    description: "“{label}”是一项科技。",
+  },
+  stateTrait: {
+    category: "地区特质",
+    description: "“{label}”是一项地区特质。",
   },
   culture: {
     category: "文化",
@@ -109,6 +121,46 @@ const TAG_TOOLTIP_DEFINITIONS = {
   "country-tier": { category: "国家位阶" },
   "company-dlc": { category: "资料片" },
   "company-ownership-category": { category: "控股类别" },
+  "state-trait-category": {
+    category: "地区特质类别",
+    description: "该标签标示地区特质所属的类别。",
+  },
+  "state-trait-effect": {
+    category: "地区特质效果",
+    description: "该修正由地区特质提供。",
+  },
+  "modifier-effect": {
+    category: "修正效果",
+    description: "该标签标示一项修正效果。",
+  },
+  "mapi-summary": {
+    category: "市场接入度的价格影响",
+    description: "该地域的地区特质会改变市场接入度对商品本地价格的最大影响。",
+  },
+  "mapi-category": {
+    category: "市场价格影响",
+    description: "该类别用于标示会影响市场接入度价格影响的地区特质。",
+  },
+  "mapi-effect": {
+    category: "市场接入度的价格影响",
+    description: "该修正会提高或降低市场接入度对商品本地价格的最大影响。",
+  },
+  "strategic-region-starting-owner": {
+    category: "战略区域的开局国家",
+    description: "该国家在1836年开局时拥有该战略区域。",
+  },
+  "strategic-region-homeland-culture": {
+    category: "战略区域的本土文化",
+    description: "该文化在该战略区域拥有本土地域。",
+  },
+  "geographic-region-strategic-region": {
+    category: "地理区域的战略区域",
+    description: "该战略区域属于该地理区域。",
+  },
+  "geographic-region-state-region-count": {
+    category: "地理区域的地域数量",
+    description: "该标签表示地理区域包含的地域数量。",
+  },
   "tag-type": { category: "类型" },
   "tag-tier": { category: "位阶" },
   "tag-region": { category: "区域关系" },
