@@ -51,6 +51,18 @@ git diff --check
 
 其中 `check_site_asset_coverage.mjs` 会对照本地游戏资源检查站点图片覆盖情况。没有本地游戏文件时，这项检查可能无法完成。
 
+## 站内公告
+
+首页公告由仓库根目录的 `announcements.md` 维护。每条公告使用 `## YYYY-MM-DD｜标题` 作为标题行，标题后写正文；正文可以用空行分段。编辑完成后运行：
+
+```powershell
+node scripts/build_announcements_data.mjs
+node scripts/check_announcements.mjs
+node scripts/check_publish_bundle.mjs
+```
+
+三个命令通过后再上传 `site/` 目录。发布检查会拒绝与 `announcements.md` 不一致的 `site/announcement-data.js`。
+
 ## 部署
 
 仓库包含 GitHub Pages 工作流。公开仓库启用 Pages 后，可以使用 `.github/workflows/pages.yml` 发布 `site/` 目录。
