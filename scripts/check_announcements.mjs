@@ -60,4 +60,10 @@ function checkFrontendContract(root) {
 
 checkFrontendContract(process.cwd());
 
+const publishCheck = fs.readFileSync(path.join(process.cwd(), "scripts", "check_publish_bundle.mjs"), "utf8");
+assert.match(publishCheck, /from "\.\/lib\/announcements\.mjs"/);
+assert.match(publishCheck, /announcements\.md/);
+assert.match(publishCheck, /announcement-data\.js/);
+assert.match(publishCheck, /announcement data is stale/);
+
 console.log("announcement parser checks passed");

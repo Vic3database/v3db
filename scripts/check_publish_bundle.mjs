@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
+import { parseAnnouncements, serializeAnnouncements } from "./lib/announcements.mjs";
 import { appSections, readSiteAppSource, styleSections } from "./site_frontend_sources.mjs";
 
 const root = process.cwd();
@@ -8,6 +9,8 @@ const siteRoot = path.join(root, "site");
 const versionsFile = path.join(siteRoot, "versions.js");
 const indexFile = path.join(siteRoot, "index.html");
 const manifestFile = path.join(siteRoot, "site.webmanifest");
+const announcementsFile = path.join(root, "announcements.md");
+const announcementDataFile = path.join(siteRoot, "announcement-data.js");
 
 const versionsSource = fs.readFileSync(versionsFile, "utf8");
 const appSource = readSiteAppSource(root);
@@ -20,6 +23,7 @@ const requiredFiles = new Set([
   "index.html",
   "styles.css",
   "app.js",
+  "announcement-data.js",
   "versions.js",
   "site.webmanifest",
 ]);
@@ -64,6 +68,22 @@ for (const relative of [
   }),
 ]) {
   addRequired(relative);
+}
+
+if (!fs.existsSync(announcementsFile)) {
+  failures.push("missing announcements.md");
+} else if (!fs.existsSync(announcementDataFile)) {
+  failures.push("missing published file: site/announcement-data.js");
+} else {
+  try {
+    const expectedAnnouncementData = serializeAnnouncements(parseAnnouncements(fs.readFileSync(announcementsFile, "utf8")));
+    const actualAnnouncementData = fs.readFileSync(announcementDataFile, "utf8");
+    if (actualAnnouncementData !== expectedAnnouncementData) {
+      failures.push("announcement data is stale; run node scripts/build_announcements_data.mjs");
+    }
+  } catch (error) {
+    failures.push(`invalid announcements.md: ${error.message}`);
+  }
 }
 
 for (const relative of [...requiredFiles].sort()) {
