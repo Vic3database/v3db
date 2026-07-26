@@ -44,4 +44,20 @@ try {
   fs.rmSync(fixtureRoot, { recursive: true, force: true });
 }
 
+function checkFrontendContract(root) {
+  const index = fs.readFileSync(path.join(root, "site", "index.html"), "utf8");
+  const runtime = fs.readFileSync(path.join(root, "site", "app", "runtime.js"), "utf8");
+  const boards = fs.readFileSync(path.join(root, "site", "app", "boards.js"), "utf8");
+  const homeStyles = fs.readFileSync(path.join(root, "site", "styles", "home.css"), "utf8");
+  assert.match(index, /<script src="announcement-data\.js\?v=20260726-announcements1"><\/script>/);
+  assert.match(runtime, /const announcementItems = Array\.isArray\(window\.VICDATA_ANNOUNCEMENTS\)/);
+  assert.match(boards, /function announcementItemHtml\(item\)/);
+  assert.match(boards, /announcementItems\.map\(announcementItemHtml\)/);
+  assert.match(boards, /暂无公告/);
+  assert.match(homeStyles, /\.home-announcement-list\s*\{/);
+  assert.match(homeStyles, /max-height:\s*min\(48vh, 560px\)/);
+}
+
+checkFrontendContract(process.cwd());
+
 console.log("announcement parser checks passed");

@@ -47,6 +47,7 @@ let cultureTraitGroupByKey = new Map();
 let changelogData = { baseVersion: "", targetVersion: "", boards: [], changes: [] };
 let changelogBoardOrder = ["all"];
 let changelogLoadedPair = "";
+const announcementItems = Array.isArray(window.VICDATA_ANNOUNCEMENTS) ? window.VICDATA_ANNOUNCEMENTS : [];
 const newsItems = Array.isArray(window.VIC3_NEWS_DATA) ? window.VIC3_NEWS_DATA : [];
 let stateKeyByProvinceColor = new Map();
 let landStrategicRegions = [];

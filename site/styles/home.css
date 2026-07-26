@@ -567,6 +567,24 @@ button.home-entry:hover {
   line-height: 1.62;
 }
 
+.home-announcement {
+  display: flex;
+  flex-direction: column;
+}
+
+.home-announcement-list {
+  max-height: min(48vh, 560px);
+  overflow-y: auto;
+  padding-right: 6px;
+  scrollbar-gutter: stable;
+}
+
+.home-announcement-empty {
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
 .home-news-panel {
   display: flex;
   flex-direction: column;

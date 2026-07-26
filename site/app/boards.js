@@ -103,6 +103,17 @@ function renderNewsBoard() {
   renderMap([]);
 }
 
+function announcementItemHtml(item) {
+  const body = escapeHtml(item.body).replaceAll("\n", "<br>");
+  return `
+    <article class="home-announcement-item">
+      <time datetime="${escapeHtml(item.date)}">${escapeHtml(item.date)}</time>
+      <strong>${escapeHtml(item.title)}</strong>
+      <p>${body}</p>
+    </article>
+  `;
+}
+
 function renderHomeBoard() {
   mapRuntime.filteredCountryTags = new Set();
   els.resultCount.textContent = "";
@@ -129,18 +140,6 @@ function renderHomeBoard() {
     { category: "其他", label: "更新日志", text: "版本差异", view: "changelog", icon: "assets/home/mass_communication.png" },
   ];
   const categories = ["外交", "内政", "经济", "军事", "社会", "其他"];
-  const datasetGeneratedAt = new Date(data.meta?.generated_at || "");
-  const homeUpdatedAt = Number.isNaN(datasetGeneratedAt.getTime())
-    ? "未知"
-    : new Intl.DateTimeFormat("zh-CN", {
-      timeZone: "Asia/Hong_Kong",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    }).format(datasetGeneratedAt).replace(/\//g, "-");
   els.countryList.innerHTML = `
     <div class="home-category-list">
       ${categories.map((category) => {
@@ -179,17 +178,9 @@ function renderHomeBoard() {
   els.detail.innerHTML = `
     <section class="home-side-panel home-announcement">
       <div class="home-side-heading"><h2>公告</h2><span>站内</span></div>
-      <article class="home-announcement-item">
-        <time>2026-07-13</time>
-        <strong>主页资料入口正在调整</strong>
-        <p>已建成板块可直接进入，后续板块会在资料准备完成后开放。</p>
-      </article>
-      <article class="home-announcement-item">
-        <time>当前数据版本</time>
-        <strong>Victoria 3 ${escapeHtml(data.meta?.victoria3_version || "未知")}</strong>
-        <p>页面中的资料、筛选条件和地图内容以当前选择的版本为准。</p>
-      </article>
-      <p class="home-updated-at">最近更新：${escapeHtml(homeUpdatedAt)}</p>
+      ${announcementItems.length
+        ? `<div class="home-announcement-list">${announcementItems.map(announcementItemHtml).join("")}</div>`
+        : `<p class="home-announcement-empty">暂无公告。</p>`}
     </section>
     ${renderHomeNewsHtml()}
   `;
