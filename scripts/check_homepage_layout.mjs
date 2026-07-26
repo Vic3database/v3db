@@ -49,7 +49,7 @@ expect(homeFunction.includes("陆军") && homeFunction.includes("海军"), "home
 expect(indexSource.includes('id="homeWelcome"'), "homepage should define a welcome panel outside the navigation list");
 expect(!indexSource.includes('<strong>列表</strong>'), "site shell should not impose a generic list heading on every page");
 expect(/styles\.css\?v=/.test(indexSource), "homepage stylesheet should have a cache version");
-expect(indexSource.includes('app/boards.js?v=20260719-home-category-cards1'), "homepage board script should have a cache version for independent category cards");
+expect(/app\/boards\.js\?v=/.test(indexSource), "homepage board script should have a cache version");
 expect(indexSource.includes('id="homeGuideButton"'), "homepage welcome panel should include the site guide button");
 expect(indexSource.includes('id="homeLinks"'), "homepage should define an external links panel outside navigation");
 expect(indexSource.includes("home-copyright"), "welcome panel should render the copyright statement");
@@ -61,9 +61,9 @@ expect(indexSource.includes('href="https://vic3.parawikis.com/wiki/%E9%A6%96%E9%
 expect(indexSource.includes('href="https://forum.paradoxplaza.com/forum/forums/victoria-3.1095/"'), "homepage should link the official forum");
 expect(indexSource.includes('href="https://space.bilibili.com/3546875974126422"'), "homepage should include the official Bilibili account link");
 expect(homeFunction.includes("home-announcement"), "homepage should render an announcement panel");
-expect(homeFunction.includes("home-updated-at"), "homepage announcement should render its update time");
-expect(homeFunction.includes("data.meta?.generated_at"), "homepage update time should use the selected dataset generation timestamp");
-expect(!homeFunction.includes(".format(new Date())"), "homepage update time should not use the page render time");
+expect(homeFunction.includes("announcementItems.map(announcementItemHtml)"), "homepage announcement should render generated announcement items");
+expect(!homeFunction.includes("home-updated-at"), "homepage announcement should not add a separate generated-time row");
+expect(!homeFunction.includes("data.meta?.generated_at"), "homepage announcement dates should come from the announcement source");
 expect(homeFunction.includes("renderHomeNewsHtml") && homeNewsFunction.includes("home-news-panel"), "homepage should render the news panel");
 expect(homeNewsFunction.includes("home-news-tabs"), "homepage news panel should render category tabs");
 expect(homeNewsFunction.includes("查看更多 →"), "homepage news panel should provide a more link");
@@ -88,7 +88,7 @@ expect(/body\[data-view="home"\]\s+\.results\s*\{[\s\S]*top:\s*285px[\s\S]*paddi
 expect(/\.home-links\s*\{/.test(stylesSource), "homepage should style the external links panel");
 expect(/\.home-links\[hidden\]\s*\{[\s\S]*display:\s*none\s*!important/.test(stylesSource), "homepage links should stay hidden outside the homepage");
 expect(/\.home-links a\s*\{[\s\S]*color:\s*var\(--ink\)[\s\S]*font-weight:\s*400/.test(stylesSource), "homepage links should use regular white text");
-expect(/\.home-updated-at\s*\{[\s\S]*color:\s*var\(--ink\)[\s\S]*font-size:\s*var\(--text-sm\)[\s\S]*font-weight:\s*400/.test(stylesSource), "homepage update time should use normal unbolded white text");
+expect(/\.home-announcement-list\s*\{[\s\S]*max-height:\s*min\(48vh,\s*560px\)[\s\S]*overflow-y:\s*auto/.test(stylesSource), "homepage announcements should scroll within a bounded panel");
 expect(/body\[data-view="home"\]\s+\.result-head\s*\{[\s\S]*display:\s*none/.test(stylesSource), "homepage should hide the entry and sort controls");
 expect(/body\[data-view="home"\]\s+\.results\s*\{[\s\S]*top:\s*285px/.test(stylesSource), "homepage navigation should sit below the independent welcome panel");
 expect(/body\[data-view="home"\]\s+\.filters/.test(stylesSource), "homepage should hide the normal filter panel");

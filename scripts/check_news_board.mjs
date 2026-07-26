@@ -37,7 +37,7 @@ assert.match(app, /other: "其他"/, "home news must include the other category"
 assert.match(app, /data-news-category="\$\{key\}"/, "home news category buttons must expose category values");
 assert.match(app, /查看更多\s*→/, "home news must expose the more link");
 
-const styles = readSiteStyleSource(root);
+const styles = readSiteStyleSource(root).replaceAll("\r\n", "\n");
 assert.match(styles, /\.home-news-tabs\s*,\s*\.news-board-tabs\s*\{/, "home news tabs must have styles");
 assert.match(styles, /\.home-news-more\s*\{/, "home more link must have styles");
 assert.match(styles, /\.news-board\s*\{/, "news board must have styles");
