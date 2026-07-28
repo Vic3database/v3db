@@ -52,6 +52,11 @@ expect(/styles\.css\?v=/.test(indexSource), "homepage stylesheet should have a c
 expect(/app\/boards\.js\?v=/.test(indexSource), "homepage board script should have a cache version");
 expect(indexSource.includes('id="homeGuideButton"'), "homepage welcome panel should include the site guide button");
 expect(indexSource.includes('id="homeLinks"'), "homepage should define an external links panel outside navigation");
+expect(
+  indexSource.indexOf('id="homeWelcome"') < indexSource.indexOf('class="results"')
+    && indexSource.indexOf('class="results"') < indexSource.indexOf('id="homeLinks"'),
+  "homepage left flow should order the welcome panel, navigation, and links from top to bottom",
+);
 expect(indexSource.includes("home-copyright"), "welcome panel should render the copyright statement");
 expect(!homeFunction.includes("home-intro"), "homepage navigation renderer should not place the welcome copy inside navigation");
 expect(!homeFunction.includes("home-guide-button"), "homepage navigation renderer should not place the site guide inside navigation");
@@ -84,13 +89,18 @@ expect(/\.home-entry\s*\{[\s\S]*grid-template-columns:\s*46px\s+minmax\(0,\s*1fr
 expect(/\.home-entry\s*\{[\s\S]*background:\s*var\(--surface\)/.test(stylesSource), "homepage entry buttons should retain gray backgrounds");
 expect(/\.home-entry-copy strong\s*\{[\s\S]*font-size:\s*var\(--text-base\)/.test(stylesSource), "homepage entry labels should use the larger base text size");
 expect(/\.home-category-heading h2\s*\{[\s\S]*font-size:\s*var\(--text-lg\)/.test(stylesSource), "homepage category headings should use a larger text size");
-expect(/body\[data-view="home"\]\s+\.results\s*\{[\s\S]*top:\s*285px[\s\S]*padding:\s*0[\s\S]*border:\s*0[\s\S]*background:\s*transparent/.test(stylesSource), "homepage category cards should begin below the complete welcome panel without a shared outer card");
+expect(/body\[data-view="home"\]\s+\.results\s*\{[\s\S]*position:\s*static[\s\S]*padding:\s*0[\s\S]*border:\s*0[\s\S]*background:\s*transparent/.test(stylesSource), "homepage category cards should remain outside a shared outer card");
+expect(indexSource.includes('class="home-left-column"'), "homepage should group the welcome, navigation, and links into a left flow column");
+expect(/\.home-left-column\s*\{[\s\S]*display:\s*contents/.test(stylesSource), "homepage left flow column should preserve non-home layouts");
+expect(/body\[data-view="home"\]\s+\.home-left-column\s*\{[\s\S]*grid-template-rows:\s*auto\s+minmax\(0,\s*1fr\)\s+auto/.test(stylesSource), "desktop homepage should size its left column by welcome, navigation, and links");
+expect(/body\[data-view="home"\]\s+\.results\s*\{[\s\S]*position:\s*static[\s\S]*overflow:\s*auto/.test(stylesSource), "homepage navigation should scroll only when its natural middle row is constrained");
+expect(!/body\[data-view="home"\]\s+\.results\s*\{[\s\S]*top:\s*285px/.test(stylesSource), "homepage navigation should not use a fixed top offset");
+expect(!/body\[data-view="home"\]\s+\.results\s*\{[\s\S]*bottom:\s*300px/.test(stylesSource), "homepage navigation should not reserve a fixed link area");
 expect(/\.home-links\s*\{/.test(stylesSource), "homepage should style the external links panel");
 expect(/\.home-links\[hidden\]\s*\{[\s\S]*display:\s*none\s*!important/.test(stylesSource), "homepage links should stay hidden outside the homepage");
 expect(/\.home-links a\s*\{[\s\S]*color:\s*var\(--ink\)[\s\S]*font-weight:\s*400/.test(stylesSource), "homepage links should use regular white text");
 expect(/\.home-announcement-list\s*\{[\s\S]*max-height:\s*min\(48vh,\s*560px\)[\s\S]*overflow-y:\s*auto/.test(stylesSource), "homepage announcements should scroll within a bounded panel");
 expect(/body\[data-view="home"\]\s+\.result-head\s*\{[\s\S]*display:\s*none/.test(stylesSource), "homepage should hide the entry and sort controls");
-expect(/body\[data-view="home"\]\s+\.results\s*\{[\s\S]*top:\s*285px/.test(stylesSource), "homepage navigation should sit below the independent welcome panel");
 expect(/body\[data-view="home"\]\s+\.filters/.test(stylesSource), "homepage should hide the normal filter panel");
 expect(/body\[data-view="home"\]\s+\.detail\s*\{[\s\S]*left:\s*auto[\s\S]*right:\s*12px/.test(stylesSource), "homepage right panel should not overlap the entry grid");
 expect(todoSource.includes("整理首页游戏资讯内容与链接来源"), "todo list should record the news-content follow-up");
