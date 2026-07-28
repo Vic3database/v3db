@@ -17,3 +17,9 @@
 先在 `scripts/check_region_map_interaction.mjs` 写入会失败的断言，要求 `regionMapStateRegions` 在地域焦点存在时只保留该地域，并要求 `buildStrategicRegionMapFeatures` 为焦点地域指定 `#00cc66`。实现后运行该检查、`node --check site/app/map.js`、相关前端检查和 `git diff --check`。
 
 浏览器验证使用一个地图单击和一个右侧地域卡片单击：两种操作都应使目标地域居中并呈拉普拉塔绿，其他陆地灰显，地址仍为 `#/region`；双击仍应进入对应的 `#/state-region/<key>` 详情页。
+
+## 解除焦点与初始视图
+
+地图工具栏现有的圆形箭头按钮在地域板块中表示“重置地域焦点和地图位置”。点击后清空 `selectedStateRegion` 与 `mapSelectedStateRegion`，重新渲染完整的战略区域底图，再调用现有的地图位置重置函数。地址保持 `#/region`，筛选条件、列表模式与双击进入详情页的行为不变。其他板块继续沿用该按钮原有的仅重置地图位置行为。
+
+回归检查先断言地域板块中的按钮处理程序清空两类焦点状态并调用渲染与地图位置重置，再确认未选中地域会返回完整的地图可见集合。
