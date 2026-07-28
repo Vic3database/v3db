@@ -42,24 +42,6 @@ function renderCountryList(filtered) {
       <span class="pill-line country-tags">${countryTagPills(country)}</span>
     </article>
   `).join("");
-  els.countryList.querySelectorAll("[data-country]").forEach((row) => {
-    row.addEventListener("click", (event) => {
-      if (event.target.closest("a, button, [data-concept-key]")) return;
-      selectCountryCard(row.dataset.country);
-    });
-    row.addEventListener("keydown", (event) => {
-      if (event.key !== "Enter" && event.key !== " ") return;
-      if (event.target.closest("a, button, [data-concept-key]")) return;
-      event.preventDefault();
-      selectCountryCard(row.dataset.country);
-    });
-  });
-  els.countryList.querySelectorAll("[data-country-detail]").forEach((button) => {
-    button.addEventListener("click", (event) => {
-      event.preventDefault();
-      openCountryDetail(button.dataset.countryDetail);
-    });
-  });
 }
 
 function selectCountryCard(countryTag) {
@@ -124,24 +106,6 @@ function renderRegionList(filteredStrategicRegions, filteredStateRegions, filter
     `).join("")}
   ` : "";
   els.countryList.innerHTML = `${selectedFromMapHtml}${stateRegionHtml || (selectedFromMapHtml ? "" : `<p class="empty">没有匹配结果。</p>`)}`;
-  els.countryList.querySelectorAll("[data-state-region]").forEach((row) => {
-    row.addEventListener("click", (event) => {
-      if (event.target.closest("a, button, [data-concept-key]")) return;
-      selectStateRegionCard(row.dataset.stateRegion);
-    });
-    row.addEventListener("keydown", (event) => {
-      if (event.key !== "Enter" && event.key !== " ") return;
-      if (event.target.closest("a, button, [data-concept-key]")) return;
-      event.preventDefault();
-      selectStateRegionCard(row.dataset.stateRegion);
-    });
-  });
-  els.countryList.querySelectorAll("[data-state-region-detail]").forEach((button) => {
-    button.addEventListener("click", (event) => {
-      event.preventDefault();
-      openStateRegionDetail(button.dataset.stateRegionDetail);
-    });
-  });
 }
 
 function selectStateRegionCard(stateRegionKey) {

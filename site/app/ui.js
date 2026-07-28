@@ -157,6 +157,7 @@ function bindEvents() {
   els.bottomPanelToggle?.addEventListener("click", () => {
     cycleResultsPanelMode();
   });
+  bindPrimaryListEvents();
   bindMapEvents();
   bindConceptEvents();
   els.resetButton.addEventListener("click", () => {
@@ -201,6 +202,33 @@ function bindEvents() {
     if (els.globalSearchDialogInput) els.globalSearchDialogInput.value = "";
     await applyHash();
     render();
+  });
+}
+
+function bindPrimaryListEvents() {
+  const selectRow = (row) => {
+    if (row.dataset.country) selectCountryCard(row.dataset.country);
+    else if (row.dataset.stateRegion) selectStateRegionCard(row.dataset.stateRegion);
+  };
+  els.countryList?.addEventListener("click", (event) => {
+    const detailButton = event.target.closest("[data-country-detail], [data-state-region-detail]");
+    if (detailButton && els.countryList.contains(detailButton)) {
+      event.preventDefault();
+      if (detailButton.dataset.countryDetail) openCountryDetail(detailButton.dataset.countryDetail);
+      else openStateRegionDetail(detailButton.dataset.stateRegionDetail);
+      return;
+    }
+    if (event.target.closest("a, button, [data-concept-key]")) return;
+    const row = event.target.closest("[data-country], [data-state-region]");
+    if (row && els.countryList.contains(row)) selectRow(row);
+  });
+  els.countryList?.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    if (event.target.closest("a, button, [data-concept-key]")) return;
+    const row = event.target.closest("[data-country], [data-state-region]");
+    if (!row || !els.countryList.contains(row)) return;
+    event.preventDefault();
+    selectRow(row);
   });
 }
 
