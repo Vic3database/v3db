@@ -5,6 +5,7 @@ import { readSiteAppSource, readSiteStyleSource } from "./site_frontend_sources.
 const root = process.cwd();
 const appSource = readSiteAppSource(root);
 const stylesSource = readSiteStyleSource(root);
+const indexSource = readText("site/index.html");
 const failures = [];
 
 checkRegionMapClickContracts();
@@ -12,6 +13,7 @@ checkRegionRowDetailButtonContracts();
 checkRegionMapListSyncContracts();
 checkRegionMapFocusColorContracts();
 checkRegionMapFocusResetContracts();
+checkRegionMapCacheVersionContracts();
 
 if (failures.length) {
   console.error(failures.map((failure) => `- ${failure}`).join("\n"));
@@ -76,6 +78,11 @@ function checkRegionMapFocusResetContracts() {
   assert(/state\.mapSelectedStateRegion = ""/.test(resetRegionMapFocus), "region focus reset should clear the temporary map-selected card");
   assert(/render\(\)[\s\S]*fitMapToWidth\(\)/.test(resetRegionMapFocus), "region focus reset should re-render before fitting the map");
   assert(/state\.view === "region" \? "重置地域焦点和地图位置" : "重置地图位置"/.test(renderMapControls), "region map reset button should expose its region-specific label");
+}
+
+function checkRegionMapCacheVersionContracts() {
+  assert(/app\/ui\.js\?v=20260728-region-map-focus1/.test(indexSource), "region map UI script should use the current release cache version");
+  assert(/app\/map\.js\?v=20260728-region-map-focus1/.test(indexSource), "region map script should use the current release cache version");
 }
 
 function readText(relativePath) {
