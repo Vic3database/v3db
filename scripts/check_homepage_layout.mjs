@@ -46,6 +46,14 @@ expect(homeFunction.includes("外交条约与博弈"), "homepage should include 
 expect(homeFunction.includes("日志、事件与决议"), "homepage should include journal, event, and decision entries");
 expect(homeFunction.includes("角色"), "homepage should include the character entry");
 expect(homeFunction.includes("陆军") && homeFunction.includes("海军"), "homepage should include military entries");
+expect(!homeFunction.includes('dataCount("countries", countries)'), "homepage entry cards should not display country counts");
+expect(!homeFunction.includes('dataCount("ideologies", ideologies)'), "homepage entry cards should not display ideology counts");
+expect(!homeFunction.includes('dataCount("cultures", cultures)'), "homepage entry cards should not display culture counts");
+expect(!homeFunction.includes('dataCount("technologies", technologies)'), "homepage entry cards should not display technology counts");
+expect(!homeFunction.includes('dataCount("companies", companies)'), "homepage entry cards should not display company counts");
+expect(!homeFunction.includes('`${laws.length} 条法律`'), "homepage entry cards should not display law counts");
+expect(!homeFunction.includes('`${landStateRegions.length} 个地域`'), "homepage entry cards should not display region counts");
+expect(homeFunction.includes('text: ""'), "homepage ready entry cards should omit the secondary count line");
 expect(indexSource.includes('id="homeWelcome"'), "homepage should define a welcome panel outside the navigation list");
 expect(!indexSource.includes('<strong>列表</strong>'), "site shell should not impose a generic list heading on every page");
 expect(/styles\.css\?v=/.test(indexSource), "homepage stylesheet should have a cache version");

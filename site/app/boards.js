@@ -120,19 +120,19 @@ function renderHomeBoard() {
   els.activeHint.textContent = "";
   els.countryList.className = "country-list home-board";
   const entries = [
-    { category: "外交", label: "国家", text: `${dataCount("countries", countries)} 个国家`, view: "country", icon: "assets/home/waving_flag.png" },
+    { category: "外交", label: "国家", text: "", view: "country", icon: "assets/home/waving_flag.png" },
     { category: "外交", label: "国家集团", text: "筹备中", icon: "assets/home/sovereign_empire.png" },
     { category: "外交", label: "外交条约与博弈", text: "筹备中", icon: "assets/home/international_diplomacy.png" },
-    { category: "内政", label: "法律", text: `${laws.length} 条法律`, view: "law", icon: "assets/home/law_enforcement.png" },
-    { category: "内政", label: "意识形态", text: `${dataCount("ideologies", ideologies)} 个意识形态`, view: "ideology", icon: "assets/home/democracy.png" },
+    { category: "内政", label: "法律", text: "", view: "law", icon: "assets/home/law_enforcement.png" },
+    { category: "内政", label: "意识形态", text: "", view: "ideology", icon: "assets/home/democracy.png" },
     { category: "内政", label: "日志、事件与决议", text: "筹备中", icon: "assets/home/event_default.png" },
-    { category: "社会", label: "文化", text: `${dataCount("cultures", cultures)} 个文化`, view: "culture", icon: "assets/home/nationalism.png" },
-    { category: "社会", label: "科技", text: `${dataCount("technologies", technologies)} 项科技`, view: "technology", icon: "assets/home/academia.png" },
+    { category: "社会", label: "文化", text: "", view: "culture", icon: "assets/home/nationalism.png" },
+    { category: "社会", label: "科技", text: "", view: "technology", icon: "assets/home/academia.png" },
     { category: "社会", label: "角色", text: "筹备中", icon: "assets/home/event_portrait.png" },
-    { category: "经济", label: "地域", text: `${landStateRegions.length} 个地域`, view: "region", icon: "assets/home/state.png" },
+    { category: "经济", label: "地域", text: "", view: "region", icon: "assets/home/state.png" },
     { category: "经济", label: "建筑", text: "筹备中", icon: "assets/home/manufacturies.png" },
     { category: "经济", label: "商品", text: "筹备中", icon: "assets/home/grand_strategy_games_prestige.png" },
-    { category: "经济", label: "公司", text: `${dataCount("companies", companies)} 个公司`, view: "company", icon: "assets/home/companies.png" },
+    { category: "经济", label: "公司", text: "", view: "company", icon: "assets/home/companies.png" },
     { category: "军事", label: "陆军", text: "筹备中", icon: "assets/home/line_infantry.png" },
     { category: "军事", label: "海军", text: "筹备中", icon: "assets/home/dreadnought.png" },
     { category: "其他", label: "成就", text: "筹备中", icon: "assets/home/icon_achievements_enabled.png" },
@@ -151,7 +151,7 @@ function renderHomeBoard() {
               ${categoryEntries.map((entry) => entry.view ? `
                 <button class="home-entry" type="button" data-home-view="${escapeHtml(entry.view)}">
                   <img class="home-entry-icon" src="${escapeHtml(entry.icon)}" alt="" aria-hidden="true">
-                  <span class="home-entry-copy"><strong>${escapeHtml(entry.label)}</strong><small>${escapeHtml(entry.text)}</small></span>
+                  <span class="home-entry-copy"><strong>${escapeHtml(entry.label)}</strong>${entry.text ? `<small>${escapeHtml(entry.text)}</small>` : ""}</span>
                 </button>
               ` : `
                 <article class="home-entry home-entry-pending" aria-label="${escapeHtml(entry.label)}，筹备中">
