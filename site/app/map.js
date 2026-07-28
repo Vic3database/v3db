@@ -292,6 +292,7 @@ function mapFeatureColor(stateRegion, color) {
   return mapRuntime.visibleStateKeys.has(stateRegion.key) ? color : MAP_MUTED_COLOR;
 }
 
+const REGION_MAP_FOCUS_COLOR = "#00cc66";
 const COMPANY_LOCATION_MAP_COLOR = "#00cc66";
 const COMPANY_LOCATION_BORDER_COLOR = "#c8a45b";
 
@@ -520,6 +521,8 @@ function companyMapStateRegions(selectedCompanies) {
 }
 
 function regionMapStateRegions(filteredStateRegions, filteredSeaStateRegions, filteredGeographicRegions) {
+  const selectedStateRegion = byStateRegion.get(state.selectedStateRegion);
+  if (selectedStateRegion && !isSeaStateRegion(selectedStateRegion)) return [selectedStateRegion];
   if (state.selectedGeographicRegion) {
     const selectedRegion = byGeographicRegion.get(state.selectedGeographicRegion) || filteredGeographicRegions[0];
     const states = selectedRegion ? geographicRegionStateRegions(selectedRegion) : [];
@@ -542,9 +545,11 @@ function buildStrategicRegionMapFeatures() {
     const inGeographicRegion = selectedGeographicStateKeys?.has(stateRegion.key);
     const color = isSea
       ? MAP_SEA_COLOR
-      : inGeographicRegion
-        ? "#4f8a61"
-        : region?.map_color?.hex || "#d7d8cf";
+      : stateRegion.key === state.selectedStateRegion
+        ? REGION_MAP_FOCUS_COLOR
+        : inGeographicRegion
+          ? "#4f8a61"
+          : region?.map_color?.hex || "#d7d8cf";
     features.set(stateRegion.key, {
       color: mapFeatureColor(stateRegion, color),
       active: selectedGeographicStateKeys ? Boolean(inGeographicRegion) : Boolean(region),

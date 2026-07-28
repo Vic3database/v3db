@@ -10,6 +10,7 @@ const failures = [];
 checkRegionMapClickContracts();
 checkRegionRowDetailButtonContracts();
 checkRegionMapListSyncContracts();
+checkRegionMapFocusColorContracts();
 
 if (failures.length) {
   console.error(failures.map((failure) => `- ${failure}`).join("\n"));
@@ -52,6 +53,16 @@ function checkRegionMapListSyncContracts() {
   assert(/selectedStateRegionFromMap/.test(renderRegionList), "region list should resolve the region selected from the map");
   assert(/region-map-selected/.test(renderRegionList), "filtered-out map selections should render a temporary highlighted card");
   assert(/scrollIntoView\(\{ block: "center"/.test(selectStateRegionFromMap), "map selection should scroll its region card into view");
+}
+
+function checkRegionMapFocusColorContracts() {
+  const regionMapStateRegions = functionSource("regionMapStateRegions");
+  const buildStrategicRegionMapFeatures = functionSource("buildStrategicRegionMapFeatures");
+
+  assert(/const selectedStateRegion = byStateRegion\.get\(state\.selectedStateRegion\);/.test(regionMapStateRegions), "region map should resolve the selected state region before choosing visible states");
+  assert(/selectedStateRegion && !isSeaStateRegion\(selectedStateRegion\)[\s\S]*return \[selectedStateRegion\]/.test(regionMapStateRegions), "a selected land state region should be the only visible land focus");
+  assert(/const REGION_MAP_FOCUS_COLOR = "#00cc66"/.test(appSource), "region map focus should use La Plata green");
+  assert(/stateRegion\.key === state\.selectedStateRegion[\s\S]*REGION_MAP_FOCUS_COLOR/.test(buildStrategicRegionMapFeatures), "the selected state region should use the focus color");
 }
 
 function readText(relativePath) {
