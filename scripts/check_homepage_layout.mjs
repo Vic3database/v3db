@@ -75,6 +75,7 @@ expect(homeNewsFunction.includes("查看更多 →"), "homepage news panel shoul
 expect(homeFunction.includes('const categories = ["外交", "内政", "经济", "军事", "社会", "其他"]'), "homepage should define the six independent category cards");
 expect(!homeFunction.includes("const categoryRows ="), "homepage should not merge categories into paired rows");
 expect(homeFunction.includes('class="home-category-card"'), "homepage should render each category as an independent card");
+expect(!homeFunction.includes('categoryEntries.length'), "homepage category headings should not display redundant entry counts");
 expect(/\.home-category-list\s*\{[\s\S]*grid-template-columns:\s*repeat\(6,\s*minmax\(0,\s*1fr\)\)/.test(stylesSource), "homepage category cards should use a six-column grid");
 expect(/\.home-category-card\s*\{[\s\S]*grid-column:\s*(?:1\s*\/\s*)?span\s*3/.test(stylesSource), "standard category cards should span three columns");
 expect(/\.home-category-card\[data-category="经济"\]\s*\{[\s\S]*grid-column:\s*(?:1\s*\/\s*)?span\s*4/.test(stylesSource), "economy category card should span four columns");

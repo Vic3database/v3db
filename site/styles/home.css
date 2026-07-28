@@ -330,12 +330,6 @@ body[data-view="home"] .detail {
   font-size: var(--text-lg);
 }
 
-.home-category-heading span {
-  color: var(--muted);
-  font-family: var(--font-ui);
-  font-size: var(--text-xs);
-}
-
 .home-category-card .home-entry-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 36px;
