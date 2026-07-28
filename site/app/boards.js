@@ -146,7 +146,7 @@ function renderHomeBoard() {
         const categoryEntries = entries.filter((entry) => entry.category === category);
         return `
           <section class="home-category-card" data-category="${escapeHtml(category)}" aria-label="${escapeHtml(category)}">
-            <div class="home-category-heading"><h2>${escapeHtml(category)}</h2><span>${escapeHtml(String(categoryEntries.length))} 项</span></div>
+            <div class="home-category-heading"><h2>${escapeHtml(category)}</h2></div>
             <div class="home-entry-grid">
               ${categoryEntries.map((entry) => entry.view ? `
                 <button class="home-entry" type="button" data-home-view="${escapeHtml(entry.view)}">
