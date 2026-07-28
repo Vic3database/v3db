@@ -1,4 +1,7 @@
 function renderMapControls() {
+  const mapResetLabel = state.view === "region" ? "重置地域焦点和地图位置" : "重置地图位置";
+  els.mapFitWidthButton?.setAttribute("aria-label", mapResetLabel);
+  els.mapFitWidthButton?.setAttribute("title", mapResetLabel);
   if (!els.mapModeSelect || !els.mapSubjectSelect) return;
   if (state.view === "ideology" || state.view === "law") {
     return;

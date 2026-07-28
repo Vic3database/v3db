@@ -144,6 +144,10 @@ function bindEvents() {
     render();
   });
   els.mapFitWidthButton?.addEventListener("click", () => {
+    if (state.view === "region") {
+      resetRegionMapFocus();
+      return;
+    }
     fitMapToWidth();
   });
   els.leftPanelToggle?.addEventListener("click", () => {
@@ -198,6 +202,13 @@ function bindEvents() {
     await applyHash();
     render();
   });
+}
+
+function resetRegionMapFocus() {
+  state.selectedStateRegion = "";
+  state.mapSelectedStateRegion = "";
+  render();
+  fitMapToWidth();
 }
 
 function initTheme() {

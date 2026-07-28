@@ -11,6 +11,7 @@ checkRegionMapClickContracts();
 checkRegionRowDetailButtonContracts();
 checkRegionMapListSyncContracts();
 checkRegionMapFocusColorContracts();
+checkRegionMapFocusResetContracts();
 
 if (failures.length) {
   console.error(failures.map((failure) => `- ${failure}`).join("\n"));
@@ -63,6 +64,18 @@ function checkRegionMapFocusColorContracts() {
   assert(/selectedStateRegion && !isSeaStateRegion\(selectedStateRegion\)[\s\S]*return \[selectedStateRegion\]/.test(regionMapStateRegions), "a selected land state region should be the only visible land focus");
   assert(/const REGION_MAP_FOCUS_COLOR = "#00cc66"/.test(appSource), "region map focus should use La Plata green");
   assert(/stateRegion\.key === state\.selectedStateRegion[\s\S]*REGION_MAP_FOCUS_COLOR/.test(buildStrategicRegionMapFeatures), "the selected state region should use the focus color");
+}
+
+function checkRegionMapFocusResetContracts() {
+  const bindEvents = functionSource("bindEvents");
+  const resetRegionMapFocus = functionSource("resetRegionMapFocus");
+  const renderMapControls = functionSource("renderMapControls");
+
+  assert(/state\.view === "region"[\s\S]*resetRegionMapFocus\(\)/.test(bindEvents), "region map reset button should clear the region focus");
+  assert(/state\.selectedStateRegion = ""/.test(resetRegionMapFocus), "region focus reset should clear the selected state region");
+  assert(/state\.mapSelectedStateRegion = ""/.test(resetRegionMapFocus), "region focus reset should clear the temporary map-selected card");
+  assert(/render\(\)[\s\S]*fitMapToWidth\(\)/.test(resetRegionMapFocus), "region focus reset should re-render before fitting the map");
+  assert(/state\.view === "region" \? "重置地域焦点和地图位置" : "重置地图位置"/.test(renderMapControls), "region map reset button should expose its region-specific label");
 }
 
 function readText(relativePath) {
