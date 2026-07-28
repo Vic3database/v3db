@@ -40,10 +40,10 @@ function checkRegionMapClickContracts() {
 }
 
 function checkRegionRowDetailButtonContracts() {
-  const renderRegionList = functionSource("renderRegionList");
+  const stateRegionRowHtml = functionSource("stateRegionRowHtml");
   const rowDetailButton = functionSource("rowDetailButton");
 
-  assert(/rowDetailButton\("data-state-region-detail"/.test(renderRegionList), "region rows should expose a dedicated state-region detail button");
+  assert(/rowDetailButton\("data-state-region-detail"/.test(stateRegionRowHtml), "region rows should expose a dedicated state-region detail button");
   assert(/assets\/lucide\/icons\/arrow-right\.svg/.test(rowDetailButton), "row detail button should use the right-arrow icon");
   assert(/aria-label="进入详情"/.test(rowDetailButton), "row detail button should have an accessible label");
   assert(/\.row-detail-button/.test(stylesSource), "row detail button should have shared styles");
@@ -52,10 +52,11 @@ function checkRegionRowDetailButtonContracts() {
 function checkRegionMapListSyncContracts() {
   const renderRegionList = functionSource("renderRegionList");
   const selectStateRegionFromMap = functionSource("selectStateRegionFromMap");
+  const stateRegionRowHtml = functionSource("stateRegionRowHtml");
 
   assert(!/filteredStateRegions\.slice\(0,\s*220\)/.test(renderRegionList), "region rows should not be capped at 220 items");
   assert(/selectedStateRegionFromMap/.test(renderRegionList), "region list should resolve the region selected from the map");
-  assert(/region-map-selected/.test(renderRegionList), "filtered-out map selections should render a temporary highlighted card");
+  assert(/region-map-selected/.test(stateRegionRowHtml), "filtered-out map selections should render a temporary highlighted card");
   assert(!/scrollIntoView\(/.test(selectStateRegionFromMap), "region map selection should not scroll the list");
   assert(!/\brender\(\)/.test(selectStateRegionFromMap), "region map selection should not rebuild the board");
   assert(!/\brender\(\)/.test(functionSource("selectStateRegionCard")), "region card selection should not rebuild the board");

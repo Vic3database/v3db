@@ -550,14 +550,13 @@ function renderCultureBoard() {
 }
 
 function renderRegionBoard() {
-  const filteredStrategicRegions = landStrategicRegions.filter(matchesStrategicRegionFilters).sort(sortStrategicRegionRef);
-  const filteredSeaRegions = seaStrategicRegions.filter(matchesStrategicRegionFilters).sort(sortStrategicRegionRef);
-  const filteredStateRegions = landStateRegions.filter(matchesStateRegionFilters).sort(sortStateRegions);
-  const filteredGeographicRegions = geographicRegions.filter(matchesGeographicRegionFilters).sort(sortGeographicRegions);
-  const filteredSeaStateRegions = uniqueByKey(filteredSeaRegions
-    .flatMap((region) => region.states || [])
-    .map((stateRef) => byStateRegion.get(stateRef.key))
-    .filter(Boolean));
+  const {
+    filteredStrategicRegions,
+    filteredSeaRegions,
+    filteredStateRegions,
+    filteredGeographicRegions,
+    filteredSeaStateRegions,
+  } = regionBoardMapInputs();
   if (state.selectedStateRegion && !byStateRegion.has(state.selectedStateRegion)) state.selectedStateRegion = "";
   if (state.mapSelectedStateRegion && !byStateRegion.has(state.mapSelectedStateRegion)) state.mapSelectedStateRegion = "";
   if (!isDetailPageRoute() && state.selectedStateRegion && !filteredStateRegions.some((stateRegion) => stateRegion.key === state.selectedStateRegion) && state.selectedStateRegion !== state.mapSelectedStateRegion) state.selectedStateRegion = "";
@@ -576,6 +575,33 @@ function renderRegionBoard() {
   renderRegionList(filteredStrategicRegions, filteredStateRegions, filteredSeaRegions, filteredGeographicRegions);
   renderMap(regionMapStateRegions(filteredStateRegions, filteredSeaStateRegions, filteredGeographicRegions));
   focusStateRegionOnMap(selectedStateRegion);
+}
+
+function regionBoardMapInputs() {
+  const filteredStrategicRegions = landStrategicRegions.filter(matchesStrategicRegionFilters).sort(sortStrategicRegionRef);
+  const filteredSeaRegions = seaStrategicRegions.filter(matchesStrategicRegionFilters).sort(sortStrategicRegionRef);
+  const filteredStateRegions = landStateRegions.filter(matchesStateRegionFilters).sort(sortStateRegions);
+  const filteredGeographicRegions = geographicRegions.filter(matchesGeographicRegionFilters).sort(sortGeographicRegions);
+  const filteredSeaStateRegions = uniqueByKey(filteredSeaRegions
+    .flatMap((region) => region.states || [])
+    .map((stateRef) => byStateRegion.get(stateRef.key))
+    .filter(Boolean));
+  return {
+    filteredStrategicRegions,
+    filteredSeaRegions,
+    filteredStateRegions,
+    filteredGeographicRegions,
+    filteredSeaStateRegions,
+  };
+}
+
+function renderRegionMapForCurrentFilters() {
+  const inputs = regionBoardMapInputs();
+  renderMap(regionMapStateRegions(
+    inputs.filteredStateRegions,
+    inputs.filteredSeaStateRegions,
+    inputs.filteredGeographicRegions,
+  ));
 }
 
 function renderCompanyBoard() {

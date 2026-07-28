@@ -44,22 +44,49 @@ function renderCountryList(filtered) {
   `).join("");
 }
 
-function selectCountryCard(countryTag) {
-  if (!countryTag || !byTag.has(countryTag)) return;
+function rowsForSelection(attribute, key) {
+  if (!key || !els.countryList) return [];
+  return [...els.countryList.querySelectorAll("[" + attribute + "]")]
+    .filter((row) => row.getAttribute(attribute) === key);
+}
+
+function syncListSelection(attribute, previousKey, nextKey) {
+  for (const row of rowsForSelection(attribute, previousKey)) row.setAttribute("aria-current", "false");
+  for (const row of rowsForSelection(attribute, nextKey)) row.setAttribute("aria-current", "true");
+}
+
+function commitCountrySelection(countryTag) {
+  const previousTag = state.selectedTag;
   state.globalSearchColorRestoreTag = "";
   state.selectedTag = countryTag;
   state.detailKind = "country";
-  replaceHash(selectionHashForCard("/country", `/country/${encodeURIComponent(countryTag)}`));
-  render();
+  replaceHash(selectionHashForCard("/country", "/country/" + encodeURIComponent(countryTag)));
+  syncListSelection("data-country", previousTag, state.selectedTag);
+  renderMap(countryMapStateRegions(byTag.get(state.selectedTag)));
+}
+
+function clearFilteredOutCountryMapSelection() {
+  const previousTag = state.selectedTag;
+  state.globalSearchColorRestoreTag = "";
+  state.selectedTag = "";
+  state.detailKind = "country";
+  replaceHash("/country");
+  syncListSelection("data-country", previousTag, "");
+  renderMap(countryMapStateRegions(null));
+}
+
+function selectCountryCard(countryTag) {
+  if (!countryTag || !byTag.has(countryTag)) return;
+  commitCountrySelection(countryTag);
 }
 
 function selectCountryFromMap(countryTag) {
   if (!countryTag || !byTag.has(countryTag)) return;
-  selectCountryCard(countryTag);
-  requestAnimationFrame(() => {
-    const selectedRow = els.countryList.querySelector(`[data-country="${countryTag}"]`);
-    selectedRow?.scrollIntoView({ block: "center", behavior: "smooth" });
-  });
+  if (!mapRuntime.filteredCountryTags.has(countryTag)) {
+    clearFilteredOutCountryMapSelection();
+    return;
+  }
+  commitCountrySelection(countryTag);
 }
 
 function openCountryDetail(countryTag) {
@@ -76,60 +103,64 @@ function renderRegionList(filteredStrategicRegions, filteredStateRegions, filter
   const selectedStateRegionFromMap = byStateRegion.get(state.mapSelectedStateRegion);
   const mapSelectionIsFilteredOut = selectedStateRegionFromMap && !visibleStateRegions.some((stateRegion) => stateRegion.key === selectedStateRegionFromMap.key);
   els.countryList.className = "country-list region-list";
-  const selectedFromMapHtml = mapSelectionIsFilteredOut ? `
-    <article class="country-row region-row region-map-selected selectable-row" data-state-region="${escapeHtml(selectedStateRegionFromMap.key)}" style="${stateRegionBorderStyle(selectedStateRegionFromMap)}" aria-current="true" tabindex="0">
-      <span class="country-heading">
-        ${conceptTag(selectedStateRegionFromMap.key, "stateRegion", selectedStateRegionFromMap.key, selectedStateRegionFromMap.name_zh)}
-        <span class="name">${stateRegionNameText(selectedStateRegionFromMap)}</span>
-        ${rowDetailButton("data-state-region-detail", selectedStateRegionFromMap.key)}
-      </span>
-      <span class="minor country-meta">${escapeHtml(stateRegionSummaryText(selectedStateRegionFromMap))}</span>
-      <span class="minor country-meta">本土文化：${escapeHtml(refNames(selectedStateRegionFromMap.homeland_cultures))}</span>
-      <span class="pill-line country-tags">${stateRegionTagPills(selectedStateRegionFromMap)}</span>
-      <span class="region-building-strip">${stateRegionBuildingStrip(selectedStateRegionFromMap)}</span>
-    </article>
-  ` : "";
+  const selectedFromMapHtml = mapSelectionIsFilteredOut
+    ? stateRegionRowHtml(selectedStateRegionFromMap, { mapSelected: true })
+    : "";
   const stateRegionHtml = visibleStateRegions.length ? `
     <div class="list-section-title">地域</div>
-    ${visibleStateRegions.map((stateRegion) => `
-      <article class="country-row region-row selectable-row" data-state-region="${escapeHtml(stateRegion.key)}" style="${stateRegionBorderStyle(stateRegion)}" aria-current="${stateRegion.key === state.selectedStateRegion && state.detailKind === "stateRegion"}" tabindex="0">
-        <span class="country-heading">
-          ${conceptTag(stateRegion.key, "stateRegion", stateRegion.key, stateRegion.name_zh)}
-          <span class="name">${stateRegionNameText(stateRegion)}</span>
-          ${rowDetailButton("data-state-region-detail", stateRegion.key)}
-        </span>
-        <span class="minor country-meta">${escapeHtml(stateRegionSummaryText(stateRegion))}</span>
-        <span class="minor country-meta">本土文化：${escapeHtml(refNames(stateRegion.homeland_cultures))}</span>
-        <span class="pill-line country-tags">${stateRegionTagPills(stateRegion)}</span>
-        <span class="region-building-strip">${stateRegionBuildingStrip(stateRegion)}</span>
-      </article>
-    `).join("")}
+    ${visibleStateRegions.map((stateRegion) => stateRegionRowHtml(stateRegion)).join("")}
   ` : "";
   els.countryList.innerHTML = `${selectedFromMapHtml}${stateRegionHtml || (selectedFromMapHtml ? "" : `<p class="empty">没有匹配结果。</p>`)}`;
 }
 
-function selectStateRegionCard(stateRegionKey) {
-  if (!stateRegionKey || !byStateRegion.has(stateRegionKey)) return;
+function stateRegionRowHtml(stateRegion, { mapSelected = false } = {}) {
+  const selected = mapSelected || (stateRegion.key === state.selectedStateRegion && state.detailKind === "stateRegion");
+  return `
+    <article class="country-row region-row${mapSelected ? " region-map-selected" : ""} selectable-row" data-state-region="${escapeHtml(stateRegion.key)}" style="${stateRegionBorderStyle(stateRegion)}" aria-current="${selected}" tabindex="0">
+      <span class="country-heading">
+        ${conceptTag(stateRegion.key, "stateRegion", stateRegion.key, stateRegion.name_zh)}
+        <span class="name">${stateRegionNameText(stateRegion)}</span>
+        ${rowDetailButton("data-state-region-detail", stateRegion.key)}
+      </span>
+      <span class="minor country-meta">${escapeHtml(stateRegionSummaryText(stateRegion))}</span>
+      <span class="minor country-meta">本土文化：${escapeHtml(refNames(stateRegion.homeland_cultures))}</span>
+      <span class="pill-line country-tags">${stateRegionTagPills(stateRegion)}</span>
+      <span class="region-building-strip">${stateRegionBuildingStrip(stateRegion)}</span>
+    </article>
+  `;
+}
+
+function syncMapSelectedStateRegionCard() {
+  els.countryList.querySelector(".region-map-selected")?.remove();
+  const selected = byStateRegion.get(state.mapSelectedStateRegion);
+  const visible = rowsForSelection("data-state-region", state.mapSelectedStateRegion).length > 0;
+  if (!selected || visible) return;
+  els.countryList.insertAdjacentHTML("afterbegin", stateRegionRowHtml(selected, { mapSelected: true }));
+}
+
+function commitStateRegionSelection(stateRegionKey, { fromMap }) {
+  const previousKey = state.selectedStateRegion;
+  const isVisibleListItem = rowsForSelection("data-state-region", stateRegionKey)
+    .some((row) => !row.classList.contains("region-map-selected"));
   state.selectedStateRegion = stateRegionKey;
-  state.mapSelectedStateRegion = "";
+  state.mapSelectedStateRegion = fromMap ? stateRegionKey : "";
   state.detailKind = "stateRegion";
   state.regionListMode = "state";
-  replaceHash(selectionHashForCard("/region", `/state-region/${encodeURIComponent(stateRegionKey)}`));
-  render();
+  if (!fromMap && !isVisibleListItem && !isDetailPageRoute()) state.selectedStateRegion = "";
+  replaceHash(fromMap ? "/region" : selectionHashForCard("/region", "/state-region/" + encodeURIComponent(stateRegionKey)));
+  syncMapSelectedStateRegionCard();
+  syncListSelection("data-state-region", previousKey, state.selectedStateRegion);
+  renderRegionMapForCurrentFilters();
+}
+
+function selectStateRegionCard(stateRegionKey) {
+  if (!stateRegionKey || !byStateRegion.has(stateRegionKey)) return;
+  commitStateRegionSelection(stateRegionKey, { fromMap: false });
 }
 
 function selectStateRegionFromMap(stateRegionKey) {
   if (!stateRegionKey || !byStateRegion.has(stateRegionKey)) return;
-  state.selectedStateRegion = stateRegionKey;
-  state.mapSelectedStateRegion = stateRegionKey;
-  state.detailKind = "stateRegion";
-  state.regionListMode = "state";
-  replaceHash("/region");
-  render();
-  requestAnimationFrame(() => {
-    const selectedRow = els.countryList.querySelector(`[data-state-region="${stateRegionKey}"]`);
-    selectedRow?.scrollIntoView({ block: "center", behavior: "smooth" });
-  });
+  commitStateRegionSelection(stateRegionKey, { fromMap: true });
 }
 
 function openStateRegionDetail(stateRegionKey) {
