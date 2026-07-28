@@ -7,6 +7,7 @@ const root = process.cwd();
 const failures = [];
 
 const appSource = readSiteAppSource(root);
+const indexSource = readText("site/index.html");
 const siteData = readChunkedSiteData(root);
 const andeanFederation = siteData.countries.find((country) => country.tag === "FND");
 const countryByTag = new Map(siteData.countries.map((country) => [country.tag, country]));
@@ -80,6 +81,7 @@ function checkMapSelectionContracts() {
   assert(!/focusCountryOnMap\(/.test(selectCountryFromMap), "country map selection should preserve the map transform");
   assert(/commitCountrySelection\(/.test(selectCountryFromMap), "country map selection should use the shared fast commit path");
   assert(/mapRuntime\.filteredCountryTags\.has\(countryTag\)/.test(selectCountryFromMap), "country map selection should preserve filtered-out country clearing");
+  assert(/app\/boards\.js\?v=20260728-selection-fast1/.test(indexSource), "fast country selection should use the current boards cache version");
 }
 
 function highestStartingOverlordTag(tag) {
