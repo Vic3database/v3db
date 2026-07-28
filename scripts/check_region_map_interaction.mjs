@@ -14,6 +14,7 @@ checkRegionMapListSyncContracts();
 checkRegionMapFocusColorContracts();
 checkRegionMapFocusResetContracts();
 checkRegionMapCacheVersionContracts();
+checkPrimaryListEventContracts();
 
 if (failures.length) {
   console.error(failures.map((failure) => `- ${failure}`).join("\n"));
@@ -55,7 +56,12 @@ function checkRegionMapListSyncContracts() {
   assert(!/filteredStateRegions\.slice\(0,\s*220\)/.test(renderRegionList), "region rows should not be capped at 220 items");
   assert(/selectedStateRegionFromMap/.test(renderRegionList), "region list should resolve the region selected from the map");
   assert(/region-map-selected/.test(renderRegionList), "filtered-out map selections should render a temporary highlighted card");
-  assert(/scrollIntoView\(\{ block: "center"/.test(selectStateRegionFromMap), "map selection should scroll its region card into view");
+  assert(!/scrollIntoView\(/.test(selectStateRegionFromMap), "region map selection should not scroll the list");
+  assert(!/\brender\(\)/.test(selectStateRegionFromMap), "region map selection should not rebuild the board");
+  assert(!/\brender\(\)/.test(functionSource("selectStateRegionCard")), "region card selection should not rebuild the board");
+  assert(!/focusStateRegionOnMap\(/.test(selectStateRegionFromMap), "region map selection should preserve the map transform");
+  assert(/commitStateRegionSelection\(/.test(selectStateRegionFromMap), "region map selection should use the shared fast commit path");
+  assert(/syncMapSelectedStateRegionCard\(/.test(appSource), "region fast selection should retain the temporary-card updater");
 }
 
 function checkRegionMapFocusColorContracts() {
@@ -83,6 +89,17 @@ function checkRegionMapFocusResetContracts() {
 function checkRegionMapCacheVersionContracts() {
   assert(/app\/ui\.js\?v=20260728-region-map-focus1/.test(indexSource), "region map UI script should use the current release cache version");
   assert(/app\/map\.js\?v=20260728-region-map-focus1/.test(indexSource), "region map script should use the current release cache version");
+}
+
+function checkPrimaryListEventContracts() {
+  const bindEvents = functionSource("bindEvents");
+  const bindPrimaryListEvents = functionSource("bindPrimaryListEvents");
+
+  assert(/bindPrimaryListEvents\(\)/.test(bindEvents), "events should bind primary list delegation once");
+  assert(/data-country-detail/.test(bindPrimaryListEvents), "primary list delegation should handle country detail buttons");
+  assert(/data-state-region-detail/.test(bindPrimaryListEvents), "primary list delegation should handle region detail buttons");
+  assert(/data-country/.test(bindPrimaryListEvents), "primary list delegation should handle country rows");
+  assert(/data-state-region/.test(bindPrimaryListEvents), "primary list delegation should handle region rows");
 }
 
 function readText(relativePath) {
