@@ -55,7 +55,7 @@ try {
   assert(detailBadges.changedCards.length === 3, `state trait detail should retain all three changed-trait badges: ${JSON.stringify(detailBadges)}`);
   assert(detailBadges.changedCards.filter((card) => card.addedInsideName).length === 2, `state trait detail should show two added badges after the Chinese names: ${JSON.stringify(detailBadges)}`);
   assert(detailBadges.changedCards.filter((card) => card.adjustedInsideName).length === 1, `state trait detail should show one adjusted badge after the Chinese name: ${JSON.stringify(detailBadges)}`);
-  assert(detailBadges.changedCards.every((card) => card.gap >= 5 && card.gap <= 7), `state trait detail badge spacing should be 6px after the Chinese name: ${JSON.stringify(detailBadges)}`);
+  assert(detailBadges.changedCards.every((card) => card.gap >= 11 && card.gap <= 13), `state trait detail badge spacing should be 12px after the Chinese name: ${JSON.stringify(detailBadges)}`);
 
   await page.close();
   if (errors.length) throw new Error(errors.join("\n"));
