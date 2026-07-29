@@ -92,6 +92,7 @@ body[data-view="achievement"]:not(.detail-page) .detail {
   display: grid;
   grid-template-rows: auto auto;
   min-width: 0;
+  padding: 0;
   overflow: hidden;
   border: 1px solid rgba(238, 232, 221, .14);
   border-radius: 4px;

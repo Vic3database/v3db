@@ -22,18 +22,25 @@ try {
   assert.equal(wall.filtersDisplay, "none", "achievement wall must not show legacy filters");
   const iconBox = await desktop.evaluate(() => {
     const image = document.querySelector("[data-achievement-key] img");
+    const card = image.closest("[data-achievement-key]");
     const rect = image.getBoundingClientRect();
+    const cardRect = card.getBoundingClientRect();
     const style = getComputedStyle(image);
     return {
       width: rect.width,
       height: rect.height,
       marginTop: parseFloat(style.marginTop),
       marginLeft: parseFloat(style.marginLeft),
+      topInset: rect.top - cardRect.top,
+      leftInset: rect.left - cardRect.left,
+      rightInset: cardRect.right - rect.right,
     };
   });
   assert.ok(Math.abs(iconBox.width - iconBox.height) < 1, "achievement card icons must use a square canvas so the top and side frames match");
   assert.equal(iconBox.marginTop, iconBox.marginLeft, "achievement card icons must use equal top and side frames");
   assert.equal(iconBox.marginTop, 12, "achievement card icons must use a 12px outer frame");
+  assert.ok(Math.abs(iconBox.topInset - iconBox.leftInset) < 1, `achievement card icon top and left rendered insets must match: ${JSON.stringify(iconBox)}`);
+  assert.ok(Math.abs(iconBox.leftInset - iconBox.rightInset) < 1, `achievement card icon left and right rendered insets must match: ${JSON.stringify(iconBox)}`);
   await desktop.evaluate(() => {
     const input = document.querySelector("[data-achievement-search]");
     input.value = "Thanks, Obama";
