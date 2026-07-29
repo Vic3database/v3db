@@ -24,7 +24,8 @@ for (const achievement of achievements) {
   keys.add(achievement.key);
 
   for (const key of ["key", "name_zh", "description_zh", "group_key", "group_name_zh", "group_order", "source_file"]) {
-    assert(achievement[key], `${achievement.key || "achievement"} must contain ${key}`);
+    assert.notEqual(achievement[key], undefined, `${achievement.key || "achievement"} must contain ${key}`);
+    assert.notEqual(achievement[key], "", `${achievement.key || "achievement"} must contain ${key}`);
   }
   for (const key of ["possible", "happened"]) {
     assert.match(achievement.script?.[key] || "", /^\{[\s\S]*\}$/, `${achievement.key} script.${key} must be a braced block`);
@@ -45,7 +46,7 @@ for (const achievement of achievements) {
 console.log(JSON.stringify({
   achievement_database: "ok",
   achievements: achievements.length,
-}, null, 2));
+}));
 
 function readJson(file) {
   return JSON.parse(fs.readFileSync(file, "utf8").replace(/^\uFEFF/, ""));
