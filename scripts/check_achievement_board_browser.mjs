@@ -33,6 +33,7 @@ try {
   });
   assert.ok(Math.abs(iconBox.width - iconBox.height) < 1, "achievement card icons must use a square canvas so the top and side frames match");
   assert.equal(iconBox.marginTop, iconBox.marginLeft, "achievement card icons must use equal top and side frames");
+  assert.equal(iconBox.marginTop, 12, "achievement card icons must use a 12px outer frame");
   await desktop.evaluate(() => {
     const input = document.querySelector("[data-achievement-search]");
     input.value = "Thanks, Obama";
@@ -69,11 +70,12 @@ try {
     const image = document.querySelector("[data-achievement-key] img");
     const style = getComputedStyle(image);
     return {
-      top: parseFloat(style.marginTop) + parseFloat(style.paddingTop),
-      side: parseFloat(style.marginLeft) + parseFloat(style.paddingLeft),
+      top: parseFloat(style.marginTop),
+      side: parseFloat(style.marginLeft),
     };
   });
   assert.equal(mobileIconInset.top, mobileIconInset.side, "mobile achievement card icons must use equal top and side frames");
+  assert.equal(mobileIconInset.top, 12, "mobile achievement card icons must use a 12px outer frame");
   await mobile.close();
   console.log(JSON.stringify({ achievement_board_browser: "ok", base_url: baseUrl }, null, 2));
 } finally {
