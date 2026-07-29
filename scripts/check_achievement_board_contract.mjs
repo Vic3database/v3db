@@ -20,6 +20,7 @@ assert.deepEqual(countBy(achievements, (achievement) => achievement.group_key), 
 }, "achievement chunk must preserve official difficulty group counts");
 for (const achievement of achievements) {
   assert(achievement.name_en, `${achievement.key} must include an English full name`);
+  assert(Array.isArray(achievement.related_countries), `${achievement.key} must publish related countries`);
   assert(fs.existsSync(path.join(root, "site", "assets", "achievements", `${achievement.key}.webp`)), `${achievement.key} must have a published WebP icon`);
 }
 
@@ -30,6 +31,9 @@ assert.match(app, /function achievementMatches\(/, "achievement search matcher m
 assert.match(app, /achievement\.name_en/, "achievement search must include English names");
 assert.match(app, /achievement\.description_zh/, "achievement search must include descriptions");
 assert.match(app, /detail\.text_zh/, "achievement search must include translated conditions");
+assert.match(app, /achievement\.related_countries/, "achievement search and detail must consume related countries");
+assert.match(app, /data-achievement-country/, "achievement detail must render country route controls");
+assert.match(app, /replaceHash\(`\/country\/\$\{encodeURIComponent\(tag\)\}`\)/, "achievement country controls must route to country details");
 assert.match(app, /function renderAchievementBoard\(/, "achievement board renderer must exist");
 assert.match(app, /function renderAchievementDetail\(/, "achievement detail renderer must exist");
 assert.match(app, /<details open><summary>前置筛选条件<\/summary>/, "possible script must be expanded by default");

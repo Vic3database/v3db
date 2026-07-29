@@ -71,6 +71,34 @@ try {
   assert.equal(await desktop.evaluate(() => document.querySelector("[data-achievement-search]").value), "Thanks, Obama", "closing detail must retain the search query");
   await desktop.close();
 
+  const countries = await openPage({ width: 1440, height: 1000 });
+  await countries.goto(`${baseUrl}#/achievement/achievement_it_never_ends`);
+  await countries.waitFor(() => Boolean(document.querySelector("[data-achievement-country='FRA']")));
+  assert.equal(await countries.evaluate(() => document.querySelector("[data-achievement-country='FRA']")?.textContent?.trim()), "法兰西", "related country controls must use published Chinese country names");
+  await countries.evaluate(() => document.querySelector("[data-achievement-country='FRA']").click());
+  await countries.waitFor(() => location.hash === "#/country/FRA", "country hash");
+  await countries.waitFor(() => Boolean(document.querySelector("[data-country='FRA']")), "country row");
+  assert.equal(await countries.evaluate(() => Boolean(document.querySelector("[data-country='FRA']"))), true, "related country controls must load the country board before routing");
+  await countries.goto(`${baseUrl}#/achievement/victorian_century`);
+  await countries.waitFor(() => Boolean(document.querySelector(".achievement-detail")));
+  assert.equal(await countries.evaluate(() => Boolean(document.querySelector(".achievement-related-countries"))), false, "achievements without direct country tags must not render an empty related country section");
+  for (const query of ["法兰西", "FRA"]) {
+    await countries.goto(`${baseUrl}#/achievement`);
+    await countries.evaluate(() => {
+      const input = document.querySelector("[data-achievement-search]");
+      input.value = "";
+      input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+    });
+    await countries.waitFor(() => document.querySelectorAll("[data-achievement-key]").length === 141, "unfiltered achievement wall");
+    await countries.evaluate((value) => {
+      const input = document.querySelector("[data-achievement-search]");
+      input.value = value;
+      input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+    }, query);
+    await countries.waitFor(() => Boolean(document.querySelector("[data-achievement-key='achievement_it_never_ends']")), `country search ${query}`);
+  }
+  await countries.close();
+
   const mobile = await openPage({ width: 390, height: 844 });
   await mobile.goto(`${baseUrl}#/achievement/achievement_thanks_obama`);
   await mobile.waitFor(() => Boolean(document.querySelector(".achievement-detail")));
@@ -108,22 +136,24 @@ async function openPage(viewport) {
   return {
     goto: async (url) => {
       const loaded = session.next("Page.loadEventFired");
+      const hashNavigated = session.next("Page.navigatedWithinDocument");
       await session.send("Page.navigate", { url });
-      await loaded;
+      await Promise.race([loaded, hashNavigated]);
       await new Promise((resolve) => setTimeout(resolve, 150));
     },
-    evaluate: async (expression) => {
-      const value = await session.send("Runtime.evaluate", { expression: `(${expression})()`, returnByValue: true, awaitPromise: true });
+    evaluate: async (expression, ...args) => {
+      const serializedArgs = args.map((value) => JSON.stringify(value)).join(",");
+      const value = await session.send("Runtime.evaluate", { expression: `(${expression})(${serializedArgs})`, returnByValue: true, awaitPromise: true });
       if (value.exceptionDetails) throw new Error(value.exceptionDetails.text || "browser evaluation failed");
       return value.result.value;
     },
-    waitFor: async (predicate) => {
+    waitFor: async (predicate, description = "browser condition") => {
       const end = Date.now() + 20000;
       while (Date.now() < end) {
         if (await session.evaluate(predicate)) return;
         await new Promise((resolve) => setTimeout(resolve, 50));
       }
-      throw new Error("browser condition timed out");
+      throw new Error(`${description} timed out`);
     },
     close: async () => session.close(),
   };

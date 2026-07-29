@@ -196,6 +196,24 @@ body.detail-page[data-view="achievement"] .achievement-wall-grid {
 .achievement-detail-english { color: var(--muted); font-size: var(--text-sm); }
 .achievement-detail section { display: grid; gap: 6px; }
 .achievement-detail ul { display: grid; gap: 6px; margin: 0; padding-left: 20px; }
+.achievement-related-countries > div { display: flex; flex-wrap: wrap; gap: 7px; }
+.achievement-related-countries button {
+  min-height: 30px;
+  padding: 4px 9px;
+  border: 1px solid rgba(200, 164, 91, .42);
+  border-radius: 4px;
+  background: rgba(10, 15, 18, .32);
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--text-sm);
+}
+.achievement-related-countries button:hover,
+.achievement-related-countries button:focus-visible {
+  border-color: var(--accent);
+  background: rgba(200, 164, 91, .15);
+  outline: none;
+}
 .achievement-detail details { border-top: 1px solid rgba(200, 164, 91, .3); padding-top: 10px; }
 .achievement-detail summary { cursor: pointer; color: var(--accent); }
 .achievement-detail pre { margin: 10px 0 0; overflow: auto; padding: 10px; background: rgba(0, 0, 0, .24); color: var(--ink); font-family: var(--font-mono); font-size: var(--text-xs); line-height: 1.45; white-space: pre; }

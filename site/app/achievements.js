@@ -15,6 +15,7 @@ function achievementMatches(achievement, query) {
     achievement.name_en,
     achievement.description_zh,
     ...(achievement.details || []).map((detail) => detail.text_zh),
+    ...(achievement.related_countries || []).flatMap((country) => [country.name_zh, country.tag]),
   ].join("\n").toLocaleLowerCase("zh-Hans-CN");
   return !query || haystack.includes(query.toLocaleLowerCase("zh-Hans-CN"));
 }
@@ -92,6 +93,10 @@ function renderAchievementDetail(achievement) {
   const possible = achievement.script?.possible === null
     ? "<p class=\"achievement-script-empty\">原版未定义前置筛选条件</p>"
     : `<pre>${escapeHtml(achievement.script?.possible || "")}</pre>`;
+  const relatedCountries = achievement.related_countries || [];
+  const relatedCountriesHtml = relatedCountries.length
+    ? `<section class="achievement-related-countries"><h3>关联国家</h3><div>${relatedCountries.map((country) => `<button type="button" data-achievement-country="${escapeHtml(country.tag)}">${escapeHtml(country.name_zh)}</button>`).join("")}</div></section>`
+    : "";
   els.detail.innerHTML = `<article class="achievement-detail">
     <header class="achievement-detail-head">
       <img src="assets/achievements/${escapeHtml(achievement.key)}.webp" alt="">
@@ -100,9 +105,18 @@ function renderAchievementDetail(achievement) {
     </header>
     <section><h3>官方说明</h3><p>${escapeHtml(achievement.description_zh)}</p></section>
     <section><h3>达成条件</h3><ul>${(achievement.details || []).map((detail) => `<li>${escapeHtml(detail.text_zh)}</li>`).join("") || "<li>原版未提供中文条件说明。</li>"}</ul></section>
+    ${relatedCountriesHtml}
     <details open><summary>前置筛选条件</summary>${possible}</details>
     <details open><summary>达成脚本</summary><pre>${escapeHtml(achievement.script?.happened || "")}</pre></details>
   </article>`;
+  els.detail.querySelectorAll("[data-achievement-country]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const tag = button.dataset.achievementCountry;
+      replaceHash(`/country/${encodeURIComponent(tag)}`);
+      await applyHash();
+      render();
+    });
+  });
   els.detail.querySelector("[data-achievement-back]")?.addEventListener("click", () => {
     state.selectedAchievement = "";
     replaceHash("/achievement");
