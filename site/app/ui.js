@@ -77,7 +77,7 @@ function bindEvents() {
   els.standaloneLibrarySelect?.addEventListener("change", () => {
     if (els.standaloneLibrarySelect.value !== "vic3") return;
     hideTransientOverlays();
-    location.assign(new URL("../", window.location.href).href);
+    location.assign(new URL("../index.html", window.location.href).href);
   });
   els.searchInput.addEventListener("input", () => {
     state.search = els.searchInput.value.trim().toLowerCase();

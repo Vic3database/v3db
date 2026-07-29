@@ -6,7 +6,8 @@ const { chromium } = require("playwright");
 
 const baseUrl = new URL(process.argv[2] || "http://127.0.0.1:4173/");
 const homeUrl = new URL("#/home", baseUrl).href;
-const vcUrl = new URL("vc/", baseUrl).href;
+const vcUrl = new URL("vc/index.html", baseUrl).href;
+const mainIndexUrl = new URL("index.html", baseUrl).href;
 const chromePath = process.env.VC_CHROME_PATH || "";
 const browser = await chromium.launch({
   headless: true,
@@ -23,7 +24,7 @@ try {
 
   await page.goto(homeUrl, { waitUntil: "networkidle", timeout: 45000 });
   await page.waitForSelector("#vcHomeEntry", { timeout: 20000 });
-  assert.equal(await page.locator("#vcHomeEntry").getAttribute("href"), "vc/");
+  assert.equal(await page.locator("#vcHomeEntry").getAttribute("href"), "vc/index.html");
   assert.deepEqual(await page.locator("#librarySelect option").evaluateAll((options) => (
     options.map((option) => ({ value: option.value, text: option.textContent.trim() }))
   )), [
@@ -37,6 +38,12 @@ try {
   ]);
   await page.waitForSelector("#countryList .home-category-card", { timeout: 20000 });
   assert.equal(await page.title(), "首页 - Victorian Century Database");
+
+  await Promise.all([
+    page.waitForURL(mainIndexUrl, { timeout: 20000 }),
+    page.selectOption("#standaloneLibrarySelect", "vic3"),
+  ]);
+  await page.waitForSelector("#librarySelect", { timeout: 20000 });
 
   await page.goto(homeUrl, { waitUntil: "networkidle", timeout: 45000 });
   await Promise.all([

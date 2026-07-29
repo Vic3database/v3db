@@ -3,7 +3,7 @@ window.VIC3_VERSION_CONFIG = {
   default_version: "1.13.9",
   libraries: [
     { id: "vic3", label: "Victoria 3 原版 1.13.9", href: "./" },
-    { id: "victorian-century", label: "Victorian Century", href: "vc/" },
+    { id: "victorian-century", label: "Victorian Century", href: "vc/index.html" },
   ],
   version_groups: [
     {
