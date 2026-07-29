@@ -21,12 +21,29 @@ async function loadCountryFlagData() {
 }
 
 async function loadInitialDataset() {
+  if (standaloneSiteConfig) {
+    await loadStandaloneDataset();
+    return;
+  }
   if (versionConfig) {
     const version = selectedVersionFromLocation() || versionConfig.default_version;
     await loadVersion(version || versionConfig.versions?.[0]?.version, { replaceUrl: false });
     return;
   }
   applyLoadedDataset(window.VIC3_DATA || {}, window.VIC3_MAP_DATA || null);
+}
+
+async function loadStandaloneDataset() {
+  setOptionalText(els.metaLine, "正在加载 Victorian Century 数据");
+  const [nextDataIndex, nextMapData] = await Promise.all([
+    loadScriptValue(standaloneSiteConfig.dataIndex, "VIC3_DATA_INDEX"),
+    loadScriptValue(standaloneSiteConfig.mapData, "VIC3_MAP_DATA"),
+  ]);
+  dataIndex = nextDataIndex || null;
+  loadedDataVersion = "";
+  loadedDataChunks.clear();
+  applyLoadedDataset({ meta: dataIndex?.meta || {} }, nextMapData || null);
+  await ensureDataChunksForRoute();
 }
 
 function selectedVersionFromLocation() {
@@ -50,7 +67,6 @@ async function loadVersion(version, options = {}) {
   loadedDataChunks.clear();
   applyLoadedDataset({ meta: dataIndex?.meta || {} }, nextMapData || null);
   await ensureDataChunksForRoute();
-  if (els.versionSelect) els.versionSelect.value = entry.version;
   if (options.replaceUrl !== false) {
     const params = new URLSearchParams(window.location.search);
     params.set("version", entry.version);
@@ -93,7 +109,7 @@ async function ensureDataChunks(chunkKeys) {
     for (const key of pending) {
       const entry = dataIndex.chunks[key];
       for (const file of entry?.files || []) {
-        const chunk = await loadScriptValue(`versions/${loadedDataVersion}/${file}`, "VIC3_DATA_CHUNK");
+        const chunk = await loadScriptValue(dataChunkPath(file), "VIC3_DATA_CHUNK");
         for (const [field, value] of Object.entries(chunk || {})) {
           data[field] = field === "countries" ? [...(data[field] || []), ...(value || [])] : value;
         }
@@ -107,6 +123,12 @@ async function ensureDataChunks(chunkKeys) {
   } finally {
     dataChunkLoadPromise = null;
   }
+}
+
+function dataChunkPath(file) {
+  if (!standaloneSiteConfig) return `versions/${loadedDataVersion}/${file}`;
+  const dataRoot = String(standaloneSiteConfig.dataRoot || ".").replace(/\\/g, "/").replace(/\/+$/, "");
+  return !dataRoot || dataRoot === "." ? file : `${dataRoot}/${file}`;
 }
 
 function versionEntry(version) {
@@ -184,7 +206,7 @@ function applyLoadedDataset(nextData, nextMapData) {
   resetDatasetState();
   resetMapRuntime();
   updateMetaLine();
-  renderVersionOptions();
+  renderLibraryOptions();
 }
 
 function buildSemanticTagIndexes() {
@@ -258,6 +280,7 @@ function resetDatasetState() {
   state.ideologyOccurrences.clear();
   state.ideologyLawGroups.clear();
   state.lawGroups.clear();
+  state.victorianCenturyOnly = false;
   state.dimUnfilteredCountries = false;
   state.tradition = "";
   state.mapSubject = "";
@@ -298,12 +321,17 @@ function updateMetaLine() {
   setOptionalText(els.metaLine, `${datasetPrefix}版本 ${data.meta?.victoria3_version || "未知"}，国家 ${dataCount("countries", countries)} 个，文化 ${dataCount("cultures", cultures)} 个，地域 ${dataCount("stateRegions", stateRegions)} 个，地理区域 ${dataCount("geographicRegions", groupedGeographicRegions)} 个，公司 ${dataCount("companies", companies)} 个，意识形态 ${dataCount("ideologies", ideologies)} 个，法律 ${dataCount("laws", laws)} 条`);
 }
 
-function renderVersionOptions() {
-  if (!els.versionSelect || !versionConfig) return;
-  const entries = (versionConfig.versions || []).slice();
-  els.versionSelect.innerHTML = entries.map((entry) => (
-    `<option value="${escapeHtml(entry.version)}"${data.meta?.victoria3_version === entry.version ? " selected" : ""}>${escapeHtml(entry.label || entry.version)}</option>`
+function renderLibraryOptions() {
+  if (!els.librarySelect || !versionConfig) return;
+  const entries = Array.isArray(versionConfig.libraries) ? versionConfig.libraries : [];
+  els.librarySelect.innerHTML = entries.map((entry) => (
+    `<option value="${escapeHtml(entry.id)}">${escapeHtml(entry.label)}</option>`
   )).join("");
+  els.librarySelect.value = "vic3";
+}
+
+function libraryEntry(id) {
+  return (versionConfig?.libraries || []).find((entry) => entry.id === id) || null;
 }
 
 function syncViewLabels() {

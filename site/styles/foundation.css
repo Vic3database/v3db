@@ -193,7 +193,12 @@ body {
   border: 0;
   background: transparent;
   color: inherit;
+  color-scheme: dark;
   font-weight: 800;
+}
+
+.topbar-icon-select select option {
+  color: #181715;
 }
 
 .topbar-search input {

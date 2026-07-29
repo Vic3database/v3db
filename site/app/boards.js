@@ -115,6 +115,7 @@ function announcementItemHtml(item) {
 }
 
 function renderHomeBoard() {
+  const isStandaloneSite = Boolean(standaloneSiteConfig);
   mapRuntime.filteredCountryTags = new Set();
   els.resultCount.textContent = "";
   els.activeHint.textContent = "";
@@ -139,11 +140,12 @@ function renderHomeBoard() {
     { category: "其他", label: "游戏资源展示", text: "筹备中", icon: "assets/home/romanticism.png" },
     { category: "其他", label: "更新日志", text: "版本差异", view: "changelog", icon: "assets/home/mass_communication.png" },
   ];
+  const visibleEntries = isStandaloneSite ? entries.filter((entry) => entry.view !== "changelog") : entries;
   const categories = ["外交", "内政", "经济", "军事", "社会", "其他"];
   els.countryList.innerHTML = `
     <div class="home-category-list">
       ${categories.map((category) => {
-        const categoryEntries = entries.filter((entry) => entry.category === category);
+        const categoryEntries = visibleEntries.filter((entry) => entry.category === category);
         return `
           <section class="home-category-card" data-category="${escapeHtml(category)}" aria-label="${escapeHtml(category)}">
             <div class="home-category-heading"><h2>${escapeHtml(category)}</h2></div>
@@ -175,7 +177,7 @@ function renderHomeBoard() {
       render();
     });
   });
-  els.detail.innerHTML = `
+  els.detail.innerHTML = isStandaloneSite ? "" : `
     <section class="home-side-panel home-announcement">
       <div class="home-side-heading"><h2>公告</h2><span>站内</span></div>
       ${announcementItems.length
@@ -184,7 +186,7 @@ function renderHomeBoard() {
     </section>
     ${renderHomeNewsHtml()}
   `;
-  bindHomeNewsControls();
+  if (!isStandaloneSite) bindHomeNewsControls();
   renderMap([]);
 }
 
@@ -214,11 +216,16 @@ function renderSettingsDialogContent() {
 
 function renderAboutDialogContent() {
   const version = data.meta?.victoria3_version || "未知";
+  const isStandaloneSite = Boolean(standaloneSiteConfig);
+  const siteName = isStandaloneSite ? "Victorian Century" : "Vicdata";
+  const sourceText = isStandaloneSite
+    ? "站点数据由本地《维多利亚 3》安装目录与 Victorian Century 创意工坊内容共同解析和转换。项目不是 Paradox Interactive 或《维多利亚 3》的官方项目，游戏数据、图片、名称和商标仍属于原权利方。"
+    : "站点数据来自本地《维多利亚 3》安装目录的解析和转换。项目不是 Paradox Interactive 或《维多利亚 3》的官方项目，游戏数据、图片、名称和商标仍属于原权利方。";
   return `
     <div class="about-dialog-grid">
       <section class="settings-placeholder about-intro">
         <h3>${escapeHtml(siteTitle)}</h3>
-        <p>Vicdata 是一个面向《维多利亚 3》的资料查询网站。当前公开站点保留 ${escapeHtml(version)} 数据，提供国家、地区、文化、公司和意识形态等条目的浏览、筛选、搜索和地图查看。</p>
+        <p>${escapeHtml(siteName)} 是一个面向《维多利亚 3》的资料查询网站。当前站点保留 ${escapeHtml(version)} 数据，提供国家、地区、文化、公司和意识形态等条目的浏览、筛选、搜索和地图查看。</p>
         <p>网站把游戏数据整理成静态页面，适合用来查国家标签、地区资源、公司条件、文化关系和意识形态对法律的态度。地图用于辅助查看开局归属、地区范围、文化本土和公司关联，不模拟游戏运行时的全部判断。</p>
       </section>
       <section class="about-stat-grid" aria-label="站点数据范围">
@@ -231,7 +238,7 @@ function renderAboutDialogContent() {
       </section>
       <section class="settings-placeholder about-note">
         <h3>数据与声明</h3>
-        <p>站点数据来自本地《维多利亚 3》安装目录的解析和转换。项目不是 Paradox Interactive 或《维多利亚 3》的官方项目，游戏数据、图片、名称和商标仍属于原权利方。</p>
+        <p>${escapeHtml(sourceText)}</p>
       </section>
     </div>
     <section class="settings-placeholder developer-card" aria-label="开发者简介">
@@ -639,6 +646,7 @@ function renderLawBoard() {
 
 const technologyGridPositions = {
   production: {
+    united_fruit_banana_tech: { column: 8, row: 1 },
     sericulture: { column: 10, row: 1 },
     enclosure: { column: 14, row: 1 },
     manufacturies: { column: 21, row: 1 },
@@ -830,21 +838,31 @@ function technologyGraphLayout() {
   const technologyGraphCategory = state.technologyCategory;
   const technologyPositions = technologyGridPositions[technologyGraphCategory] || {};
   const technologyGridColumns = Math.max(1, ...Object.values(technologyPositions).map((position) => position.column));
-  const technologyGridRows = Math.max(1, ...Object.values(technologyPositions).map((position) => position.row));
+  let technologyGridRows = Math.max(1, ...Object.values(technologyPositions).map((position) => position.row));
   const technologyGridCellWidth = 83;
   const technologyGridCellHeight = 138;
   const technologyGridLeft = 76;
   const technologyGridTop = 38;
   const eraBaseRows = [0, 2, 4, 6, 8];
+  const occupiedPositions = new Set(Object.values(technologyPositions).map((position) => `${position.column}:${position.row}`));
+  const nextAvailablePosition = (eraIndex) => {
+    for (let row = eraBaseRows[eraIndex] + 1; ; row += 1) {
+      for (let column = 1; column <= technologyGridColumns; column += 1) {
+        const key = `${column}:${row}`;
+        if (occupiedPositions.has(key)) continue;
+        occupiedPositions.add(key);
+        technologyGridRows = Math.max(technologyGridRows, row);
+        return { column, row };
+      }
+    }
+  };
   const nodes = new Map();
   eras.forEach((era, eraIndex) => {
     const eraTechnologies = technologies.filter((item) => item.category === technologyGraphCategory && item.era === era)
       .sort((a, b) => a.name_zh.localeCompare(b.name_zh, "zh-Hans-CN"));
-    eraTechnologies.forEach((technology, index) => {
-      const position = technologyPositions?.[technology.key];
-      if (!position) return;
-      const column = position?.column || (index % technologyGridColumns) + 1;
-      const row = position?.row || Math.min(technologyGridRows, eraBaseRows[eraIndex] + Math.floor(index / technologyGridColumns) + 1);
+    eraTechnologies.forEach((technology) => {
+      const position = technologyPositions?.[technology.key] || nextAvailablePosition(eraIndex);
+      const { column, row } = position;
       nodes.set(technology.key, {
         technology,
         x: technologyGridLeft + (column - 1) * technologyGridCellWidth - 50,
@@ -895,7 +913,7 @@ function technologyEdgePath(from, to) {
 function technologyNodeHtml(node) {
   const selected = node.technology.key === state.selectedTechnology;
   const iconFile = node.technology.icon.split("/").pop().replace(/\.dds$/i, ".webp");
-  return `<button class="technology-node" type="button" data-technology-key="${escapeHtml(node.technology.key)}" aria-pressed="${selected}" style="left:${node.x}px;top:${node.y}px"><img src="assets/technologies/${escapeHtml(iconFile)}" alt="" aria-hidden="true"><span>${escapeHtml(node.technology.name_zh)}</span></button>`;
+  return `<button class="technology-node" type="button" data-technology-key="${escapeHtml(node.technology.key)}" aria-pressed="${selected}" style="left:${node.x}px;top:${node.y}px"><img src="assets/technologies/${escapeHtml(iconFile)}" alt="" aria-hidden="true"><span>${escapeHtml(node.technology.name_zh)}</span>${victorianCenturyBadge(node.technology)}</button>`;
 }
 
 function renderTechnologyBoard() {
@@ -935,7 +953,7 @@ function renderTechnologyDetail(technology) {
     document.querySelectorAll("[data-technology-target]").forEach((button) => button.addEventListener("click", () => { location.hash = `/technology/${encodeURIComponent(button.dataset.technologyTarget)}`; }));
     document.querySelector("[data-technology-back]")?.addEventListener("click", () => { location.hash = "/technology"; });
   });
-  return `<section class="technology-detail"><div class="detail-title"><button class="detail-back-button" type="button" data-technology-back aria-label="返回科技树" title="返回科技树"><img class="lucide-icon" src="assets/lucide/icons/arrow-left.svg" alt="" aria-hidden="true"></button><div class="detail-title-main"><h2>${escapeHtml(technology.name_zh)}</h2></div></div><p>${escapeHtml(technology.category_zh)} · ${escapeHtml(technology.era_label_zh)} · ${escapeHtml(String(technology.era_cost))} 创新力</p><p>${escapeHtml(technology.desc_zh || "无说明")}</p>${relation(technology.prerequisites.map((key) => technologyByKey.get(key)).filter(Boolean), "前置科技")}${relation(technology.unlocks, "后续科技")}<section><h3>修正效果</h3>${technology.modifiers.length ? technology.modifiers.map((item) => `<p>${escapeHtml(item.summary_zh)}</p>`).join("") : "无"}</section><section><h3>关联法律</h3>${linkItems(refs.laws, "law")}</section><section><h3>关联公司</h3>${linkItems(refs.companies, "company")}</section></section>`;
+  return `<section class="technology-detail"><div class="detail-title"><button class="detail-back-button" type="button" data-technology-back aria-label="返回科技树" title="返回科技树"><img class="lucide-icon" src="assets/lucide/icons/arrow-left.svg" alt="" aria-hidden="true"></button><div class="detail-title-main"><h2>${escapeHtml(technology.name_zh)}</h2></div>${victorianCenturyBadge(technology)}</div><p>${escapeHtml(technology.category_zh)} · ${escapeHtml(technology.era_label_zh)} · ${escapeHtml(String(technology.era_cost))} 创新力</p><p>${escapeHtml(technology.desc_zh || "无说明")}</p>${relation(technology.prerequisites.map((key) => technologyByKey.get(key)).filter(Boolean), "前置科技")}${relation(technology.unlocks, "后续科技")}<section><h3>修正效果</h3>${technology.modifiers.length ? technology.modifiers.map((item) => `<p>${escapeHtml(item.summary_zh)}</p>`).join("") : "无"}</section><section><h3>关联法律</h3>${linkItems(refs.laws, "law")}</section><section><h3>关联公司</h3>${linkItems(refs.companies, "company")}</section></section>`;
 }
 
 function renderDetailForState() {

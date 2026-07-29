@@ -151,6 +151,7 @@ async function runUpdate(config, { skipMap }) {
   assertPathExists(config.modPath, "mod path");
   assertPathExists(path.join(PROJECT_DIR, "scripts", "extract_vic3_countries.mjs"), "extract script");
   assertPathExists(path.join(PROJECT_DIR, "scripts", "build_wiki.mjs"), "wiki build script");
+  assertPathExists(path.join(PROJECT_DIR, "scripts", "build_victorian_century_site.mjs"), "VC standalone site build script");
   assertPathExists(config.siteDir, "site directory");
 
   fs.mkdirSync(config.outDir, { recursive: true });
@@ -169,7 +170,9 @@ async function runUpdate(config, { skipMap }) {
   await runCommand(process.execPath, [
     path.join(PROJECT_DIR, "scripts", "build_wiki.mjs"),
     "--database", config.databaseDir,
+    "--baseline-database", path.join(PROJECT_DIR, "database", "vic3_1.13.9"),
     "--out", config.siteDir,
+    "--legacy-data",
   ], PROJECT_DIR);
 
   if (!skipMap) {
@@ -184,6 +187,12 @@ async function runUpdate(config, { skipMap }) {
       "-Height", String(config.mapHeight),
     ], PROJECT_DIR);
   }
+
+  await runCommand(process.execPath, [
+    path.join(PROJECT_DIR, "scripts", "build_victorian_century_site.mjs"),
+    "--target", config.siteDir,
+    "--publish-target", path.join(PROJECT_DIR, "site", "vc"),
+  ], PROJECT_DIR);
 }
 
 function runCommand(command, commandArgs, cwd) {
@@ -207,7 +216,10 @@ function runCommand(command, commandArgs, cwd) {
 function makeState(config, { remote, installed, index, skipMap }) {
   const siteFiles = {
     data_js: fileStamp(path.join(config.siteDir, "data.js")),
+    data_index_js: fileStamp(path.join(config.siteDir, "data-index.js")),
     map_data_js: fileStamp(path.join(config.siteDir, "map-data.js")),
+    index_html: fileStamp(path.join(config.siteDir, "index.html")),
+    standalone_config_js: fileStamp(path.join(config.siteDir, "victorian-century-config.js")),
   };
   return {
     schema_version: 1,

@@ -1,6 +1,35 @@
 import fs from "node:fs";
 import path from "node:path";
 
+const victorianCenturyChangeCollections = [
+  ["countries", "tag"],
+  ["cultures", "key"],
+  ["cultureTraits", "key"],
+  ["cultureTraitGroups", "key"],
+  ["stateRegions", "key"],
+  ["strategicRegions", "key"],
+  ["geographicRegions", "key"],
+  ["companies", "key"],
+  ["companyCharterTypes", "key"],
+  ["interestGroups", "key"],
+  ["interestGroupTraits", "key"],
+  ["ideologies", "key"],
+  ["laws", "key"],
+  ["lawGroups", "key"],
+  ["technologies", "key"],
+  ["technologyEras", "key"],
+];
+
+const victorianCenturyChangeIgnoredFields = new Set([
+  "id",
+  "source",
+  "source_file",
+  "sourceFile",
+  "definition_file",
+  "definitionFile",
+  "vc_change_kind",
+]);
+
 const args = parseArgs(process.argv.slice(2));
 if (args.help) {
   printHelp();
@@ -10,14 +39,21 @@ if (args.help) {
 const databaseDir = path.resolve(args.database || "database/vic3_1.13.9");
 const source = path.resolve(args.source || path.join(databaseDir, "index.json"));
 const outDir = path.resolve(args.out || "site");
+const baselineDatabaseDir = args["baseline-database"] ? path.resolve(args["baseline-database"]) : "";
+const baselineSource = baselineDatabaseDir ? path.join(baselineDatabaseDir, "index.json") : "";
 
 if (!fs.existsSync(source)) {
   throw new Error(`找不到数据文件：${source}`);
 }
+if (baselineSource && !fs.existsSync(baselineSource)) {
+  throw new Error(`找不到对比基线数据文件：${baselineSource}`);
+}
 
 fs.mkdirSync(outDir, { recursive: true });
 
-const data = deriveSiteData(loadSiteData(source));
+const siteData = loadSiteData(source);
+const baselineData = baselineSource ? loadSiteData(baselineSource) : null;
+const data = deriveSiteData(baselineData ? applyVictorianCenturyChangeTags(siteData, baselineData) : siteData);
 
 const wikiData = {
   meta: data.meta,
@@ -107,7 +143,15 @@ fs.writeFileSync(
   `window.VIC3_DATA_INDEX = ${JSON.stringify(dataIndex)};\n`,
   "utf8",
 );
-fs.rmSync(path.join(outDir, "data.js"), { force: true });
+if (args["legacy-data"]) {
+  fs.writeFileSync(
+    path.join(outDir, "data.js"),
+    `window.VIC3_DATA = ${JSON.stringify(wikiData)};\n`,
+    "utf8",
+  );
+} else {
+  fs.rmSync(path.join(outDir, "data.js"), { force: true });
+}
 for (const legacyFile of ["data-countries.js", "data-countrys.js", "data-companys.js", "data-ideologys.js"]) {
   fs.rmSync(path.join(outDir, legacyFile), { force: true });
 }
@@ -133,6 +177,7 @@ console.log(JSON.stringify({
   dynamicCountryMapColorRules: wikiData.dynamicCountryMapColorRules.length,
   formables: wikiData.formables.length,
   releasables: wikiData.releasables.length,
+  legacyData: Boolean(args["legacy-data"]),
 }, null, 2));
 
 function loadSiteData(sourceFile) {
@@ -214,6 +259,102 @@ function deriveSiteData(siteData) {
     technologies: siteData.technologies || [],
     technologyEras: siteData.technologyEras || [],
   };
+}
+
+function applyVictorianCenturyChangeTags(siteData, baselineData) {
+  const tagged = { ...siteData };
+  for (const [field, keyField] of victorianCenturyChangeCollections) {
+    tagged[field] = markVictorianCenturyChanges(siteData[field], baselineData[field], keyField, field === "technologies");
+  }
+  tagged.stateRegions = markVictorianCenturyStateTraitChanges(tagged.stateRegions, baselineData.stateRegions);
+  tagged.cultures = markVictorianCenturyCultureTraitReferences(tagged.cultures, tagged.cultureTraits, tagged.cultureTraitGroups);
+  tagged.countries = markVictorianCenturyCountryTraitReferences(tagged.countries, tagged.cultureTraits, tagged.cultureTraitGroups);
+  return tagged;
+}
+
+function markVictorianCenturyChanges(items, baselineItems, keyField, ignoreTechnologyReferences = false) {
+  const baselineByKey = new Map((baselineItems || []).map((item) => [item?.[keyField], item]));
+  return (items || []).map((item) => {
+    const key = item?.[keyField];
+    const baseline = baselineByKey.get(key);
+    const kind = !baseline ? "added" : victorianCenturyContentDiffers(item, baseline, ignoreTechnologyReferences) ? "adjusted" : "";
+    return kind ? { ...item, vc_change_kind: kind } : item;
+  });
+}
+
+function markVictorianCenturyStateTraitChanges(stateRegions, baselineStateRegions) {
+  const baselineTraits = new Map(collectStateTraits(baselineStateRegions).map((trait) => [trait.key, trait]));
+  const changeKinds = new Map(collectStateTraits(stateRegions).map((trait) => {
+    const baseline = baselineTraits.get(trait.key);
+    const kind = !baseline ? "added" : victorianCenturyContentDiffers(trait, baseline) ? "adjusted" : "";
+    return [trait.key, kind];
+  }));
+  return (stateRegions || []).map((stateRegion) => {
+    const traits = (stateRegion.traits || []).map((trait) => {
+      const kind = changeKinds.get(trait?.key);
+      return kind ? { ...trait, vc_change_kind: kind } : trait;
+    });
+    return traits.some((trait, index) => trait !== stateRegion.traits?.[index]) ? { ...stateRegion, traits } : stateRegion;
+  });
+}
+
+function collectStateTraits(stateRegions) {
+  const traitsByKey = new Map();
+  for (const stateRegion of stateRegions || []) {
+    for (const trait of stateRegion.traits || []) {
+      if (trait?.key && !traitsByKey.has(trait.key)) traitsByKey.set(trait.key, trait);
+    }
+  }
+  return [...traitsByKey.values()];
+}
+
+function markVictorianCenturyCultureTraitReferences(cultures, cultureTraits, cultureTraitGroups) {
+  const traitKinds = new Map((cultureTraits || []).map((trait) => [trait.key, trait.vc_change_kind || ""]));
+  const groupKinds = new Map((cultureTraitGroups || []).map((group) => [group.key, group.vc_change_kind || ""]));
+  return (cultures || []).map((culture) => ({
+    ...culture,
+    heritage: markVictorianCenturyReference(culture.heritage, traitKinds),
+    language: markVictorianCenturyReference(culture.language, traitKinds),
+    traditions: markVictorianCenturyReferences(culture.traditions, traitKinds),
+    traits: markVictorianCenturyReferences(culture.traits, traitKinds),
+    trait_groups: markVictorianCenturyReferences(culture.trait_groups, groupKinds),
+  }));
+}
+
+function markVictorianCenturyCountryTraitReferences(countries, cultureTraits, cultureTraitGroups) {
+  const traitKinds = new Map((cultureTraits || []).map((trait) => [trait.key, trait.vc_change_kind || ""]));
+  const groupKinds = new Map((cultureTraitGroups || []).map((group) => [group.key, group.vc_change_kind || ""]));
+  return (countries || []).map((country) => ({
+    ...country,
+    primaryCultureTraits: markVictorianCenturyReferences(country.primaryCultureTraits, traitKinds),
+    primaryCultureTraitGroups: markVictorianCenturyReferences(country.primaryCultureTraitGroups, groupKinds),
+  }));
+}
+
+function markVictorianCenturyReferences(items, changeKinds) {
+  return (items || []).map((item) => markVictorianCenturyReference(item, changeKinds));
+}
+
+function markVictorianCenturyReference(item, changeKinds) {
+  const kind = changeKinds.get(item?.key);
+  return kind ? { ...item, vc_change_kind: kind } : item;
+}
+
+function victorianCenturyContentDiffers(current, baseline, ignoreTechnologyReferences = false) {
+  return stableJson(victorianCenturyComparableValue(current, ignoreTechnologyReferences)) !== stableJson(victorianCenturyComparableValue(baseline, ignoreTechnologyReferences));
+}
+
+function victorianCenturyComparableValue(value, ignoreTechnologyReferences = false) {
+  if (Array.isArray(value)) return value.map((item) => victorianCenturyComparableValue(item, ignoreTechnologyReferences));
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(Object.entries(value)
+    .filter(([key]) => !victorianCenturyChangeIgnoredFields.has(key) && !(ignoreTechnologyReferences && key === "references"))
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([key, item]) => [key, victorianCenturyComparableValue(item, ignoreTechnologyReferences)]));
+}
+
+function stableJson(value) {
+  return JSON.stringify(value);
 }
 
 function deriveCountryRecord(country) {
@@ -456,7 +597,9 @@ function printHelp() {
 Options:
   --database <path>  Database directory, default database/vic3_1.13.9
   --source <path>    Source index.json, default <database>/index.json
+  --baseline-database <path>  Compare against this database and tag added or adjusted records
   --out <path>       Output site directory, default site
+  --legacy-data      Also write a compatibility data.js bundle
   --help             Show this help
 `);
 }

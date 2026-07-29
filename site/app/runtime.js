@@ -1,4 +1,6 @@
-const versionConfig = window.VIC3_VERSION_CONFIG || null;
+const standaloneSiteConfig = window.VICTORIAN_CENTURY_SITE_CONFIG || null;
+const versionConfig = standaloneSiteConfig ? null : (window.VIC3_VERSION_CONFIG || null);
+const standaloneWebpAssetPaths = new Set(standaloneSiteConfig?.webpAssetPaths || []);
 let countryFlagData = {};
 
 let data = {};
@@ -134,6 +136,7 @@ const state = {
   ideologyLawGroups: new Set(),
   lawGroups: new Set(),
   commonLawIdeologyOnly: false,
+  victorianCenturyChangeKinds: new Set(),
   resultsPanelMode: "side",
   whiteDecentralized: false,
   subjectOverlordColors: true,
@@ -167,6 +170,15 @@ const state = {
 const tierOrder = ["hegemony", "empire", "kingdom", "grand_principality", "principality", "city_state"];
 
 const countryTypeOrder = ["recognized", "colonial", "company", "unrecognized", "decentralized"];
+
+function hasVictorianCenturyChange(item) {
+  return Boolean(item?.vc_change_kind);
+}
+
+function toggleVictorianCenturyChangeKind(kind) {
+  if (state.victorianCenturyChangeKinds.has(kind)) state.victorianCenturyChangeKinds.delete(kind);
+  else state.victorianCenturyChangeKinds.add(kind);
+}
 
 const countryTypeTagLabels = {
   recognized: "受认可国家",
@@ -656,7 +668,8 @@ const els = {
   infoDialogBody: document.querySelector("#infoDialogBody"),
   infoDialogCloseButton: document.querySelector("#infoDialogCloseButton"),
   viewSelect: document.querySelector("#viewSelect"),
-  versionSelect: document.querySelector("#versionSelect"),
+  librarySelect: document.querySelector("#librarySelect"),
+  standaloneLibrarySelect: document.querySelector("#standaloneLibrarySelect"),
   resetButton: document.querySelector("#resetButton"),
   countryViewButton: document.querySelector("#countryViewButton"),
   cultureViewButton: document.querySelector("#cultureViewButton"),
@@ -683,6 +696,9 @@ const els = {
   ideologyLawGroupFilters: document.querySelector("#ideologyLawGroupFilters"),
   lawGroupFilters: document.querySelector("#lawGroupFilters"),
   commonLawIdeologyFilter: document.querySelector("#commonLawIdeologyFilter"),
+  victorianCenturyChangeFilterSection: document.querySelector("#victorianCenturyChangeFilterSection"),
+  victorianCenturyAddedFilter: document.querySelector("#victorianCenturyAddedFilter"),
+  victorianCenturyAdjustedFilter: document.querySelector("#victorianCenturyAdjustedFilter"),
   heritageGroupFilters: document.querySelector("#heritageGroupFilters"),
   heritageFilters: document.querySelector("#heritageFilters"),
   languageGroupFilters: document.querySelector("#languageGroupFilters"),

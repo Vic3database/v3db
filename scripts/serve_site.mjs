@@ -21,12 +21,15 @@ const mime = {
 const server = http.createServer((req, res) => {
   const url = new URL(req.url || "/", `http://${host}:${port}`);
   const pathname = decodeURIComponent(url.pathname);
-  const target = path.resolve(root, pathname === "/" ? "index.html" : pathname.slice(1));
-  if (!target.startsWith(root)) {
+  const requested = path.resolve(root, pathname === "/" ? "" : pathname.slice(1));
+  if (requested !== root && !requested.startsWith(`${root}${path.sep}`)) {
     res.writeHead(403);
     res.end("Forbidden");
     return;
   }
+  const target = fs.statSync(requested, { throwIfNoEntry: false })?.isDirectory()
+    ? path.join(requested, "index.html")
+    : requested;
   fs.readFile(target, (error, body) => {
     if (error) {
       res.writeHead(404);

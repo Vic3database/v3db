@@ -65,17 +65,19 @@ function bindEvents() {
     await setView(els.viewSelect.value);
     render();
   });
-  els.versionSelect?.addEventListener("change", async () => {
+  els.librarySelect?.addEventListener("change", () => {
     hideTransientOverlays();
-    els.versionSelect.disabled = true;
-    try {
-      await loadVersion(els.versionSelect.value);
-      renderFilterOptions();
-      await applyHash();
-      render();
-    } finally {
-      els.versionSelect.disabled = false;
+    const entry = libraryEntry(els.librarySelect.value);
+    if (!entry || entry.id === "vic3") {
+      els.librarySelect.value = "vic3";
+      return;
     }
+    location.assign(new URL(entry.href, window.location.href).href);
+  });
+  els.standaloneLibrarySelect?.addEventListener("change", () => {
+    if (els.standaloneLibrarySelect.value !== "vic3") return;
+    hideTransientOverlays();
+    location.assign(new URL("../", window.location.href).href);
   });
   els.searchInput.addEventListener("input", () => {
     state.search = els.searchInput.value.trim().toLowerCase();
@@ -114,6 +116,14 @@ function bindEvents() {
   bindLawGroupFilterTokens();
   els.commonLawIdeologyFilter?.addEventListener("change", () => {
     state.commonLawIdeologyOnly = els.commonLawIdeologyFilter.checked;
+    render();
+  });
+  els.victorianCenturyAddedFilter?.addEventListener("click", () => {
+    toggleVictorianCenturyChangeKind("added");
+    render();
+  });
+  els.victorianCenturyAdjustedFilter?.addEventListener("click", () => {
+    toggleVictorianCenturyChangeKind("adjusted");
     render();
   });
   bindContainerTokenSet(els.heritageGroupFilters, state.heritageGroups, "heritageGroup", () => {
@@ -183,6 +193,7 @@ function bindEvents() {
     state.ideologyLawGroups.clear();
     state.lawGroups.clear();
     state.commonLawIdeologyOnly = false;
+    state.victorianCenturyChangeKinds.clear();
     state.dimUnfilteredCountries = false;
     state.tradition = "";
     state.mapSubject = "";
@@ -875,9 +886,12 @@ async function applyHash() {
   await ensureDataChunksForRoute();
   const parts = location.hash.replace(/^#\/?/, "").split("/").filter(Boolean);
   state.infoDialog = "";
+  if (standaloneSiteConfig && ["news", "changelog"].includes(parts[0])) {
+    changeBoard("home", "home");
+    return;
+  }
   if (!parts.length || parts[0] === "home") {
-    state.view = "home";
-    state.detailKind = "home";
+    changeBoard("home", "home");
     return;
   }
   if (parts[0] === "settings") {
@@ -885,14 +899,12 @@ async function applyHash() {
     return;
   }
   if (parts[0] === "news") {
-    state.view = "news";
-    state.detailKind = "news";
+    changeBoard("news", "news");
     if (!Number.isInteger(state.newsPage) || state.newsPage < 1) state.newsPage = 1;
     return;
   }
   if (parts[0] === "changelog") {
-    state.view = "changelog";
-    state.detailKind = "changelog";
+    changeBoard("changelog", "changelog");
     return;
   }
   if (parts[0] === "about") {
@@ -900,96 +912,80 @@ async function applyHash() {
     return;
   }
   if (parts[0] === "country" && !parts[1]) {
-    state.view = "country";
-    state.detailKind = "country";
+    changeBoard("country", "country");
     return;
   }
   if (parts[0] === "country" && parts[1] && byTag.has(parts[1].toUpperCase())) {
-    state.view = "country";
+    changeBoard("country", "country");
     state.selectedTag = parts[1].toUpperCase();
-    state.detailKind = "country";
     return;
   }
   if (parts[0] === "culture" && !parts[1]) {
-    state.view = "culture";
-    state.detailKind = "culture";
+    changeBoard("culture", "culture");
     return;
   }
   if (parts[0] === "culture" && parts[1] && byCulture.has(decodeURIComponent(parts[1]))) {
-    state.view = "culture";
+    changeBoard("culture", "culture");
     state.selectedCulture = decodeURIComponent(parts[1]);
-    state.detailKind = "culture";
     return;
   }
   if (parts[0] === "region") {
-    state.view = "region";
-    state.detailKind = "stateRegion";
+    changeBoard("region", "stateRegion");
     return;
   }
   if (parts[0] === "state-region" && parts[1] && byStateRegion.has(decodeURIComponent(parts[1]))) {
-    state.view = "region";
+    changeBoard("region", "stateRegion");
     state.selectedStateRegion = decodeURIComponent(parts[1]);
-    state.detailKind = "stateRegion";
     return;
   }
   if (parts[0] === "strategic-region" && parts[1] && byStrategicRegion.has(decodeURIComponent(parts[1]))) {
-    state.view = "region";
+    changeBoard("region", "strategicRegion");
     state.regionListMode = "strategic";
     state.selectedStrategicRegion = decodeURIComponent(parts[1]);
-    state.detailKind = "strategicRegion";
     return;
   }
   if (parts[0] === "geographic-region" && parts[1] && byGeographicRegion.has(decodeURIComponent(parts[1]))) {
-    state.view = "region";
+    changeBoard("region", "geographicRegion");
     state.regionListMode = "geographic";
     state.selectedGeographicRegion = decodeURIComponent(parts[1]);
-    state.detailKind = "geographicRegion";
     return;
   }
   if (parts[0] === "company" && !parts[1]) {
-    state.view = "company";
-    state.detailKind = "company";
+    changeBoard("company", "company");
     return;
   }
   if (parts[0] === "company" && parts[1] && byCompany.has(decodeURIComponent(parts[1]))) {
-    state.view = "company";
+    changeBoard("company", "company");
     state.selectedCompany = decodeURIComponent(parts[1]);
-    state.detailKind = "company";
     return;
   }
   if (parts[0] === "ideology" && !parts[1]) {
-    state.view = "ideology";
-    state.detailKind = "ideology";
+    changeBoard("ideology", "ideology");
     return;
   }
   if (parts[0] === "ideology" && parts[1] && ideologyByKey.has(decodeURIComponent(parts[1]))) {
-    state.view = "ideology";
+    changeBoard("ideology", "ideology");
     state.selectedIdeology = decodeURIComponent(parts[1]);
-    state.detailKind = "ideology";
     return;
   }
   if (parts[0] === "law" && !parts[1]) {
-    state.view = "law";
-    state.detailKind = "law";
+    changeBoard("law", "law");
     return;
   }
   if (parts[0] === "law" && parts[1] && lawByKey.has(decodeURIComponent(parts[1]))) {
-    state.view = "law";
+    changeBoard("law", "law");
     state.selectedLaw = decodeURIComponent(parts[1]);
-    state.detailKind = "law";
     return;
   }
   if (parts[0] === "technology" && !parts[1]) {
-    state.view = "technology";
+    changeBoard("technology", "technology");
     state.selectedTechnology = "";
-    state.detailKind = "technology";
     return;
   }
   if (parts[0] === "technology" && parts[1] && technologyByKey.has(decodeURIComponent(parts[1]))) {
-    state.view = "technology";
+    changeBoard("technology", "technology");
     state.selectedTechnology = decodeURIComponent(parts[1]);
     state.technologyCategory = technologyByKey.get(state.selectedTechnology).category;
-    state.detailKind = "technology";
     return;
   }
   if (parts[0] === "religion" && parts[1]) {
@@ -1000,13 +996,24 @@ async function applyHash() {
 
 async function setView(view) {
   hideTransientOverlays();
-  state.view = view;
-  state.detailKind = view === "region" ? "stateRegion" : view;
+  changeBoard(view, view === "region" ? "stateRegion" : view);
   if (view === "region") state.regionListMode = "state";
   replaceHash(`/${view}`);
   await ensureDataChunksForRoute();
   renderStrategicRegionFilterOptions();
   renderSortOptions();
+}
+
+function changeBoard(view, detailKind) {
+  if (state.view !== view) resetBoardView();
+  state.view = view;
+  state.detailKind = detailKind;
+}
+
+function resetBoardView() {
+  state.resultsPanelMode = "side";
+  document.body.classList.remove("filters-collapsed");
+  updatePanelToggleState();
 }
 
 function regionListModeDetailKind() {
@@ -1084,6 +1091,7 @@ function render() {
     button.setAttribute("aria-current", String(button.dataset.navView === state.view));
   });
   setTokenPressed(els.filteredCountryMapToggle, state.dimUnfilteredCountries);
+  syncVictorianCenturyChangeFilter();
   els.strategicRegionFilterTitle.textContent = state.view === "culture" ? "本土战略区域" : state.view === "company" ? "相关战略区域" : "所在战略区域";
   els.resourceFilterTitle.textContent = state.view === "company" ? "相关建筑" : "资源";
   els.searchInput.placeholder = searchPlaceholder();
@@ -1158,6 +1166,7 @@ function syncFilterSectionOpenStates() {
   setSection(".filter-section:has(#ideologyOccurrenceFilters)", state.ideologyOccurrences.size > 0);
   setSection(".filter-section:has(#ideologyLawGroupFilters)", state.ideologyLawGroups.size > 0);
   setSection(".filter-section:has(#lawGroupFilters)", ["law", "ideology"].includes(state.view) || state.lawGroups.size > 0 || state.commonLawIdeologyOnly);
+  setSection(".filter-section:has(#victorianCenturyAddedFilter)", state.victorianCenturyChangeKinds.size > 0);
   setSection(".filter-section:has(#heritageGroupFilters)", state.heritageGroups.size > 0 || state.heritages.size > 0);
   setSection(".filter-section:has(#languageGroupFilters)", state.languageGroups.size > 0 || state.languages.size > 0);
   setSection(".filter-section:has(#traditionFilters)", Boolean(state.tradition));
@@ -1165,6 +1174,26 @@ function syncFilterSectionOpenStates() {
     if (!section.open && hasPressedToken(section)) section.open = true;
   });
   hasInitializedFilterSections = true;
+}
+
+function syncVictorianCenturyChangeFilter() {
+  if (!els.victorianCenturyChangeFilterSection || !els.victorianCenturyAddedFilter || !els.victorianCenturyAdjustedFilter) return;
+  const available = Boolean(standaloneSiteConfig) || [
+    countries,
+    cultures,
+    cultureTraits,
+    stateRegions,
+    companies,
+    interestGroups,
+    interestGroupTraits,
+    ideologies,
+    laws,
+    technologies,
+  ].some((items) => (items || []).some(hasVictorianCenturyChange));
+  if (!available) state.victorianCenturyChangeKinds.clear();
+  els.victorianCenturyChangeFilterSection.hidden = !available;
+  setTokenPressed(els.victorianCenturyAddedFilter, state.victorianCenturyChangeKinds.has("added"));
+  setTokenPressed(els.victorianCenturyAdjustedFilter, state.victorianCenturyChangeKinds.has("adjusted"));
 }
 
 function initializeDefaultFilterSectionOpenStates() {

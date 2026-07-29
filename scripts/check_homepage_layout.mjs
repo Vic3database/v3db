@@ -55,6 +55,14 @@ expect(!homeFunction.includes('`${laws.length} 条法律`'), "homepage entry car
 expect(!homeFunction.includes('`${landStateRegions.length} 个地域`'), "homepage entry cards should not display region counts");
 expect(homeFunction.includes('text: ""'), "homepage ready entry cards should omit the secondary count line");
 expect(indexSource.includes('id="homeWelcome"'), "homepage should define a welcome panel outside the navigation list");
+expect(indexSource.includes('id="vcHomeEntry"'), "homepage should include a Victorian Century entry");
+expect(indexSource.includes('href="vc/"'), "homepage VC entry should use a relative vc path");
+expect(
+  indexSource.indexOf('id="homeWelcome"') < indexSource.indexOf('id="vcHomeEntry"')
+    && indexSource.indexOf('id="vcHomeEntry"') < indexSource.indexOf('class="results"'),
+  "homepage should place the VC entry after the site introduction and before category navigation",
+);
+expect(/\.home-mod-database-entry\s*\{[\s\S]*display:\s*grid/.test(stylesSource), "homepage should style the VC entry as an independent card");
 expect(!indexSource.includes('<strong>列表</strong>'), "site shell should not impose a generic list heading on every page");
 expect(/styles\.css\?v=/.test(indexSource), "homepage stylesheet should have a cache version");
 expect(/app\/boards\.js\?v=/.test(indexSource), "homepage board script should have a cache version");

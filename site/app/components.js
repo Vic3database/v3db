@@ -57,6 +57,7 @@ function groupedTraitPills(groups, traits, groupClass, traitClass) {
       category: metadata.category,
       description: metadata.description,
     }));
+    items.push(victorianCenturyBadge(group));
     for (const trait of traitsByGroup.get(group.key) || []) {
       const label = trait.name_zh || trait.key;
       const metadata = conceptTooltipMetadata(label, traitClass, "cultureTrait", trait.key);
@@ -69,6 +70,7 @@ function groupedTraitPills(groups, traits, groupClass, traitClass) {
         category: metadata.category,
         description: metadata.description,
       }));
+      items.push(victorianCenturyBadge(trait));
     }
     traitsByGroup.delete(group.key);
   }
@@ -85,6 +87,7 @@ function groupedTraitPills(groups, traits, groupClass, traitClass) {
         category: metadata.category,
         description: metadata.description,
       }));
+      items.push(victorianCenturyBadge(trait));
     }
   }
   for (const trait of remaining) {
@@ -99,6 +102,7 @@ function groupedTraitPills(groups, traits, groupClass, traitClass) {
       category: metadata.category,
       description: metadata.description,
     }));
+    items.push(victorianCenturyBadge(trait));
   }
   return items.join("");
 }
@@ -337,29 +341,15 @@ function tagPill(label, className = "", title = "", semanticKey = "", html = "")
 
 function victorianCenturyBadge(item) {
   if (!isVictorianCenturyEntry(item)) return "";
-  return tagPill("VC新增/调整", "tag-vc", "Victorian Century 新增或调整的条目");
+  const isAdded = item.vc_change_kind === "added";
+  const title = isAdded
+    ? "Victorian Century 新增的条目"
+    : "Victorian Century 调整的条目";
+  return tagPill(isAdded ? "VC新增" : "VC调整", `tag-vc ${isAdded ? "tag-vc-added" : "tag-vc-adjusted"}`, title);
 }
 
 function isVictorianCenturyEntry(item) {
-  return ownSourcePaths(item).some((path) => normalizeSourcePath(path).includes(VICTORIAN_CENTURY_SOURCE_MARKER));
-}
-
-function ownSourcePaths(item) {
-  const source = item?.source || {};
-  return [
-    item?.source_file,
-    item?.sourceFile,
-    item?.definitionFile,
-    item?.definition_file,
-    source.file,
-    source.source_file,
-    source.definition_file,
-    source.definitionFile,
-  ].filter(Boolean);
-}
-
-function normalizeSourcePath(path) {
-  return String(path || "").replaceAll("\\", "/").toLowerCase();
+  return hasVictorianCenturyChange(item);
 }
 
 function countryTypeTagLabel(country) {
@@ -529,12 +519,12 @@ function traitGroupPill(group) {
 }
 
 function traitList(traits) {
-  const items = (traits || []).map(traitPill).filter(Boolean);
+  const items = (traits || []).map((trait) => `${traitPill(trait)}${victorianCenturyBadge(trait)}`).filter(Boolean);
   return items.length ? `<span class="link-list">${items.join("")}</span>` : "";
 }
 
 function traitGroupList(groups) {
-  const items = (groups || []).map(traitGroupPill).filter(Boolean);
+  const items = (groups || []).map((group) => `${traitGroupPill(group)}${victorianCenturyBadge(group)}`).filter(Boolean);
   return items.length ? `<span class="link-list">${items.join("")}</span>` : "";
 }
 
@@ -604,8 +594,8 @@ function buildingTooltipMetadata(item) {
   return conceptTooltipMetadata(label, "", "building", item?.key || label);
 }
 
-function stateTraitPills(traits, stateRegion = null) {
-  const items = (traits || []).map((trait) => stateTraitPill(trait, stateRegion));
+function stateTraitPills(traits, stateRegion = null, { showVictorianCenturyBadge = true } = {}) {
+  const items = (traits || []).map((trait) => `${stateTraitPill(trait, stateRegion)}${showVictorianCenturyBadge ? victorianCenturyBadge(trait) : ""}`);
   return items.length ? `<span class="link-list">${items.join("")}</span>` : "";
 }
 
@@ -653,7 +643,7 @@ function stateTraitEffectList(traits) {
         ${traitIconHtml(trait, "state")}
         <div class="trait-card-content">
           <div class="rule-head">
-            <strong>${escapeHtml(trait.name_zh || trait.key)}</strong>
+            <strong>${escapeHtml(trait.name_zh || trait.key)}${victorianCenturyBadge(trait)}</strong>
             <span class="minor">${escapeHtml(trait.key)}</span>
           </div>
           <dl class="mini-grid">
@@ -1535,7 +1525,7 @@ function stateRegionTagPills(stateRegion) {
     victorianCenturyBadge(stateRegion),
     refPills(stateRegion.strategic_regions, "tag-region"),
     stateRegionMapiPill(stateRegion),
-    stateTraitPills(stateRegion.traits, stateRegion),
+    stateTraitPills(stateRegion.traits, stateRegion, { showVictorianCenturyBadge: false }),
   ].filter(Boolean).join("");
 }
 
@@ -1886,7 +1876,8 @@ function lawIconHtml(law, className = "law-icon") {
   const baseName = fileBaseName(law?.icon).replace(/\.dds$/i, "");
   if (!baseName) return "";
   const alt = escapeHtml(law?.name_zh || law?.key || "法律");
-  return `<img class="${escapeHtml(className)}" src="assets/laws/${encodeURIComponent(baseName)}.png" alt="${alt}" onerror="this.hidden=true">`;
+  const path = `assets/laws/${encodeURIComponent(baseName)}.png`;
+  return webpPreferredImageHtml({ className, path, alt, fallback: "this.hidden=true" });
 }
 
 function lawPill(law) {
@@ -1938,12 +1929,13 @@ function companyIconHtml(company) {
   const title = [label, company?.icon].filter(Boolean).join("；");
   const path = companyIconPath(company?.icon);
   if (!path) return `<span class="company-icon-placeholder" title="${escapeHtml(title)}">司</span>`;
-  return `<img class="company-logo" src="${path}" alt="" title="${escapeHtml(title)}">`;
+  return webpPreferredImageHtml({ className: "company-logo", path, alt: "", title });
 }
 
 function companyIconPath(icon) {
-  const baseName = fileBaseName(icon).replace(/\.dds$/i, ".png");
-  if (!baseName || baseName === fileBaseName(icon)) return "";
+  const sourceName = fileBaseName(icon);
+  const baseName = sourceName.replace(/\.dds$/i, ".png");
+  if (!baseName || !/\.(?:dds|png)$/i.test(sourceName)) return "";
   return `assets/companies/${encodeURIComponent(baseName)}`;
 }
 
@@ -1968,7 +1960,20 @@ function ideologyIconHtml(ideology, className = "ideology-icon") {
   const title = [label, ideology?.key].filter(Boolean).join("；");
   const path = ideologyIconPath(ideology?.icon);
   if (!path) return `<span class="${escapeHtml(className)} ideology-icon-placeholder" title="${escapeHtml(title)}"></span>`;
-  return `<img class="${escapeHtml(className)}" src="${path}" alt="" title="${escapeHtml(title)}" onerror="this.onerror=null;this.src='assets/ideologies/no_ideology.png';">`;
+  return webpPreferredImageHtml({ className, path, alt: "", title, fallback: "this.onerror=null;this.src='assets/ideologies/no_ideology.png'" });
+}
+
+function webpPreferredImageHtml({ className, path, alt, title = "", fallback = "" }) {
+  const escapedClass = escapeHtml(className);
+  const escapedPath = escapeHtml(path);
+  const escapedAlt = escapeHtml(alt);
+  const titleAttribute = title ? ` title="${escapeHtml(title)}"` : "";
+  const fallbackAttribute = fallback ? ` onerror="${escapeHtml(fallback)}"` : "";
+  if (!standaloneWebpAssetPaths.has(path)) {
+    return `<img class="${escapedClass}" src="${escapedPath}" alt="${escapedAlt}"${titleAttribute}${fallbackAttribute}>`;
+  }
+  const webpPath = escapeHtml(path.replace(/\.png$/i, ".webp"));
+  return `<picture><source srcset="${webpPath}" type="image/webp"><img class="${escapedClass}" src="${escapedPath}" alt="${escapedAlt}"${titleAttribute}${fallbackAttribute}></picture>`;
 }
 
 function ideologyIconPath(icon) {

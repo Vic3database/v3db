@@ -584,6 +584,20 @@ body[data-view="law"][data-results-panel="collapsed"] .detail {
   height: 44px;
 }
 
+.results .company-row .company-heading > picture {
+  display: block;
+  grid-column: 1;
+  grid-row: 1 / 3;
+  align-self: center;
+  width: 44px;
+  height: 44px;
+  line-height: 0;
+}
+
+.results .company-row .company-heading > picture .company-logo {
+  display: block;
+}
+
 .results .company-row .company-title-text {
   grid-column: 2;
   grid-row: 1 / 3;

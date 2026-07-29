@@ -11,6 +11,9 @@ assert.match(source, /STAGE=\$\{1:\?/, "deployment script must require a stage d
 assert.match(source, /STAGE_PARENT.*\/home\/vicadmin/, "deployment script must only accept vicadmin staging directories");
 assert.match(source, /vicdata-stage-\*/, "deployment script must require a vicdata staging directory name");
 assert.match(source, /versions\/1\.13\.9\/data-technologies\.js/, "deployment script must verify the current data bundle");
+assert.match(source, /test -f "\$STAGE\/vc\/index\.html"/, "deployment script must verify the VC entry page");
+assert.match(source, /test -f "\$STAGE\/vc\/data-index\.js"/, "deployment script must verify the VC data index");
+assert.match(source, /test -f "\$STAGE\/vc\/map-data\.js"/, "deployment script must verify the VC map index");
 assert.match(source, /site\.previous-\$STAMP/, "deployment script must retain timestamped rollback directories");
 assert.match(source, /mv "\$TARGET" "\$PREVIOUS"/, "deployment script must retain the active site before switching");
 assert.match(source, /mv "\$STAGE" "\$TARGET"/, "deployment script must atomically activate the validated stage");

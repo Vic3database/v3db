@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Vicdata</title>
-    <link rel="stylesheet" href="styles.css?v=20260725-tooltip-layout3">
+    <link rel="stylesheet" href="styles.css?v=20260729-vc-region-trait-badges2">
     <link rel="icon" type="image/png" sizes="16x16" href="assets/brand/favicon-16.png?v=20260720-v">
     <link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png?v=20260720-v">
     <link rel="apple-touch-icon" sizes="180x180" href="assets/brand/apple-touch-icon.png">
@@ -27,7 +27,7 @@
       <div class="topbar-actions" aria-label="全局控制">
         <label class="version-menu topbar-icon-select">
           <img class="lucide-icon" src="assets/lucide/icons/milestone.svg" alt="" aria-hidden="true">
-          <select id="versionSelect" aria-label="版本切换"></select>
+          <select id="librarySelect" aria-label="资料库切换"></select>
         </label>
         <button id="globalSearchButton" class="topbar-icon-button" type="button" aria-label="全局搜索" title="全局搜索"><img class="lucide-icon" src="assets/lucide/icons/search.svg" alt="" aria-hidden="true"></button>
         <button id="settingsNavButton" class="topbar-icon-button" type="button" aria-label="设置" title="设置"><img class="lucide-icon" src="assets/lucide/icons/settings.svg" alt="" aria-hidden="true"></button>
@@ -95,6 +95,14 @@
           <summary id="resourceFilterTitle">资源</summary>
           <div id="industryCharterFilters" class="option-list company-only company-option-strip"></div>
           <div id="resourceFilters" class="option-list scroll-list grouped-filter-list"></div>
+        </details>
+
+        <details id="victorianCenturyChangeFilterSection" class="filter-section" hidden>
+          <summary>资料标签</summary>
+          <div class="option-list">
+            <button id="victorianCenturyAddedFilter" class="filter-token" type="button" data-filter-token aria-pressed="false">VC新增</button>
+            <button id="victorianCenturyAdjustedFilter" class="filter-token" type="button" data-filter-token aria-pressed="false">VC调整</button>
+          </div>
         </details>
 
         <details class="filter-section country-only country-primary-filter">
@@ -209,6 +217,13 @@
           <span><strong>网站使用说明</strong><small>了解资料范围、搜索方式、地图操作与常见问题。</small></span>
           <span class="home-guide-arrow" aria-hidden="true">→</span>
         </button>
+        <!-- MAIN_SITE_VC_ENTRY_START -->
+        <a id="vcHomeEntry" class="home-mod-database-entry" href="vc/" aria-label="进入 Victorian Century 资料库">
+          <img class="lucide-icon home-mod-database-icon" src="assets/lucide/icons/library-big.svg" alt="" aria-hidden="true">
+          <span class="home-mod-database-copy"><strong>Victorian Century 资料库</strong><small>模组数据与地图</small></span>
+          <span class="home-guide-arrow" aria-hidden="true">→</span>
+        </a>
+        <!-- MAIN_SITE_VC_ENTRY_END -->
         <p class="home-copyright">Vicdata 为玩家制作的资料浏览工具，与 Paradox Interactive 没有从属、授权或合作关系。游戏名称、图像、数据与商标归其权利人所有。</p>
       </section>
 
@@ -268,19 +283,20 @@
     </main>
 
     <script src="announcement-data.js?v=20260726-announcements1"></script>
-    <script src="versions.js?v=20260627-version-groups1"></script>
+    <script src="versions.js?v=20260729-vc-entry1"></script>
     <script src="news-data.js?v=20260718-news3"></script>
     <script src="assets/flags/country-flags.js?v=20260712-all-flags2"></script>
-    <script src="app/runtime.js?v=20260725-tooltip-layout1"></script>
-    <script src="app/data.js?v=20260725-tooltip-layout1"></script>
-    <script src="app/ui.js?v=20260728-region-map-focus1"></script>
+    <script src="assets/victorian-century-flags.js?v=20260729-country-flags1"></script>
+    <script src="app/runtime.js?v=20260729-vc-change-kind-split1"></script>
+    <script src="app/data.js?v=20260729-vc-change-tags1"></script>
+    <script src="app/ui.js?v=20260729-vc-change-kind-split1"></script>
     <script src="app/company-location-rules.js?v=20260718-company-location2"></script>
-    <script src="app/boards.js?v=20260728-selection-fast1"></script>
-    <script src="app/filters.js?v=20260725-localized-terms1"></script>
-    <script src="app/presentation.js?v=20260728-selection-fast1"></script>
-    <script src="app/map.js?v=20260728-region-map-focus1"></script>
+    <script src="app/boards.js?v=20260729-vc-tech-layout2"></script>
+    <script src="app/filters.js?v=20260729-vc-change-kind-split1"></script>
+    <script src="app/presentation.js?v=20260729-vc-change-tags1"></script>
+    <script src="app/map.js?v=20260729-vc-change-kind-split1"></script>
     <script src="app/tag-tooltip-definitions.js?v=20260725-tooltip-layout1"></script>
-    <script src="app/components.js?v=20260725-tooltip-layout3"></script>
+    <script src="app/components.js?v=20260729-vc-region-trait-badges1"></script>
     <script src="app/bootstrap.js?v=20260718-file-split1"></script>
   </body>
 </html>

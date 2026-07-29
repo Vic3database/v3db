@@ -14,6 +14,7 @@
 .technology-node img { width: 32px; height: 32px; object-fit: contain; flex: 0 0 auto; }
 .technology-node span { display: block; }
 .technology-node span { overflow-wrap: anywhere; }
+.technology-node .tag-vc { font-size: 10px; line-height: 1.15; padding: 2px 5px; }
 .technology-detail { display: grid; gap: 12px; padding: 16px; }
 .technology-detail h2, .technology-detail h3, .technology-detail p { margin: 0; }
 .technology-detail section { display: grid; gap: 6px; }

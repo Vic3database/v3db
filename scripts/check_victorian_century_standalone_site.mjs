@@ -1,0 +1,124 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import vm from "node:vm";
+
+const root = process.cwd();
+const siteRoot = path.join(root, "Victorian Century Database");
+const publishedRoot = path.join(root, "site", "vc");
+const htmlFile = path.join(siteRoot, "index.html");
+const configFile = path.join(siteRoot, "victorian-century-config.js");
+const dataIndexFile = path.join(siteRoot, "data-index.js");
+const mapFile = path.join(siteRoot, "map-data.js");
+const updateScriptFile = path.join(root, "scripts", "check_victorian_century_update.mjs");
+const expectedChunks = ["country", "culture", "region", "company", "ideology", "law", "technology"];
+const expectedModules = [
+  "app/runtime.js",
+  "app/data.js",
+  "app/ui.js",
+  "app/company-location-rules.js",
+  "app/boards.js",
+  "app/filters.js",
+  "app/presentation.js",
+  "app/map.js",
+  "app/tag-tooltip-definitions.js",
+  "app/components.js",
+  "app/bootstrap.js",
+];
+
+assert(fs.existsSync(htmlFile), "missing Victorian Century index.html");
+assert(fs.existsSync(configFile), "missing Victorian Century standalone configuration");
+assert(fs.existsSync(dataIndexFile), "missing Victorian Century data index");
+assert(fs.existsSync(mapFile), "missing Victorian Century map index");
+assert(fs.existsSync(path.join(siteRoot, "data.js")), "missing Victorian Century compatibility data bundle");
+for (const relative of ["index.html", "data-index.js", "map-data.js", "victorian-century-config.js", "assets/map/provinces.png"]) {
+  const standaloneFile = path.join(siteRoot, relative);
+  const publishedFile = path.join(publishedRoot, relative);
+  assert(fs.existsSync(publishedFile), `missing published VC file: site/vc/${relative}`);
+  assert.equal(
+    fs.readFileSync(publishedFile).equals(fs.readFileSync(standaloneFile)),
+    true,
+    `published VC file differs from standalone build: ${relative}`,
+  );
+}
+
+const html = fs.readFileSync(htmlFile, "utf8");
+assert.match(html, /<title>Victorian Century Database<\/title>/, "page title must identify Victorian Century");
+assert.match(html, /src="victorian-century-config\.js/, "page must load the standalone configuration");
+assert.doesNotMatch(html, /id="versionSelect"/, "standalone page must not render a version selector");
+assert.match(html, /id="standaloneLibrarySelect"/, "standalone page must offer a library return selector");
+assert.match(html, /<option value="victorian-century" selected>Victorian Century<\/option>/, "standalone selector must identify the current VC library");
+assert.match(html, /<option value="vic3">Victoria 3 原版 1\.13\.9<\/option>/, "standalone selector must offer the main library");
+assert.doesNotMatch(html, /versionGroupSelect|announcement-data\.js|news-data\.js|changelogLink|changelog\.html/, "standalone page must not load version, announcement, news, or changelog features");
+assert.doesNotMatch(html, /src="data\.js/, "module front end must not load the compatibility data bundle");
+assert.doesNotMatch(html, /id="vcHomeEntry"/, "standalone site must not link to itself");
+for (const modulePath of expectedModules) {
+  assert.match(html, new RegExp(`src="${escapeRegex(modulePath)}`), `page must load ${modulePath}`);
+}
+
+const config = readGlobal(configFile, "VICTORIAN_CENTURY_SITE_CONFIG");
+assert.equal(config?.siteTitle, "Victorian Century Database", "standalone configuration must set the site title");
+assert.equal(config?.dataIndex, "data-index.js", "standalone configuration must use the local data index");
+assert.equal(config?.mapData, "map-data.js", "standalone configuration must use the local map index");
+assert.equal(config?.dataRoot, ".", "standalone configuration must load chunks from the local directory");
+assert.equal(config?.webpAssetPaths?.length, 18, "standalone configuration must enumerate every VC display WebP");
+assert(config.webpAssetPaths.includes("assets/companies/benz_cie.png"), "standalone configuration must prefer the VC company WebP when available");
+
+const dataIndex = readGlobal(dataIndexFile, "VIC3_DATA_INDEX");
+assert.equal(dataIndex?.meta?.dataset_name, "Victorian Century", "data index must retain the VC dataset name");
+assert.equal(dataIndex?.meta?.victoria3_version, "1.13.9", "data index must retain the VC game version");
+for (const key of expectedChunks) {
+  const chunk = dataIndex?.chunks?.[key];
+  assert(chunk, `missing ${key} data chunk`);
+  assert(Array.isArray(chunk.files) && chunk.files.length, `missing ${key} chunk files`);
+  for (const file of chunk.files) {
+    assert(fs.existsSync(path.join(siteRoot, file)), `missing ${key} chunk file ${file}`);
+  }
+}
+
+const mapData = readGlobal(mapFile, "VIC3_MAP_DATA");
+assert.equal(mapData?.width, 8192, "VC map width must be 8192");
+assert.equal(mapData?.height, 3616, "VC map height must be 3616");
+
+const runtime = fs.readFileSync(path.join(siteRoot, "app", "runtime.js"), "utf8");
+const dataLoader = fs.readFileSync(path.join(siteRoot, "app", "data.js"), "utf8");
+const components = fs.readFileSync(path.join(siteRoot, "app", "components.js"), "utf8");
+assert.match(runtime, /VICTORIAN_CENTURY_SITE_CONFIG/, "runtime must read the VC standalone configuration");
+assert.match(runtime, /standaloneLibrarySelect/, "runtime must expose the standalone library selector");
+assert.match(dataLoader, /standaloneSiteConfig/, "data loader must use the VC standalone configuration from runtime");
+assert.match(dataLoader, /dataRoot/, "data loader must resolve standalone chunk paths from the configuration");
+assert.match(dataLoader, /if \(!standaloneSiteConfig\) return `versions\/\$\{loadedDataVersion\}\/\$\{file\}`/, "main-site fallback must keep versioned chunk paths separate from VC mode");
+assert.match(dataLoader, /return !dataRoot \|\| dataRoot === "\." \? file : `\$\{dataRoot\}\/\$\{file\}`/, "VC mode must load chunks from its local data root");
+const ui = fs.readFileSync(path.join(siteRoot, "app", "ui.js"), "utf8");
+assert.match(ui, /els\.standaloneLibrarySelect\?\.addEventListener\("change"/, "standalone selector must navigate back to the main library");
+assert.match(components, /function webpPreferredImageHtml/, "component renderer must support WebP with PNG fallback");
+assert.match(components, /webpPreferredImageHtml\(\{[^}]*path[^}]*\}\)/, "company, law, and ideology renderers must use the WebP-aware image helper");
+const companyIconPathSource = components.match(/function companyIconPath\(icon\) \{[\s\S]*?\n\}/)?.[0];
+assert(companyIconPathSource, "missing companyIconPath implementation");
+const companyIconPath = vm.runInNewContext(`(${companyIconPathSource})`, {
+  fileBaseName: (icon) => path.basename(String(icon || "")),
+});
+assert.equal(companyIconPath("gfx/interface/icons/joi_icons/benz_cie.png"), "assets/companies/benz_cie.png", "VC company PNG icons must resolve to page assets");
+assert.equal(companyIconPath("gfx/interface/icons/company_icons/sample.dds"), "assets/companies/sample.png", "base-game company DDS icons must resolve to page PNG assets");
+
+const updateScript = fs.readFileSync(updateScriptFile, "utf8");
+assert.match(updateScript, /build_victorian_century_site\.mjs/, "VC update workflow must rebuild the standalone front end");
+assert.match(updateScript, /--baseline-database/, "VC update workflow must compare the mod data with the base-game database");
+assert.match(updateScript, /--target/, "VC update workflow must pass its standalone directory to the front-end build");
+assert.match(updateScript, /--legacy-data/, "VC update workflow must preserve the compatibility data bundle");
+
+console.log(JSON.stringify({
+  victorian_century_standalone_site: "ok",
+  chunks: expectedChunks,
+  modules: expectedModules.length,
+}, null, 2));
+
+function readGlobal(file, globalName) {
+  const sandbox = { window: {} };
+  vm.runInNewContext(fs.readFileSync(file, "utf8"), sandbox, { filename: file });
+  return sandbox.window[globalName];
+}
+
+function escapeRegex(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}

@@ -10,6 +10,7 @@ output_next/
 output_gamma_test/
 output_victorian_century/
 Victorian Century Database/
+site/vc/
 site/data.js
 site/map-data.js
 site/changelog-data.js

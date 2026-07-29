@@ -368,11 +368,12 @@ function renderLawList(filtered) {
           <h3 class="list-section-title">${escapeHtml(group.name_zh)}</h3>
           ${group.laws.sort(sortLaws).map((law) => `
       <article class="country-row law-row selectable-row" data-law="${escapeHtml(law.key)}" aria-current="${law.key === state.selectedLaw && state.detailKind === "law"}" tabindex="0">
-        <span class="country-heading law-row-heading">
+          <span class="country-heading law-row-heading">
           ${lawIconHtml(law, "law-icon law-row-icon")}
           <span class="law-row-title">${conceptTag(law.key, "law", law.key, lawDisplayName(law))}<span class="name">${escapeHtml(lawDisplayName(law))}</span></span>
           ${rowDetailButton("data-law-detail", law.key)}
         </span>
+        <span class="pill-line country-tags">${victorianCenturyBadge(law)}</span>
       </article>
           `).join("")}
         </section>

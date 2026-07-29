@@ -1,4 +1,5 @@
 function matchesCountryFilters(country) {
+  if (!matchesVictorianCenturyChange(country)) return false;
   if (state.omitDecentralizedTags && country.countryType === "decentralized") return false;
   if (state.flags.size > 0) {
     for (const key of state.flags) {
@@ -30,6 +31,7 @@ function isIndigenousCulture(culture) {
 }
 
 function matchesCultureFilters(culture) {
+  if (!matchesVictorianCenturyChange(culture)) return false;
   if (state.omitIndigenousLanguagesCultures && isIndigenousCulture(culture)) return false;
   if (!matchesRefSet(state.strategicRegions, culture.homeland_strategic_regions)) return false;
   if (!matchesRefSet(state.heritageGroups, compactRefs([culture.heritage_group]))) return false;
@@ -41,6 +43,7 @@ function matchesCultureFilters(culture) {
 }
 
 function matchesStateRegionFilters(stateRegion) {
+  if (!matchesVictorianCenturyChange(stateRegion)) return false;
   if (!matchesRefSet(state.strategicRegions, stateRegion.strategic_regions)) return false;
   if (state.view === "region" && state.selectedGeographicRegion) {
     const region = byGeographicRegion.get(state.selectedGeographicRegion);
@@ -54,12 +57,14 @@ function matchesStateRegionFilters(stateRegion) {
 }
 
 function matchesStrategicRegionFilters(region) {
+  if (!matchesVictorianCenturyChange(region)) return false;
   if (state.strategicRegions.size > 0 && !state.strategicRegions.has(region.key)) return false;
   if (state.resourceFilters.size > 0 && !strategicRegionHasMatchingResource(region)) return false;
   return matchesSearchBlob(strategicRegionSearchBlob(region));
 }
 
 function matchesGeographicRegionFilters(region) {
+  if (!matchesVictorianCenturyChange(region)) return false;
   if (region.is_current_strategic_region) return false;
   if (state.strategicRegions.size > 0 && !geographicRegionStrategicRegionKeys(region).some((key) => state.strategicRegions.has(key))) return false;
   if (state.resourceFilters.size > 0 && !geographicRegionStateRegions(region).some(matchesResourceFilters)) return false;
@@ -67,6 +72,7 @@ function matchesGeographicRegionFilters(region) {
 }
 
 function matchesCompanyFilters(company) {
+  if (!matchesVictorianCenturyChange(company)) return false;
   if (!matchesRefSet(state.strategicRegions, company.referenced_strategic_regions)) return false;
   if (!matchesCompanyGeographicRegionFilter(company)) return false;
   if (!matchesCompanyResourceFilters(company)) return false;
@@ -91,6 +97,7 @@ function matchesCompanyGeographicRegionFilter(company) {
 }
 
 function matchesIdeologyFilters(ideology) {
+  if (!matchesVictorianCenturyChange(ideology)) return false;
   if (!matchesCommonLawAndIdeologyFilter(ideology, "ideology")) return false;
   if (state.ideologyTypes.size > 0 && !state.ideologyTypes.has(ideologyTypeKey(ideology))) return false;
   if (!matchesRefSet(state.ideologyGroups, ideologyInterestGroupRefs(ideology))) return false;
@@ -100,6 +107,7 @@ function matchesIdeologyFilters(ideology) {
 }
 
 function matchesLawFilters(law) {
+  if (!matchesVictorianCenturyChange(law)) return false;
   if (!matchesCommonLawAndIdeologyFilter(law, "law")) return false;
   if (state.lawGroups.size > 0 && !state.lawGroups.has(law.group_key)) return false;
   return matchesSearchBlob(lawSearchBlob(law));
@@ -109,6 +117,10 @@ function matchesSearchBlob(blob) {
   const value = String(blob || "");
   if (state.search && !value.includes(state.search)) return false;
   return true;
+}
+
+function matchesVictorianCenturyChange(item) {
+  return state.victorianCenturyChangeKinds.size === 0 || state.victorianCenturyChangeKinds.has(item?.vc_change_kind);
 }
 
 function matchesCompanyKindFilters(company) {
@@ -317,6 +329,7 @@ function renderLawDetail(law) {
       <h2>${escapeHtml(lawDisplayName(law))}</h2>
       </div>
       <span class="tag">${escapeHtml(law.key)}</span>
+      ${victorianCenturyBadge(law)}
     </div>
     <h3>基础</h3>
     <dl class="field-grid">

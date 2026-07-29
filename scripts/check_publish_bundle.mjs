@@ -27,6 +27,9 @@ const requiredFiles = new Set([
   "versions.js",
   "site.webmanifest",
 ]);
+for (const relative of ["vc/index.html", "vc/data-index.js", "vc/map-data.js", "vc/victorian-century-config.js", "vc/assets/map/provinces.png"]) {
+  requiredFiles.add(relative);
+}
 
 for (const file of [...appSections, ...styleSections]) requiredFiles.add(file);
 

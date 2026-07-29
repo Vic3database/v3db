@@ -106,6 +106,7 @@ function collectStateTraitRefs() {
   const byKey = new Map();
   for (const stateRegion of stateRegions) {
     for (const trait of stateRegion.traits || []) {
+      if (!matchesVictorianCenturyChange(trait)) continue;
       if (trait?.key && !byKey.has(trait.key)) byKey.set(trait.key, trait);
     }
   }

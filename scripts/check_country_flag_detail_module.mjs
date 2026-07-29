@@ -7,10 +7,13 @@ const root = process.cwd();
 const siteRoot = path.join(root, "site");
 const indexFile = path.join(siteRoot, "index.html");
 const flagsFile = path.join(siteRoot, "assets", "flags", "country-flags.js");
+const victorianCenturyFlagsFile = path.join(siteRoot, "assets", "victorian-century-flags.js");
 const dataFile = path.join(siteRoot, "data.js");
 const gbrFlagDir = path.join(siteRoot, "assets", "flags", "GBR");
 const conFlagDir = path.join(siteRoot, "assets", "flags", "_CON");
 const ankFlagDir = path.join(siteRoot, "assets", "flags", "ANK");
+const impFlagDir = path.join(siteRoot, "assets", "victorian-century-flags", "IMP");
+const rmeFlagDir = path.join(siteRoot, "assets", "victorian-century-flags", "RME");
 
 const failures = [];
 const indexSource = fs.readFileSync(indexFile, "utf8");
@@ -20,6 +23,7 @@ const flagGridRule = cssRule(stylesSource, ".country-flag-variant-grid");
 const flagCardRule = cssRule(stylesSource, ".country-flag-variant-card");
 
 expect(indexSource.includes("assets/flags/country-flags.js"), "index.html should load the country flag data before app.js");
+expect(indexSource.includes("assets/victorian-century-flags.js"), "index.html should load the Victorian Century country flag supplement before app.js");
 expect(appSource.includes("window.VIC3_COUNTRY_FLAGS"), "app.js should read window.VIC3_COUNTRY_FLAGS");
 expect(appSource.includes("async function loadCountryFlagData()"), "app.js should define a dynamic flag-data loader");
 expect(appSource.includes("await loadCountryFlagData()"), "app initialization should load country flag data before rendering");
@@ -40,6 +44,7 @@ expect(flagGridRule.includes("grid-template-columns: minmax(0, 1fr);"), "flag va
 expect(!flagGridRule.includes("repeat(auto-fit"), "flag variant grid should not collapse into automatic narrow columns");
 expect(flagCardRule.includes("grid-template-columns: clamp(150px, 24%, 230px) minmax(0, 1fr);"), "flag variant cards should keep a fixed image column and a wide detail column");
 expect(fs.existsSync(flagsFile), "site/assets/flags/country-flags.js should exist");
+expect(fs.existsSync(victorianCenturyFlagsFile), "site/assets/victorian-century-flags.js should exist");
 
 let flagData = null;
 if (fs.existsSync(flagsFile)) {
@@ -81,6 +86,22 @@ if (fs.existsSync(flagsFile)) {
   expect(flagData?.ANK?.variants?.[0]?.referenceUrl === "https://vic3.paradoxwikis.com/Eastern_Bantu_kingdoms#Ankole", "ANK should keep the wiki reference URL");
   expect(tags.every((tag) => (flagData[tag]?.variants || []).every((variant) => !variant.image.startsWith("/"))), "all flag images should use document-relative paths");
   expect(tags.every((tag) => (flagData[tag]?.variants || []).every((variant) => fs.existsSync(path.join(siteRoot, variant.image)))), "every exported flag image should exist on disk");
+
+  if (fs.existsSync(victorianCenturyFlagsFile)) {
+    vm.runInNewContext(fs.readFileSync(victorianCenturyFlagsFile, "utf8"), sandbox, { filename: victorianCenturyFlagsFile });
+    flagData = sandbox.VIC3_COUNTRY_FLAGS;
+    const supplementedTags = Object.keys(flagData || {});
+    const supplementedVariantCount = supplementedTags.reduce((sum, tag) => sum + (flagData[tag]?.variants || []).length, 0);
+    expect(supplementedTags.length === 738, "country flag data should include the two Victorian Century-only country tags");
+    expect(supplementedVariantCount === 1647, "country flag data should include the seven Victorian Century country flag variants");
+    expect(flagData?.IMP?.name === "帝国联邦", "IMP should use the Imperial Federation flag supplement");
+    expect(flagData?.IMP?.variants?.map((variant) => variant.key).join(",") === "IMP,GBR_uk,IMP_india", "IMP should include its standard, British, and India flag variants");
+    expect(flagData?.IMP?.variants?.[0]?.image === "assets/victorian-century-flags/IMP/IMP.png", "IMP should use the custom VC flag asset directory");
+    expect(flagData?.RME?.name === "罗马帝国", "RME should use the Roman Empire flag supplement");
+    expect(flagData?.RME?.variants?.map((variant) => variant.key).join(",") === "RME_Flag_Monarchy,RME_Flag_Republic,RME_Flag_Council,RME_Flag_Theocracy", "RME should expose all four government-specific flag variants with the monarchy flag first");
+    expect(flagData?.RME?.variants?.[0]?.image === "assets/victorian-century-flags/RME/RME_Flag_Monarchy.png", "RME should use the monarchy flag as the default site image");
+    expect(supplementedTags.every((tag) => (flagData[tag]?.variants || []).every((variant) => fs.existsSync(path.join(siteRoot, variant.image)))), "every supplemented flag image should exist on disk");
+  }
 }
 
 if (fs.existsSync(gbrFlagDir)) {
@@ -106,6 +127,21 @@ if (fs.existsSync(ankFlagDir)) {
   expect(pngFiles.includes("ANK.png"), "ANK.png should be present for the ANK historical generated flag");
 } else {
   failures.push("site/assets/flags/ANK should exist");
+}
+
+for (const [tag, directory, expectedFiles] of [
+  ["IMP", impFlagDir, ["IMP.png", "IMP_GBR_uk.png", "IMP_india.png"]],
+  ["RME", rmeFlagDir, ["RME_Flag_Monarchy.png", "RME_Flag_Republic.png", "RME_Flag_Council.png", "RME_Flag_Theocracy.png"]],
+]) {
+  if (!fs.existsSync(directory)) {
+    failures.push(`site/assets/victorian-century-flags/${tag} should exist`);
+    continue;
+  }
+  const pngFiles = fs.readdirSync(directory).filter((file) => file.endsWith(".png")).sort();
+  expect(pngFiles.length === expectedFiles.length, `site/assets/victorian-century-flags/${tag} should contain ${expectedFiles.length} PNG files`);
+  for (const file of expectedFiles) {
+    expect(pngFiles.includes(file), `site/assets/victorian-century-flags/${tag} should contain ${file}`);
+  }
 }
 
 if (failures.length) {
