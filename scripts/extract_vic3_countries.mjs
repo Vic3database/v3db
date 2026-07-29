@@ -175,6 +175,12 @@ function main() {
     technologyEras,
     loc,
   );
+  const achievements = loadAchievements(
+    contentPath("common", "achievements"),
+    contentPath("common", "achievement_groups.txt"),
+    contentPath("gfx", "interface", "icons", "achievements"),
+    loc,
+  );
   attachTechnologyReferences(technologies, { laws, companies });
   const interestGroups = loadInterestGroups(
     contentPath("common", "interest_groups"),
@@ -391,6 +397,7 @@ function main() {
     laws,
     technologies,
     technologyEras,
+    achievements,
     geographicRegions,
     relatedCountriesByCulture,
     definitions,
@@ -454,6 +461,7 @@ function main() {
     law_groups: lawGroups.size,
     laws: laws.size,
     technologies: technologies.length,
+    achievements: achievements.length,
     output: outDir,
     database: databaseDir,
     dataset_name: datasetName,
@@ -1575,6 +1583,141 @@ function loadTechnologyEras(dir) {
     }
   }
   return [...eras.values()].sort((left, right) => left.key.localeCompare(right.key, "en"));
+}
+
+function loadAchievements(definitionDirs, groupFiles, iconDirs, loc) {
+  const groups = loadAchievementGroups(groupFiles, loc);
+  const groupByAchievementKey = new Map();
+  for (const group of groups) {
+    for (const [groupOrder, key] of group.achievement_keys.entries()) {
+      if (groupByAchievementKey.has(key)) {
+        throw new Error(`achievement appears in multiple groups: ${key}`);
+      }
+      groupByAchievementKey.set(key, {
+        group_key: group.key,
+        group_name_zh: group.name_zh,
+        group_order: groupOrder,
+      });
+    }
+  }
+
+  const achievementsByKey = new Map();
+  for (const file of listFiles(definitionDirs)) {
+    const root = parseScript(readText(file), file);
+    for (const assignment of root.assignments) {
+      const key = scriptEntryKey(assignment.key);
+      const group = groupByAchievementKey.get(key);
+      if (!group) continue;
+      if (achievementsByKey.has(key)) {
+        throw new Error(`achievement definition appears more than once: ${key}`);
+      }
+      const node = asNode(assignment.value);
+      const possible = node && firstValue(node, "possible");
+      const happened = node && firstValue(node, "happened");
+      const nameKey = `ACHIEVEMENT_${key}`;
+      const descriptionKey = `ACHIEVEMENT_DESC_${key}`;
+      if (!node || (possible !== undefined && !asNode(possible)) || !asNode(happened)) {
+        throw new Error(`achievement script is incomplete: ${key}`);
+      }
+      if (!loc.has(nameKey) || !loc.has(descriptionKey)) {
+        throw new Error(`achievement Chinese localization is missing: ${key}`);
+      }
+      achievementsByKey.set(key, {
+        id: `achievement:${key}`,
+        key,
+        name_zh: locCleanName(loc, nameKey),
+        description_zh: locCleanName(loc, descriptionKey),
+        ...group,
+        details: achievementTooltipDetails(happened, loc),
+        script: {
+          possible: possible === undefined ? null : stringifyScriptValue(possible),
+          happened: stringifyScriptValue(happened),
+        },
+        icon: {
+          achieved: achievementIconPath(iconDirs, `${key}.jpg`, key),
+          not_achieved: achievementIconPath(iconDirs, `${key}_notachieved.jpg`, key),
+        },
+        source_file: normalizePath(file),
+      });
+    }
+  }
+  if (achievementsByKey.size !== groupByAchievementKey.size) {
+    const missing = [...groupByAchievementKey.keys()].filter((key) => !achievementsByKey.has(key));
+    throw new Error(`achievement definitions are missing: ${missing.join(", ")}`);
+  }
+  return [...achievementsByKey.values()].sort((left, right) => (
+    left.group_key.localeCompare(right.group_key, "en") || left.group_order - right.group_order
+  ));
+}
+
+function loadAchievementGroups(groupFiles, loc) {
+  const groups = [];
+  const groupKeys = new Set();
+  for (const file of listFiles(groupFiles)) {
+    const root = parseScript(readText(file), file);
+    for (const assignment of root.assignments) {
+      if (assignment.key !== "group") continue;
+      const node = asNode(assignment.value);
+      const key = node && firstScalar(node, "name");
+      const order = node && asNode(firstValue(node, "order"));
+      const achievementKeys = order ? nodeItems(order).map(scriptEntryKey).filter(Boolean) : [];
+      const nameKey = `ACHIEVEMENT_GROUP_${key}`;
+      if (!key || groupKeys.has(key) || achievementKeys.length === 0 || !loc.has(nameKey)) {
+        throw new Error(`achievement group is incomplete: ${key || normalizePath(file)}`);
+      }
+      groupKeys.add(key);
+      groups.push({
+        key,
+        name_zh: locCleanName(loc, nameKey),
+        achievement_keys: achievementKeys,
+      });
+    }
+  }
+  return groups;
+}
+
+function achievementTooltipDetails(value, loc) {
+  const details = [];
+  const seen = new Set();
+  const visit = (current) => {
+    const node = asNode(current);
+    if (!node) return;
+    for (const item of node.items) visit(item);
+    for (const assignment of node.assignments) {
+      if (assignment.key === "custom_tooltip") {
+        const tooltip = asNode(assignment.value);
+        const key = tooltip && firstScalar(tooltip, "text");
+        if (!key || !loc.has(key)) {
+          throw new Error(`achievement tooltip localization is missing: ${key || "custom_tooltip"}`);
+        }
+        if (!seen.has(key)) {
+          seen.add(key);
+          details.push({ key, text_zh: achievementTooltipText(loc, key) });
+        }
+      }
+      visit(assignment.value);
+    }
+  };
+  visit(value);
+  return details;
+}
+
+function achievementTooltipText(loc, key) {
+  return locCleanName(loc, key)
+    .replace(/\[Get(?:StateRegion|GeographicRegion|Culture|Religion)\('([^']+)'\)\.GetName\]/g, (_match, targetKey) => locCleanName(loc, targetKey))
+    .replace(/\[THIS\.GetCountry\.GetName\]/g, "该国")
+    .replace(/\[ROOT\.GetCountry\.GetName\]/g, "本国")
+    .replace(/\[ROOT\.GetCountry\.GetAdjective\]/g, "本国")
+    .replace(/!/g, "");
+}
+
+function achievementIconPath(iconDirs, filename, key) {
+  const dirs = Array.isArray(iconDirs) ? iconDirs : [iconDirs];
+  for (const dir of [...dirs].reverse()) {
+    const file = path.join(dir, filename);
+    if (fs.existsSync(file)) return normalizePath(path.relative(gameDir, file));
+  }
+  throw new Error(`achievement icon is missing: ${key}`);
 }
 
 function loadTechnologies(dir, technologyEras, loc) {
@@ -3476,6 +3619,7 @@ function writeDatabase(dir, data) {
     laws,
     technologies,
     technologyEras,
+    achievements,
     geographicRegions,
     cultureRows,
     cultureTraitRows,
@@ -3669,6 +3813,7 @@ function writeDatabase(dir, data) {
       laws: "laws.json",
       technologies: "technologies.json",
       technology_eras: "technology_eras.json",
+      achievements: "achievements.json",
       dynamic_country_name_variants: "dynamic_country_name_variants.json",
       dynamic_country_map_color_rules: "dynamic_country_map_color_rules.json",
       formable_countries: "formable_countries.json",
@@ -3691,6 +3836,7 @@ function writeDatabase(dir, data) {
       laws: laws.size,
       technologies: technologies.length,
       technology_eras: technologyEras.length,
+      achievements: achievements.length,
       dynamic_country_name_variants: dynamicNameVariants.length,
       dynamic_country_map_color_rules: dynamicMapColorRules.length,
       formable_countries: formables.length,
@@ -3722,6 +3868,7 @@ function writeDatabase(dir, data) {
   writeJson(path.join(dir, "laws.json"), [...laws.values()]);
   writeJson(path.join(dir, "technologies.json"), technologies);
   writeJson(path.join(dir, "technology_eras.json"), technologyEras);
+  writeJson(path.join(dir, "achievements.json"), achievements);
   writeJson(path.join(dir, "dynamic_country_name_variants.json"), dynamicNameVariants);
   writeJson(path.join(dir, "dynamic_country_map_color_rules.json"), dynamicMapColorRules);
   writeJson(path.join(dir, "formable_countries.json"), formables);
@@ -3779,6 +3926,12 @@ function writeDatabaseReadme(file, index) {
     "国旗暂未渲染。后续可以先把 flag_definitions 和 coat_of_arms 的引用关系抽出来，再决定本地版和公开版分别怎样显示。",
     "",
   ];
+  const fileListStart = notes.findIndex((note) => note.startsWith("- index.json"));
+  const countHeading = notes.findIndex((note, index) => index > fileListStart && note.startsWith("## "));
+  notes.splice(countHeading - 1, 0, "- achievements.json：成就主数据，包含难度、中文说明、提示条件、图标引用和原始达成脚本。");
+  const updatedCountHeading = notes.findIndex((note, index) => index > fileListStart && note.startsWith("## "));
+  const explanationHeading = notes.findIndex((note, index) => index > updatedCountHeading && note.startsWith("## "));
+  notes.splice(explanationHeading - 1, 0, `成就：${index.counts.achievements}`);
   fs.writeFileSync(file, `\uFEFF${notes.join("\r\n")}\r\n`, "utf8");
 }
 

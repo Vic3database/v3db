@@ -4,9 +4,12 @@ import path from "node:path";
 
 const databaseDir = path.join(process.cwd(), "database", "vic3_1.13.9");
 const index = readJson(path.join(databaseDir, "index.json"));
+const readme = fs.readFileSync(path.join(databaseDir, "README.md"), "utf8").replace(/^\uFEFF/, "");
 
 assert.equal(index.files?.achievements, "achievements.json", "database index must declare achievements.json");
 assert.equal(index.counts?.achievements, 141, "database index must declare 141 achievements");
+assert(readme.includes("- achievements.json："), "database README must describe achievements.json");
+assert(readme.indexOf("成就：141") > readme.indexOf("## 数量"), "database README must count achievements in its quantity section");
 
 const achievements = readJson(path.join(databaseDir, index.files.achievements));
 assert.equal(achievements.length, 141, "database must contain 141 achievements");
@@ -27,13 +30,16 @@ for (const achievement of achievements) {
     assert.notEqual(achievement[key], undefined, `${achievement.key || "achievement"} must contain ${key}`);
     assert.notEqual(achievement[key], "", `${achievement.key || "achievement"} must contain ${key}`);
   }
-  for (const key of ["possible", "happened"]) {
-    assert.match(achievement.script?.[key] || "", /^\{[\s\S]*\}$/, `${achievement.key} script.${key} must be a braced block`);
+  assert(achievement.script && Object.hasOwn(achievement.script, "possible"), `${achievement.key} must declare script.possible`);
+  if (achievement.script.possible !== null) {
+    assert.match(achievement.script.possible, /^\{[\s\S]*\}$/, `${achievement.key} script.possible must be a braced block or null`);
   }
+  assert.match(achievement.script?.happened || "", /^\{[\s\S]*\}$/, `${achievement.key} script.happened must be a braced block`);
 
   assert(Array.isArray(achievement.details), `${achievement.key} details must be an array`);
   for (const detail of achievement.details) {
     assert(detail.key && detail.text_zh, `${achievement.key} details must contain labeled values`);
+    assert(!/[\[\]$#@!]/.test(detail.text_zh), `${achievement.key} details must not retain localization markup`);
   }
 
   for (const state of ["achieved", "not_achieved"]) {
@@ -42,6 +48,17 @@ for (const achievement of achievements) {
     assert(fs.existsSync(path.join(index.source_paths.game_data, ...icon.split("/"))), `${achievement.key} icon.${state} must exist in the game data`);
   }
 }
+
+assert.deepEqual(
+  achievements.filter((achievement) => achievement.script.possible === null).map((achievement) => achievement.key).sort(),
+  [
+    "achievement_devils_railroad",
+    "achievement_shut_the_door_behind_you",
+    "achievement_stonks",
+    "achievement_unanimity",
+  ],
+  "only source achievements without possible blocks may use null",
+);
 
 console.log(JSON.stringify({
   achievement_database: "ok",
