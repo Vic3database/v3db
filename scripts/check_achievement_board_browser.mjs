@@ -51,6 +51,11 @@ try {
   assert.equal(await desktop.evaluate(() => document.querySelectorAll("[data-achievement-key]").length), 141, "IME confirmation Enter must not filter the achievement wall");
   await desktop.evaluate(() => document.querySelector("[data-achievement-search]").dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })));
   await desktop.waitFor(() => document.querySelectorAll("[data-achievement-key]").length === 1);
+  const searchCaret = await desktop.evaluate(() => {
+    const input = document.querySelector("[data-achievement-search]");
+    return { value: input.value, start: input.selectionStart, end: input.selectionEnd };
+  });
+  assert.deepEqual(searchCaret, { value: "Thanks, Obama", start: "Thanks, Obama".length, end: "Thanks, Obama".length }, "submitted achievement searches must keep the caret at the end of the query");
   await desktop.evaluate(() => document.querySelector("[data-achievement-key='achievement_thanks_obama']").click());
   await desktop.waitFor(() => location.hash === "#/achievement/achievement_thanks_obama");
   const desktopDetail = await desktop.evaluate(() => ({

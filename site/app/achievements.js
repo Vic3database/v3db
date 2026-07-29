@@ -69,7 +69,9 @@ function bindAchievementBoardEvents() {
     state.achievementSearch = nextQuery;
     if (!state.achievementSearch) state.achievementWallScrollTop = 0;
     renderAchievementBoard();
-    els.countryList.querySelector("[data-achievement-search]")?.focus();
+    const refreshedSearch = els.countryList.querySelector("[data-achievement-search]");
+    refreshedSearch?.focus();
+    refreshedSearch?.setSelectionRange(refreshedSearch.value.length, refreshedSearch.value.length);
   });
   els.countryList.querySelectorAll("[data-achievement-key]").forEach((card) => {
     card.addEventListener("click", () => {
