@@ -20,6 +20,19 @@ try {
   assert.equal(wall.groups, 4, "achievement wall should render four difficulty groups");
   assert.equal(wall.mapDisplay, "none", "achievement wall must not show the map");
   assert.equal(wall.filtersDisplay, "none", "achievement wall must not show legacy filters");
+  const iconBox = await desktop.evaluate(() => {
+    const image = document.querySelector("[data-achievement-key] img");
+    const rect = image.getBoundingClientRect();
+    const style = getComputedStyle(image);
+    return {
+      width: rect.width,
+      height: rect.height,
+      marginTop: parseFloat(style.marginTop),
+      marginLeft: parseFloat(style.marginLeft),
+    };
+  });
+  assert.ok(Math.abs(iconBox.width - iconBox.height) < 1, "achievement card icons must use a square canvas so the top and side frames match");
+  assert.equal(iconBox.marginTop, iconBox.marginLeft, "achievement card icons must use equal top and side frames");
   await desktop.evaluate(() => {
     const input = document.querySelector("[data-achievement-search]");
     input.value = "Thanks, Obama";
@@ -52,6 +65,15 @@ try {
   assert.notEqual(narrow.detailDisplay, "none", "narrow-screen detail must remain visible");
   await mobile.evaluate(() => document.querySelector("[data-achievement-back]").click());
   await mobile.waitFor(() => location.hash === "#/achievement" && document.querySelectorAll("[data-achievement-key]").length === 141);
+  const mobileIconInset = await mobile.evaluate(() => {
+    const image = document.querySelector("[data-achievement-key] img");
+    const style = getComputedStyle(image);
+    return {
+      top: parseFloat(style.marginTop) + parseFloat(style.paddingTop),
+      side: parseFloat(style.marginLeft) + parseFloat(style.paddingLeft),
+    };
+  });
+  assert.equal(mobileIconInset.top, mobileIconInset.side, "mobile achievement card icons must use equal top and side frames");
   await mobile.close();
   console.log(JSON.stringify({ achievement_board_browser: "ok", base_url: baseUrl }, null, 2));
 } finally {

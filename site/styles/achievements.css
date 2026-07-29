@@ -90,9 +90,8 @@ body[data-view="achievement"]:not(.detail-page) .detail {
 
 .achievement-card {
   display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
   min-width: 0;
-  aspect-ratio: 1 / 1;
   overflow: hidden;
   border: 1px solid rgba(238, 232, 221, .14);
   border-radius: 4px;
@@ -107,11 +106,12 @@ body[data-view="achievement"]:not(.detail-page) .detail {
 .achievement-card--very_hard_group { background: #4b4727; }
 
 .achievement-card img {
-  width: 100%;
-  min-height: 0;
-  height: 100%;
+  display: block;
+  width: calc(100% - 16px);
+  aspect-ratio: 1 / 1;
+  height: auto;
+  margin: 8px 8px 0;
   object-fit: contain;
-  padding: 8px;
   background: rgba(0, 0, 0, .2);
 }
 
