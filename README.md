@@ -35,6 +35,18 @@ http://127.0.0.1:8876/
 node scripts/serve_site.mjs site 8878
 ```
 
+## 成就资料与图标
+
+原版 1.13.9 的成就资料、英文名和站内图标按以下顺序生成：
+
+```powershell
+node scripts/extract_vic3_countries.mjs --game-path "D:\SteamLibrary\steamapps\common\Victoria 3" --version 1.13.9 --out output\vic3_1.13.9 --database database\vic3_1.13.9
+node scripts/build_achievement_assets.mjs
+node scripts/build_wiki.mjs --database database\vic3_1.13.9 --out site\versions\1.13.9
+```
+
+随后运行 `node scripts/check_achievement_database.mjs`、`node scripts/check_achievement_board_contract.mjs` 与 `node scripts/check_publish_bundle.mjs`。`database/` 和 `output/` 为本地生成资料，不纳入提交；站点实际使用的 WebP 图标位于 `site/assets/achievements/`。
+
 ## 检查
 
 发布前可以运行：

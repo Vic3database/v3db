@@ -890,6 +890,10 @@ async function applyHash() {
     changeBoard("home", "home");
     return;
   }
+  if (parts[0] === "achievement" && !achievementBoardAvailable()) {
+    changeBoard("home", "home");
+    return;
+  }
   if (!parts.length || parts[0] === "home") {
     changeBoard("home", "home");
     return;
@@ -988,6 +992,16 @@ async function applyHash() {
     state.technologyCategory = technologyByKey.get(state.selectedTechnology).category;
     return;
   }
+  if (parts[0] === "achievement" && achievementBoardAvailable() && !parts[1]) {
+    changeBoard("achievement", "achievement");
+    state.selectedAchievement = "";
+    return;
+  }
+  if (parts[0] === "achievement" && parts[1] && achievementByKey.has(decodeURIComponent(parts[1]))) {
+    changeBoard("achievement", "achievement");
+    state.selectedAchievement = decodeURIComponent(parts[1]);
+    return;
+  }
   if (parts[0] === "religion" && parts[1]) {
     state.search = decodeURIComponent(parts[1]).toLowerCase();
     els.searchInput.value = state.search;
@@ -1035,6 +1049,9 @@ function updatePageChrome() {
   const title = `${label} - ${siteTitle}`;
   setOptionalText(els.pageTitle, title);
   document.title = title;
+  const achievementAvailable = achievementBoardAvailable();
+  document.querySelectorAll('[data-nav-view="achievement"]').forEach((button) => { button.hidden = !achievementAvailable; });
+  document.querySelector('#viewSelect option[value="achievement"]')?.toggleAttribute("hidden", !achievementAvailable);
   if (els.viewSelect) {
     els.viewSelect.value = state.view;
   }
@@ -1123,10 +1140,12 @@ function render() {
     renderLawBoard();
   } else if (state.view === "technology") {
     renderTechnologyBoard();
+  } else if (state.view === "achievement") {
+    renderAchievementBoard();
   } else {
     renderCountryBoard();
   }
-  const boardManagesDetail = state.view === "home" || state.view === "technology" || state.view === "news";
+  const boardManagesDetail = state.view === "home" || state.view === "technology" || state.view === "achievement" || state.view === "news";
   if (!boardManagesDetail && state.view !== "changelog" && isDetailPageRoute()) {
     renderDetailForState();
   } else if (!boardManagesDetail) {
@@ -1141,7 +1160,7 @@ function isDetailPageRoute() {
 function detailRouteKey() {
   const [route, key] = location.hash.replace(/^#\/?/, "").split("/").filter(Boolean);
   if (!route || !key) return "";
-  return ["country", "culture", "state-region", "strategic-region", "geographic-region", "company", "ideology", "law", "technology"].includes(route) ? key : "";
+  return ["country", "culture", "state-region", "strategic-region", "geographic-region", "company", "ideology", "law", "technology", "achievement"].includes(route) ? key : "";
 }
 
 function syncFilterSectionOpenStates() {
