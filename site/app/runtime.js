@@ -24,6 +24,7 @@ let laws = [];
 let lawGroups = [];
 let technologies = [];
 let technologyEras = [];
+let achievements = [];
 let mapData = null;
 let siteTitle = "Vicdata";
 
@@ -39,6 +40,7 @@ let ideologyByKey = new Map();
 let lawByKey = new Map();
 let lawGroupByKey = new Map();
 let technologyByKey = new Map();
+let achievementByKey = new Map();
 let stateTraitByKey = new Map();
 let stateTraitRegionsByKey = new Map();
 let buildingByKey = new Map();
@@ -155,6 +157,9 @@ const state = {
   selectedIdeology: "",
   selectedLaw: "",
   selectedTechnology: "",
+  selectedAchievement: "",
+  achievementSearch: "",
+  achievementWallScrollTop: 0,
   technologyCategory: "production",
   technologySearch: "",
   technologyViewport: { x: 0, y: 0, scale: 1 },
@@ -520,6 +525,7 @@ const viewLabels = {
   ideology: "意识形态",
   law: "法律",
   technology: "科技",
+  achievement: "成就",
   changelog: "更新日志",
   news: "游戏资讯",
 };

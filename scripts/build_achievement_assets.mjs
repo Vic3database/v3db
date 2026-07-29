@@ -13,7 +13,8 @@ const python = args.python || process.env.PYTHON || "python";
 
 const index = readJson(path.join(databaseDir, "index.json"));
 const achievements = readJson(path.join(databaseDir, index.files?.achievements || ""));
-const gameData = path.resolve(index.source_paths?.game_data || "");
+if (!index.source_paths?.game_data) throw new Error("Achievement database does not declare source_paths.game_data");
+const gameData = path.resolve(index.source_paths.game_data);
 assertDirectory(gameData, "Victoria 3 game data");
 assertAchievements(achievements, gameData);
 fs.mkdirSync(assetRoot, { recursive: true });

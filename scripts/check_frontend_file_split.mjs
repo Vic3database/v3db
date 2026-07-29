@@ -15,6 +15,7 @@ const appFiles = [
   "app/presentation.js",
   "app/map.js",
   "app/components.js",
+  "app/achievements.js",
   "app/bootstrap.js",
 ];
 
@@ -27,6 +28,7 @@ const styleFiles = [
   "styles/home.css",
   "styles/dialogs.css",
   "styles/technology.css",
+  "styles/achievements.css",
 ];
 
 for (const file of appFiles) {
