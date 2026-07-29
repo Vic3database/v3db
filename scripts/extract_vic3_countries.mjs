@@ -133,6 +133,7 @@ function main() {
   fs.mkdirSync(databaseDir, { recursive: true });
 
   const loc = loadLocalization(contentPath("localization", "simp_chinese"));
+  const locEn = loadLocalization(contentPath("localization", "english"));
   const cultures = loadCultures(contentPath("common", "cultures"));
   const cultureTraits = loadCultureTraits(contentPath("common", "discrimination_traits"), loc);
   const cultureTraitGroups = loadCultureTraitGroups(contentPath("common", "discrimination_trait_groups"), loc);
@@ -180,6 +181,7 @@ function main() {
     contentPath("common", "achievement_groups.txt"),
     contentPath("gfx", "interface", "icons", "achievements"),
     loc,
+    locEn,
   );
   attachTechnologyReferences(technologies, { laws, companies });
   const interestGroups = loadInterestGroups(
@@ -1585,7 +1587,7 @@ function loadTechnologyEras(dir) {
   return [...eras.values()].sort((left, right) => left.key.localeCompare(right.key, "en"));
 }
 
-function loadAchievements(definitionDirs, groupFiles, iconDirs, loc) {
+function loadAchievements(definitionDirs, groupFiles, iconDirs, loc, locEn) {
   const groups = loadAchievementGroups(groupFiles, loc);
   const groupByAchievementKey = new Map();
   for (const group of groups) {
@@ -1622,10 +1624,14 @@ function loadAchievements(definitionDirs, groupFiles, iconDirs, loc) {
       if (!loc.has(nameKey) || !loc.has(descriptionKey)) {
         throw new Error(`achievement Chinese localization is missing: ${key}`);
       }
+      if (!locEn.has(nameKey)) {
+        throw new Error(`achievement English localization is missing: ${key}`);
+      }
       achievementsByKey.set(key, {
         id: `achievement:${key}`,
         key,
         name_zh: locCleanName(loc, nameKey),
+        name_en: locCleanName(locEn, nameKey),
         description_zh: locCleanName(loc, descriptionKey),
         ...group,
         details: achievementTooltipDetails(happened, loc),

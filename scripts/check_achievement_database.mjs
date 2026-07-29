@@ -26,7 +26,7 @@ for (const achievement of achievements) {
   assert(!keys.has(achievement.key), `${achievement.key} must be unique`);
   keys.add(achievement.key);
 
-  for (const key of ["key", "name_zh", "description_zh", "group_key", "group_name_zh", "group_order", "source_file"]) {
+  for (const key of ["key", "name_zh", "name_en", "description_zh", "group_key", "group_name_zh", "group_order", "source_file"]) {
     assert.notEqual(achievement[key], undefined, `${achievement.key || "achievement"} must contain ${key}`);
     assert.notEqual(achievement[key], "", `${achievement.key || "achievement"} must contain ${key}`);
   }
