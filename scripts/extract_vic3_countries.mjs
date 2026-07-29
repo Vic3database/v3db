@@ -247,6 +247,7 @@ function main() {
       dynamicNameVariantsByScope,
       dynamicMapColorRulesByTag,
     }));
+  attachAchievementCountryReferences(achievements, countryRows);
   const existingAtStartTags = new Set(countryRows
     .filter((row) => row.exists_at_start === "是")
     .map((row) => row.tag));
@@ -1654,6 +1655,20 @@ function loadAchievements(definitionDirs, groupFiles, iconDirs, loc, locEn) {
   return [...achievementsByKey.values()].sort((left, right) => (
     left.group_key.localeCompare(right.group_key, "en") || left.group_order - right.group_order
   ));
+}
+
+function attachAchievementCountryReferences(achievements, countryRows) {
+  const countryNameByTag = new Map(countryRows.map((country) => [country.tag, country.name_zh]));
+  for (const achievement of achievements) {
+    const tags = [...new Set(`${achievement.script.possible || ""}\n${achievement.script.happened}`.match(/\bc:([A-Z]{3})\b/g) || [])]
+      .map((value) => value.slice(2))
+      .sort();
+    achievement.related_countries = tags.map((tag) => {
+      const name_zh = countryNameByTag.get(tag);
+      if (!name_zh) throw new Error(`achievement country reference has no country record: ${achievement.key} -> ${tag}`);
+      return { tag, name_zh };
+    });
+  }
 }
 
 function loadAchievementGroups(groupFiles, loc) {

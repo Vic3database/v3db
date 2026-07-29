@@ -12,6 +12,8 @@ assert(readme.includes("- achievements.json："), "database README must describe
 assert(readme.indexOf("成就：141") > readme.indexOf("## 数量"), "database README must count achievements in its quantity section");
 
 const achievements = readJson(path.join(databaseDir, index.files.achievements));
+const countries = readJson(path.join(databaseDir, index.files.countries));
+const countryNameByTag = new Map(countries.map((country) => [country.tag, country.name?.zh]));
 assert.equal(achievements.length, 141, "database must contain 141 achievements");
 assert.deepEqual(countBy(achievements, (achievement) => achievement.group_key), {
   easy_group: 31,
@@ -36,6 +38,15 @@ for (const achievement of achievements) {
   }
   assert.match(achievement.script?.happened || "", /^\{[\s\S]*\}$/, `${achievement.key} script.happened must be a braced block`);
 
+  assert(Array.isArray(achievement.related_countries), `${achievement.key} related_countries must be an array`);
+  const directTags = [...new Set(`${achievement.script.possible || ""}\n${achievement.script.happened}`.match(/\bc:([A-Z]{3})\b/g) || [])]
+    .map((value) => value.slice(2))
+    .sort();
+  assert.deepEqual(achievement.related_countries.map((country) => country.tag), directTags, `${achievement.key} must retain only direct c:TAG references`);
+  for (const country of achievement.related_countries) {
+    assert.equal(country.name_zh, countryNameByTag.get(country.tag), `${achievement.key} ${country.tag} must use the database country name`);
+  }
+
   assert(Array.isArray(achievement.details), `${achievement.key} details must be an array`);
   for (const detail of achievement.details) {
     assert(detail.key && detail.text_zh, `${achievement.key} details must contain labeled values`);
@@ -59,6 +70,10 @@ assert.deepEqual(
   ],
   "only source achievements without possible blocks may use null",
 );
+
+const relatedAchievements = achievements.filter((achievement) => achievement.related_countries.length);
+assert.equal(relatedAchievements.length, 66, "66 achievements must have direct country references");
+assert.equal(new Set(relatedAchievements.flatMap((achievement) => achievement.related_countries.map((country) => country.tag))).size, 48, "direct country references must cover 48 country tags");
 
 console.log(JSON.stringify({
   achievement_database: "ok",
