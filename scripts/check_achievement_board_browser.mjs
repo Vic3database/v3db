@@ -46,6 +46,10 @@ try {
     input.value = "Thanks, Obama";
     input.dispatchEvent(new Event("input", { bubbles: true }));
   });
+  assert.equal(await desktop.evaluate(() => document.querySelectorAll("[data-achievement-key]").length), 141, "typing must not filter the achievement wall before Enter");
+  await desktop.evaluate(() => document.querySelector("[data-achievement-search]").dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true, isComposing: true })));
+  assert.equal(await desktop.evaluate(() => document.querySelectorAll("[data-achievement-key]").length), 141, "IME confirmation Enter must not filter the achievement wall");
+  await desktop.evaluate(() => document.querySelector("[data-achievement-search]").dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })));
   await desktop.waitFor(() => document.querySelectorAll("[data-achievement-key]").length === 1);
   await desktop.evaluate(() => document.querySelector("[data-achievement-key='achievement_thanks_obama']").click());
   await desktop.waitFor(() => location.hash === "#/achievement/achievement_thanks_obama");

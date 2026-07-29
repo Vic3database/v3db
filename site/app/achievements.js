@@ -30,7 +30,7 @@ function renderAchievementBoard() {
 
   els.countryList.innerHTML = `<section class="achievement-shell" aria-label="成就总览">
     <header class="achievement-toolbar">
-      <label class="achievement-search"><span>搜索成就</span><input type="search" autocomplete="off" value="${escapeHtml(state.achievementSearch)}" placeholder="名称、英文名、说明或条件" data-achievement-search></label>
+      <label class="achievement-search"><span>搜索成就</span><input type="search" autocomplete="off" value="${escapeHtml(state.achievementSearch)}" placeholder="名称、英文名、说明或条件；输入后按回车搜索" data-achievement-search></label>
       <strong class="achievement-count">${count} 项成就</strong>
     </header>
     <div class="achievement-groups">${groups.map((group) => achievementGroupHtml(group)).join("") || "<p class=\"achievement-empty\">没有匹配的成就。</p>"}</div>
@@ -61,8 +61,12 @@ function achievementCardHtml(achievement, groupKey) {
 
 function bindAchievementBoardEvents() {
   const search = els.countryList.querySelector("[data-achievement-search]");
-  search?.addEventListener("input", () => {
-    state.achievementSearch = search.value;
+  search?.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" || event.isComposing) return;
+    event.preventDefault();
+    const nextQuery = search.value;
+    if (nextQuery === state.achievementSearch) return;
+    state.achievementSearch = nextQuery;
     if (!state.achievementSearch) state.achievementWallScrollTop = 0;
     renderAchievementBoard();
     els.countryList.querySelector("[data-achievement-search]")?.focus();
