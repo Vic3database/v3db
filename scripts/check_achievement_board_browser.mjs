@@ -20,6 +20,11 @@ try {
   assert.equal(wall.groups, 4, "achievement wall should render four difficulty groups");
   assert.equal(wall.mapDisplay, "none", "achievement wall must not show the map");
   assert.equal(wall.filtersDisplay, "none", "achievement wall must not show legacy filters");
+  const cardImageLoading = await desktop.evaluate(() => {
+    const image = document.querySelector("[data-achievement-key] img");
+    return { loading: image.getAttribute("loading"), decoding: image.getAttribute("decoding") };
+  });
+  assert.deepEqual(cardImageLoading, { loading: "lazy", decoding: "async" }, "achievement wall icons must defer loading and decoding");
   const iconBox = await desktop.evaluate(() => {
     const image = document.querySelector("[data-achievement-key] img");
     const card = image.closest("[data-achievement-key]");
@@ -62,10 +67,12 @@ try {
     english: document.querySelector(".achievement-detail-english")?.textContent?.trim() || "",
     open: Array.from(document.querySelectorAll(".achievement-detail details"), (detail) => detail.open),
     columns: getComputedStyle(document.querySelector(".achievement-wall-grid")).gridTemplateColumns.split(" ").filter(Boolean).length,
+    iconLoading: document.querySelector(".achievement-detail-head > img").getAttribute("loading"),
   }));
   assert.equal(desktopDetail.english, "Thanks, Obama", "detail must retain the English full name");
   assert.deepEqual(desktopDetail.open, [true, true], "both source script sections must be open by default");
   assert.equal(desktopDetail.columns, 10, "desktop detail pane must retain ten wall columns");
+  assert.equal(desktopDetail.iconLoading, null, "achievement detail icon must load immediately");
   await desktop.evaluate(() => document.querySelector("[data-achievement-back]").click());
   await desktop.waitFor(() => location.hash === "#/achievement");
   assert.equal(await desktop.evaluate(() => document.querySelector("[data-achievement-search]").value), "Thanks, Obama", "closing detail must retain the search query");

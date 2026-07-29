@@ -26,6 +26,7 @@ for (const achievement of achievements) {
 
 assert.match(index, /data-nav-view="achievement"[^>]*>[\s\S]*?<span>成就<\/span>/, "top navigation must expose achievements");
 assert.match(index, /data-nav-view="achievement"[^>]*>[\s\S]*?trophy\.svg/, "achievement navigation must use the trophy icon");
+assert.match(index, /app\/achievements\.js\?v=20260730-achievement-lazy1/, "achievement script URL must change when card loading behavior changes");
 assert.match(app, /if \(view === "achievement"\) return \["achievement"\]/, "achievement route must load only its data chunk");
 assert.match(app, /function achievementMatches\(/, "achievement search matcher must exist");
 assert.match(app, /achievement\.name_en/, "achievement search must include English names");

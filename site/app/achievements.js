@@ -55,7 +55,7 @@ function achievementGroupHtml(group) {
 function achievementCardHtml(achievement, groupKey) {
   const selected = achievement.key === state.selectedAchievement;
   return `<button class="achievement-card achievement-card--${groupKey}" type="button" data-achievement-key="${escapeHtml(achievement.key)}" aria-pressed="${selected}">
-    <img src="assets/achievements/${escapeHtml(achievement.key)}.webp" alt="" aria-hidden="true">
+    <img src="assets/achievements/${escapeHtml(achievement.key)}.webp" alt="" aria-hidden="true" loading="lazy" decoding="async">
     <span>${escapeHtml(achievement.name_zh)}</span>
   </button>`;
 }
