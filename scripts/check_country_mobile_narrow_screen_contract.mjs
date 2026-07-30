@@ -37,6 +37,7 @@ expect(/\.mobile-country-search-input input\s*\{[\s\S]*flex:\s*1 0 148px[\s\S]*m
 expect(/body\[data-view="country"\]\s+#leftPanelToggle,[\s\S]*body\[data-view="country"\]\s+#bottomPanelToggle\s*\{[\s\S]*display:\s*none/.test(shellSource), "窄屏国家地图仍显示筛选和列表工具按钮");
 expect(/\.mobile-country-filter-categories\s*\{[\s\S]*border-bottom:\s*1px solid/.test(shellSource), "筛选分类与选项之间缺少分隔线");
 expect(/\.mobile-country-filter-options\s*\{[\s\S]*justify-content:\s*flex-start/.test(shellSource), "筛选选项未左对齐");
+expect(/\.mobile-country-filter-options\s*\{[\s\S]*padding-top:\s*8px/.test(shellSource), "筛选选项未与分类分隔线保持间距");
 expect(/\.mobile-country-filter-option\s*\{[\s\S]*border-radius:\s*5px/.test(shellSource), "筛选选项未使用圆角矩形边框");
 expect(presentationSource.includes("data-mobile-country-filter-chip"), "缺少稳定的国家筛选标签数据属性");
 expect(presentationSource.includes("data-mobile-country-filter-option"), "缺少稳定的国家筛选选项数据属性");

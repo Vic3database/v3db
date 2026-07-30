@@ -1409,6 +1409,7 @@ body[data-view="law"][data-results-panel="collapsed"] .detail {
     display: flex;
     flex-flow: row wrap;
     justify-content: flex-start;
+    padding-top: 8px;
     gap: 7px;
   }
 

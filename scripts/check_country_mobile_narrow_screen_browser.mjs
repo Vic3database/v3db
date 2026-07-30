@@ -104,6 +104,8 @@ try {
       optionRadius: Number.parseFloat(getComputedStyle(options[0]).borderTopLeftRadius),
       optionsLeft: document.querySelector(".mobile-country-filter-options").getBoundingClientRect().left,
       categoryDividerWidth: Number.parseFloat(getComputedStyle(document.querySelector(".mobile-country-filter-categories")).borderBottomWidth),
+      categoryBottom: document.querySelector(".mobile-country-filter-categories").getBoundingClientRect().bottom,
+      firstOptionTop: Math.min(...options.map((option) => option.getBoundingClientRect().top)),
       rows: Object.values(Object.groupBy(options.map((option) => {
         const rect = option.getBoundingClientRect();
         return { top: Math.round(rect.top), left: rect.left, right: rect.right };
@@ -115,6 +117,7 @@ try {
   assert.ok(optionLayout.maxWidth < optionLayout.panelWidth, "窄屏类型选项不得逐项占满整行");
   assert.ok(optionLayout.optionRadius < 10, "窄屏筛选选项必须使用圆角矩形而非药丸形状");
   assert.ok(optionLayout.categoryDividerWidth > 0, "筛选分类与选项之间必须显示分隔线");
+  assert.ok(optionLayout.firstOptionTop - optionLayout.categoryBottom >= 8, "分隔线下方必须为筛选选项保留至少 8 像素间距");
   for (const row of optionLayout.rows) {
     const left = Math.min(...row.map((option) => option.left));
     assert.ok(Math.abs(left - optionLayout.optionsLeft) < 2, "每行筛选选项必须在面板内左对齐");
