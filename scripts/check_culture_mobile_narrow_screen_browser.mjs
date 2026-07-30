@@ -55,19 +55,28 @@ try {
   await page.click("[data-mobile-culture-expand-language-group]");
   assert.equal(await page.count("[data-mobile-culture-filter-chip='language']"), 0, "语言组只能展开，不能生成筛选标签");
   await page.click("[data-mobile-culture-filter-option][data-mobile-culture-filter-category='language']");
+  await page.waitFor(() => document.querySelectorAll("[data-mobile-culture-filter-chip='language']").length === 1);
+  assert.equal(await page.evaluate(() => document.querySelector("[data-mobile-culture-filter-clear-option='language']")?.getAttribute("aria-pressed")), "false", "选择具体语言后，不限不能继续高亮");
   await page.waitFor(() => document.querySelectorAll("[data-mobile-culture-filter-chip='language']").length === 1, "具体语言必须生成筛选标签");
 
   await page.click("[data-mobile-culture-filter-category='tradition']");
   await page.click("[data-mobile-culture-filter-option][data-mobile-culture-filter-category='tradition']");
+  await page.waitFor(() => document.querySelectorAll("[data-mobile-culture-filter-chip='tradition']").length === 1);
+  assert.equal(await page.evaluate(() => document.querySelector("[data-mobile-culture-filter-clear-option='tradition']")?.getAttribute("aria-pressed")), "false", "选择具体传统后，不限不能继续高亮");
   await page.waitFor(() => document.querySelectorAll("[data-mobile-culture-filter-chip='tradition']").length === 1, "传统必须直接生成筛选标签");
 
   await page.click("[data-mobile-culture-filter-category='strategicRegion']");
   await page.click("[data-mobile-culture-expand-strategic-region-continent]");
   assert.equal(await page.count("[data-mobile-culture-filter-chip='strategicRegion']"), 0, "洲别只能展开，不能生成筛选标签");
   await page.click("[data-mobile-culture-filter-option][data-mobile-culture-filter-category='strategicRegion']");
+  await page.waitFor(() => document.querySelectorAll("[data-mobile-culture-filter-chip='strategicRegion']").length === 1);
+  assert.equal(await page.evaluate(() => document.querySelector("[data-mobile-culture-filter-clear-option='strategicRegion']")?.getAttribute("aria-pressed")), "false", "选择具体本土战略区域后，不限不能继续高亮");
   await page.waitFor(() => document.querySelectorAll("[data-mobile-culture-filter-chip='strategicRegion']").length === 1, "具体战略区域必须生成筛选标签");
 
+  await page.click("[data-mobile-culture-filter-category='heritage']");
   await page.click("[data-mobile-culture-filter-clear='heritage']");
+  await page.waitFor(() => document.querySelectorAll("[data-mobile-culture-filter-chip='heritage']").length === 0);
+  assert.equal(await page.evaluate(() => document.querySelector("[data-mobile-culture-filter-clear-option='heritage']")?.getAttribute("aria-pressed")), "true", "清除具体传承后，不限必须重新高亮");
   assert.equal(await page.count("[data-mobile-culture-filter-chip='heritage']"), 0, "删除标签必须清除实际条件");
   await page.click("[data-mobile-culture-map-toggle]");
   await page.waitFor(() => getComputedStyle(document.querySelector("#mapPanel")).display === "none", "文化地图可收起");
