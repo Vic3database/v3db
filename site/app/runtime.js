@@ -66,6 +66,7 @@ const MAP_MUTED_COLOR = "#e4e8e3";
 const MAP_CULTURE_MATCH_COLOR = "#2f7f64";
 const MAP_LAYER_CACHE_LIMIT = 5;
 const MAP_LAND_ALPHA = 210;
+const MAP_RESOURCE_LAND_ALPHA = 232;
 const MAP_SEA_ALPHA = 0;
 const MAP_MUTED_ALPHA = 150;
 const MAP_LABEL_FONT_FAMILY = "\"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Noto Sans CJK SC\", Arial, sans-serif";
@@ -95,7 +96,6 @@ const mapRuntime = {
   drag: null,
   visibleStateKeys: new Set(),
   stateKeysByIndex: [""],
-  strategicRegionCenters: new Map(),
   ownerKeysByIndex: [""],
   pixelStateIndexes: null,
   pixelOwnerIndexes: null,
@@ -740,6 +740,7 @@ const els = {
   mapModeSelect: document.querySelector("#mapModeSelect"),
   mapSubjectSelect: document.querySelector("#mapSubjectSelect"),
   mapFitWidthButton: document.querySelector("#mapFitWidthButton"),
+  mapResourceContext: document.querySelector("#mapResourceContext"),
   mapViewport: document.querySelector("#mapViewport"),
   mapCanvas: document.querySelector("#mapCanvas"),
   mapTooltip: document.querySelector("#mapTooltip"),

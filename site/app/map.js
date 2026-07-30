@@ -2,8 +2,13 @@ function renderMapControls() {
   const mapResetLabel = state.view === "region" ? "重置地域焦点和地图位置" : "重置地图位置";
   els.mapFitWidthButton?.setAttribute("aria-label", mapResetLabel);
   els.mapFitWidthButton?.setAttribute("title", mapResetLabel);
-  if (!els.mapModeSelect || !els.mapSubjectSelect) return;
   if (state.view === "ideology" || state.view === "law") {
+    syncMapModeForView();
+    renderMapResourceContext();
+    return;
+  }
+  if (!els.mapModeSelect || !els.mapSubjectSelect) {
+    renderMapResourceContext();
     return;
   }
   syncMapModeForView();
@@ -15,6 +20,30 @@ function renderMapControls() {
   els.mapSubjectSelect.innerHTML = options.map((option) => (
     `<option value="${escapeHtml(option.value)}"${state.mapSubject === option.value ? " selected" : ""}>${escapeHtml(option.label)}</option>`
   )).join("");
+  renderMapResourceContext();
+}
+
+function mapResourceContextResourceKey() {
+  if (!["resource", "resourceSelection"].includes(state.mapMode)) return "";
+  return state.mapSubject || "";
+}
+
+function renderMapResourceContext() {
+  if (!els.mapResourceContext) return;
+  const resourceKey = mapResourceContextResourceKey();
+  if (!resourceKey) {
+    els.mapResourceContext.hidden = true;
+    els.mapResourceContext.textContent = "";
+    return;
+  }
+  const fileName = buildingIconFileByKey[resourceKey];
+  const icon = fileName
+    ? `<img class="map-resource-context-icon" src="assets/buildings/${encodeURIComponent(fileName)}" alt="">`
+    : `<span class="map-resource-context-swatch" style="--map-resource-context-color: ${escapeHtml(resourceMapColor(resourceKey))}" aria-hidden="true"></span>`;
+  const label = mapSubjectLabel();
+  const version = data.meta?.victoria3_version || "未知";
+  els.mapResourceContext.hidden = false;
+  els.mapResourceContext.innerHTML = `${icon}<span class="map-resource-context-name">${escapeHtml(label)}</span><span class="map-resource-context-version">· ${escapeHtml(version)}</span>`;
 }
 
 function syncMapModeForView() {
@@ -229,11 +258,6 @@ function ensureMapLoaded() {
       ? decodeMapRuns(mapData.ownerRuns, mapRuntime.width * mapRuntime.height)
       : null;
     mapRuntime.stateCenters = computeMapStateCenters(mapRuntime.pixelStateIndexes, mapRuntime.width, mapRuntime.height, mapRuntime.stateKeysByIndex);
-    mapRuntime.strategicRegionCenters = computeStrategicRegionMapCenters(
-      mapRuntime.pixelStateIndexes,
-      mapRuntime.width,
-      mapRuntime.stateKeysByIndex,
-    );
     mapRuntime.ready = true;
     mapRuntime.loading = false;
     resetMapTransform();
@@ -285,55 +309,6 @@ function computeMapStateCenters(indexes, width, height, stateKeysByIndex) {
       count: item.count,
     });
   }
-  return centers;
-}
-
-function computeStrategicRegionMapCenters(indexes, width, stateKeysByIndex) {
-  const totals = new Map();
-  const radiansByX = Array.from({ length: width }, (_, x) => (x / width) * Math.PI * 2);
-  const sinByX = radiansByX.map((radians) => Math.sin(radians));
-  const cosByX = radiansByX.map((radians) => Math.cos(radians));
-  const regionKeysByStateIndex = stateKeysByIndex.map((stateKey) => {
-    const stateRegion = byStateRegion.get(stateKey);
-    if (!stateRegion || isSeaStateRegion(stateRegion)) return [];
-    return (stateRegion.strategic_regions || [])
-      .map((ref) => byStrategicRegion.get(ref.key))
-      .filter((region) => region && !isSeaStrategicRegion(region))
-      .map((region) => region.key);
-  });
-  for (let pixel = 0; pixel < indexes.length; pixel += 1) {
-    const regionKeys = regionKeysByStateIndex[indexes[pixel]] || [];
-    if (!regionKeys.length) continue;
-    const x = pixel % width;
-    const y = Math.floor(pixel / width);
-    for (const key of regionKeys) {
-      const total = totals.get(key) || { sin: 0, cos: 0, y: 0, count: 0 };
-      total.sin += sinByX[x];
-      total.cos += cosByX[x];
-      total.y += y;
-      total.count += 1;
-      totals.set(key, total);
-    }
-  }
-  const centers = new Map([...totals].map(([key, total]) => {
-    const radians = Math.atan2(total.sin, total.cos);
-    const x = ((radians < 0 ? radians + Math.PI * 2 : radians) / (Math.PI * 2)) * width;
-    return [key, { x, y: total.y / total.count, count: total.count, distance: Infinity }];
-  }));
-  for (let pixel = 0; pixel < indexes.length; pixel += 1) {
-    const regionKeys = regionKeysByStateIndex[indexes[pixel]] || [];
-    if (!regionKeys.length) continue;
-    const x = pixel % width;
-    const y = Math.floor(pixel / width);
-    for (const key of regionKeys) {
-      const center = centers.get(key);
-      const xDistance = Math.abs(center.x - x);
-      const wrappedXDistance = Math.min(xDistance, width - xDistance);
-      const distance = wrappedXDistance ** 2 + (center.y - y) ** 2;
-      if (distance < center.distance) Object.assign(center, { x, y, distance });
-    }
-  }
-  for (const center of centers.values()) delete center.distance;
   return centers;
 }
 
@@ -761,14 +736,6 @@ function hasCountryMapFilterSelection() {
 
 const RESOURCE_MAP_NEUTRAL_COLOR = "#f6d89a";
 const RESOURCE_MAP_DEFAULT_COLOR = "#9b4a2f";
-const AGRICULTURAL_RESOURCE_NEUTRAL_COLOR = "#dce9cf";
-const AGRICULTURAL_RESOURCE_COLOR = "#416d36";
-const AGRICULTURAL_RESOURCE_KEYS = new Set([
-  "building_wheat_farm", "building_rye_farm", "building_rice_farm", "building_maize_farm",
-  "building_millet_farm", "building_livestock_ranch", "building_vineyard", "building_coffee_plantation",
-  "building_tea_plantation", "building_tobacco_plantation", "building_opium_plantation", "building_banana_plantation",
-  "building_sugar_plantation", "building_silk_plantation", "building_cotton_plantation", "building_dye_plantation",
-]);
 const RESOURCE_MAP_COLOR_BY_KEY = new Map([
   ["building_coal_mine", "#596166"],
   ["building_iron_mine", "#557b91"],
@@ -780,7 +747,24 @@ const RESOURCE_MAP_COLOR_BY_KEY = new Map([
   ["building_logging_camp", "#5e8750"],
   ["building_rubber_plantation", "#657b3a"],
   ["building_oil_rig", "#47495d"],
-  ...[...AGRICULTURAL_RESOURCE_KEYS].map((key) => [key, AGRICULTURAL_RESOURCE_COLOR]),
+]);
+const RESOURCE_MAP_GRADIENT_BY_KEY = new Map([
+  ["building_wheat_farm", { low: "#f0dea8", high: "#c69b32" }],
+  ["building_rye_farm", { low: "#e0ca98", high: "#8d713d" }],
+  ["building_rice_farm", { low: "#cce7c7", high: "#4f9b72" }],
+  ["building_maize_farm", { low: "#f2dfa4", high: "#d59d27" }],
+  ["building_millet_farm", { low: "#e7d2a7", high: "#b88735" }],
+  ["building_livestock_ranch", { low: "#dacdb9", high: "#87643e" }],
+  ["building_vineyard", { low: "#ddc7df", high: "#7e4b86" }],
+  ["building_coffee_plantation", { low: "#ddc8b5", high: "#765039" }],
+  ["building_tea_plantation", { low: "#c6e2c5", high: "#3d7e4d" }],
+  ["building_tobacco_plantation", { low: "#e7caa2", high: "#a66e37" }],
+  ["building_opium_plantation", { low: "#e8c5d6", high: "#a85e83" }],
+  ["building_banana_plantation", { low: "#efe9ab", high: "#b7a92d" }],
+  ["building_sugar_plantation", { low: "#cae1bf", high: "#72a05e" }],
+  ["building_silk_plantation", { low: "#e7d8e3", high: "#b27fa9" }],
+  ["building_cotton_plantation", { low: "#deecf1", high: "#8baebb" }],
+  ["building_dye_plantation", { low: "#c5d0ec", high: "#4c5ea7" }],
 ]);
 const RESOURCE_MAP_COLOR_ALIASES = new Map([
   ["building_gold_field", "building_gold_mine"],
@@ -794,16 +778,18 @@ function resourceMapColor(resourceKey) {
   return RESOURCE_MAP_COLOR_BY_KEY.get(resolveResourceMapColorKey(resourceKey)) || RESOURCE_MAP_DEFAULT_COLOR;
 }
 
-function isAgriculturalResourceKey(resourceKey) {
-  return AGRICULTURAL_RESOURCE_KEYS.has(resolveResourceMapColorKey(resourceKey));
+function resourceMapGradient(resourceKey) {
+  const resolvedKey = resolveResourceMapColorKey(resourceKey);
+  return RESOURCE_MAP_GRADIENT_BY_KEY.get(resolvedKey) || {
+    low: RESOURCE_MAP_NEUTRAL_COLOR,
+    high: resourceMapColor(resolvedKey),
+  };
 }
 
 function resourceMapGradientColor(resourceKey, value, maxValue) {
   const ratio = Math.sqrt(Number(value || 0) / Math.max(Number(maxValue || 0), 1));
-  const neutralColor = isAgriculturalResourceKey(resourceKey)
-    ? AGRICULTURAL_RESOURCE_NEUTRAL_COLOR
-    : RESOURCE_MAP_NEUTRAL_COLOR;
-  return interpolateColor(neutralColor, resourceMapColor(resourceKey), ratio);
+  const gradient = resourceMapGradient(resourceKey);
+  return interpolateColor(gradient.low, gradient.high, ratio);
 }
 
 function buildSelectedResourceMapFeatures() {
@@ -998,7 +984,9 @@ function drawMapLayer(features) {
 function mapPixelAlpha(stateIndex, stateLayer) {
   if (stateLayer.sea[stateIndex]) return MAP_SEA_ALPHA;
   if (!stateLayer.visible[stateIndex]) return MAP_MUTED_ALPHA;
-  return MAP_LAND_ALPHA;
+  return ["resource", "resourceSelection"].includes(state.mapMode)
+    ? MAP_RESOURCE_LAND_ALPHA
+    : MAP_LAND_ALPHA;
 }
 
 function buildStateLayerColors(features) {
@@ -1185,7 +1173,6 @@ function paintMapCanvasTarget(canvas, viewport, transform, drawLabels = false) {
     }
     context.drawImage(mapRuntime.layerCanvas, copy * mapRuntime.width, 0);
   }
-  if (drawLabels) drawAgriculturalResourceWatermarks(context, copyRange, transform, rect);
   if (drawLabels) drawMapLabels(context, copyRange, transform);
 }
 
@@ -1330,59 +1317,6 @@ function normalizeMapTransformX(transform = mapRuntime.transform) {
   let x = transform.x % scaledMapWidth;
   if (x > 0) x -= scaledMapWidth;
   transform.x = x;
-}
-
-function drawAgriculturalResourceWatermarks(context, copyRange, transform, viewportRect) {
-  if (state.mapMode !== "resourceSelection" || !isAgriculturalResourceKey(state.mapSubject)) return;
-  const text = mapSubjectLabel();
-  if (!text || !mapRuntime.strategicRegionCenters?.size) return;
-  const matchingRegions = new Set();
-  for (const stateRegion of stateRegions) {
-    if (stateRegionResourceValue(stateRegion, state.mapSubject).value <= 0) continue;
-    for (const ref of stateRegion.strategic_regions || []) matchingRegions.add(ref.key);
-  }
-  const inverseScale = 1 / Math.max(transform.scale, 0.001);
-  const fontSize = Math.round(19 * inverseScale);
-  context.save();
-  context.font = `800 ${fontSize}px ${MAP_LABEL_FONT_FAMILY}`;
-  context.textAlign = "center";
-  context.textBaseline = "middle";
-  const textWidth = context.measureText(text).width * transform.scale;
-  const textHeight = fontSize * transform.scale + 8;
-  const occupied = [];
-  const candidates = [...matchingRegions]
-    .map((key) => ({ key, center: mapRuntime.strategicRegionCenters.get(key) }))
-    .filter((item) => item.center)
-    .sort((a, b) => b.center.count - a.center.count || a.key.localeCompare(b.key));
-  for (const candidate of candidates) {
-    for (let copy = copyRange.start; copy <= copyRange.end; copy += 1) {
-      const x = candidate.center.x + copy * mapRuntime.width;
-      const y = candidate.center.y;
-      const screenX = transform.x + x * transform.scale;
-      const screenY = transform.y + y * transform.scale;
-      const bounds = {
-        left: screenX - textWidth / 2 - 8,
-        top: screenY - textHeight / 2 - 5,
-        right: screenX + textWidth / 2 + 8,
-        bottom: screenY + textHeight / 2 + 5,
-      };
-      if (bounds.right < 0 || bounds.left > viewportRect.width || bounds.bottom < 0 || bounds.top > viewportRect.height) continue;
-      if (occupied.some((other) => rectanglesOverlap(bounds, other))) continue;
-      occupied.push(bounds);
-      context.save();
-      context.translate(x, y);
-      context.rotate(-0.18);
-      context.globalAlpha = 0.42;
-      context.fillStyle = "#f8faef";
-      context.fillText(text, 0, 0);
-      context.restore();
-    }
-  }
-  context.restore();
-}
-
-function rectanglesOverlap(a, b) {
-  return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
 }
 
 function drawMapLabels(context, copyRange = { start: 0, end: 0 }, transform = mapRuntime.transform) {

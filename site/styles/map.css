@@ -54,6 +54,56 @@
   background: color-mix(in srgb, var(--accent-blue) 86%, var(--panel));
 }
 
+.map-resource-context {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  max-width: min(250px, calc(100vw - 168px));
+  height: 30px;
+  gap: 6px;
+  padding: 3px 8px 3px 4px;
+  border: 1px solid rgba(200, 164, 91, 0.24);
+  border-radius: 6px;
+  color: #eef3ea;
+  background: rgba(28, 41, 35, 0.76);
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.map-resource-context[hidden] {
+  display: none;
+}
+
+.map-resource-context-icon {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
+.map-resource-context-swatch {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  border-radius: 50%;
+  background: var(--map-resource-context-color);
+}
+
+.map-resource-context-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.map-resource-context-version {
+  flex: none;
+  color: rgba(238, 243, 234, 0.76);
+  white-space: nowrap;
+}
+
 .map-viewport {
   position: relative;
   height: 360px;
