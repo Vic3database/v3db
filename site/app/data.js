@@ -314,6 +314,7 @@ function resetMapRuntime() {
   mapRuntime.error = "";
   mapRuntime.sourcePixels = null;
   mapRuntime.stateKeysByIndex = [""];
+  mapRuntime.strategicRegionCenters = new Map();
   mapRuntime.ownerKeysByIndex = [""];
   mapRuntime.pixelStateIndexes = null;
   mapRuntime.pixelOwnerIndexes = null;

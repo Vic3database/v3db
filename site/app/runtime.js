@@ -95,6 +95,7 @@ const mapRuntime = {
   drag: null,
   visibleStateKeys: new Set(),
   stateKeysByIndex: [""],
+  strategicRegionCenters: new Map(),
   ownerKeysByIndex: [""],
   pixelStateIndexes: null,
   pixelOwnerIndexes: null,
