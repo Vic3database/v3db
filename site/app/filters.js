@@ -33,12 +33,7 @@ function isIndigenousCulture(culture) {
 function matchesCultureFilters(culture) {
   if (!matchesVictorianCenturyChange(culture)) return false;
   if (state.omitIndigenousLanguagesCultures && isIndigenousCulture(culture)) return false;
-  if (!matchesRefSet(state.strategicRegions, culture.homeland_strategic_regions)) return false;
-  if (!matchesRefSet(state.heritageGroups, compactRefs([culture.heritage_group]))) return false;
-  if (!matchesRefSet(state.heritages, compactRefs([culture.heritage]))) return false;
-  if (!matchesRefSet(state.languageGroups, compactRefs([culture.language_group]))) return false;
-  if (!matchesRefSet(state.languages, compactRefs([culture.language]))) return false;
-  if (state.tradition && !(culture.traditions || []).some((trait) => trait.key === state.tradition)) return false;
+  if (!matchesCultureSelection(culture)) return false;
   return matchesSearchBlob(cultureSearchBlob(culture));
 }
 
@@ -144,21 +139,16 @@ function matchesCompanyDlcFilters(company) {
 }
 
 function matchesHomelandCultureFilters(cultureRefs) {
-  if (!hasCultureTraitFilters()) return true;
+  if (!hasCultureSelection()) return true;
   return (cultureRefs || []).some((cultureRef) => {
     const culture = byCulture.get(cultureRef.key);
-    if (!culture) return false;
-    if (!matchesRefSet(state.heritageGroups, compactRefs([culture.heritage_group]))) return false;
-    if (!matchesRefSet(state.heritages, compactRefs([culture.heritage]))) return false;
-    if (!matchesRefSet(state.languageGroups, compactRefs([culture.language_group]))) return false;
-    if (!matchesRefSet(state.languages, compactRefs([culture.language]))) return false;
-    if (state.tradition && !(culture.traditions || []).some((trait) => trait.key === state.tradition)) return false;
-    return true;
+    return Boolean(culture) && matchesCultureSelection(culture);
   });
 }
 
-function hasCultureTraitFilters() {
-  return state.heritageGroups.size > 0
+function hasCultureSelection() {
+  return state.strategicRegions.size > 0
+    || state.heritageGroups.size > 0
     || state.heritages.size > 0
     || state.languageGroups.size > 0
     || state.languages.size > 0
@@ -166,15 +156,16 @@ function hasCultureTraitFilters() {
 }
 
 function matchingHomelandCulturesForFilters(stateRegion) {
-  if (!hasCultureTraitFilters()) return [];
+  if (!hasCultureSelection()) return [];
   return (stateRegion.homeland_cultures || [])
     .map((cultureRef) => byCulture.get(cultureRef.key))
     .filter(Boolean)
-    .filter(matchesCultureTraitSelection)
+    .filter(matchesCultureSelection)
     .sort(sortCultures);
 }
 
-function matchesCultureTraitSelection(culture) {
+function matchesCultureSelection(culture) {
+  if (!matchesRefSet(state.strategicRegions, culture.homeland_strategic_regions)) return false;
   if (!matchesRefSet(state.heritageGroups, compactRefs([culture.heritage_group]))) return false;
   if (!matchesRefSet(state.heritages, compactRefs([culture.heritage]))) return false;
   if (!matchesRefSet(state.languageGroups, compactRefs([culture.language_group]))) return false;

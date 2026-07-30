@@ -76,6 +76,7 @@ try {
   await page.waitFor(() => document.querySelectorAll("[data-culture]").length > 0, "文化列表重新加载");
   await page.click("[data-culture]");
   await page.waitFor(() => document.querySelector("[data-culture][aria-current='true']"), "文化卡片选中状态");
+  assert.equal(await page.evaluate(() => document.querySelector("#mapSubjectSelect")?.value), await page.evaluate(() => document.querySelector("[data-culture][aria-current='true']")?.dataset.culture), "选中文化卡片后地图必须切换到该文化关系视图");
   assert.equal(await page.evaluate(() => location.hash), "#/culture", "点击文化卡片不能进入详情");
 
   await page.evaluate(() => window.scrollTo(0, 480));
@@ -88,6 +89,19 @@ try {
   await page.click("[data-culture-mobile-detail-back]");
   await page.waitFor(() => location.hash === "#/culture" && document.querySelectorAll("[data-culture]").length > 0, "文化详情返回列表");
   assert.ok(Math.abs((await page.evaluate(() => window.scrollY)) - scrollBeforeDetail) < 8, "文化详情返回必须恢复滚动位置");
+
+  await page.goto(`${baseUrl}?culture-browser-back=1#/culture`);
+  await page.waitFor(() => document.querySelectorAll("[data-culture]").length > 0, "原生后退测试的文化列表加载");
+  await page.evaluate(() => window.scrollTo(0, 480));
+  await page.waitFor(() => window.scrollY > 100, "原生后退测试的文化列表滚动位置");
+  const browserBackScroll = await page.evaluate(() => window.scrollY);
+  await page.click("[data-culture-detail]");
+  await page.waitFor(() => location.hash.startsWith("#/culture/"), "原生后退测试的文化详情路由");
+  await page.evaluate(() => history.back());
+  await page.waitFor(() => location.hash === "#/culture" && document.querySelectorAll("[data-culture]").length > 0, "浏览器后退返回文化列表");
+  await page.waitFor(() => window.scrollY > 0, "浏览器后退后的滚动位置");
+  const browserBackFinalScroll = await page.evaluate(() => window.scrollY);
+  assert.ok(Math.abs(browserBackFinalScroll - browserBackScroll) < 8, `浏览器后退必须恢复文化列表滚动位置：${browserBackScroll} → ${browserBackFinalScroll}`);
 
   await page.setViewport({ width: 1200, height: 900 });
   assert.notEqual(await page.evaluate(() => getComputedStyle(document.querySelector("#mobileCultureToolbar")).display), "none", "1200×900 仍属于紧凑布局");

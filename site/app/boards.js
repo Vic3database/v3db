@@ -563,6 +563,16 @@ function renderCultureBoard() {
   els.activeHint.textContent = buildActiveHint(filtered.length);
   renderCultureList(filtered);
   renderMap(stateRegions);
+  focusCultureOnMap(byCulture.get(state.selectedCulture));
+  renderMobileCultureControls();
+  if (state.cultureMobileRestoreScrollPending) {
+    state.cultureMobileRestoreScrollPending = false;
+    if (window.matchMedia("(max-aspect-ratio: 3 / 2)").matches) {
+      requestAnimationFrame(() => {
+        window.scrollTo(0, state.cultureMobileListScrollTop);
+      });
+    }
+  }
 }
 
 function renderRegionBoard() {

@@ -35,6 +35,7 @@ function bindEvents() {
     const button = event.target.closest("[data-detail-back]");
     if (!button) return;
     if (button.matches("[data-country-mobile-detail-back]") && window.matchMedia("(max-aspect-ratio: 3 / 2)").matches) state.countryMobileRestoreScrollPending = true;
+    if (button.matches("[data-culture-mobile-detail-back]") && window.matchMedia("(max-aspect-ratio: 3 / 2)").matches) state.cultureMobileRestoreScrollPending = true;
     await setView(button.dataset.detailBack || "country");
     render();
   });
@@ -83,6 +84,7 @@ function bindEvents() {
   els.searchInput.addEventListener("input", () => {
     state.search = els.searchInput.value.trim().toLowerCase();
     state.countryMobileSearchDraft = els.searchInput.value;
+    state.cultureMobileSearchDraft = els.searchInput.value;
     state.globalSearchColorRestoreTag = "";
     render();
   });
@@ -134,6 +136,81 @@ function bindEvents() {
     const option = event.target.closest("[data-mobile-country-filter-option]");
     if (option) {
       selectCountryMobileFilter(state.countryMobileFilterCategory, option.dataset.mobileCountryFilterOption);
+      render();
+    }
+  });
+  els.mobileCultureToolbar?.addEventListener("input", (event) => {
+    const input = event.target.closest("[data-mobile-culture-search]");
+    if (input) state.cultureMobileSearchDraft = input.value;
+  });
+  els.mobileCultureToolbar?.addEventListener("keydown", (event) => {
+    const input = event.target.closest("[data-mobile-culture-search]");
+    if (!input || event.key !== "Enter" || event.isComposing) return;
+    event.preventDefault();
+    submitMobileCultureSearch(input);
+  });
+  els.mobileCultureToolbar?.addEventListener("focusin", (event) => {
+    const input = event.target.closest("[data-mobile-culture-search]");
+    if (input) input.closest(".mobile-culture-search-input")?.scrollTo({ left: 99999 });
+  });
+  els.mobileCultureToolbar?.addEventListener("click", (event) => {
+    if (event.target.closest("[data-mobile-culture-search-submit]")) {
+      submitMobileCultureSearch(els.mobileCultureToolbar.querySelector("[data-mobile-culture-search]"));
+      return;
+    }
+    if (event.target.closest("[data-mobile-culture-filter-toggle]")) {
+      state.cultureMobileFiltersOpen = !state.cultureMobileFiltersOpen;
+      render();
+      return;
+    }
+    if (event.target.closest("[data-mobile-culture-map-toggle]")) {
+      state.cultureMobileMapOpen = !state.cultureMobileMapOpen;
+      render();
+      return;
+    }
+    const clear = event.target.closest("[data-mobile-culture-filter-clear]");
+    if (clear) {
+      clearCultureMobileFilter(clear.dataset.mobileCultureFilterClear);
+      render();
+    }
+  });
+  els.mobileCultureFilterPanel?.addEventListener("click", (event) => {
+    const heritageGroup = event.target.closest("[data-mobile-culture-expand-heritage-group]");
+    if (heritageGroup) {
+      const key = heritageGroup.dataset.mobileCultureExpandHeritageGroup;
+      state.cultureMobileExpandedHeritageGroup = state.cultureMobileExpandedHeritageGroup === key ? "" : key;
+      render();
+      return;
+    }
+    const languageGroup = event.target.closest("[data-mobile-culture-expand-language-group]");
+    if (languageGroup) {
+      const key = languageGroup.dataset.mobileCultureExpandLanguageGroup;
+      state.cultureMobileExpandedLanguageGroup = state.cultureMobileExpandedLanguageGroup === key ? "" : key;
+      render();
+      return;
+    }
+    const continent = event.target.closest("[data-mobile-culture-expand-strategic-region-continent]");
+    if (continent) {
+      const key = continent.dataset.mobileCultureExpandStrategicRegionContinent;
+      state.cultureMobileExpandedStrategicRegionContinent = state.cultureMobileExpandedStrategicRegionContinent === key ? "" : key;
+      render();
+      return;
+    }
+    const clear = event.target.closest("[data-mobile-culture-filter-clear-option]");
+    if (clear) {
+      clearCultureMobileFilter(clear.dataset.mobileCultureFilterClearOption);
+      render();
+      return;
+    }
+    const option = event.target.closest("[data-mobile-culture-filter-option]");
+    if (option) {
+      selectCultureMobileFilter(option.dataset.mobileCultureFilterCategory, option.dataset.mobileCultureFilterOption);
+      render();
+      return;
+    }
+    const category = event.target.closest("[data-mobile-culture-filter-category]");
+    if (category) {
+      state.cultureMobileFilterCategory = category.dataset.mobileCultureFilterCategory;
       render();
     }
   });
@@ -256,6 +333,15 @@ function bindEvents() {
     state.countryMobileFilterCategory = "type";
     state.countryMobileListScrollTop = 0;
     state.countryMobileRestoreScrollPending = false;
+    state.cultureMobileFiltersOpen = false;
+    state.cultureMobileMapOpen = true;
+    state.cultureMobileListScrollTop = 0;
+    state.cultureMobileSearchDraft = "";
+    state.cultureMobileFilterCategory = "heritage";
+    state.cultureMobileExpandedHeritageGroup = "";
+    state.cultureMobileExpandedLanguageGroup = "";
+    state.cultureMobileExpandedStrategicRegionContinent = "";
+    state.cultureMobileRestoreScrollPending = false;
     state.selectedGlobalResult = "";
     els.searchInput.value = "";
     if (els.commonLawIdeologyFilter) els.commonLawIdeologyFilter.checked = false;
@@ -272,6 +358,8 @@ function bindEvents() {
     if (els.globalSearchDialogInput) els.globalSearchDialogInput.value = "";
     const returningToCountryList = location.hash.replace(/^#\/?/, "") === "country" && state.view === "country" && state.detailKind === "country";
     if (returningToCountryList && window.matchMedia("(max-aspect-ratio: 3 / 2)").matches) state.countryMobileRestoreScrollPending = true;
+    const returningToCultureList = location.hash.replace(/^#\/?/, "") === "culture" && state.view === "culture" && state.detailKind === "culture";
+    if (returningToCultureList && window.matchMedia("(max-aspect-ratio: 3 / 2)").matches) state.cultureMobileRestoreScrollPending = true;
     await applyHash();
     render();
   });
@@ -413,6 +501,35 @@ function submitMobileCountrySearch(input) {
   state.globalSearchColorRestoreTag = "";
   if (els.searchInput) els.searchInput.value = query;
   render();
+}
+
+function submitMobileCultureSearch(input) {
+  const query = input?.value ?? state.cultureMobileSearchDraft;
+  state.cultureMobileSearchDraft = query;
+  if (query.trim().toLowerCase() === state.search) return;
+  state.search = query.trim().toLowerCase();
+  state.globalSearchColorRestoreTag = "";
+  if (els.searchInput) els.searchInput.value = query;
+  render();
+}
+
+function selectCultureMobileFilter(category, value) {
+  const toggleSingleSet = (set) => {
+    const selected = set.has(value);
+    set.clear();
+    if (!selected) set.add(value);
+  };
+  if (category === "heritage") toggleSingleSet(state.heritages);
+  else if (category === "language") toggleSingleSet(state.languages);
+  else if (category === "strategicRegion") toggleSingleSet(state.strategicRegions);
+  else if (category === "tradition") state.tradition = state.tradition === value ? "" : value;
+}
+
+function clearCultureMobileFilter(category) {
+  if (category === "heritage") state.heritages.clear();
+  else if (category === "language") state.languages.clear();
+  else if (category === "strategicRegion") state.strategicRegions.clear();
+  else if (category === "tradition") state.tradition = "";
 }
 
 function selectCountryMobileFilter(category, value) {
@@ -1188,6 +1305,9 @@ function render() {
   document.body.dataset.countryMobileMap = String(state.countryMobileMapOpen);
   document.body.dataset.countryMobileFilters = String(state.countryMobileFiltersOpen);
   document.body.dataset.countryMobileDetail = String(state.view === "country" && isDetailPageRoute() ? "open" : "closed");
+  document.body.dataset.cultureMobileMap = String(state.cultureMobileMapOpen);
+  document.body.dataset.cultureMobileFilters = String(state.cultureMobileFiltersOpen);
+  document.body.dataset.cultureMobileDetail = String(state.view === "culture" && isDetailPageRoute() ? "open" : "closed");
   if (els.homeWelcome) els.homeWelcome.hidden = state.view !== "home";
   if (els.homeLinks) els.homeLinks.hidden = state.view !== "home";
   document.body.classList.toggle("detail-page", isDetailPageRoute());

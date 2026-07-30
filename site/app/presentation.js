@@ -53,6 +53,142 @@ const countryMobileFilterCategories = [
   { key: "tradition", label: "传统" },
 ];
 
+const cultureMobileFilterCategories = [
+  { key: "heritage", label: "传承" },
+  { key: "language", label: "语言" },
+  { key: "tradition", label: "传统" },
+  { key: "strategicRegion", label: "本土战略区域" },
+];
+
+function renderMobileCultureControls() {
+  if (!els.mobileCultureToolbar || !els.mobileCultureFilterPanel) return;
+  const visible = state.view === "culture" && !isDetailPageRoute();
+  els.mobileCultureToolbar.hidden = !visible;
+  els.mobileCultureFilterPanel.hidden = !visible || !state.cultureMobileFiltersOpen;
+  if (!visible) return;
+  const chips = renderMobileCultureFilterChips();
+  els.mobileCultureToolbar.innerHTML = `
+    <div class="mobile-culture-toolbar-row">
+      <label class="mobile-culture-search-input" aria-label="文化搜索与筛选条件">
+        ${chips}
+        <input id="mobileCultureSearchInput" data-mobile-culture-search type="search" autocomplete="off" placeholder="搜索文化、传承、语言或传统" value="${escapeHtml(state.cultureMobileSearchDraft)}">
+      </label>
+      <button class="mobile-culture-tool-button" type="button" data-mobile-culture-search-submit aria-label="执行搜索" title="执行搜索"><img class="lucide-icon" src="assets/lucide/icons/search.svg" alt="" aria-hidden="true"></button>
+      <button class="mobile-culture-tool-button" type="button" data-mobile-culture-filter-toggle aria-expanded="${String(state.cultureMobileFiltersOpen)}" aria-label="${state.cultureMobileFiltersOpen ? "收起筛选" : "展开筛选"}" title="${state.cultureMobileFiltersOpen ? "收起筛选" : "展开筛选"}"><img class="lucide-icon" src="assets/lucide/icons/sliders-horizontal.svg" alt="" aria-hidden="true"></button>
+      <button class="mobile-culture-tool-button" type="button" data-mobile-culture-map-toggle aria-pressed="${String(state.cultureMobileMapOpen)}" aria-label="${state.cultureMobileMapOpen ? "收起地图" : "展开地图"}" title="${state.cultureMobileMapOpen ? "收起地图" : "展开地图"}"><img class="lucide-icon" src="assets/lucide/icons/map.svg" alt="" aria-hidden="true"></button>
+    </div>
+  `;
+  els.mobileCultureFilterPanel.innerHTML = state.cultureMobileFiltersOpen ? `
+    <div class="mobile-culture-filter-categories" role="tablist" aria-label="文化筛选分类">
+      ${cultureMobileFilterCategories.map((category) => `<button class="mobile-culture-filter-category" type="button" data-mobile-culture-filter-category="${category.key}" aria-selected="${String(state.cultureMobileFilterCategory === category.key)}">${category.label}</button>`).join("")}
+    </div>
+    ${renderMobileCultureFilterOptions()}
+  ` : "";
+}
+
+function renderMobileCultureFilterChips() {
+  const selected = mobileCultureSelectedFilters();
+  const duplicates = new Set(selected.filter((item, index) => selected.findIndex((candidate) => candidate.label === item.label) !== index).map((item) => item.label));
+  return selected.map((item) => `
+    <span class="mobile-culture-filter-chip" data-mobile-culture-filter-chip="${escapeHtml(item.category)}">
+      <span>${escapeHtml(duplicates.has(item.label) ? `${item.label}（${item.categoryLabel}）` : item.label)}</span>
+      <button type="button" data-mobile-culture-filter-clear="${escapeHtml(item.category)}" aria-label="删除${escapeHtml(item.label)}">×</button>
+    </span>
+  `).join("");
+}
+
+function renderMobileCultureFilterOptions() {
+  const category = state.cultureMobileFilterCategory;
+  if (category === "heritage") return renderCultureMobileGroupedOptions({
+    groupAttribute: "data-mobile-culture-expand-heritage-group",
+    expandedGroup: state.cultureMobileExpandedHeritageGroup,
+    groups: mobileCultureRefs((culture) => culture.heritage_group, sortHeritageGroupRef),
+    traits: mobileCultureRefs((culture) => culture.heritage, sortRefByName),
+    category,
+  });
+  if (category === "language") return renderCultureMobileGroupedOptions({
+    groupAttribute: "data-mobile-culture-expand-language-group",
+    expandedGroup: state.cultureMobileExpandedLanguageGroup,
+    groups: mobileCultureRefs((culture) => culture.language_group, sortLanguageGroupRef),
+    traits: mobileCultureRefs((culture) => culture.language, sortRefByName),
+    category,
+  });
+  if (category === "strategicRegion") {
+    const regions = strategicRegions
+      .filter((region) => !isSeaStrategicRegion(region) && cultures.some((culture) => (culture.homeland_strategic_regions || []).some((item) => item.key === region.key)))
+      .sort(sortStrategicRegionRef);
+    const groups = strategicRegionContinentGroups.filter((group) => regions.some((region) => strategicRegionContinentByKey.get(region.key) === group.key));
+    const expanded = state.cultureMobileExpandedStrategicRegionContinent;
+    const options = regions.filter((region) => strategicRegionContinentByKey.get(region.key) === expanded);
+    return `
+      <div class="mobile-culture-filter-options" aria-label="本土战略区域洲别">
+        ${groups.map((group) => `<button class="mobile-culture-filter-option" type="button" data-mobile-culture-expand-strategic-region-continent="${escapeHtml(group.key)}" aria-pressed="${String(expanded === group.key)}">${escapeHtml(group.name)}</button>`).join("")}
+      </div>
+      ${expanded ? `<div class="mobile-culture-filter-layer-divider"></div><div class="mobile-culture-filter-options" aria-label="本土战略区域选项">${renderCultureMobileActualOption(category, "", "不限")}${options.map((item) => renderCultureMobileActualOption(category, item.key, strategicRegionName(item))).join("")}</div>` : ""}
+    `;
+  }
+  const traditions = mobileCultureRefs((culture) => culture.traditions || [], sortRefByName);
+  return `<div class="mobile-culture-filter-options" aria-label="传统筛选选项">${renderCultureMobileActualOption(category, "", "不限")}${traditions.map((item) => renderCultureMobileActualOption(category, item.key, item.name_zh || item.key)).join("")}</div>`;
+}
+
+function renderCultureMobileGroupedOptions({ groupAttribute, expandedGroup, groups, traits, category }) {
+  const options = traits.filter((trait) => trait.group_key === expandedGroup);
+  return `
+    <div class="mobile-culture-filter-options" aria-label="${escapeHtml(cultureMobileFilterCategoryLabel())}组">
+      ${groups.map((group) => `<button class="mobile-culture-filter-option" type="button" ${groupAttribute}="${escapeHtml(group.key)}" aria-pressed="${String(group.key === expandedGroup)}">${escapeHtml(group.name_zh || group.key)}</button>`).join("")}
+    </div>
+    ${expandedGroup ? `<div class="mobile-culture-filter-layer-divider"></div><div class="mobile-culture-filter-options" aria-label="${escapeHtml(cultureMobileFilterCategoryLabel())}选项">${renderCultureMobileActualOption(category, "", "不限")}${options.map((item) => renderCultureMobileActualOption(category, item.key, item.name_zh || item.key)).join("")}</div>` : ""}
+  `;
+}
+
+function renderCultureMobileActualOption(category, value, label) {
+  const selected = category === "heritage" ? state.heritages.has(value)
+    : category === "language" ? state.languages.has(value)
+      : category === "strategicRegion" ? state.strategicRegions.has(value)
+        : state.tradition === value;
+  if (!value) return `<button class="mobile-culture-filter-option" type="button" data-mobile-culture-filter-clear-option="${escapeHtml(category)}" aria-pressed="${String(!selected)}">${escapeHtml(label)}</button>`;
+  return `<button class="mobile-culture-filter-option" type="button" data-mobile-culture-filter-option="${escapeHtml(value)}" data-mobile-culture-filter-category="${escapeHtml(category)}" aria-pressed="${String(selected)}">${escapeHtml(label)}</button>`;
+}
+
+function cultureMobileFilterCategoryLabel() {
+  return cultureMobileFilterCategories.find((category) => category.key === state.cultureMobileFilterCategory)?.label || "传承";
+}
+
+function mobileCultureSelectedFilters() {
+  const items = [];
+  const add = (category, categoryLabel, value, label) => {
+    if (value) items.push({ category, categoryLabel, label: mobileCultureShortName(category, label), value });
+  };
+  const heritage = [...state.heritages][0] || "";
+  const language = [...state.languages][0] || "";
+  const strategicRegion = [...state.strategicRegions][0] || "";
+  add("heritage", "传承", heritage, mobileCultureRefName("heritage", heritage));
+  add("language", "语言", language, mobileCultureRefName("language", language));
+  add("tradition", "传统", state.tradition, mobileCultureRefName("traditions", state.tradition));
+  add("strategicRegion", "本土战略区域", strategicRegion, strategicRegionName(byStrategicRegion.get(strategicRegion)) || strategicRegion);
+  return items;
+}
+
+function mobileCultureRefs(getter, sorter) {
+  const source = state.omitIndigenousLanguagesCultures ? cultures.filter((culture) => !isIndigenousCulture(culture)) : cultures;
+  return collectCultureRefs(getter, sorter, source);
+}
+
+function mobileCultureRefName(field, key) {
+  if (!key) return "";
+  for (const culture of cultures) {
+    const values = Array.isArray(culture[field]) ? culture[field] : [culture[field]];
+    const match = values.find((item) => item?.key === key);
+    if (match) return match.name_zh || match.key;
+  }
+  return key;
+}
+
+function mobileCultureShortName(category, label) {
+  if (!label || category === "tradition" || category === "strategicRegion") return label;
+  return label.replace(/(?:传承|语言|语支|语族)$/u, "") || label;
+}
+
 function renderMobileCountryControls() {
   if (!els.mobileCountryToolbar || !els.mobileCountryFilterPanel) return;
   const visible = state.view === "country" && !isDetailPageRoute();
@@ -336,6 +472,7 @@ function selectCultureCard(cultureKey) {
 
 function openCultureDetail(cultureKey) {
   if (!cultureKey || !byCulture.has(cultureKey)) return;
+  if (window.matchMedia("(max-aspect-ratio: 3 / 2)").matches) state.cultureMobileListScrollTop = window.scrollY || els.countryList?.scrollTop || 0;
   state.selectedCulture = cultureKey;
   state.detailKind = "culture";
   replaceHash(`/culture/${encodeURIComponent(cultureKey)}`);
@@ -883,7 +1020,8 @@ function renderCountryDetailPage(country) {
 function detailBackButton(view = state.view) {
   const target = view === "region" ? "region" : view || "country";
   const label = viewLabels[target] || "国家";
-  return `<button class="detail-back-button" type="button" data-detail-back="${escapeHtml(target)}"${target === "country" ? " data-country-mobile-detail-back" : ""} aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}"><img class="lucide-icon" src="assets/lucide/icons/arrow-left.svg" alt="" aria-hidden="true"></button>`;
+  const mobileBackAttribute = target === "country" ? " data-country-mobile-detail-back" : target === "culture" ? " data-culture-mobile-detail-back" : "";
+  return `<button class="detail-back-button" type="button" data-detail-back="${escapeHtml(target)}"${mobileBackAttribute} aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}"><img class="lucide-icon" src="assets/lucide/icons/arrow-left.svg" alt="" aria-hidden="true"></button>`;
 }
 
 function rowDetailButton(attributeName, key) {

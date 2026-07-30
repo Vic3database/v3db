@@ -34,12 +34,14 @@ function syncMapModeForView() {
     return;
   }
   if (state.view === "culture") {
-    if (hasCultureTraitFilters()) {
+    if (state.selectedCulture) {
+      state.mapMode = "culture";
+      state.mapSubject = state.selectedCulture;
+    } else if (hasCultureSelection()) {
       state.mapMode = "cultureFilter";
       state.mapSubject = "";
     } else {
       state.mapMode = "culture";
-      if (state.selectedCulture) state.mapSubject = state.selectedCulture;
     }
     return;
   }
@@ -173,6 +175,7 @@ function mapLayerSignature() {
     parts.push(`resources:${setSignature(state.resourceFilters)}`);
   }
   if (state.mapMode === "cultureFilter") {
+    parts.push(`strategicRegions:${setSignature(state.strategicRegions)}`);
     parts.push(`heritageGroups:${setSignature(state.heritageGroups)}`);
     parts.push(`heritages:${setSignature(state.heritages)}`);
     parts.push(`languageGroups:${setSignature(state.languageGroups)}`);
@@ -1115,6 +1118,11 @@ function focusCountryOnMap(country) {
   focusStateRegionsOnMap(countryMapStateKeys(country), { maxWorldScale: 2.1, padding: 280 });
 }
 
+function focusCultureOnMap(culture) {
+  if (state.view !== "culture" || !culture || !mapRuntime.ready || !els.mapViewport || !mapRuntime.stateCenters) return;
+  focusStateRegionsOnMap((culture.homeland_state_regions || []).map((stateRegion) => stateRegion.key), { maxWorldScale: 2.1, padding: 280 });
+}
+
 function focusStateRegionOnMap(stateRegion) {
   if (state.view !== "region" || !stateRegion || isSeaStateRegion(stateRegion) || !mapRuntime.ready || !els.mapViewport || !mapRuntime.stateCenters) return;
   focusStateRegionsOnMap([stateRegion.key], { maxWorldScale: 2.1, padding: 320 });
@@ -1127,6 +1135,10 @@ function focusCurrentMapSelection() {
   }
   if (state.view === "region") {
     focusStateRegionOnMap(byStateRegion.get(state.selectedStateRegion));
+    return;
+  }
+  if (state.view === "culture") {
+    focusCultureOnMap(byCulture.get(state.selectedCulture));
     return;
   }
   if (state.view === "company") {
