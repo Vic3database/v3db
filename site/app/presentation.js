@@ -44,6 +44,117 @@ function renderCountryList(filtered) {
   `).join("");
 }
 
+const countryMobileFilterCategories = [
+  { key: "type", label: "类型" },
+  { key: "tier", label: "位阶" },
+  { key: "strategicRegion", label: "战略区域" },
+  { key: "heritage", label: "传承" },
+  { key: "language", label: "语言" },
+  { key: "tradition", label: "传统" },
+];
+
+function renderMobileCountryControls() {
+  if (!els.mobileCountryToolbar || !els.mobileCountryFilterPanel) return;
+  const visible = state.view === "country" && !isDetailPageRoute();
+  els.mobileCountryToolbar.hidden = !visible;
+  els.mobileCountryFilterPanel.hidden = !visible || !state.countryMobileFiltersOpen;
+  if (!visible) return;
+  const chips = renderMobileCountryFilterChips();
+  els.mobileCountryToolbar.innerHTML = `
+    <div class="mobile-country-toolbar-row">
+      <label class="mobile-country-search-input" aria-label="国家搜索与筛选条件">
+        ${chips}
+        <input id="mobileCountrySearchInput" data-mobile-country-search type="search" autocomplete="off" placeholder="搜索国家、文化或标签" value="${escapeHtml(state.search)}">
+      </label>
+      <button class="mobile-country-tool-button" type="button" data-mobile-country-search-submit aria-label="执行搜索" title="执行搜索"><img class="lucide-icon" src="assets/lucide/icons/search.svg" alt="" aria-hidden="true"></button>
+      <button class="mobile-country-tool-button" type="button" data-mobile-country-filter-toggle aria-expanded="${String(state.countryMobileFiltersOpen)}" aria-label="${state.countryMobileFiltersOpen ? "收起筛选" : "展开筛选"}" title="${state.countryMobileFiltersOpen ? "收起筛选" : "展开筛选"}"><img class="lucide-icon" src="assets/lucide/icons/sliders-horizontal.svg" alt="" aria-hidden="true"></button>
+      <button class="mobile-country-tool-button" type="button" data-mobile-country-map-toggle aria-pressed="${String(state.countryMobileMapOpen)}" aria-label="${state.countryMobileMapOpen ? "收起地图" : "展开地图"}" title="${state.countryMobileMapOpen ? "收起地图" : "展开地图"}"><img class="lucide-icon" src="assets/lucide/icons/map.svg" alt="" aria-hidden="true"></button>
+    </div>
+  `;
+  els.mobileCountryFilterPanel.innerHTML = state.countryMobileFiltersOpen ? `
+    <div class="mobile-country-filter-categories" role="tablist" aria-label="国家筛选分类">
+      ${countryMobileFilterCategories.map((category) => `<button class="mobile-country-filter-category" type="button" data-mobile-country-filter-category="${category.key}" aria-selected="${String(state.countryMobileFilterCategory === category.key)}">${category.label}</button>`).join("")}
+    </div>
+    <div class="mobile-country-filter-options" aria-label="${escapeHtml(countryMobileFilterCategoryLabel())}筛选选项">
+      ${mobileCountryFilterOptions().map((option) => `<button class="mobile-country-filter-option" type="button" data-mobile-country-filter-option="${escapeHtml(option.value)}" aria-pressed="${String(option.selected)}">${escapeHtml(option.label)}</button>`).join("")}
+    </div>
+  ` : "";
+}
+
+function renderMobileCountryFilterChips() {
+  const selected = mobileCountrySelectedFilters();
+  const duplicatedLabels = new Set(selected.filter((item, index) => selected.findIndex((candidate) => candidate.label === item.label) !== index).map((item) => item.label));
+  return selected.map((item) => `
+    <span class="mobile-country-filter-chip" data-mobile-country-filter-chip="${escapeHtml(item.category)}">
+      <span>${escapeHtml(duplicatedLabels.has(item.label) ? `${item.label}（${item.categoryLabel}）` : item.label)}</span>
+      <button type="button" data-mobile-country-filter-clear="${escapeHtml(item.category)}" aria-label="删除${escapeHtml(item.label)}">×</button>
+    </span>
+  `).join("");
+}
+
+function mobileCountrySelectedFilters() {
+  const items = [];
+  const add = (category, categoryLabel, label, value) => {
+    if (value) items.push({ category, categoryLabel, label, value });
+  };
+  const flagLabels = {
+    existsAtStart: "开局存在",
+    isReleasable: "可释放",
+    isMinorFormable: "次要统一",
+    isMajorFormable: "重大统一",
+    isDualHeritage: "双传承",
+    isSpecial: "彩蛋",
+    isCivilWar: "内战国家",
+  };
+  add("type", "类型", flagLabels[[...state.flags][0]] || "", [...state.flags][0] || "");
+  add("tier", "位阶", countryTierLabel([...state.tiers][0]), [...state.tiers][0] || "");
+  add("strategicRegion", "战略区域", strategicRegionName(byStrategicRegion.get([...state.strategicRegions][0])) || "", [...state.strategicRegions][0] || "");
+  add("heritage", "传承", mobileCountryCultureRefName("heritage", [...state.heritages][0]), [...state.heritages][0] || "");
+  add("language", "语言", mobileCountryCultureRefName("language", [...state.languages][0]), [...state.languages][0] || "");
+  add("tradition", "传统", mobileCountryCultureRefName("traditions", state.tradition), state.tradition);
+  return items;
+}
+
+function countryTierLabel(key) {
+  const country = countries.find((item) => item.tier === key);
+  return country?.tierZh || key || "";
+}
+
+function countryMobileFilterCategoryLabel() {
+  return countryMobileFilterCategories.find((category) => category.key === state.countryMobileFilterCategory)?.label || "类型";
+}
+
+function mobileCountryFilterOptions() {
+  const category = state.countryMobileFilterCategory;
+  if (category === "type") {
+    const flags = [
+      ["existsAtStart", "开局存在"], ["isReleasable", "可释放"], ["isMinorFormable", "次要统一"], ["isMajorFormable", "重大统一"], ["isDualHeritage", "双传承"], ["isSpecial", "彩蛋"], ["isCivilWar", "内战国家"],
+    ];
+    return flags.map(([value, label]) => ({ value, label, selected: state.flags.has(value) }));
+  }
+  if (category === "tier") return tierOrder.map((key) => ({ value: key, label: countryTierLabel(key), selected: state.tiers.has(key) }));
+  if (category === "strategicRegion") return strategicRegions
+    .filter((region) => !isSeaStrategicRegion(region) && countries.some((country) => (country.locationStrategicRegions || []).some((item) => item.key === region.key)))
+    .sort(sortStrategicRegionRef)
+    .map((region) => ({ value: region.key, label: strategicRegionName(region), selected: state.strategicRegions.has(region.key) }));
+  if (category === "heritage") return collectCultureRefs((culture) => culture.heritage, sortRefByName)
+    .map((item) => ({ value: item.key, label: item.name_zh || item.key, selected: state.heritages.has(item.key) }));
+  if (category === "language") return collectCultureRefs((culture) => culture.language, sortRefByName)
+    .map((item) => ({ value: item.key, label: item.name_zh || item.key, selected: state.languages.has(item.key) }));
+  return collectCultureRefs((culture) => culture.traditions || [], sortRefByName)
+    .map((item) => ({ value: item.key, label: item.name_zh || item.key, selected: state.tradition === item.key }));
+}
+
+function mobileCountryCultureRefName(field, key) {
+  if (!key) return "";
+  for (const culture of cultures) {
+    const refs = Array.isArray(culture[field]) ? culture[field] : [culture[field]];
+    const match = refs.find((item) => item?.key === key);
+    if (match) return match.name_zh || match.key;
+  }
+  return key;
+}
+
 function rowsForSelection(attribute, key) {
   if (!key || !els.countryList) return [];
   return [...els.countryList.querySelectorAll("[" + attribute + "]")]
@@ -91,9 +202,15 @@ function selectCountryFromMap(countryTag) {
 
 function openCountryDetail(countryTag) {
   if (!countryTag || !byTag.has(countryTag)) return;
+  const isMobileCountryViewport = window.matchMedia("(max-width: 820px)").matches;
+  if (isMobileCountryViewport) state.countryMobileListScrollTop = window.scrollY || els.countryList?.scrollTop || 0;
   state.globalSearchColorRestoreTag = "";
   state.selectedTag = countryTag;
   state.detailKind = "country";
+  if (isMobileCountryViewport) {
+    location.hash = `/country/${encodeURIComponent(countryTag)}`;
+    return;
+  }
   replaceHash(`/country/${encodeURIComponent(countryTag)}`);
   render();
 }
@@ -766,7 +883,7 @@ function renderCountryDetailPage(country) {
 function detailBackButton(view = state.view) {
   const target = view === "region" ? "region" : view || "country";
   const label = viewLabels[target] || "国家";
-  return `<button class="detail-back-button" type="button" data-detail-back="${escapeHtml(target)}" aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}"><img class="lucide-icon" src="assets/lucide/icons/arrow-left.svg" alt="" aria-hidden="true"></button>`;
+  return `<button class="detail-back-button" type="button" data-detail-back="${escapeHtml(target)}"${target === "country" ? " data-country-mobile-detail-back" : ""} aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}"><img class="lucide-icon" src="assets/lucide/icons/arrow-left.svg" alt="" aria-hidden="true"></button>`;
 }
 
 function rowDetailButton(attributeName, key) {

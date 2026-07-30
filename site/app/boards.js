@@ -544,6 +544,15 @@ function renderCountryBoard() {
   renderCountryList(filtered);
   renderMap(countryMapStateRegions(selectedCountry));
   focusCountryOnMap(selectedCountry);
+  renderMobileCountryControls();
+  if (state.countryMobileRestoreScrollPending) {
+    state.countryMobileRestoreScrollPending = false;
+    if (window.matchMedia("(max-width: 820px)").matches) {
+      requestAnimationFrame(() => {
+        window.scrollTo(0, state.countryMobileListScrollTop);
+      });
+    }
+  }
 }
 
 function renderCultureBoard() {

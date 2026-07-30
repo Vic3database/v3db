@@ -285,9 +285,14 @@ function resetDatasetState() {
   state.lawGroups.clear();
   state.victorianCenturyOnly = false;
   state.dimUnfilteredCountries = false;
-  state.tradition = "";
-  state.mapSubject = "";
-  state.selectedTag = "";
+    state.tradition = "";
+    state.mapSubject = "";
+    state.countryMobileFiltersOpen = false;
+    state.countryMobileMapOpen = true;
+    state.countryMobileFilterCategory = "type";
+    state.countryMobileListScrollTop = 0;
+    state.countryMobileRestoreScrollPending = false;
+    state.selectedTag = "";
   state.selectedCulture = "";
   state.selectedStateRegion = "";
   state.selectedStrategicRegion = "";

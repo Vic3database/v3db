@@ -34,6 +34,7 @@ function bindEvents() {
   document.addEventListener("click", async (event) => {
     const button = event.target.closest("[data-detail-back]");
     if (!button) return;
+    if (button.matches("[data-country-mobile-detail-back]") && window.matchMedia("(max-width: 820px)").matches) state.countryMobileRestoreScrollPending = true;
     await setView(button.dataset.detailBack || "country");
     render();
   });
@@ -83,6 +84,62 @@ function bindEvents() {
     state.search = els.searchInput.value.trim().toLowerCase();
     state.globalSearchColorRestoreTag = "";
     render();
+  });
+  els.mobileCountryToolbar?.addEventListener("input", (event) => {
+    const input = event.target.closest("[data-mobile-country-search]");
+    if (!input) return;
+    const cursorPosition = input.selectionStart ?? input.value.length;
+    state.search = input.value.trim().toLowerCase();
+    state.globalSearchColorRestoreTag = "";
+    if (els.searchInput) els.searchInput.value = input.value;
+    render();
+    const nextInput = els.mobileCountryToolbar.querySelector("[data-mobile-country-search]");
+    nextInput?.focus({ preventScroll: true });
+    nextInput?.setSelectionRange(cursorPosition, cursorPosition);
+  });
+  els.mobileCountryToolbar?.addEventListener("focusin", (event) => {
+    const input = event.target.closest("[data-mobile-country-search]");
+    if (!input) return;
+    input.closest(".mobile-country-search-input")?.scrollTo({ left: 99999 });
+  });
+  els.mobileCountryToolbar?.addEventListener("click", (event) => {
+    if (event.target.closest("[data-mobile-country-search-submit]")) {
+      const input = els.mobileCountryToolbar.querySelector("[data-mobile-country-search]");
+      if (input) {
+        state.search = input.value.trim().toLowerCase();
+        if (els.searchInput) els.searchInput.value = input.value;
+      }
+      render();
+      return;
+    }
+    if (event.target.closest("[data-mobile-country-filter-toggle]")) {
+      state.countryMobileFiltersOpen = !state.countryMobileFiltersOpen;
+      render();
+      return;
+    }
+    if (event.target.closest("[data-mobile-country-map-toggle]")) {
+      state.countryMobileMapOpen = !state.countryMobileMapOpen;
+      render();
+      return;
+    }
+    const clear = event.target.closest("[data-mobile-country-filter-clear]");
+    if (clear) {
+      clearCountryMobileFilter(clear.dataset.mobileCountryFilterClear);
+      render();
+    }
+  });
+  els.mobileCountryFilterPanel?.addEventListener("click", (event) => {
+    const category = event.target.closest("[data-mobile-country-filter-category]");
+    if (category) {
+      state.countryMobileFilterCategory = category.dataset.mobileCountryFilterCategory;
+      render();
+      return;
+    }
+    const option = event.target.closest("[data-mobile-country-filter-option]");
+    if (option) {
+      selectCountryMobileFilter(state.countryMobileFilterCategory, option.dataset.mobileCountryFilterOption);
+      render();
+    }
   });
 
   bindTokenSet("[data-filter]", state.flags, "filter");
@@ -197,6 +254,11 @@ function bindEvents() {
     state.dimUnfilteredCountries = false;
     state.tradition = "";
     state.mapSubject = "";
+    state.countryMobileFiltersOpen = false;
+    state.countryMobileMapOpen = true;
+    state.countryMobileFilterCategory = "type";
+    state.countryMobileListScrollTop = 0;
+    state.countryMobileRestoreScrollPending = false;
     state.selectedGlobalResult = "";
     els.searchInput.value = "";
     if (els.commonLawIdeologyFilter) els.commonLawIdeologyFilter.checked = false;
@@ -211,6 +273,8 @@ function bindEvents() {
     state.globalSearch = "";
     state.selectedGlobalResult = "";
     if (els.globalSearchDialogInput) els.globalSearchDialogInput.value = "";
+    const returningToCountryList = location.hash.replace(/^#\/?/, "") === "country" && state.view === "country" && state.detailKind === "country";
+    if (returningToCountryList && window.matchMedia("(max-width: 820px)").matches) state.countryMobileRestoreScrollPending = true;
     await applyHash();
     render();
   });
@@ -342,6 +406,29 @@ function bindTokenChoice(container, datasetKey, onChange) {
     if (!button || !container.contains(button)) return;
     onChange(button.dataset[datasetKey]);
   });
+}
+
+function selectCountryMobileFilter(category, value) {
+  const toggleSingleSet = (set) => {
+    const selected = set.has(value);
+    set.clear();
+    if (!selected) set.add(value);
+  };
+  if (category === "type") toggleSingleSet(state.flags);
+  else if (category === "tier") toggleSingleSet(state.tiers);
+  else if (category === "strategicRegion") toggleSingleSet(state.strategicRegions);
+  else if (category === "heritage") toggleSingleSet(state.heritages);
+  else if (category === "language") toggleSingleSet(state.languages);
+  else if (category === "tradition") state.tradition = state.tradition === value ? "" : value;
+}
+
+function clearCountryMobileFilter(category) {
+  if (category === "type") state.flags.clear();
+  else if (category === "tier") state.tiers.clear();
+  else if (category === "strategicRegion") state.strategicRegions.clear();
+  else if (category === "heritage") state.heritages.clear();
+  else if (category === "language") state.languages.clear();
+  else if (category === "tradition") state.tradition = "";
 }
 
 function bindConceptEvents() {
@@ -1091,6 +1178,9 @@ function updatePanelToggleState() {
 function render() {
   hideTransientOverlays();
   document.body.dataset.view = state.view;
+  document.body.dataset.countryMobileMap = String(state.countryMobileMapOpen);
+  document.body.dataset.countryMobileFilters = String(state.countryMobileFiltersOpen);
+  document.body.dataset.countryMobileDetail = String(state.view === "country" && isDetailPageRoute() ? "open" : "closed");
   if (els.homeWelcome) els.homeWelcome.hidden = state.view !== "home";
   if (els.homeLinks) els.homeLinks.hidden = state.view !== "home";
   document.body.classList.toggle("detail-page", isDetailPageRoute());
