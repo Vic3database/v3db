@@ -1260,6 +1260,9 @@ body[data-view="law"][data-results-panel="collapsed"] .detail {
   }
 
   body[data-view="country"] .map-toolbar {
+    top: 10px;
+    right: 10px;
+    left: auto;
     padding: 0;
     border: 0;
     background: transparent;
@@ -1278,7 +1281,11 @@ body[data-view="law"][data-results-panel="collapsed"] .detail {
 
   body[data-view="country"] .results {
     order: 4;
-    margin-top: 0;
+    left: auto;
+    right: auto;
+    align-self: center;
+    width: calc(100% - 20px);
+    margin: 10px;
   }
 
   .mobile-country-toolbar,

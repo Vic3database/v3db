@@ -40,6 +40,8 @@ expect(/\.mobile-country-filter-categories\s*\{[\s\S]*border-bottom:\s*1px solid
 expect(/\.mobile-country-filter-options\s*\{[\s\S]*justify-content:\s*flex-start/.test(shellSource), "筛选选项未左对齐");
 expect(/\.mobile-country-filter-options\s*\{[\s\S]*padding-top:\s*8px/.test(shellSource), "筛选选项未与分类分隔线保持间距");
 expect(/\.mobile-country-filter-option\s*\{[\s\S]*border-radius:\s*5px/.test(shellSource), "筛选选项未使用圆角矩形边框");
+expect(/body\[data-view="country"\]\s+\.map-toolbar\s*\{[\s\S]*top:\s*10px[\s\S]*right:\s*10px[\s\S]*left:\s*auto/.test(shellSource), "国家竖屏地图重置按钮未固定在右上角");
+expect(/body\[data-view="country"\]\s+\.results\s*\{[\s\S]*align-self:\s*center[\s\S]*width:\s*calc\(100% - 20px\)[\s\S]*margin:\s*10px/.test(shellSource), "国家竖屏结果列表未与地图保留一致的左右间距");
 expect(presentationSource.includes("data-mobile-country-filter-chip"), "缺少稳定的国家筛选标签数据属性");
 expect(presentationSource.includes("data-mobile-country-filter-option"), "缺少稳定的国家筛选选项数据属性");
 expect(presentationSource.includes("data-country-mobile-detail-back"), "缺少稳定的国家详情返回数据属性");

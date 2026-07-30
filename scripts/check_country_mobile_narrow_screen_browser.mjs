@@ -43,6 +43,9 @@ try {
     mapFilterTool: getComputedStyle(document.querySelector("#leftPanelToggle")).display,
     mapListTool: getComputedStyle(document.querySelector("#bottomPanelToggle")).display,
     mapResetTool: getComputedStyle(document.querySelector("#mapFitWidthButton")).display,
+    mapRect: document.querySelector("#mapPanel").getBoundingClientRect().toJSON(),
+    mapResetRect: document.querySelector("#mapFitWidthButton").getBoundingClientRect().toJSON(),
+    resultsRect: document.querySelector(".results").getBoundingClientRect().toJSON(),
   }));
   assert.notEqual(initial.toolbar, "none", "国家页必须显示窄屏工具栏");
   assert.notEqual(initial.map, "none", "国家页默认必须显示地图");
@@ -54,6 +57,8 @@ try {
   assert.equal(initial.mapFilterTool, "none", "窄屏国家地图不应显示筛选收起按钮");
   assert.equal(initial.mapListTool, "none", "窄屏国家地图不应显示列表收起按钮");
   assert.notEqual(initial.mapResetTool, "none", "窄屏国家地图必须保留重置视角按钮");
+  assert.ok(Math.abs(initial.mapResetRect.top - initial.mapRect.top - 10) < 2 && Math.abs(initial.mapRect.right - initial.mapResetRect.right - 10) < 2, `重置按钮必须固定在地图右上角：地图 ${initial.mapRect.left},${initial.mapRect.top},${initial.mapRect.right}，按钮 ${initial.mapResetRect.left},${initial.mapResetRect.top},${initial.mapResetRect.right}`);
+  assert.ok(Math.abs(initial.resultsRect.left - initial.mapRect.left) < 2 && Math.abs(initial.resultsRect.right - initial.mapRect.right) < 2, `国家结果列表必须与地图左右对齐：地图 ${initial.mapRect.left},${initial.mapRect.right}，列表 ${initial.resultsRect.left},${initial.resultsRect.right}`);
   await page.setViewport({ width: 640, height: 844 });
   const wideToolbar = await page.evaluate(() => {
     const toolbar = document.querySelector("#mobileCountryToolbar").getBoundingClientRect();
