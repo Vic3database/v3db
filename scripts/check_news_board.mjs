@@ -43,7 +43,7 @@ assert.match(styles, /\.home-news-more\s*\{/, "home more link must have styles")
 assert.match(styles, /\.news-board\s*\{/, "news board must have styles");
 assert.match(styles, /\.news-pagination\s*\{/, "news board pagination must have styles");
 assert.match(styles, /body\[data-view="news"\]\s+\.map-panel/, "news view must hide the map");
-const mobileStyles = styles.match(/@media \(max-width: 820px\) \{([\s\S]*?)\n}\n\n@media \(max-width: 520px\)/)?.[1] || "";
+const mobileStyles = styles.match(/@media \(max-aspect-ratio: 1 \/ 1\) \{([\s\S]*?)\n}\n\n@media \(max-width: 520px\)/)?.[1] || "";
 assert.match(mobileStyles, /\.news-board/, "news board must adapt to narrow screens");
 assert.match(mobileStyles, /\.home-links\s*\{[\s\S]*position:\s*static/, "home links must leave absolute positioning on narrow screens");
 

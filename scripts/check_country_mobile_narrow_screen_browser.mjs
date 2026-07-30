@@ -73,6 +73,12 @@ try {
   });
   assert.ok(Math.abs(wideToolbar.toolbarRight - wideToolbar.lastToolButtonRight) < 10, "640 像素窄屏下工具按钮必须继续右对齐");
   assert.ok(wideToolbar.searchInputWidth >= wideToolbar.placeholderWidth, "640 像素窄屏下必须完整显示搜索提示文字");
+  await page.setViewport({ width: 900, height: 1200 });
+  const tallViewportToolbar = await page.evaluate(() => getComputedStyle(document.querySelector("#mobileCountryToolbar")).display);
+  assert.notEqual(tallViewportToolbar, "none", "宽度超过 820 像素的竖向视口仍必须显示国家工具栏");
+  await page.setViewport({ width: 1200, height: 900 });
+  const wideViewportToolbar = await page.evaluate(() => getComputedStyle(document.querySelector("#mobileCountryToolbar")).display);
+  assert.equal(wideViewportToolbar, "none", "横向视口不应显示国家竖屏工具栏");
   await page.setViewport({ width: 390, height: 844 });
   const initialCountryCount = await page.count("[data-country]");
   await page.evaluate(() => {
