@@ -547,7 +547,7 @@ function renderCountryBoard() {
   renderMobileCountryControls();
   if (state.countryMobileRestoreScrollPending) {
     state.countryMobileRestoreScrollPending = false;
-    if (window.matchMedia("(max-aspect-ratio: 1 / 1)").matches) {
+    if (window.matchMedia("(max-aspect-ratio: 3 / 2)").matches) {
       requestAnimationFrame(() => {
         window.scrollTo(0, state.countryMobileListScrollTop);
       });

@@ -34,7 +34,7 @@ function bindEvents() {
   document.addEventListener("click", async (event) => {
     const button = event.target.closest("[data-detail-back]");
     if (!button) return;
-    if (button.matches("[data-country-mobile-detail-back]") && window.matchMedia("(max-aspect-ratio: 1 / 1)").matches) state.countryMobileRestoreScrollPending = true;
+    if (button.matches("[data-country-mobile-detail-back]") && window.matchMedia("(max-aspect-ratio: 3 / 2)").matches) state.countryMobileRestoreScrollPending = true;
     await setView(button.dataset.detailBack || "country");
     render();
   });
@@ -271,7 +271,7 @@ function bindEvents() {
     state.selectedGlobalResult = "";
     if (els.globalSearchDialogInput) els.globalSearchDialogInput.value = "";
     const returningToCountryList = location.hash.replace(/^#\/?/, "") === "country" && state.view === "country" && state.detailKind === "country";
-    if (returningToCountryList && window.matchMedia("(max-aspect-ratio: 1 / 1)").matches) state.countryMobileRestoreScrollPending = true;
+    if (returningToCountryList && window.matchMedia("(max-aspect-ratio: 3 / 2)").matches) state.countryMobileRestoreScrollPending = true;
     await applyHash();
     render();
   });

@@ -83,7 +83,10 @@ try {
   assert.notEqual(tallViewportToolbar, "none", "宽度超过 820 像素的竖向视口仍必须显示国家工具栏");
   await page.setViewport({ width: 1200, height: 900 });
   const wideViewportToolbar = await page.evaluate(() => getComputedStyle(document.querySelector("#mobileCountryToolbar")).display);
-  assert.equal(wideViewportToolbar, "none", "横向视口不应显示国家竖屏工具栏");
+  assert.notEqual(wideViewportToolbar, "none", "宽度不到高度 1.5 倍的横向视口必须显示国家竖屏工具栏");
+  await page.setViewport({ width: 1600, height: 900 });
+  const extraWideViewportToolbar = await page.evaluate(() => getComputedStyle(document.querySelector("#mobileCountryToolbar")).display);
+  assert.equal(extraWideViewportToolbar, "none", "宽度达到高度 1.5 倍以上的横向视口不应显示国家竖屏工具栏");
   await page.setViewport({ width: 390, height: 844 });
   const initialCountryCount = await page.count("[data-country]");
   await page.evaluate(() => {

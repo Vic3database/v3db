@@ -1223,7 +1223,7 @@ body[data-view="law"][data-results-panel="collapsed"] .detail {
   touch-action: pan-x;
 }
 
-@media (max-aspect-ratio: 1 / 1) {
+@media (max-aspect-ratio: 3 / 2) {
   .layout::before {
     display: none;
   }
@@ -1529,7 +1529,7 @@ body[data-view="law"][data-results-panel="collapsed"] .detail {
     width: auto;
   }
 }
-@media (min-width: 700px) and (max-aspect-ratio: 1 / 1) {
+@media (min-width: 700px) and (max-aspect-ratio: 3 / 2) {
   body[data-view="ideology"],
   body[data-view="law"] {
     overflow: hidden;

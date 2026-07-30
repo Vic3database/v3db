@@ -834,7 +834,7 @@ body[data-view="news"] .detail {
   }
 }
 
-@media (max-aspect-ratio: 1 / 1) {
+@media (max-aspect-ratio: 3 / 2) {
   body[data-view="home"] {
     overflow: auto;
   }

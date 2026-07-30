@@ -202,7 +202,7 @@ function selectCountryFromMap(countryTag) {
 
 function openCountryDetail(countryTag) {
   if (!countryTag || !byTag.has(countryTag)) return;
-  const isMobileCountryViewport = window.matchMedia("(max-aspect-ratio: 1 / 1)").matches;
+  const isMobileCountryViewport = window.matchMedia("(max-aspect-ratio: 3 / 2)").matches;
   if (isMobileCountryViewport) state.countryMobileListScrollTop = window.scrollY || els.countryList?.scrollTop || 0;
   state.globalSearchColorRestoreTag = "";
   state.selectedTag = countryTag;

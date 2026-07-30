@@ -17,7 +17,7 @@ expect(runtimeSource.includes("countryMobileMapOpen: true"), "缺少默认展开
 expect(runtimeSource.includes("countryMobileListScrollTop: 0"), "缺少 countryMobileListScrollTop 状态");
 expect(runtimeSource.includes('countryMobileSearchDraft: ""'), "缺少国家窄屏待提交搜索词状态");
 expect(/\.mobile-country-toolbar,[\s\S]*\.mobile-country-filter-panel\s*\{[\s\S]*display:\s*none/.test(shellSource), "缺少默认隐藏的移动国家占位规则");
-expect(/@media \(max-aspect-ratio: 1 \/ 1\)[\s\S]*body\[data-view="country"\]\s+\.mobile-country-toolbar\s*\{[\s\S]*display:\s*flex/.test(shellSource), "竖向视口缺少国家工具栏显示规则");
+expect(/@media \(max-aspect-ratio: 3 \/ 2\)[\s\S]*body\[data-view="country"\]\s+\.mobile-country-toolbar\s*\{[\s\S]*display:\s*flex/.test(shellSource), "紧凑视口缺少国家工具栏显示规则");
 expect(/body\[data-view="country"\]\[data-country-mobile-detail="open"\]\s+\.map-panel,[\s\S]*body\[data-view="country"\]\[data-country-mobile-detail="open"\]\s+\.filters,[\s\S]*body\[data-view="country"\]\[data-country-mobile-detail="open"\]\s+\.results\s*\{[\s\S]*display:\s*none/.test(shellSource), "缺少国家移动详情隐藏地图、筛选和列表的规则");
 expect(runtimeSource.includes('countryMobileFilterCategory: "type"'), "缺少国家窄屏筛选分类状态");
 expect(presentationSource.includes("countryMobileFilterCategories"), "缺少国家窄屏筛选分类定义");
@@ -45,10 +45,10 @@ expect(/body\[data-view="country"\]\s+\.results\s*\{[\s\S]*align-self:\s*center[
 expect(presentationSource.includes("data-mobile-country-filter-chip"), "缺少稳定的国家筛选标签数据属性");
 expect(presentationSource.includes("data-mobile-country-filter-option"), "缺少稳定的国家筛选选项数据属性");
 expect(presentationSource.includes("data-country-mobile-detail-back"), "缺少稳定的国家详情返回数据属性");
-expect(/@media \(max-aspect-ratio: 1 \/ 1\)\s*\{[\s\S]*\.layout::before\s*\{[\s\S]*display:\s*none/.test(shellSource), "竖向视口仍在显示左侧筛选栏底色");
-expect(uiSource.includes('window.matchMedia("(max-aspect-ratio: 1 / 1)").matches'), "国家详情返回未按竖向视口判断");
-expect(presentationSource.includes('window.matchMedia("(max-aspect-ratio: 1 / 1)").matches'), "国家详情进入未按竖向视口判断");
-expect(boardsSource.includes('window.matchMedia("(max-aspect-ratio: 1 / 1)").matches'), "国家详情滚动恢复未按竖向视口判断");
+expect(/@media \(max-aspect-ratio: 3 \/ 2\)\s*\{[\s\S]*\.layout::before\s*\{[\s\S]*display:\s*none/.test(shellSource), "紧凑视口仍在显示左侧筛选栏底色");
+expect(uiSource.includes('window.matchMedia("(max-aspect-ratio: 3 / 2)").matches'), "国家详情返回未按紧凑视口判断");
+expect(presentationSource.includes('window.matchMedia("(max-aspect-ratio: 3 / 2)").matches'), "国家详情进入未按紧凑视口判断");
+expect(boardsSource.includes('window.matchMedia("(max-aspect-ratio: 3 / 2)").matches'), "国家详情滚动恢复未按紧凑视口判断");
 
 if (failures.length) {
   for (const failure of failures) console.error(`- ${failure}`);

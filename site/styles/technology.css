@@ -129,7 +129,7 @@ body.detail-page[data-view="law"] .detail {
 
 }
 
-@media (max-aspect-ratio: 1 / 1) {
+@media (max-aspect-ratio: 3 / 2) {
   .global-search-backdrop {
     padding: 12px;
     place-items: start center;
