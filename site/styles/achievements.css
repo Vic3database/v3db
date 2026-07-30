@@ -41,14 +41,40 @@ body[data-view="achievement"]:not(.detail-page) .detail {
   font-size: var(--text-sm);
 }
 
-.achievement-search input {
+.achievement-search-controls {
+  display: flex;
+  gap: 8px;
   width: min(680px, 70vw);
+}
+
+.achievement-search input {
+  min-width: 0;
+  width: 100%;
   min-height: 42px;
   padding: 8px 12px;
   border: 1px solid rgba(200, 164, 91, .38);
   background: rgba(24, 23, 21, .72);
   color: var(--ink);
   font: inherit;
+}
+
+.achievement-search button {
+  flex: none;
+  min-height: 42px;
+  padding: 8px 14px;
+  border: 1px solid rgba(200, 164, 91, .55);
+  border-radius: 4px;
+  background: rgba(47, 78, 96, .86);
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+}
+
+.achievement-search button:hover,
+.achievement-search button:focus-visible {
+  border-color: var(--accent);
+  background: rgba(64, 99, 119, .94);
+  outline: none;
 }
 
 .achievement-count {
@@ -229,7 +255,7 @@ body.detail-page[data-view="achievement"] .achievement-wall-grid {
 @media (max-width: 640px) {
   .achievement-shell { padding: 14px 12px 32px; }
   .achievement-toolbar { align-items: stretch; flex-direction: column; gap: 8px; }
-  .achievement-search, .achievement-search input { width: 100%; min-width: 0; }
+  .achievement-search, .achievement-search-controls, .achievement-search input { width: 100%; min-width: 0; }
   .achievement-wall-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; }
   .achievement-card span { padding: 5px 4px; font-size: 11px; }
 }

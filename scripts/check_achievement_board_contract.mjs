@@ -44,6 +44,9 @@ assert.ok(
 );
 assert.match(app, /if \(view === "achievement"\) return \["achievement"\]/, "achievement route must load only its data chunk");
 assert.match(app, /function achievementMatches\(/, "achievement search matcher must exist");
+assert.ok(app.includes("data-achievement-search-form"), "achievement search must render a submission form");
+assert.ok(app.includes("data-achievement-search-submit"), "achievement search must render an explicit submit button");
+assert.ok(app.includes("function submitAchievementSearch("), "achievement search must submit through one shared handler");
 assert.match(app, /achievement\.name_en/, "achievement search must include English names");
 assert.match(app, /achievement\.description_zh/, "achievement search must include descriptions");
 assert.match(app, /detail\.text_zh/, "achievement search must include translated conditions");
@@ -64,6 +67,7 @@ assert.match(styles, /achievement-card--easy_group[\s\S]*?#4a4840/, "easy cards 
 assert.match(styles, /achievement-card--medium_group[\s\S]*?#4d372b/, "medium cards must use deep copper brown");
 assert.match(styles, /achievement-card--hard_group[\s\S]*?#384651/, "hard cards must use dark silver blue gray");
 assert.match(styles, /achievement-card--very_hard_group[\s\S]*?#4b4727/, "very hard cards must use dark gold olive");
+assert.match(styles, /\.achievement-search button\s*\{[\s\S]*?min-height:\s*42px/, "achievement search button must match the input height");
 
 console.log(JSON.stringify({ achievement_board_contract: "ok" }, null, 2));
 
