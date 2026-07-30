@@ -146,7 +146,11 @@ function renderCultureMobileActualOption(category, value, label) {
     : category === "language" ? state.languages.has(value)
       : category === "strategicRegion" ? state.strategicRegions.has(value)
         : state.tradition === value;
-  if (!value) return `<button class="mobile-culture-filter-option" type="button" data-mobile-culture-filter-clear-option="${escapeHtml(category)}" aria-pressed="${String(!selected)}">${escapeHtml(label)}</button>`;
+  const hasActualFilter = category === "heritage" ? state.heritages.size > 0
+    : category === "language" ? state.languages.size > 0
+      : category === "strategicRegion" ? state.strategicRegions.size > 0
+        : Boolean(state.tradition);
+  if (!value) return `<button class="mobile-culture-filter-option" type="button" data-mobile-culture-filter-clear-option="${escapeHtml(category)}" aria-pressed="${String(!hasActualFilter)}">${escapeHtml(label)}</button>`;
   return `<button class="mobile-culture-filter-option" type="button" data-mobile-culture-filter-option="${escapeHtml(value)}" data-mobile-culture-filter-category="${escapeHtml(category)}" aria-pressed="${String(selected)}">${escapeHtml(label)}</button>`;
 }
 

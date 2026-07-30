@@ -45,9 +45,11 @@ try {
   await page.waitFor(() => !document.querySelector("#mobileCultureFilterPanel").hidden, "展开文化筛选区");
   const heritageGroup = "[data-mobile-culture-expand-heritage-group]";
   await page.click(heritageGroup);
+  assert.equal(await page.evaluate(() => document.querySelector("[data-mobile-culture-filter-clear-option='heritage']")?.getAttribute("aria-pressed")), "true", "未选择具体传承时，不限必须高亮");
   assert.equal(await page.count("[data-mobile-culture-filter-chip]"), 0, "传承组只能展开，不能生成筛选标签");
   await page.click("[data-mobile-culture-filter-option][data-mobile-culture-filter-category='heritage']");
   await page.waitFor(() => document.querySelectorAll("[data-mobile-culture-filter-chip='heritage']").length === 1, "具体传承必须生成筛选标签");
+  assert.equal(await page.evaluate(() => document.querySelector("[data-mobile-culture-filter-clear-option='heritage']")?.getAttribute("aria-pressed")), "false", "选择具体传承后，不限不能继续高亮");
 
   await page.click("[data-mobile-culture-filter-category='language']");
   await page.click("[data-mobile-culture-expand-language-group]");
