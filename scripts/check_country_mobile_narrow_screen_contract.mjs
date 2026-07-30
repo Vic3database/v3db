@@ -28,6 +28,10 @@ expect(indexSource.includes('id="mobileCountryToolbar"'), "缺少供浏览器回
 expect(indexSource.includes('id="mobileCountryFilterPanel"'), "缺少供浏览器回归定位的国家筛选面板标识");
 expect(indexSource.indexOf('id="mobileCountryToolbar"') > indexSource.indexOf('id="mapPanel"'), "国家工具栏应位于地图之后，以便窄屏样式调整显示顺序");
 expect(/\.mobile-country-filter-options\s*\{[\s\S]*flex-flow:\s*row wrap/.test(shellSource), "筛选选项缺少按可用宽度自然换行的规则");
+expect(/\.mobile-country-toolbar-row\s*\{[\s\S]*width:\s*100%/.test(shellSource), "国家工具栏行未占满容器，三个工具按钮无法右对齐");
+expect(/\.mobile-country-filter-panel\[hidden\]\s*\{[\s\S]*display:\s*none/.test(shellSource), "收起筛选时仍会保留筛选面板边框");
+expect(/\.mobile-country-filter-options\s*\{[\s\S]*justify-content:\s*center/.test(shellSource), "筛选选项缺少居中排列规则");
+expect(/\.mobile-country-filter-option\s*\{[\s\S]*border-radius:\s*5px/.test(shellSource), "筛选选项未使用圆角矩形边框");
 expect(presentationSource.includes("data-mobile-country-filter-chip"), "缺少稳定的国家筛选标签数据属性");
 expect(presentationSource.includes("data-mobile-country-filter-option"), "缺少稳定的国家筛选选项数据属性");
 expect(presentationSource.includes("data-country-mobile-detail-back"), "缺少稳定的国家详情返回数据属性");

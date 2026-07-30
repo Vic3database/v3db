@@ -1247,6 +1247,10 @@ body[data-view="law"][data-results-panel="collapsed"] .detail {
     order: 2;
   }
 
+  body[data-view="country"] .mobile-country-filter-panel[hidden] {
+    display: none;
+  }
+
   body[data-view="country"] .map-panel {
     position: relative;
     inset: auto;
@@ -1285,6 +1289,7 @@ body[data-view="law"][data-results-panel="collapsed"] .detail {
     display: grid;
     grid-template-columns: minmax(0, 1fr) repeat(3, 38px);
     gap: 6px;
+    width: 100%;
   }
 
   .mobile-country-search-input {
@@ -1389,6 +1394,7 @@ body[data-view="law"][data-results-panel="collapsed"] .detail {
   .mobile-country-filter-options {
     display: flex;
     flex-flow: row wrap;
+    justify-content: center;
     gap: 7px;
   }
 
@@ -1396,7 +1402,7 @@ body[data-view="law"][data-results-panel="collapsed"] .detail {
     width: auto;
     min-width: 0;
     padding: 5px 8px;
-    border-radius: 999px;
+    border-radius: 5px;
     background: rgba(50, 63, 55, 0.9);
     font-size: var(--text-xs);
     line-height: 1.25;

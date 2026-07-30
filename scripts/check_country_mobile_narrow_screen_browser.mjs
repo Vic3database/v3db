@@ -21,13 +21,18 @@ try {
     toolbar: getComputedStyle(document.querySelector("#mobileCountryToolbar")).display,
     map: getComputedStyle(document.querySelector("#mapPanel")).display,
     filtersHidden: document.querySelector("#mobileCountryFilterPanel").hidden,
+    filterPanelDisplay: getComputedStyle(document.querySelector("#mobileCountryFilterPanel")).display,
     toolbarTop: document.querySelector("#mobileCountryToolbar").getBoundingClientRect().top,
     mapTop: document.querySelector("#mapPanel").getBoundingClientRect().top,
+    toolbarRight: document.querySelector("#mobileCountryToolbar").getBoundingClientRect().right,
+    lastToolButtonRight: [...document.querySelectorAll(".mobile-country-tool-button")].at(-1).getBoundingClientRect().right,
   }));
   assert.notEqual(initial.toolbar, "none", "国家页必须显示窄屏工具栏");
   assert.notEqual(initial.map, "none", "国家页默认必须显示地图");
   assert.equal(initial.filtersHidden, true, "国家页默认必须收起筛选区");
+  assert.equal(initial.filterPanelDisplay, "none", "收起筛选时不能显示筛选面板边框");
   assert.ok(initial.toolbarTop < initial.mapTop, "窄屏工具栏必须位于地图之前");
+  assert.ok(Math.abs(initial.toolbarRight - initial.lastToolButtonRight) < 10, "三个工具按钮必须靠工具栏右侧对齐");
   await page.evaluate(() => {
     const input = document.querySelector("[data-mobile-country-search]");
     input.focus();
@@ -52,11 +57,26 @@ try {
       distinctTops: new Set(options.map((option) => Math.round(option.getBoundingClientRect().top))).size,
       maxWidth: Math.max(...options.map((option) => option.getBoundingClientRect().width)),
       panelWidth: document.querySelector("#mobileCountryFilterPanel").getBoundingClientRect().width,
+      optionRadius: Number.parseFloat(getComputedStyle(options[0]).borderTopLeftRadius),
+      rows: Object.values(Object.groupBy(options.map((option) => {
+        const rect = option.getBoundingClientRect();
+        return { top: Math.round(rect.top), left: rect.left, right: rect.right };
+      }), (option) => option.top)),
+      panelCenter: (() => {
+        const rect = document.querySelector("#mobileCountryFilterPanel").getBoundingClientRect();
+        return (rect.left + rect.right) / 2;
+      })(),
     };
   });
   assert.ok(optionLayout.count >= 7, "类型分类必须显示完整选项集");
   assert.ok(optionLayout.distinctTops > 1, "窄屏类型选项必须按可用宽度自然换行");
   assert.ok(optionLayout.maxWidth < optionLayout.panelWidth, "窄屏类型选项不得逐项占满整行");
+  assert.ok(optionLayout.optionRadius < 10, "窄屏筛选选项必须使用圆角矩形而非药丸形状");
+  for (const row of optionLayout.rows) {
+    const left = Math.min(...row.map((option) => option.left));
+    const right = Math.max(...row.map((option) => option.right));
+    assert.ok(Math.abs(((left + right) / 2) - optionLayout.panelCenter) < 5, "每行筛选选项必须在面板内居中");
+  }
   await page.click("[data-mobile-country-filter-option='existsAtStart']");
   await page.waitFor(() => Boolean(document.querySelector("[data-mobile-country-filter-chip='type']")), "类型筛选标签");
   assert.equal(normalizeText(await page.text("[data-mobile-country-filter-chip='type']")), "开局存在×", "类型筛选标签必须进入搜索框");
