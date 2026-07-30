@@ -26,6 +26,23 @@ try {
     mapTop: document.querySelector("#mapPanel").getBoundingClientRect().top,
     toolbarRight: document.querySelector("#mobileCountryToolbar").getBoundingClientRect().right,
     lastToolButtonRight: [...document.querySelectorAll(".mobile-country-tool-button")].at(-1).getBoundingClientRect().right,
+    searchInputWidth: (() => {
+      const input = document.querySelector("[data-mobile-country-search]");
+      return input.getBoundingClientRect().width;
+    })(),
+    placeholderWidth: (() => {
+      const input = document.querySelector("[data-mobile-country-search]");
+      const probe = document.createElement("span");
+      probe.textContent = input.placeholder;
+      probe.style.cssText = `position:absolute;visibility:hidden;white-space:nowrap;font:${getComputedStyle(input).font};`;
+      document.body.append(probe);
+      const width = probe.getBoundingClientRect().width;
+      probe.remove();
+      return width;
+    })(),
+    mapFilterTool: getComputedStyle(document.querySelector("#leftPanelToggle")).display,
+    mapListTool: getComputedStyle(document.querySelector("#bottomPanelToggle")).display,
+    mapResetTool: getComputedStyle(document.querySelector("#mapFitWidthButton")).display,
   }));
   assert.notEqual(initial.toolbar, "none", "国家页必须显示窄屏工具栏");
   assert.notEqual(initial.map, "none", "国家页默认必须显示地图");
@@ -33,6 +50,30 @@ try {
   assert.equal(initial.filterPanelDisplay, "none", "收起筛选时不能显示筛选面板边框");
   assert.ok(initial.toolbarTop < initial.mapTop, "窄屏工具栏必须位于地图之前");
   assert.ok(Math.abs(initial.toolbarRight - initial.lastToolButtonRight) < 10, "三个工具按钮必须靠工具栏右侧对齐");
+  assert.ok(initial.searchInputWidth >= initial.placeholderWidth, "初始状态必须完整显示搜索提示文字");
+  assert.equal(initial.mapFilterTool, "none", "窄屏国家地图不应显示筛选收起按钮");
+  assert.equal(initial.mapListTool, "none", "窄屏国家地图不应显示列表收起按钮");
+  assert.notEqual(initial.mapResetTool, "none", "窄屏国家地图必须保留重置视角按钮");
+  await page.setViewport({ width: 640, height: 844 });
+  const wideToolbar = await page.evaluate(() => {
+    const toolbar = document.querySelector("#mobileCountryToolbar").getBoundingClientRect();
+    const input = document.querySelector("[data-mobile-country-search]");
+    const probe = document.createElement("span");
+    probe.textContent = input.placeholder;
+    probe.style.cssText = `position:absolute;visibility:hidden;white-space:nowrap;font:${getComputedStyle(input).font};`;
+    document.body.append(probe);
+    const placeholderWidth = probe.getBoundingClientRect().width;
+    probe.remove();
+    return {
+      toolbarRight: toolbar.right,
+      lastToolButtonRight: [...document.querySelectorAll(".mobile-country-tool-button")].at(-1).getBoundingClientRect().right,
+      searchInputWidth: input.getBoundingClientRect().width,
+      placeholderWidth,
+    };
+  });
+  assert.ok(Math.abs(wideToolbar.toolbarRight - wideToolbar.lastToolButtonRight) < 10, "640 像素窄屏下工具按钮必须继续右对齐");
+  assert.ok(wideToolbar.searchInputWidth >= wideToolbar.placeholderWidth, "640 像素窄屏下必须完整显示搜索提示文字");
+  await page.setViewport({ width: 390, height: 844 });
   await page.evaluate(() => {
     const input = document.querySelector("[data-mobile-country-search]");
     input.focus();
@@ -58,24 +99,22 @@ try {
       maxWidth: Math.max(...options.map((option) => option.getBoundingClientRect().width)),
       panelWidth: document.querySelector("#mobileCountryFilterPanel").getBoundingClientRect().width,
       optionRadius: Number.parseFloat(getComputedStyle(options[0]).borderTopLeftRadius),
+      optionsLeft: document.querySelector(".mobile-country-filter-options").getBoundingClientRect().left,
+      categoryDividerWidth: Number.parseFloat(getComputedStyle(document.querySelector(".mobile-country-filter-categories")).borderBottomWidth),
       rows: Object.values(Object.groupBy(options.map((option) => {
         const rect = option.getBoundingClientRect();
         return { top: Math.round(rect.top), left: rect.left, right: rect.right };
       }), (option) => option.top)),
-      panelCenter: (() => {
-        const rect = document.querySelector("#mobileCountryFilterPanel").getBoundingClientRect();
-        return (rect.left + rect.right) / 2;
-      })(),
     };
   });
   assert.ok(optionLayout.count >= 7, "类型分类必须显示完整选项集");
   assert.ok(optionLayout.distinctTops > 1, "窄屏类型选项必须按可用宽度自然换行");
   assert.ok(optionLayout.maxWidth < optionLayout.panelWidth, "窄屏类型选项不得逐项占满整行");
   assert.ok(optionLayout.optionRadius < 10, "窄屏筛选选项必须使用圆角矩形而非药丸形状");
+  assert.ok(optionLayout.categoryDividerWidth > 0, "筛选分类与选项之间必须显示分隔线");
   for (const row of optionLayout.rows) {
     const left = Math.min(...row.map((option) => option.left));
-    const right = Math.max(...row.map((option) => option.right));
-    assert.ok(Math.abs(((left + right) / 2) - optionLayout.panelCenter) < 5, "每行筛选选项必须在面板内居中");
+    assert.ok(Math.abs(left - optionLayout.optionsLeft) < 2, "每行筛选选项必须在面板内左对齐");
   }
   await page.click("[data-mobile-country-filter-option='existsAtStart']");
   await page.waitFor(() => Boolean(document.querySelector("[data-mobile-country-filter-chip='type']")), "类型筛选标签");
@@ -144,6 +183,10 @@ async function openPage(viewport) {
       await session.send("Page.navigate", { url });
       await Promise.race([loaded, hashNavigated]);
       await new Promise((resolve) => setTimeout(resolve, 150));
+    },
+    async setViewport(viewport) {
+      await session.send("Emulation.setDeviceMetricsOverride", { width: viewport.width, height: viewport.height, deviceScaleFactor: 1, mobile: true });
+      await new Promise((resolve) => setTimeout(resolve, 50));
     },
     async evaluate(callback, ...args) {
       const serializedArgs = args.map((value) => JSON.stringify(value)).join(",");

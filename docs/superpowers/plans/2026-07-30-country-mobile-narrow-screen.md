@@ -153,3 +153,37 @@
 运行：`git add docs/superpowers/specs/2026-07-30-country-mobile-narrow-screen-design.md docs/superpowers/plans/2026-07-30-country-mobile-narrow-screen.md site/index.html site/styles/shell.css site/app/runtime.js site/app/filters.js site/app/presentation.js site/app/ui.js scripts/check_country_mobile_narrow_screen_contract.mjs scripts/check_country_mobile_narrow_screen_browser.mjs && git commit -m "feat: adapt country board for narrow screens"`
 
 预期：创建一个只包含本轮国家窄屏适配的提交。
+
+### Task 6: 细化窄屏工具栏和筛选布局
+
+**Files:**
+
+- Modify: `site/styles/shell.css`
+- Modify: `scripts/check_country_mobile_narrow_screen_contract.mjs`
+- Modify: `scripts/check_country_mobile_narrow_screen_browser.mjs`
+
+- [x] **Step 1: 写入失败断言**
+
+在浏览器回归检查中验证 390×844 与 640×844 视口均完整显示搜索提示文字；验证窄屏地图只保留重置视角按钮；验证分类行下方存在分隔线，且每行选项从选项容器左边缘开始。静态检查同步要求对应的样式规则。
+
+- [x] **Step 2: 运行断言并确认失败**
+
+运行：`node scripts/check_country_mobile_narrow_screen_browser.mjs`
+
+预期：搜索提示宽度、地图工具栏或选项排列的至少一项断言失败。
+
+- [x] **Step 3: 调整最小样式范围**
+
+在 `@media (max-width: 820px)` 的国家板块规则中，将搜索输入的最小宽度设为 `148px` 并允许填满剩余空间；隐藏 `#leftPanelToggle` 和 `#bottomPanelToggle`，保留 `#mapFitWidthButton`；为 `.mobile-country-filter-categories` 添加底部分隔线；将 `.mobile-country-filter-options` 改为 `justify-content: flex-start`。
+
+- [x] **Step 4: 运行回归检查并确认通过**
+
+运行：`node scripts/check_country_mobile_narrow_screen_contract.mjs` 与 `node scripts/check_country_mobile_narrow_screen_browser.mjs`
+
+预期：两个脚本均以状态码 0 退出。
+
+- [x] **Step 5: 提交**
+
+运行：`git add docs/superpowers/plans/2026-07-30-country-mobile-narrow-screen.md site/styles/shell.css scripts/check_country_mobile_narrow_screen_contract.mjs scripts/check_country_mobile_narrow_screen_browser.mjs && git commit -m "fix: refine narrow country toolbar"`
+
+预期：创建只包含本轮三项窄屏调整和回归检查的提交。

@@ -1259,6 +1259,19 @@ body[data-view="law"][data-results-panel="collapsed"] .detail {
     margin: 10px;
   }
 
+  body[data-view="country"] .map-toolbar {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  body[data-view="country"] #leftPanelToggle,
+  body[data-view="country"] #bottomPanelToggle {
+    display: none;
+  }
+
   body[data-view="country"] .filters {
     display: none;
   }
@@ -1305,8 +1318,8 @@ body[data-view="law"][data-results-panel="collapsed"] .detail {
   }
 
   .mobile-country-search-input input {
-    flex: 0 0 104px;
-    min-width: 104px;
+    flex: 1 0 148px;
+    min-width: 148px;
     padding: 0;
     border: 0;
     background: transparent;
@@ -1366,6 +1379,7 @@ body[data-view="law"][data-results-panel="collapsed"] .detail {
     gap: 7px;
     overflow-x: auto;
     padding-bottom: 8px;
+    border-bottom: 1px solid rgba(200, 164, 91, 0.24);
     white-space: nowrap;
     touch-action: pan-x;
   }
@@ -1394,7 +1408,7 @@ body[data-view="law"][data-results-panel="collapsed"] .detail {
   .mobile-country-filter-options {
     display: flex;
     flex-flow: row wrap;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 7px;
   }
 
