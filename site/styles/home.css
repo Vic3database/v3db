@@ -191,6 +191,10 @@ body[data-view="home"] .filters {
   display: none;
 }
 
+body[data-view="home"] .layout::before {
+  display: none;
+}
+
 .home-left-column {
   display: contents;
 }

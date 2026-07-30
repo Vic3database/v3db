@@ -8,6 +8,11 @@ const chrome = spawn(chromePath, [`--remote-debugging-port=${debugPort}`, "--hea
 
 try {
   const page = await openPage({ width: 390, height: 844 });
+  await page.goto(`${baseUrl}?homepageUnderlay=1#/home`);
+  await page.waitFor(() => document.body.dataset.view === "home", "首页加载");
+  const homeUnderlay = await page.evaluate(() => getComputedStyle(document.querySelector(".layout"), "::before").display);
+  assert.equal(homeUnderlay, "none", "首页不能保留左侧筛选栏底色");
+
   await page.goto(`${baseUrl}#/country`);
   await page.waitFor(() => Boolean(document.querySelector("#mobileCountryToolbar") && document.querySelector("[data-country]")), "国家窄屏页面加载");
   let initial = await page.evaluate(() => ({

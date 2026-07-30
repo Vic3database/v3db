@@ -7,6 +7,7 @@ const runtimeSource = fs.readFileSync(path.join(root, "site", "app", "runtime.js
 const uiSource = fs.readFileSync(path.join(root, "site", "app", "ui.js"), "utf8");
 const presentationSource = fs.readFileSync(path.join(root, "site", "app", "presentation.js"), "utf8");
 const shellSource = fs.readFileSync(path.join(root, "site", "styles", "shell.css"), "utf8");
+const homeSource = fs.readFileSync(path.join(root, "site", "styles", "home.css"), "utf8");
 const failures = [];
 
 expect(indexSource.includes('id="mobileCountryToolbar"'), "缺少国家窄屏工具栏容器");
@@ -31,6 +32,7 @@ expect(/\.mobile-country-filter-options\s*\{[\s\S]*flex-flow:\s*row wrap/.test(s
 expect(presentationSource.includes("data-mobile-country-filter-chip"), "缺少稳定的国家筛选标签数据属性");
 expect(presentationSource.includes("data-mobile-country-filter-option"), "缺少稳定的国家筛选选项数据属性");
 expect(presentationSource.includes("data-country-mobile-detail-back"), "缺少稳定的国家详情返回数据属性");
+expect(/body\[data-view="home"\]\s+\.layout::before\s*\{[\s\S]*display:\s*none/.test(homeSource), "首页仍在显示左侧筛选栏底色");
 
 if (failures.length) {
   for (const failure of failures) console.error(`- ${failure}`);
