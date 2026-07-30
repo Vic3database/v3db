@@ -74,18 +74,21 @@ try {
   assert.ok(Math.abs(wideToolbar.toolbarRight - wideToolbar.lastToolButtonRight) < 10, "640 像素窄屏下工具按钮必须继续右对齐");
   assert.ok(wideToolbar.searchInputWidth >= wideToolbar.placeholderWidth, "640 像素窄屏下必须完整显示搜索提示文字");
   await page.setViewport({ width: 390, height: 844 });
+  const initialCountryCount = await page.count("[data-country]");
   await page.evaluate(() => {
     const input = document.querySelector("[data-mobile-country-search]");
     input.focus();
-    input.value = "测试";
+    input.value = "yyyyiny dindu";
     input.dispatchEvent(new Event("input", { bubbles: true }));
   });
-  await page.waitFor(() => document.querySelector("[data-mobile-country-search]")?.value === "测试", "移动搜索关键词同步");
-  assert.equal(await page.evaluate(() => document.activeElement === document.querySelector("[data-mobile-country-search]")), true, "移动搜索重渲染后必须保留输入焦点");
+  assert.equal(await page.evaluate(() => document.querySelector("[data-mobile-country-search]")?.value), "yyyyiny dindu", "移动输入必须保留待提交关键词");
+  assert.equal(await page.count("[data-country]"), initialCountryCount, "输入国家关键词时不得立即刷新国家列表");
+  await page.click("[data-mobile-country-search-submit]");
+  await page.waitFor(() => document.querySelectorAll("[data-country]").length === 0, "点击搜索后国家列表才应用关键词");
   await page.evaluate(() => {
     const input = document.querySelector("[data-mobile-country-search]");
     input.value = "";
-    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
   });
   await page.waitFor(() => document.querySelectorAll("[data-country]").length > 0, "清空移动搜索关键词");
 

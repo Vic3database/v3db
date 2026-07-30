@@ -187,3 +187,39 @@
 运行：`git add docs/superpowers/plans/2026-07-30-country-mobile-narrow-screen.md site/styles/shell.css scripts/check_country_mobile_narrow_screen_contract.mjs scripts/check_country_mobile_narrow_screen_browser.mjs && git commit -m "fix: refine narrow country toolbar"`
 
 预期：创建只包含本轮三项窄屏调整和回归检查的提交。
+
+### Task 7: 国家窄屏搜索改为显式提交
+
+**Files:**
+
+- Modify: `site/app/runtime.js`
+- Modify: `site/app/ui.js`
+- Modify: `site/app/presentation.js`
+- Modify: `scripts/check_country_mobile_narrow_screen_contract.mjs`
+- Modify: `scripts/check_country_mobile_narrow_screen_browser.mjs`
+
+- [x] **Step 1: 写入失败断言**
+
+浏览器检查在输入无结果关键词后要求国家总数保持不变，再点击放大镜并等待空列表；清空输入后按回车恢复列表。静态检查要求待提交搜索词和独立提交函数，并禁止输入事件直接写入 `state.search`。
+
+- [x] **Step 2: 运行断言并确认失败**
+
+运行：`node scripts/check_country_mobile_narrow_screen_browser.mjs`
+
+预期：输入关键词时列表仍会立即变为空，断言失败。
+
+- [x] **Step 3: 实现待提交搜索词**
+
+在 `state` 添加 `countryMobileSearchDraft`。窄屏输入事件只更新该字段，不调用 `render()`；点击搜索和普通回车调用 `submitMobileCountrySearch()`，该函数将待提交词写入 `state.search`、同步桌面搜索框并重绘。筛选面板重绘继续显示待提交词。
+
+- [x] **Step 4: 运行回归检查并确认通过**
+
+运行：`node scripts/check_country_mobile_narrow_screen_contract.mjs` 与 `node scripts/check_country_mobile_narrow_screen_browser.mjs`
+
+预期：两个脚本均以状态码 0 退出。
+
+- [x] **Step 5: 提交**
+
+运行：`git add docs/superpowers/plans/2026-07-30-country-mobile-narrow-screen.md site/app/runtime.js site/app/ui.js site/app/presentation.js scripts/check_country_mobile_narrow_screen_contract.mjs scripts/check_country_mobile_narrow_screen_browser.mjs && git commit -m "fix: submit narrow country search explicitly"`
+
+预期：创建只包含国家窄屏搜索提交交互的提交。

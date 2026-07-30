@@ -14,6 +14,7 @@ expect(/class="[^"]*mobile-country-filter-panel[^"]*"/.test(indexSource), "缺�
 expect(runtimeSource.includes("countryMobileFiltersOpen: false"), "缺少默认关闭的 countryMobileFiltersOpen 状态");
 expect(runtimeSource.includes("countryMobileMapOpen: true"), "缺少默认展开的 countryMobileMapOpen 状态");
 expect(runtimeSource.includes("countryMobileListScrollTop: 0"), "缺少 countryMobileListScrollTop 状态");
+expect(runtimeSource.includes('countryMobileSearchDraft: ""'), "缺少国家窄屏待提交搜索词状态");
 expect(/\.mobile-country-toolbar,[\s\S]*\.mobile-country-filter-panel\s*\{[\s\S]*display:\s*none/.test(shellSource), "缺少默认隐藏的移动国家占位规则");
 expect(/@media \(max-width: 820px\)[\s\S]*body\[data-view="country"\]\s+\.mobile-country-toolbar\s*\{[\s\S]*display:\s*flex/.test(shellSource), "820 像素断点内缺少国家工具栏显示规则");
 expect(/body\[data-view="country"\]\[data-country-mobile-detail="open"\]\s+\.map-panel,[\s\S]*body\[data-view="country"\]\[data-country-mobile-detail="open"\]\s+\.filters,[\s\S]*body\[data-view="country"\]\[data-country-mobile-detail="open"\]\s+\.results\s*\{[\s\S]*display:\s*none/.test(shellSource), "缺少国家移动详情隐藏地图、筛选和列表的规则");
@@ -23,6 +24,8 @@ expect(presentationSource.includes("renderMobileCountryControls"), "缺少国家
 expect(presentationSource.includes("renderMobileCountryFilterChips"), "缺少可删除国家筛选标签渲染函数");
 expect(uiSource.includes("selectCountryMobileFilter"), "缺少国家窄屏分类单选处理函数");
 expect(uiSource.includes("clearCountryMobileFilter"), "缺少国家窄屏筛选标签删除处理函数");
+expect(uiSource.includes("submitMobileCountrySearch"), "缺少国家窄屏显式搜索提交函数");
+expect(/mobileCountryToolbar\?\.addEventListener\("input",[\s\S]*?state\.countryMobileSearchDraft\s*=\s*input\.value[\s\S]*?\}\);/.test(uiSource), "国家窄屏输入事件必须只保存待提交关键词");
 expect(/\.mobile-country-search-input\s*\{[\s\S]*overflow-x:\s*auto[\s\S]*white-space:\s*nowrap[\s\S]*touch-action:\s*pan-x/.test(shellSource), "条件搜索框缺少横向滑动规则");
 expect(indexSource.includes('id="mobileCountryToolbar"'), "缺少供浏览器回归定位的国家工具栏标识");
 expect(indexSource.includes('id="mobileCountryFilterPanel"'), "缺少供浏览器回归定位的国家筛选面板标识");

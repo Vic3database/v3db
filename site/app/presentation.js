@@ -64,7 +64,7 @@ function renderMobileCountryControls() {
     <div class="mobile-country-toolbar-row">
       <label class="mobile-country-search-input" aria-label="国家搜索与筛选条件">
         ${chips}
-        <input id="mobileCountrySearchInput" data-mobile-country-search type="search" autocomplete="off" placeholder="搜索国家、文化或标签" value="${escapeHtml(state.search)}">
+        <input id="mobileCountrySearchInput" data-mobile-country-search type="search" autocomplete="off" placeholder="搜索国家、文化或标签" value="${escapeHtml(state.countryMobileSearchDraft)}">
       </label>
       <button class="mobile-country-tool-button" type="button" data-mobile-country-search-submit aria-label="执行搜索" title="执行搜索"><img class="lucide-icon" src="assets/lucide/icons/search.svg" alt="" aria-hidden="true"></button>
       <button class="mobile-country-tool-button" type="button" data-mobile-country-filter-toggle aria-expanded="${String(state.countryMobileFiltersOpen)}" aria-label="${state.countryMobileFiltersOpen ? "收起筛选" : "展开筛选"}" title="${state.countryMobileFiltersOpen ? "收起筛选" : "展开筛选"}"><img class="lucide-icon" src="assets/lucide/icons/sliders-horizontal.svg" alt="" aria-hidden="true"></button>

@@ -143,6 +143,7 @@ const state = {
   countryMobileFiltersOpen: false,
   countryMobileMapOpen: true,
   countryMobileListScrollTop: 0,
+  countryMobileSearchDraft: "",
   countryMobileFilterCategory: "type",
   countryMobileRestoreScrollPending: false,
   whiteDecentralized: false,

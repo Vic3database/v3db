@@ -82,20 +82,20 @@ function bindEvents() {
   });
   els.searchInput.addEventListener("input", () => {
     state.search = els.searchInput.value.trim().toLowerCase();
+    state.countryMobileSearchDraft = els.searchInput.value;
     state.globalSearchColorRestoreTag = "";
     render();
   });
   els.mobileCountryToolbar?.addEventListener("input", (event) => {
     const input = event.target.closest("[data-mobile-country-search]");
     if (!input) return;
-    const cursorPosition = input.selectionStart ?? input.value.length;
-    state.search = input.value.trim().toLowerCase();
-    state.globalSearchColorRestoreTag = "";
-    if (els.searchInput) els.searchInput.value = input.value;
-    render();
-    const nextInput = els.mobileCountryToolbar.querySelector("[data-mobile-country-search]");
-    nextInput?.focus({ preventScroll: true });
-    nextInput?.setSelectionRange(cursorPosition, cursorPosition);
+    state.countryMobileSearchDraft = input.value;
+  });
+  els.mobileCountryToolbar?.addEventListener("keydown", (event) => {
+    const input = event.target.closest("[data-mobile-country-search]");
+    if (!input || event.key !== "Enter" || event.isComposing) return;
+    event.preventDefault();
+    submitMobileCountrySearch(input);
   });
   els.mobileCountryToolbar?.addEventListener("focusin", (event) => {
     const input = event.target.closest("[data-mobile-country-search]");
@@ -105,11 +105,7 @@ function bindEvents() {
   els.mobileCountryToolbar?.addEventListener("click", (event) => {
     if (event.target.closest("[data-mobile-country-search-submit]")) {
       const input = els.mobileCountryToolbar.querySelector("[data-mobile-country-search]");
-      if (input) {
-        state.search = input.value.trim().toLowerCase();
-        if (els.searchInput) els.searchInput.value = input.value;
-      }
-      render();
+      submitMobileCountrySearch(input);
       return;
     }
     if (event.target.closest("[data-mobile-country-filter-toggle]")) {
@@ -256,6 +252,7 @@ function bindEvents() {
     state.mapSubject = "";
     state.countryMobileFiltersOpen = false;
     state.countryMobileMapOpen = true;
+    state.countryMobileSearchDraft = "";
     state.countryMobileFilterCategory = "type";
     state.countryMobileListScrollTop = 0;
     state.countryMobileRestoreScrollPending = false;
@@ -406,6 +403,16 @@ function bindTokenChoice(container, datasetKey, onChange) {
     if (!button || !container.contains(button)) return;
     onChange(button.dataset[datasetKey]);
   });
+}
+
+function submitMobileCountrySearch(input) {
+  const query = input?.value ?? state.countryMobileSearchDraft;
+  state.countryMobileSearchDraft = query;
+  if (query.trim().toLowerCase() === state.search) return;
+  state.search = query.trim().toLowerCase();
+  state.globalSearchColorRestoreTag = "";
+  if (els.searchInput) els.searchInput.value = query;
+  render();
 }
 
 function selectCountryMobileFilter(category, value) {
