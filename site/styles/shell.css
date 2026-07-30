@@ -1224,6 +1224,10 @@ body[data-view="law"][data-results-panel="collapsed"] .detail {
 }
 
 @media (max-width: 820px) {
+  .layout::before {
+    display: none;
+  }
+
   body[data-view="country"] .layout {
     display: flex;
     flex-direction: column;

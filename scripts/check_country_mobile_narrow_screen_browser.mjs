@@ -15,6 +15,8 @@ try {
 
   await page.goto(`${baseUrl}#/country`);
   await page.waitFor(() => Boolean(document.querySelector("#mobileCountryToolbar") && document.querySelector("[data-country]")), "国家窄屏页面加载");
+  const countryUnderlay = await page.evaluate(() => getComputedStyle(document.querySelector(".layout"), "::before").display);
+  assert.equal(countryUnderlay, "none", "国家窄屏不能保留左侧筛选栏底色");
   let initial = await page.evaluate(() => ({
     toolbar: getComputedStyle(document.querySelector("#mobileCountryToolbar")).display,
     map: getComputedStyle(document.querySelector("#mapPanel")).display,
