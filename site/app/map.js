@@ -43,7 +43,7 @@ function renderMapResourceContext() {
   const label = mapSubjectLabel();
   const version = standaloneSiteConfig ? "Victorian Century/真实资源储量&耕地" : (data.meta?.victoria3_version || "未知");
   els.mapResourceContext.hidden = false;
-  els.mapResourceContext.innerHTML = `${icon}<span class="map-resource-context-name">${escapeHtml(label)}</span><span class="map-resource-context-version" title="${escapeHtml(version)}">· ${escapeHtml(version)}</span>`;
+  els.mapResourceContext.innerHTML = `${icon}<span class="map-resource-context-name">${escapeHtml(label)}</span><span class="map-resource-context-version">· ${escapeHtml(version)}</span>`;
 }
 
 function syncMapModeForView() {

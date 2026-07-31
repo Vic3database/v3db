@@ -8,6 +8,7 @@ const runtimeSource = read("site/app/runtime.js");
 const indexSource = read("site/index.html");
 const stylesEntrySource = read("site/styles.css");
 const mapStylesSource = read("site/styles/map.css");
+const shellStylesSource = read("site/styles/shell.css");
 const dataSource = read("site/versions/1.13.9/data-regions.js");
 const data = JSON.parse(dataSource.replace(/^window\.VIC3_DATA_CHUNK\s*=\s*/, "").replace(/;\s*$/, ""));
 const resourceKeys = new Set(data.stateRegions.flatMap((stateRegion) => [
@@ -82,21 +83,21 @@ assert.match(indexSource, /<span id="mapResourceContext" class="map-resource-con
 assert.match(runtimeSource, /mapResourceContext: document\.querySelector\("#mapResourceContext"\)/, "runtime element table must expose the resource context");
 assert.match(mapSource, /function renderMapResourceContext\(/, "map controls must render the selected resource context");
 assert.match(functionSource(mapSource, "renderMapResourceContext"), /const version = standaloneSiteConfig \? "Victorian Century\/真实资源储量&耕地" : \(data\.meta\?\.victoria3_version \|\| "未知"\);/, "Victorian Century resource maps must display the resource and arable-land library name in the context bar");
-assert.match(functionSource(mapSource, "renderMapResourceContext"), /map-resource-context-version" title="\$\{escapeHtml\(version\)\}"/, "resource context must retain the complete library label in a hover hint");
+assert.doesNotMatch(functionSource(mapSource, "renderMapResourceContext"), /map-resource-context-version" title=/, "resource context must display the complete library label directly instead of relying on a hover hint");
 assert.match(mapSource, /map-resource-context-swatch/, "resources without a building icon must use a color swatch");
 assert.match(mapStylesSource, /\.map-resource-context/, "resource context must have dedicated compact styles");
-assert.match(mapStylesSource, /\.map-resource-context\s*\{[\s\S]*flex:\s*0 1 340px[\s\S]*max-width:\s*min\(340px, calc\(100vw - 168px\)\)[\s\S]*overflow:\s*hidden/, "resource context must reserve space for the Victorian Century label without escaping its pill");
-assert.match(mapStylesSource, /\.map-resource-context-version[\s\S]*white-space:\s*nowrap/, "resource context version must not wrap independently");
-assert.match(mapStylesSource, /\.map-resource-context-version\s*\{[\s\S]*min-width:\s*0[\s\S]*overflow:\s*hidden[\s\S]*text-overflow:\s*ellipsis/, "resource context version must truncate inside the pill when the viewport is narrow");
+assert.match(shellStylesSource, /\.map-toolbar\s*\{[^}]*display:\s*flex;[^}]*align-items:\s*center;/, "resource toolbar must preserve its single-row button layout");
+assert.match(mapStylesSource, /\.map-resource-context\s*\{[\s\S]*flex:\s*1 1 340px[\s\S]*max-width:\s*min\(340px, calc\(100vw - 168px\)\)[\s\S]*min-height:\s*30px[\s\S]*overflow:\s*hidden/, "resource context must reserve a complete-label width while remaining inside the viewport");
+assert.match(mapStylesSource, /\.map-resource-context-version\s*\{[\s\S]*overflow-wrap:\s*anywhere[\s\S]*white-space:\s*normal/, "resource context version must wrap instead of truncating when the viewport is narrow");
 assert.match(runtimeSource, /const MAP_RESOURCE_LAND_ALPHA = 255;/, "resource maps must draw land fully opaque");
 assert.match(functionSource(mapSource, "mapPixelAlpha"), /\["resource", "resourceSelection"\]\.includes\(state\.mapMode\)[\s\S]*stateLayer\.sea\[stateIndex\] \? MAP_SEA_ALPHA : MAP_RESOURCE_LAND_ALPHA/, "resource maps must use opaque land and transparent sea");
 assert.match(functionSource(mapSource, "paintMapCanvasTarget"), /context\.fillStyle = "#d7c2a4";/, "resource maps must retain the paper-toned canvas base");
 assert.match(functionSource(mapSource, "paintMapCanvasTarget"), /if \(mapRuntime\.paperMapImage\) \{/, "resource maps must draw the paper background for sea areas");
 assert.doesNotMatch(mapSource, /function resourceMapUsesSolidBase\(/, "resource maps must not suppress the paper background");
-assert.match(indexSource, /styles\.css\?v=20260731-resource-context-overflow1/, "main entry must invalidate changed map styles");
-assert.match(stylesEntrySource, /@import url\("styles\/map\.css\?v=20260731-resource-context-overflow1"\);/, "style entry must invalidate the changed map stylesheet");
+assert.match(indexSource, /styles\.css\?v=20260731-resource-context-full-label1/, "main entry must invalidate changed map styles");
+assert.match(stylesEntrySource, /@import url\("styles\/map\.css\?v=20260731-resource-context-full-label1"\);/, "style entry must invalidate the changed map stylesheet");
 assert.match(indexSource, /app\/runtime\.js\?v=20260731-resource-map-paper-sea1/, "main entry must invalidate the changed map runtime");
-assert.match(indexSource, /app\/map\.js\?v=20260731-vc-library-label1/, "main entry must invalidate the changed map script");
+assert.match(indexSource, /app\/map\.js\?v=20260731-resource-context-full-label1/, "main entry must invalidate the changed map script");
 
 console.log(JSON.stringify({ resource_map_colors: "ok", resources: resourceKeys.size }, null, 2));
 
