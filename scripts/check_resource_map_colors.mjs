@@ -88,9 +88,9 @@ assert.match(runtimeSource, /const MAP_RESOURCE_LAND_ALPHA = 255;/, "resource ma
 assert.match(functionSource(mapSource, "mapPixelAlpha"), /\["resource", "resourceSelection"\]\.includes\(state\.mapMode\)[\s\S]*stateLayer\.sea\[stateIndex\] \? MAP_SEA_ALPHA : MAP_RESOURCE_LAND_ALPHA/, "resource maps must use opaque land and transparent sea");
 assert.match(functionSource(mapSource, "paintMapCanvasTarget"), /resourceMapUsesSolidBase\(\)[\s\S]*MAP_SEA_COLOR/, "resource maps must paint a sea-blue base");
 assert.match(functionSource(mapSource, "paintMapCanvasTarget"), /if \(mapRuntime\.paperMapImage && !resourceMapUsesSolidBase\(\)\)/, "resource maps must skip the paper background");
-assert.match(indexSource, /styles\.css\?v=20260731-resource-map-context1/, "main entry must invalidate changed map styles");
-assert.match(stylesEntrySource, /@import url\("styles\/map\.css\?v=20260731-resource-map-context1"\);/, "style entry must invalidate the changed map stylesheet");
-assert.match(indexSource, /app\/map\.js\?v=20260731-resource-map-natural-colors1/, "main entry must invalidate the changed map script");
+assert.match(indexSource, /styles\.css\?v=20260731-resource-map-solid-linear1/, "main entry must invalidate changed map styles");
+assert.match(stylesEntrySource, /@import url\("styles\/map\.css\?v=20260731-resource-map-solid-linear1"\);/, "style entry must invalidate the changed map stylesheet");
+assert.match(indexSource, /app\/map\.js\?v=20260731-resource-map-solid-linear1/, "main entry must invalidate the changed map script");
 
 console.log(JSON.stringify({ resource_map_colors: "ok", resources: resourceKeys.size }, null, 2));
 

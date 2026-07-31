@@ -89,7 +89,7 @@ function checkRegionMapFocusResetContracts() {
 
 function checkRegionMapCacheVersionContracts() {
   assert(/app\/ui\.js\?v=20260730-culture-mobile1/.test(indexSource), "region map UI script should use the current release cache version");
-  assert(/app\/map\.js\?v=20260731-resource-map-natural-colors1/.test(indexSource), "region map script should use the current release cache version");
+  assert(/app\/map\.js\?v=20260731-resource-map-solid-linear1/.test(indexSource), "region map script should use the current release cache version");
   assert(/app\/presentation\.js\?v=20260730-culture-mobile2/.test(indexSource), "fast region selection should use the current presentation cache version");
 }
 

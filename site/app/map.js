@@ -734,21 +734,19 @@ function hasCountryMapFilterSelection() {
   );
 }
 
-const RESOURCE_MAP_NEUTRAL_COLOR = "#f6d89a";
-const RESOURCE_MAP_DEFAULT_COLOR = "#9b4a2f";
-const RESOURCE_MAP_COLOR_BY_KEY = new Map([
-  ["building_coal_mine", "#596166"],
-  ["building_iron_mine", "#557b91"],
-  ["building_lead_mine", "#727884"],
-  ["building_sulfur_mine", "#c69b26"],
-  ["building_gold_mine", "#c9a34f"],
-  ["building_fishing_wharf", "#3d8293"],
-  ["building_whaling_station", "#42667b"],
-  ["building_logging_camp", "#5e8750"],
-  ["building_rubber_plantation", "#657b3a"],
-  ["building_oil_rig", "#47495d"],
-]);
+const RESOURCE_MAP_EMPTY_LAND_COLOR = "#e9edeb";
+const RESOURCE_MAP_COMBINED_GRADIENT = { low: "#c9d6de", high: "#58788a" };
 const RESOURCE_MAP_GRADIENT_BY_KEY = new Map([
+  ["building_coal_mine", { low: "#c6ced1", high: "#596166" }],
+  ["building_iron_mine", { low: "#cde0eb", high: "#557b91" }],
+  ["building_lead_mine", { low: "#d3d7df", high: "#727884" }],
+  ["building_sulfur_mine", { low: "#f0e4ac", high: "#c69b26" }],
+  ["building_gold_mine", { low: "#f2dfaa", high: "#c9a34f" }],
+  ["building_fishing_wharf", { low: "#b8dce1", high: "#3d8293" }],
+  ["building_whaling_station", { low: "#c0d1dc", high: "#42667b" }],
+  ["building_logging_camp", { low: "#c9dbbd", high: "#5e8750" }],
+  ["building_rubber_plantation", { low: "#ced7ab", high: "#657b3a" }],
+  ["building_oil_rig", { low: "#c5c7d2", high: "#47495d" }],
   ["building_wheat_farm", { low: "#f0dea8", high: "#c69b32" }],
   ["building_rye_farm", { low: "#e0ca98", high: "#8d713d" }],
   ["building_rice_farm", { low: "#cce7c7", high: "#4f9b72" }],
@@ -775,19 +773,15 @@ function resolveResourceMapColorKey(resourceKey) {
 }
 
 function resourceMapColor(resourceKey) {
-  return RESOURCE_MAP_COLOR_BY_KEY.get(resolveResourceMapColorKey(resourceKey)) || RESOURCE_MAP_DEFAULT_COLOR;
+  return resourceMapGradient(resourceKey).high;
 }
 
 function resourceMapGradient(resourceKey) {
-  const resolvedKey = resolveResourceMapColorKey(resourceKey);
-  return RESOURCE_MAP_GRADIENT_BY_KEY.get(resolvedKey) || {
-    low: RESOURCE_MAP_NEUTRAL_COLOR,
-    high: resourceMapColor(resolvedKey),
-  };
+  return RESOURCE_MAP_GRADIENT_BY_KEY.get(resolveResourceMapColorKey(resourceKey)) || RESOURCE_MAP_COMBINED_GRADIENT;
 }
 
 function resourceMapGradientColor(resourceKey, value, maxValue) {
-  const ratio = Math.sqrt(Number(value || 0) / Math.max(Number(maxValue || 0), 1));
+  const ratio = Number(value || 0) / Math.max(Number(maxValue || 0), 1);
   const gradient = resourceMapGradient(resourceKey);
   return interpolateColor(gradient.low, gradient.high, ratio);
 }
@@ -799,6 +793,7 @@ function buildSelectedResourceMapFeatures() {
   const selectedResourceKey = selectedFilters.length === 1
     ? (selectedFilters[0].resources || selectedFilters[0].arableResources || [])[0] || selectedFilters[0].key
     : "";
+  const colorResourceKey = selectedFilters.length === 1 ? selectedResourceKey : "";
   const values = new Map();
   let maxValue = 0;
   for (const stateRegion of stateRegions) {
@@ -823,8 +818,8 @@ function buildSelectedResourceMapFeatures() {
     const color = isSea
       ? MAP_SEA_COLOR
       : valueInfo.total > 0
-        ? resourceMapGradientColor(selectedResourceKey, valueInfo.total, maxValue)
-        : "#eee9df";
+        ? resourceMapGradientColor(colorResourceKey, valueInfo.total, maxValue)
+        : RESOURCE_MAP_EMPTY_LAND_COLOR;
     features.set(stateRegion.key, {
       color: mapFeatureColor(stateRegion, color),
       active: valueInfo.total > 0,
@@ -887,7 +882,7 @@ function buildResourceMapFeatures() {
       ? MAP_SEA_COLOR
       : valueInfo.value > 0
         ? resourceMapGradientColor(subject, valueInfo.value, maxValue)
-        : "#eee9df";
+        : RESOURCE_MAP_EMPTY_LAND_COLOR;
     features.set(stateRegion.key, {
       color: mapFeatureColor(stateRegion, color),
       active: valueInfo.value > 0,
@@ -982,11 +977,12 @@ function drawMapLayer(features) {
 }
 
 function mapPixelAlpha(stateIndex, stateLayer) {
+  if (["resource", "resourceSelection"].includes(state.mapMode)) {
+    return stateLayer.sea[stateIndex] ? MAP_SEA_ALPHA : MAP_RESOURCE_LAND_ALPHA;
+  }
   if (stateLayer.sea[stateIndex]) return MAP_SEA_ALPHA;
   if (!stateLayer.visible[stateIndex]) return MAP_MUTED_ALPHA;
-  return ["resource", "resourceSelection"].includes(state.mapMode)
-    ? MAP_RESOURCE_LAND_ALPHA
-    : MAP_LAND_ALPHA;
+  return MAP_LAND_ALPHA;
 }
 
 function buildStateLayerColors(features) {
@@ -1141,6 +1137,10 @@ function addCompanyAssociationBorders(data, stateIndexes, features, width, heigh
   }
 }
 
+function resourceMapUsesSolidBase() {
+  return ["resource", "resourceSelection"].includes(state.mapMode);
+}
+
 function paintMapCanvasTarget(canvas, viewport, transform, drawLabels = false) {
   if (!mapRuntime.layerCanvas || !canvas || !viewport || !transform) return;
   const rect = viewport.getBoundingClientRect();
@@ -1155,7 +1155,7 @@ function paintMapCanvasTarget(canvas, viewport, transform, drawLabels = false) {
   const context = canvas.getContext("2d");
   context.setTransform(1, 0, 0, 1, 0, 0);
   context.clearRect(0, 0, width, height);
-  context.fillStyle = "#d7c2a4";
+  context.fillStyle = resourceMapUsesSolidBase() ? MAP_SEA_COLOR : "#d7c2a4";
   context.fillRect(0, 0, width, height);
   context.setTransform(
     transform.scale * ratio,
@@ -1168,7 +1168,7 @@ function paintMapCanvasTarget(canvas, viewport, transform, drawLabels = false) {
   context.imageSmoothingEnabled = false;
   const copyRange = visibleMapCopyRange(rect.width, transform);
   for (let copy = copyRange.start; copy <= copyRange.end; copy += 1) {
-    if (mapRuntime.paperMapImage) {
+    if (mapRuntime.paperMapImage && !resourceMapUsesSolidBase()) {
       context.drawImage(mapRuntime.paperMapImage, copy * mapRuntime.width, 0, mapRuntime.width, mapRuntime.height);
     }
     context.drawImage(mapRuntime.layerCanvas, copy * mapRuntime.width, 0);
