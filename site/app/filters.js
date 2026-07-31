@@ -228,14 +228,14 @@ function stateRegionResourceKeys(stateRegion) {
 }
 
 function sortCountries(a, b) {
-  if (state.sort === "name") return a.name.localeCompare(b.name, "zh-Hans-CN") || a.tag.localeCompare(b.tag);
+  if (state.sort === "name") return localizedCompare(entityText(a), entityText(b)) || a.tag.localeCompare(b.tag);
   if (state.sort === "tier") return Number(b.tierPrestige || 0) - Number(a.tierPrestige || 0) || a.tag.localeCompare(b.tag);
   if (state.sort === "states") return b.startingStateCount - a.startingStateCount || a.tag.localeCompare(b.tag);
   return a.tag.localeCompare(b.tag);
 }
 
 function sortCultures(a, b) {
-  if (state.sort === "name") return a.name_zh.localeCompare(b.name_zh, "zh-Hans-CN") || a.key.localeCompare(b.key);
+  if (state.sort === "name") return localizedCompare(entityText(a), entityText(b)) || a.key.localeCompare(b.key);
   if (state.sort === "homelands") return (b.homeland_state_regions || []).length - (a.homeland_state_regions || []).length || a.key.localeCompare(b.key);
   return a.key.localeCompare(b.key);
 }

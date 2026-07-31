@@ -12,7 +12,7 @@ function countryTagPills(country) {
     victorianCenturyBadge(country),
     statusPills(country),
     tagPill(countryTypeTagLabel(country), "tag-type", "", `country-type:${countryTypeTagLabel(country)}`),
-    tagPill(country.tierZh, "tag-tier", "", `country-tier:${country.tierZh || ""}`),
+    tagPill(countryTierLabel(country.tier), "tag-tier", "", `country-tier:${country.tier || ""}`),
     groupedTraitPills(country.primaryCultureHeritageGroups, country.primaryCultureHeritages, "tag-heritage-group", "tag-heritage"),
     groupedTraitPills(country.primaryCultureLanguageGroups, country.primaryCultureLanguages, "tag-language-group", "tag-language"),
     refPills(country.primaryCultureTraditions, "tag-tradition"),
@@ -353,7 +353,7 @@ function isVictorianCenturyEntry(item) {
 }
 
 function countryTypeTagLabel(country) {
-  return countryTypeTagLabels[country.countryType] || country.countryTypeZh || country.countryType || "";
+  return t(`enum.countryType.${country?.countryType}`) || countryTypeTagLabels[country?.countryType] || country?.countryTypeZh || country?.countryType || "";
 }
 
 function field(label, value) {
@@ -2047,7 +2047,7 @@ function countryNameText(country) {
   const suffix = variants.length
     ? `<span class="name-variants">（${escapeHtml(variants.join("/"))}）</span>`
     : "";
-  return `${escapeHtml(country.name)}${suffix}`;
+  return `${escapeHtml(entityText(country) || country.name || country.tag || "")}${suffix}`;
 }
 
 function stateRegionNameText(stateRegion) {
@@ -2060,9 +2060,9 @@ function stateRegionNameText(stateRegion) {
 
 function countryVariantNames(country) {
   const names = [];
-  const seen = new Set([country.name]);
+  const seen = new Set([entityText(country) || country.name || country.tag || ""]);
   for (const variant of country.dynamicNameVariants || []) {
-    const name = variant.name_zh || variant.name_key || "";
+    const name = entityText(variant) || variant.name_key || "";
     if (!name || seen.has(name)) continue;
     seen.add(name);
     names.push(name);
@@ -2087,7 +2087,7 @@ function visibleDynamicStateNameVariants(stateRegion) {
 }
 
 function countryCapitalText(country) {
-  const capital = country.capitalZh || country.capital || "无";
+  const capital = entityText(byStateRegion.get(country.capital), "name", country.capital) || country.capital || "无";
   const stateRegion = byStateRegion.get(country.capital);
   const strategicRegionNames = (stateRegion?.strategic_regions || [])
     .map((region) => `${strategicRegionName(byStrategicRegion.get(region.key) || region)}战略区域`);
@@ -2108,8 +2108,8 @@ function refName(item) {
   if (!item) return "";
   if (item.tag) return countryRefLabel(item);
   if (item.key && byStrategicRegion.has(item.key)) return strategicRegionName(byStrategicRegion.get(item.key));
-  if (item.key && byStateRegion.has(item.key)) return byStateRegion.get(item.key)?.name_zh || item.key;
-  return item.name_zh || item.key || item.tag || "";
+  if (item.key && byStateRegion.has(item.key)) return entityText(byStateRegion.get(item.key)) || item.key;
+  return entityText(item) || item.name_zh || item.key || item.tag || "";
 }
 
 function countryNameWithTag(tag) {
@@ -2126,7 +2126,7 @@ function countryRefLabel(item) {
   const tag = item.tag || item.key || "";
   if (!tag) return "";
   const country = byTag.get(tag);
-  const name = item.name_zh || item.name || country?.name || country?.name_zh || tag;
+  const name = entityText(item) || entityText(country) || item.name || country?.name || tag;
   return `${name}(${tag})`;
 }
 

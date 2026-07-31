@@ -31,34 +31,37 @@ function renderCountryList(filtered) {
   els.countryList.className = "country-list";
   els.countryList.innerHTML = filtered.map((country) => `
     <article class="country-row selectable-row" data-country="${country.tag}" style="${countryBorderStyle(country.colorHex)}" aria-current="${country.tag === state.selectedTag && state.detailKind === "country"}" tabindex="0">
-      ${renderEntityBadge("country", country, country.name)}
+      ${renderEntityBadge("country", country, entityText(country))}
       <span class="country-heading">
-        ${conceptTag(country.tag, "country", country.tag, country.name)}
+        ${conceptTag(country.tag, "country", country.tag, entityText(country))}
         <span class="name">${countryNameText(country)}</span>
         ${rowDetailButton("data-country-detail", country.tag)}
       </span>
       <span class="minor country-meta">${countryCapitalText(country)}</span>
-      <span class="minor country-meta">主流文化：${escapeHtml((country.primaryCulturesZh || []).join("、") || "无")}</span>
+      <span class="minor country-meta">${t("board.country.primaryCulture", "主流文化")}：${(country.primaryCultures || []).map((cultureRef) => entityText(byCulture.get(cultureRef.key) || cultureRef)).filter(Boolean).join("、") || t("board.country.none", "无")}</span>
       <span class="pill-line country-tags">${countryTagPills(country)}</span>
     </article>
   `).join("");
 }
+function countryMobileFilterCategories() {
+  return [
+    { key: "type", label: t("board.country.filter.type", "类型") },
+    { key: "tier", label: t("board.country.filter.tier", "位阶") },
+    { key: "strategicRegion", label: t("board.country.filter.strategicRegion", "战略区域") },
+    { key: "heritage", label: t("board.country.filter.heritage", "传承") },
+    { key: "language", label: t("board.country.filter.language", "语言") },
+    { key: "tradition", label: t("board.country.filter.tradition", "传统") },
+  ];
+}
 
-const countryMobileFilterCategories = [
-  { key: "type", label: "类型" },
-  { key: "tier", label: "位阶" },
-  { key: "strategicRegion", label: "战略区域" },
-  { key: "heritage", label: "传承" },
-  { key: "language", label: "语言" },
-  { key: "tradition", label: "传统" },
-];
-
-const cultureMobileFilterCategories = [
-  { key: "heritage", label: "传承" },
-  { key: "language", label: "语言" },
-  { key: "tradition", label: "传统" },
-  { key: "strategicRegion", label: "本土战略区域" },
-];
+function cultureMobileFilterCategories() {
+  return [
+    { key: "heritage", label: t("board.culture.filter.heritage", "传承") },
+    { key: "language", label: t("board.culture.filter.language", "语言") },
+    { key: "tradition", label: t("board.culture.filter.tradition", "传统") },
+    { key: "strategicRegion", label: t("board.culture.filter.strategicRegion", "本土战略区域") },
+  ];
+}
 
 function renderMobileCultureControls() {
   if (!els.mobileCultureToolbar || !els.mobileCultureFilterPanel) return;
@@ -69,18 +72,18 @@ function renderMobileCultureControls() {
   const chips = renderMobileCultureFilterChips();
   els.mobileCultureToolbar.innerHTML = `
     <div class="mobile-culture-toolbar-row">
-      <label class="mobile-culture-search-input" aria-label="文化搜索与筛选条件">
+      <label class="mobile-culture-search-input" aria-label="${escapeHtml(t("board.culture.searchAria", "文化搜索与筛选条件"))}">
         ${chips}
-        <input id="mobileCultureSearchInput" data-mobile-culture-search type="search" autocomplete="off" placeholder="搜索文化、传承、语言或传统" value="${escapeHtml(state.cultureMobileSearchDraft)}">
+        <input id="mobileCultureSearchInput" data-mobile-culture-search type="search" autocomplete="off" placeholder="${escapeHtml(t("board.culture.searchPlaceholder", "搜索文化、传承、语言或传统"))}" value="${escapeHtml(state.cultureMobileSearchDraft)}">
       </label>
-      <button class="mobile-culture-tool-button" type="button" data-mobile-culture-search-submit aria-label="执行搜索" title="执行搜索"><img class="lucide-icon" src="assets/lucide/icons/search.svg" alt="" aria-hidden="true"></button>
-      <button class="mobile-culture-tool-button" type="button" data-mobile-culture-filter-toggle aria-expanded="${String(state.cultureMobileFiltersOpen)}" aria-label="${state.cultureMobileFiltersOpen ? "收起筛选" : "展开筛选"}" title="${state.cultureMobileFiltersOpen ? "收起筛选" : "展开筛选"}"><img class="lucide-icon" src="assets/lucide/icons/sliders-horizontal.svg" alt="" aria-hidden="true"></button>
-      <button class="mobile-culture-tool-button" type="button" data-mobile-culture-map-toggle aria-pressed="${String(state.cultureMobileMapOpen)}" aria-label="${state.cultureMobileMapOpen ? "收起地图" : "展开地图"}" title="${state.cultureMobileMapOpen ? "收起地图" : "展开地图"}"><img class="lucide-icon" src="assets/lucide/icons/map.svg" alt="" aria-hidden="true"></button>
+      <button class="mobile-culture-tool-button" type="button" data-mobile-culture-search-submit aria-label="${escapeHtml(t("board.culture.search", "搜索"))}" title="${escapeHtml(t("board.culture.search", "搜索"))}"><img class="lucide-icon" src="assets/lucide/icons/search.svg" alt="" aria-hidden="true"></button>
+      <button class="mobile-culture-tool-button" type="button" data-mobile-culture-filter-toggle aria-expanded="${String(state.cultureMobileFiltersOpen)}" aria-label="${escapeHtml(state.cultureMobileFiltersOpen ? t("board.culture.collapseFilters", "收起筛选") : t("board.culture.expandFilters", "展开筛选"))}" title="${escapeHtml(state.cultureMobileFiltersOpen ? t("board.culture.collapseFilters", "收起筛选") : t("board.culture.expandFilters", "展开筛选"))}"><img class="lucide-icon" src="assets/lucide/icons/sliders-horizontal.svg" alt="" aria-hidden="true"></button>
+      <button class="mobile-culture-tool-button" type="button" data-mobile-culture-map-toggle aria-pressed="${String(state.cultureMobileMapOpen)}" aria-label="${escapeHtml(state.cultureMobileMapOpen ? t("board.culture.collapseMap", "收起地图") : t("board.culture.expandMap", "展开地图"))}" title="${escapeHtml(state.cultureMobileMapOpen ? t("board.culture.collapseMap", "收起地图") : t("board.culture.expandMap", "展开地图"))}"><img class="lucide-icon" src="assets/lucide/icons/map.svg" alt="" aria-hidden="true"></button>
     </div>
   `;
   els.mobileCultureFilterPanel.innerHTML = state.cultureMobileFiltersOpen ? `
-    <div class="mobile-culture-filter-categories" role="tablist" aria-label="文化筛选分类">
-      ${cultureMobileFilterCategories.map((category) => `<button class="mobile-culture-filter-category" type="button" data-mobile-culture-filter-category="${category.key}" aria-selected="${String(state.cultureMobileFilterCategory === category.key)}">${category.label}</button>`).join("")}
+    <div class="mobile-culture-filter-categories" role="tablist" aria-label="${escapeHtml(t("board.culture.filterCategories", "文化筛选分类"))}">
+      ${cultureMobileFilterCategories().map((category) => `<button class="mobile-culture-filter-category" type="button" data-mobile-culture-filter-category="${category.key}" aria-selected="${String(state.cultureMobileFilterCategory === category.key)}">${escapeHtml(category.label)}</button>`).join("")}
     </div>
     ${renderMobileCultureFilterOptions()}
   ` : "";
@@ -92,7 +95,7 @@ function renderMobileCultureFilterChips() {
   return selected.map((item) => `
     <span class="mobile-culture-filter-chip" data-mobile-culture-filter-chip="${escapeHtml(item.category)}">
       <span>${escapeHtml(duplicates.has(item.label) ? `${item.label}（${item.categoryLabel}）` : item.label)}</span>
-      <button type="button" data-mobile-culture-filter-clear="${escapeHtml(item.category)}" aria-label="删除${escapeHtml(item.label)}">×</button>
+      <button type="button" data-mobile-culture-filter-clear="${escapeHtml(item.category)}" aria-label="${escapeHtml(t("board.culture.removeFilter", "删除 {value}").replace("{value}", item.label))}">×</button>
     </span>
   `).join("");
 }
@@ -121,23 +124,23 @@ function renderMobileCultureFilterOptions() {
     const expanded = state.cultureMobileExpandedStrategicRegionContinent;
     const options = regions.filter((region) => strategicRegionContinentByKey.get(region.key) === expanded);
     return `
-      <div class="mobile-culture-filter-options" aria-label="本土战略区域洲别">
+      <div class="mobile-culture-filter-options" aria-label="${escapeHtml(t("board.culture.strategicRegionGroups", "本土战略区域洲别"))}">
         ${groups.map((group) => `<button class="mobile-culture-filter-option" type="button" data-mobile-culture-expand-strategic-region-continent="${escapeHtml(group.key)}" aria-pressed="${String(expanded === group.key)}">${escapeHtml(group.name)}</button>`).join("")}
       </div>
-      ${expanded ? `<div class="mobile-culture-filter-layer-divider"></div><div class="mobile-culture-filter-options" aria-label="本土战略区域选项">${renderCultureMobileActualOption(category, "", "不限")}${options.map((item) => renderCultureMobileActualOption(category, item.key, strategicRegionName(item))).join("")}</div>` : ""}
+      ${expanded ? `<div class="mobile-culture-filter-layer-divider"></div><div class="mobile-culture-filter-options" aria-label="${escapeHtml(t("board.culture.strategicRegionOptions", "本土战略区域选项"))}">${renderCultureMobileActualOption(category, "", t("board.culture.any", "不限"))}${options.map((item) => renderCultureMobileActualOption(category, item.key, strategicRegionName(item))).join("")}</div>` : ""}
     `;
   }
   const traditions = mobileCultureRefs((culture) => culture.traditions || [], sortRefByName);
-  return `<div class="mobile-culture-filter-options" aria-label="传统筛选选项">${renderCultureMobileActualOption(category, "", "不限")}${traditions.map((item) => renderCultureMobileActualOption(category, item.key, item.name_zh || item.key)).join("")}</div>`;
+  return `<div class="mobile-culture-filter-options" aria-label="${escapeHtml(t("board.culture.traditionOptions", "传统筛选选项"))}">${renderCultureMobileActualOption(category, "", t("board.culture.any", "不限"))}${traditions.map((item) => renderCultureMobileActualOption(category, item.key, entityText(item) || item.key)).join("")}</div>`;
 }
 
 function renderCultureMobileGroupedOptions({ groupAttribute, expandedGroup, groups, traits, category }) {
   const options = traits.filter((trait) => trait.group_key === expandedGroup);
   return `
     <div class="mobile-culture-filter-options" aria-label="${escapeHtml(cultureMobileFilterCategoryLabel())}组">
-      ${groups.map((group) => `<button class="mobile-culture-filter-option" type="button" ${groupAttribute}="${escapeHtml(group.key)}" aria-pressed="${String(group.key === expandedGroup)}">${escapeHtml(group.name_zh || group.key)}</button>`).join("")}
+      ${groups.map((group) => `<button class="mobile-culture-filter-option" type="button" ${groupAttribute}="${escapeHtml(group.key)}" aria-pressed="${String(group.key === expandedGroup)}">${escapeHtml(entityText(group) || group.key)}</button>`).join("")}
     </div>
-    ${expandedGroup ? `<div class="mobile-culture-filter-layer-divider"></div><div class="mobile-culture-filter-options" aria-label="${escapeHtml(cultureMobileFilterCategoryLabel())}选项">${renderCultureMobileActualOption(category, "", "不限")}${options.map((item) => renderCultureMobileActualOption(category, item.key, item.name_zh || item.key)).join("")}</div>` : ""}
+    ${expandedGroup ? `<div class="mobile-culture-filter-layer-divider"></div><div class="mobile-culture-filter-options" aria-label="${escapeHtml(cultureMobileFilterCategoryLabel())}选项">${renderCultureMobileActualOption(category, "", t("board.culture.any", "不限"))}${options.map((item) => renderCultureMobileActualOption(category, item.key, entityText(item) || item.key)).join("")}</div>` : ""}
   `;
 }
 
@@ -155,7 +158,7 @@ function renderCultureMobileActualOption(category, value, label) {
 }
 
 function cultureMobileFilterCategoryLabel() {
-  return cultureMobileFilterCategories.find((category) => category.key === state.cultureMobileFilterCategory)?.label || "传承";
+  return cultureMobileFilterCategories().find((category) => category.key === state.cultureMobileFilterCategory)?.label || t("board.culture.filter.heritage", "传承");
 }
 
 function mobileCultureSelectedFilters() {
@@ -183,7 +186,7 @@ function mobileCultureRefName(field, key) {
   for (const culture of cultures) {
     const values = Array.isArray(culture[field]) ? culture[field] : [culture[field]];
     const match = values.find((item) => item?.key === key);
-    if (match) return match.name_zh || match.key;
+    if (match) return entityText(match) || match.key;
   }
   return key;
 }
@@ -204,16 +207,16 @@ function renderMobileCountryControls() {
     <div class="mobile-country-toolbar-row">
       <label class="mobile-country-search-input" aria-label="国家搜索与筛选条件">
         ${chips}
-        <input id="mobileCountrySearchInput" data-mobile-country-search type="search" autocomplete="off" placeholder="搜索国家、文化或标签" value="${escapeHtml(state.countryMobileSearchDraft)}">
+        <input id="mobileCountrySearchInput" data-mobile-country-search type="search" autocomplete="off" placeholder="${escapeHtml(t("board.country.searchPlaceholder", "搜索国家、文化或标签"))}" value="${escapeHtml(state.countryMobileSearchDraft)}">
       </label>
       <button class="mobile-country-tool-button" type="button" data-mobile-country-search-submit aria-label="执行搜索" title="执行搜索"><img class="lucide-icon" src="assets/lucide/icons/search.svg" alt="" aria-hidden="true"></button>
-      <button class="mobile-country-tool-button" type="button" data-mobile-country-filter-toggle aria-expanded="${String(state.countryMobileFiltersOpen)}" aria-label="${state.countryMobileFiltersOpen ? "收起筛选" : "展开筛选"}" title="${state.countryMobileFiltersOpen ? "收起筛选" : "展开筛选"}"><img class="lucide-icon" src="assets/lucide/icons/sliders-horizontal.svg" alt="" aria-hidden="true"></button>
-      <button class="mobile-country-tool-button" type="button" data-mobile-country-map-toggle aria-pressed="${String(state.countryMobileMapOpen)}" aria-label="${state.countryMobileMapOpen ? "收起地图" : "展开地图"}" title="${state.countryMobileMapOpen ? "收起地图" : "展开地图"}"><img class="lucide-icon" src="assets/lucide/icons/map.svg" alt="" aria-hidden="true"></button>
+      <button class="mobile-country-tool-button" type="button" data-mobile-country-filter-toggle aria-expanded="${String(state.countryMobileFiltersOpen)}" aria-label="${escapeHtml(state.countryMobileFiltersOpen ? t("board.country.collapseFilters", "收起筛选") : t("board.country.expandFilters", "展开筛选"))}" title="${escapeHtml(state.countryMobileFiltersOpen ? t("board.country.collapseFilters", "收起筛选") : t("board.country.expandFilters", "展开筛选"))}"><img class="lucide-icon" src="assets/lucide/icons/sliders-horizontal.svg" alt="" aria-hidden="true"></button>
+      <button class="mobile-country-tool-button" type="button" data-mobile-country-map-toggle aria-pressed="${String(state.countryMobileMapOpen)}" aria-label="${escapeHtml(state.countryMobileMapOpen ? t("board.country.collapseMap", "收起地图") : t("board.country.expandMap", "展开地图"))}" title="${escapeHtml(state.countryMobileMapOpen ? t("board.country.collapseMap", "收起地图") : t("board.country.expandMap", "展开地图"))}"><img class="lucide-icon" src="assets/lucide/icons/map.svg" alt="" aria-hidden="true"></button>
     </div>
   `;
   els.mobileCountryFilterPanel.innerHTML = state.countryMobileFiltersOpen ? `
-    <div class="mobile-country-filter-categories" role="tablist" aria-label="国家筛选分类">
-      ${countryMobileFilterCategories.map((category) => `<button class="mobile-country-filter-category" type="button" data-mobile-country-filter-category="${category.key}" aria-selected="${String(state.countryMobileFilterCategory === category.key)}">${category.label}</button>`).join("")}
+    <div class="mobile-country-filter-categories" role="tablist" aria-label="${escapeHtml(t("board.country.filterCategories", "国家筛选分类"))}">
+      ${countryMobileFilterCategories().map((category) => `<button class="mobile-country-filter-category" type="button" data-mobile-country-filter-category="${category.key}" aria-selected="${String(state.countryMobileFilterCategory === category.key)}">${escapeHtml(category.label)}</button>`).join("")}
     </div>
     <div class="mobile-country-filter-options" aria-label="${escapeHtml(countryMobileFilterCategoryLabel())}筛选选项">
       ${mobileCountryFilterOptions().map((option) => `<button class="mobile-country-filter-option" type="button" data-mobile-country-filter-option="${escapeHtml(option.value)}" aria-pressed="${String(option.selected)}">${escapeHtml(option.label)}</button>`).join("")}
@@ -227,7 +230,7 @@ function renderMobileCountryFilterChips() {
   return selected.map((item) => `
     <span class="mobile-country-filter-chip" data-mobile-country-filter-chip="${escapeHtml(item.category)}">
       <span>${escapeHtml(duplicatedLabels.has(item.label) ? `${item.label}（${item.categoryLabel}）` : item.label)}</span>
-      <button type="button" data-mobile-country-filter-clear="${escapeHtml(item.category)}" aria-label="删除${escapeHtml(item.label)}">×</button>
+      <button type="button" data-mobile-country-filter-clear="${escapeHtml(item.category)}" aria-label="${escapeHtml(t("board.country.removeFilter", "删除 {value}").replace("{value}", item.label))}">×</button>
     </span>
   `).join("");
 }
@@ -238,37 +241,36 @@ function mobileCountrySelectedFilters() {
     if (value) items.push({ category, categoryLabel, label, value });
   };
   const flagLabels = {
-    existsAtStart: "开局存在",
-    isReleasable: "可释放",
-    isMinorFormable: "次要统一",
-    isMajorFormable: "重大统一",
-    isDualHeritage: "双传承",
-    isSpecial: "彩蛋",
-    isCivilWar: "内战国家",
+    existsAtStart: t("board.country.filter.type.existsAtStart", "开局存在"),
+    isReleasable: t("board.country.filter.type.isReleasable", "可释放"),
+    isMinorFormable: t("board.country.filter.type.isMinorFormable", "次要统一"),
+    isMajorFormable: t("board.country.filter.type.isMajorFormable", "重大统一"),
+    isDualHeritage: t("board.country.filter.type.isDualHeritage", "双传承"),
+    isSpecial: t("board.country.filter.type.isSpecial", "彩蛋"),
+    isCivilWar: t("board.country.filter.type.isCivilWar", "内战国家"),
   };
-  add("type", "类型", flagLabels[[...state.flags][0]] || "", [...state.flags][0] || "");
-  add("tier", "位阶", countryTierLabel([...state.tiers][0]), [...state.tiers][0] || "");
-  add("strategicRegion", "战略区域", strategicRegionName(byStrategicRegion.get([...state.strategicRegions][0])) || "", [...state.strategicRegions][0] || "");
-  add("heritage", "传承", mobileCountryCultureRefName("heritage", [...state.heritages][0]), [...state.heritages][0] || "");
-  add("language", "语言", mobileCountryCultureRefName("language", [...state.languages][0]), [...state.languages][0] || "");
-  add("tradition", "传统", mobileCountryCultureRefName("traditions", state.tradition), state.tradition);
+  add("type", t("board.country.filter.type", "类型"), flagLabels[[...state.flags][0]] || "", [...state.flags][0] || "");
+  add("tier", t("board.country.filter.tier", "位阶"), countryTierLabel([...state.tiers][0]), [...state.tiers][0] || "");
+  add("strategicRegion", t("board.country.filter.strategicRegion", "战略区域"), strategicRegionName(byStrategicRegion.get([...state.strategicRegions][0])) || "", [...state.strategicRegions][0] || "");
+  add("heritage", t("board.country.filter.heritage", "传承"), mobileCountryCultureRefName("heritage", [...state.heritages][0]), [...state.heritages][0] || "");
+  add("language", t("board.country.filter.language", "语言"), mobileCountryCultureRefName("language", [...state.languages][0]), [...state.languages][0] || "");
+  add("tradition", t("board.country.filter.tradition", "传统"), mobileCountryCultureRefName("traditions", state.tradition), state.tradition);
   return items;
 }
 
 function countryTierLabel(key) {
-  const country = countries.find((item) => item.tier === key);
-  return country?.tierZh || key || "";
+  return t(`enum.tier.${key}`) || key || "";
 }
 
 function countryMobileFilterCategoryLabel() {
-  return countryMobileFilterCategories.find((category) => category.key === state.countryMobileFilterCategory)?.label || "类型";
+  return countryMobileFilterCategories().find((category) => category.key === state.countryMobileFilterCategory)?.label || t("board.country.filter.type", "类型");
 }
 
 function mobileCountryFilterOptions() {
   const category = state.countryMobileFilterCategory;
   if (category === "type") {
     const flags = [
-      ["existsAtStart", "开局存在"], ["isReleasable", "可释放"], ["isMinorFormable", "次要统一"], ["isMajorFormable", "重大统一"], ["isDualHeritage", "双传承"], ["isSpecial", "彩蛋"], ["isCivilWar", "内战国家"],
+      ["existsAtStart", t("board.country.filter.type.existsAtStart", "开局存在")], ["isReleasable", t("board.country.filter.type.isReleasable", "可释放")], ["isMinorFormable", t("board.country.filter.type.isMinorFormable", "次要统一")], ["isMajorFormable", t("board.country.filter.type.isMajorFormable", "重大统一")], ["isDualHeritage", t("board.country.filter.type.isDualHeritage", "双传承")], ["isSpecial", t("board.country.filter.type.isSpecial", "彩蛋")], ["isCivilWar", t("board.country.filter.type.isCivilWar", "内战国家")],
     ];
     return flags.map(([value, label]) => ({ value, label, selected: state.flags.has(value) }));
   }
@@ -278,11 +280,11 @@ function mobileCountryFilterOptions() {
     .sort(sortStrategicRegionRef)
     .map((region) => ({ value: region.key, label: strategicRegionName(region), selected: state.strategicRegions.has(region.key) }));
   if (category === "heritage") return collectCultureRefs((culture) => culture.heritage, sortRefByName)
-    .map((item) => ({ value: item.key, label: item.name_zh || item.key, selected: state.heritages.has(item.key) }));
+    .map((item) => ({ value: item.key, label: entityText(item) || item.key, selected: state.heritages.has(item.key) }));
   if (category === "language") return collectCultureRefs((culture) => culture.language, sortRefByName)
-    .map((item) => ({ value: item.key, label: item.name_zh || item.key, selected: state.languages.has(item.key) }));
+    .map((item) => ({ value: item.key, label: entityText(item) || item.key, selected: state.languages.has(item.key) }));
   return collectCultureRefs((culture) => culture.traditions || [], sortRefByName)
-    .map((item) => ({ value: item.key, label: item.name_zh || item.key, selected: state.tradition === item.key }));
+    .map((item) => ({ value: item.key, label: entityText(item) || item.key, selected: state.tradition === item.key }));
 }
 
 function mobileCountryCultureRefName(field, key) {
@@ -290,7 +292,7 @@ function mobileCountryCultureRefName(field, key) {
   for (const culture of cultures) {
     const refs = Array.isArray(culture[field]) ? culture[field] : [culture[field]];
     const match = refs.find((item) => item?.key === key);
-    if (match) return match.name_zh || match.key;
+    if (match) return entityText(match) || match.key;
   }
   return key;
 }
@@ -436,13 +438,13 @@ function renderCultureList(filtered) {
   els.countryList.innerHTML = visible.map((culture) => `
     <article class="culture-row selectable-row" data-culture="${escapeHtml(culture.key)}" aria-current="${culture.key === state.selectedCulture && state.detailKind === "culture"}" tabindex="0">
       <span class="country-color" style="${colorStyle(culture.color?.hex)}" aria-hidden="true"></span>
-      ${conceptTag(culture.key, "culture", culture.key, culture.name_zh)}
+      ${conceptTag(culture.key, "culture", culture.key, entityText(culture))}
       <span>
-        <span class="name">${escapeHtml(culture.name_zh)}</span>
-        <span class="minor">${escapeHtml([culture.heritage?.name_zh, culture.language?.name_zh].filter(Boolean).join("、"))}</span>
+        <span class="name">${escapeHtml(entityText(culture))}</span>
+        <span class="minor">${escapeHtml([entityText(culture.heritage), entityText(culture.language)].filter(Boolean).join("?"))}</span>
       </span>
       ${rowDetailButton("data-culture-detail", culture.key)}
-      <span class="minor">${escapeHtml((culture.homeland_strategic_regions || []).map((region) => region.name_zh).join("、"))}</span>
+      <span class="minor">${escapeHtml((culture.homeland_strategic_regions || []).map((region) => entityText(region)).filter(Boolean).join("?"))}</span>
       <span class="pill-line">${traitList(culture.traditions)}${victorianCenturyBadge(culture)}</span>
     </article>
   `).join("");
@@ -465,7 +467,6 @@ function renderCultureList(filtered) {
     });
   });
 }
-
 function selectCultureCard(cultureKey) {
   if (!cultureKey || !byCulture.has(cultureKey)) return;
   state.selectedCulture = cultureKey;
@@ -947,76 +948,77 @@ function renderIdeologyDetail(ideology) {
 
 function renderCountryDetail(country) {
   if (!country) {
-    els.detail.innerHTML = `<p class="empty">没有匹配结果。</p>`;
+    els.detail.innerHTML = `<p class="empty">${t("board.country.empty", "没有匹配结果。")}</p>`;
     return;
   }
+  const primaryCultureNames = (country.primaryCultures || []).map((item) => entityText(byCulture.get(item.key) || item)).filter(Boolean);
+  const capitalName = country.capital ? entityText(byStateRegion.get(country.capital), "name", country.capital) || country.capital : "";
   els.detail.innerHTML = `
     <div class="detail-title">
       ${detailBackButton("country")}
       <div class="detail-title-main">
         ${countryFlagIconHtml(country, "country-flag-title") || `<span class="country-color large" style="${colorStyle(country.colorHex)}" aria-hidden="true"></span>`}
-        <h2>${escapeHtml(country.name)}</h2>
+        <h2>${escapeHtml(entityText(country) || country.name || country.tag || "")}</h2>
       </div>
-      ${conceptTag(country.tag, "country", country.tag, country.name)}
+      ${conceptTag(country.tag, "country", country.tag, entityText(country))}
       ${victorianCenturyBadge(country)}
     </div>
 
-    <h3>基础</h3>
+    <h3>${t("board.country.section.basic", "基础")}</h3>
     <dl class="field-grid">
-      ${field("国家类型", tagPill(countryTypeTagLabel(country), "tag-type"))}
-      ${field("国家位阶", tagPill(country.tierZh, "tag-tier"))}
-      ${field("标准色", colorValue(country.colorHex, country.colorRgb))}
-      ${field("部队颜色", unitColorText(country))}
-      ${field("主流文化", linkedTerms(country.primaryCultures, country.primaryCulturesZh, "culture"))}
-      ${field("所在战略区域", strategicRegionLinks(country.locationStrategicRegions))}
-      ${field("所在地域", stateRegionLinks(country.locationStateRegions))}
-      ${field("主流文化本土战略区域", strategicRegionLinks(country.primaryCultureHomelandStrategicRegions))}
-      ${field("传承", `<span class="grouped-trait-pills">${groupedTraitPills(country.primaryCultureHeritageGroups, country.primaryCultureHeritages, "tag-heritage-group", "tag-heritage")}</span>`)}
-      ${field("语言", `<span class="grouped-trait-pills">${groupedTraitPills(country.primaryCultureLanguageGroups, country.primaryCultureLanguages, "tag-language-group", "tag-language")}</span>`)}
-      ${field("传统", traitList(country.primaryCultureTraditions))}
-      ${field("宗教", linkedTerms([country.religion], [country.religionZh], "religion") + sourceSuffix(country.religionSource))}
-      ${field("首都", stateRegionLinks(country.capital ? [{ key: country.capital, name_zh: country.capitalZh }] : []))}
+      ${field(t("board.country.type", "国家类型"), tagPill(countryTypeTagLabel(country), "tag-type"))}
+      ${field(t("board.country.tier", "国家位阶"), tagPill(countryTierLabel(country.tier), "tag-tier"))}
+      ${field(t("board.country.standardColor", "标准色"), colorValue(country.colorHex, country.colorRgb))}
+      ${field(t("board.country.unitColor", "部队颜色"), unitColorText(country))}
+      ${field(t("board.country.primaryCulture", "主流文化"), linkedTerms(country.primaryCultures, primaryCultureNames, "culture"))}
+      ${field(t("board.country.locationStrategicRegions", "所在战略区域"), strategicRegionLinks(country.locationStrategicRegions))}
+      ${field(t("board.country.locationStateRegions", "所在地域"), stateRegionLinks(country.locationStateRegions))}
+      ${field(t("board.country.primaryCultureHomelandStrategicRegions", "主流文化本土战略区域"), strategicRegionLinks(country.primaryCultureHomelandStrategicRegions))}
+      ${field(t("board.country.heritage", "传承"), `<span class="grouped-trait-pills">${groupedTraitPills(country.primaryCultureHeritageGroups, country.primaryCultureHeritages, "tag-heritage-group", "tag-heritage")}</span>`)}
+      ${field(t("board.country.language", "语言"), `<span class="grouped-trait-pills">${groupedTraitPills(country.primaryCultureLanguageGroups, country.primaryCultureLanguages, "tag-language-group", "tag-language")}</span>`)}
+      ${field(t("board.country.tradition", "传统"), traitList(country.primaryCultureTraditions))}
+      ${field(t("board.country.religion", "宗教"), linkedTerms([country.religion], [entityText(country.religion)], "religion") + sourceSuffix(country.religionSource))}
+      ${field(t("board.country.capital", "首都"), stateRegionLinks(country.capital ? [{ key: country.capital, name_zh: capitalName }] : []))}
     </dl>
 
-    ${collapsibleDetailSection("利益集团风味", interestGroupFlavorList(country.interestGroups), `${(country.interestGroups || []).length} 组`)}
+    ${collapsibleDetailSection(t("board.country.interestGroupFlavor", "利益集团风味"), interestGroupFlavorList(country.interestGroups), t("board.country.groupCount", "{count} 组", { count: (country.interestGroups || []).length }))}
 
-    <h3>国名变体</h3>
+    <h3>${t("board.country.section.dynamicNames", "国名变体")}</h3>
     ${dynamicNameList(country)}
 
-    <h3>地图色</h3>
+    <h3>${t("board.country.section.mapColors", "地图色")}</h3>
     ${dynamicMapColorList(country)}
 
     ${countryFlagVariantSection(country)}
 
-    <h3>开局</h3>
+    <h3>${t("board.country.section.start", "开局")}</h3>
     <dl class="field-grid">
-      ${field("开局存在", country.existsAtStart)}
-      ${field("开局州数", String(country.startingStateCount))}
-      ${field("开局州", countryStartingStateRegionLinks(country))}
-      ${field("历史文件", country.hasHistoryCountryFile)}
+      ${field(t("board.country.existsAtStart", "开局存在"), country.existsAtStart)}
+      ${field(t("board.country.startingStateCount", "开局州数"), String(country.startingStateCount))}
+      ${field(t("board.country.startingStates", "开局州"), countryStartingStateRegionLinks(country))}
+      ${field(t("board.country.historyFile", "历史文件"), country.hasHistoryCountryFile)}
     </dl>
 
-    <h3>成立</h3>
+    <h3>${t("board.country.section.formation", "成立")}</h3>
     <dl class="field-grid">
-      ${field("次要统一", country.isMinorFormable)}
-      ${field("重大统一", country.isMajorFormable)}
-      ${field("特殊机制", country.specialMechanic)}
-      ${field("同文化可成立", countryLinks(country.canFormTags, country.canFormNames))}
-      ${field("成立文化", linkedTerms(country.formationRequiredCultures, country.formationRequiredCulturesZh, "culture"))}
-      ${field("成立范围战略区域", strategicRegionLinks(country.formationStrategicRegions))}
-      ${field("成立范围地域", stateRegionLinks(country.formationStateRegions))}
-      ${field("规则直接列州", stateRegionLinks((country.formationStates || []).map((key) => ({ key, name_zh: byStateRegion.get(key)?.name_zh || key }))))}
-      ${field("成立地区", escapeHtml(country.formationRegion || ""))}
+      ${field(t("board.country.isMinorFormable", "次要统一"), country.isMinorFormable)}
+      ${field(t("board.country.isMajorFormable", "重大统一"), country.isMajorFormable)}
+      ${field(t("board.country.specialMechanic", "特殊机制"), country.specialMechanic)}
+      ${field(t("board.country.canForm", "同文化可成立"), countryLinks(country.canFormTags, country.canFormNames))}
+      ${field(t("board.country.formationCultures", "成立文化"), linkedTerms(country.formationRequiredCultures, country.formationRequiredCulturesZh, "culture"))}
+      ${field(t("board.country.formationStrategicRegions", "成立范围战略区域"), strategicRegionLinks(country.formationStrategicRegions))}
+      ${field(t("board.country.formationStateRegions", "成立范围地域"), stateRegionLinks(country.formationStateRegions))}
+      ${field(t("board.country.formationStates", "规则直接列州"), stateRegionLinks((country.formationStates || []).map((key) => ({ key, name_zh: entityText(byStateRegion.get(key)) || key }))))}
+      ${field(t("board.country.formationRegion", "成立地区"), escapeHtml(country.formationRegion || ""))}
     </dl>
 
-    <h3>释放</h3>
+    <h3>${t("board.country.section.release", "释放")}</h3>
     <dl class="field-grid">
-      ${field("可释放", country.isReleasable)}
-      ${field("释放州", stateRegionLinks((country.releaseStates || []).map((key) => ({ key, name_zh: byStateRegion.get(key)?.name_zh || key }))))}
+      ${field(t("board.country.isReleasable", "可释放"), country.isReleasable)}
+      ${field(t("board.country.releaseStates", "释放州"), stateRegionLinks((country.releaseStates || []).map((key) => ({ key, name_zh: entityText(byStateRegion.get(key)) || key }))))}
     </dl>
   `;
 }
-
 function renderCountryDetailPage(country) {
   renderCountryDetail(country);
 }
@@ -1034,54 +1036,51 @@ function rowDetailButton(attributeName, key) {
 
 function renderCultureDetail(culture) {
   if (!culture) {
-    els.detail.innerHTML = `<p class="empty">没有匹配结果。</p>`;
+    els.detail.innerHTML = `<p class="empty">${t("board.culture.empty", "没有匹配结果。")}</p>`;
     return;
   }
+  const relatedCountryNames = (culture.related_countries || []).map((countryRef) => entityText(byTag.get(countryRef.tag) || countryRef)).filter(Boolean);
   els.detail.innerHTML = `
     <section class="culture-detail">
     <div class="detail-title">
       ${detailBackButton("culture")}
       <div class="detail-title-main">
         <span class="country-color large" style="${colorStyle(culture.color?.hex)}" aria-hidden="true"></span>
-        <h2>${escapeHtml(culture.name_zh)}</h2>
+        <h2>${escapeHtml(entityText(culture) || culture.key)}</h2>
       </div>
-      ${conceptTag(culture.key, "culture", culture.key, culture.name_zh)}
+      ${conceptTag(culture.key, "culture", culture.key, entityText(culture))}
       ${victorianCenturyBadge(culture)}
     </div>
 
-    <h3>基础</h3>
+    <h3>${t("board.culture.section.basic", "基础")}</h3>
     <dl class="field-grid">
-      ${field("颜色", colorValue(culture.color?.hex, culture.color?.rgb))}
-      ${field("默认宗教", linkedTerms([culture.religion?.key], [culture.religion?.name_zh], "religion"))}
-      ${field("传承", `<span class="grouped-trait-pills">${groupedTraitPills(compactRefs([culture.heritage_group]), compactRefs([culture.heritage]), "tag-heritage-group", "tag-heritage")}</span>`)}
-      ${field("语言", `<span class="grouped-trait-pills">${groupedTraitPills(compactRefs([culture.language_group]), compactRefs([culture.language]), "tag-language-group", "tag-language")}</span>`)}
-      ${field("传统", traitList(culture.traditions))}
-      ${field("本土战略区域", strategicRegionLinks(culture.homeland_strategic_regions))}
-      ${field("本土地域", stateRegionLinks(culture.homeland_state_regions))}
+      ${field(t("board.culture.color", "颜色"), colorValue(culture.color?.hex, culture.color?.rgb))}
+      ${field(t("board.culture.defaultReligion", "默认宗教"), linkedTerms([culture.religion?.key], [entityText(culture.religion)], "religion"))}
+      ${field(t("board.culture.heritage", "传承"), `<span class="grouped-trait-pills">${groupedTraitPills(compactRefs([culture.heritage_group]), compactRefs([culture.heritage]), "tag-heritage-group", "tag-heritage")}</span>`)}
+      ${field(t("board.culture.language", "语言"), `<span class="grouped-trait-pills">${groupedTraitPills(compactRefs([culture.language_group]), compactRefs([culture.language]), "tag-language-group", "tag-language")}</span>`)}
+      ${field(t("board.culture.tradition", "传统"), traitList(culture.traditions))}
+      ${field(t("board.culture.homelandStrategicRegions", "本土战略区域"), strategicRegionLinks(culture.homeland_strategic_regions))}
+      ${field(t("board.culture.homelandStateRegions", "本土地域"), stateRegionLinks(culture.homeland_state_regions))}
     </dl>
 
-    <h3>消费</h3>
+    <h3>${t("board.culture.section.consumption", "消费")}</h3>
     <dl class="field-grid">
-      ${field("痴迷", goodsList(culture.obsessions))}
-      ${field("禁忌", goodsList(culture.taboos))}
+      ${field(t("board.culture.obsessions", "痴迷"), goodsList(culture.obsessions))}
+      ${field(t("board.culture.taboos", "禁忌"), goodsList(culture.taboos))}
     </dl>
 
-    <h3>关联</h3>
+    <h3>${t("board.culture.section.related", "关联")}</h3>
     <dl class="field-grid">
-      ${field("相关国家", countryLinks(
-        (culture.related_countries || []).map((countryRef) => countryRef.tag),
-        (culture.related_countries || []).map((countryRef) => countryRef.name_zh),
-      ))}
-      ${field("同传承组文化", cultureLinks(culture.same_heritage_group_cultures))}
-      ${field("同传承文化", cultureLinks(culture.same_heritage_cultures))}
-      ${field("同语言组文化", cultureLinks(culture.same_language_group_cultures))}
-      ${field("同语言文化", cultureLinks(culture.same_language_cultures))}
-      ${field("同传统文化", sameTraditionCultures(culture.traditions, culture.same_tradition_cultures))}
+      ${field(t("board.culture.relatedCountries", "相关国家"), countryLinks((culture.related_countries || []).map((countryRef) => countryRef.tag), relatedCountryNames))}
+      ${field(t("board.culture.sameHeritageGroupCultures", "同传承组文化"), cultureLinks(culture.same_heritage_group_cultures))}
+      ${field(t("board.culture.sameHeritageCultures", "同传承文化"), cultureLinks(culture.same_heritage_cultures))}
+      ${field(t("board.culture.sameLanguageGroupCultures", "同语言组文化"), cultureLinks(culture.same_language_group_cultures))}
+      ${field(t("board.culture.sameLanguageCultures", "同语言文化"), cultureLinks(culture.same_language_cultures))}
+      ${field(t("board.culture.sameTraditionCultures", "同传统文化"), sameTraditionCultures(culture.traditions, culture.same_tradition_cultures))}
     </dl>
     </section>
   `;
 }
-
 function renderStateRegionDetail(stateRegion) {
   const relatedCompanies = companiesForStateRegion(stateRegion);
   els.detail.innerHTML = `
