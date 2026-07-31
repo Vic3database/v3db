@@ -155,21 +155,29 @@ async function switchLocale(locale) {
   }
   const requestId = ++localeRuntime.requestId;
   const previousLocale = localeRuntime.current;
+  const previousMessages = localeRuntime.messages;
   try {
     const messages = await loadUiLocale(locale);
+    const nextDataMessages = { ...(localeRuntime.dataMessages[locale] || {}) };
+    const nextCacheKeys = await ensureLocaleChunks(dataChunksForView(routeView()), locale, nextDataMessages);
     if (requestId !== localeRuntime.requestId) return;
     localeRuntime.current = locale;
     localeRuntime.messages = messages;
+    localeRuntime.dataMessages[locale] = nextDataMessages;
+    nextCacheKeys.forEach((key) => localeRuntime.loadedChunks.add(key));
     configureLocaleFormats(locale);
     setDocumentLocale(locale);
     localStorage.setItem(localeConfig.storageKey, locale);
     updateLocaleUrl(locale);
     syncStaticUiText();
+    hydrateLegacyLocalizedFields(data);
+    applyLoadedDataset(data, mapData, { preserveState: true });
     renderFilterOptions?.();
     render?.();
   } catch (error) {
     if (requestId === localeRuntime.requestId) {
       localeRuntime.current = previousLocale;
+      localeRuntime.messages = previousMessages;
       console.warn(t("ui.localeLoadFailed", { locale: localeLabel(locale) }), error);
     }
   } finally {

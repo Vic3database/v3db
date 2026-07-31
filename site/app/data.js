@@ -41,8 +41,10 @@ async function loadStandaloneDataset() {
     loadScriptValue(standaloneSiteConfig.dataIndex, "VIC3_DATA_INDEX"),
     loadScriptValue(standaloneSiteConfig.mapData, "VIC3_MAP_DATA"),
   ]);
-  dataIndex = nextDataIndex || null;
   loadedDataVersion = "";
+  dataIndex = nextDataIndex || null;
+  await loadSearchIndex();
+  await activateInitialLocaleAfterDataIndex();
   loadedDataChunks.clear();
   applyLoadedDataset({ meta: dataIndex?.meta || {} }, nextMapData || null);
   await ensureDataChunksForRoute();
@@ -64,8 +66,10 @@ async function loadVersion(version, options = {}) {
     loadScriptValue(entry.data_index, "VIC3_DATA_INDEX"),
     loadScriptValue(entry.map_data, "VIC3_MAP_DATA"),
   ]);
-  dataIndex = nextDataIndex || null;
   loadedDataVersion = entry.version;
+  dataIndex = nextDataIndex || null;
+  await loadSearchIndex();
+  await activateInitialLocaleAfterDataIndex();
   loadedDataChunks.clear();
   applyLoadedDataset({ meta: dataIndex?.meta || {} }, nextMapData || null);
   await ensureDataChunksForRoute();
@@ -119,9 +123,11 @@ async function ensureDataChunks(chunkKeys) {
       }
       loadedDataChunks.add(key);
     }
+    await ensureLocaleChunks(chunkKeys);
   })();
   try {
     await dataChunkLoadPromise;
+    hydrateLegacyLocalizedFields(data);
     applyLoadedDataset(data, mapData);
   } finally {
     dataChunkLoadPromise = null;
@@ -132,6 +138,36 @@ function dataChunkPath(file) {
   if (!standaloneSiteConfig) return `versions/${loadedDataVersion}/${file}`;
   const dataRoot = String(standaloneSiteConfig.dataRoot || ".").replace(/\\/g, "/").replace(/\/+$/, "");
   return !dataRoot || dataRoot === "." ? file : `${dataRoot}/${file}`;
+}
+
+function localeChunkPath(file) {
+  return dataChunkPath(file);
+}
+
+async function loadSearchIndex() {
+  const entry = dataIndex?.locales?.search_index;
+  if (!entry?.path) return;
+  await loadScript(localeChunkPath(entry.path));
+}
+
+async function ensureLocaleChunks(chunkKeys, locale = localeRuntime.current, targetMessages = localeRuntime.dataMessages[locale] || {}) {
+  const entries = chunkKeys.flatMap((key) => dataIndex?.locales?.chunks?.[locale]?.[key]?.files || []);
+  const loaded = [];
+  for (const entry of entries) {
+    const cacheKey = `${locale}:${entry.path}`;
+    if (localeRuntime.loadedChunks.has(cacheKey)) {
+      mergeLocaleMessages(targetMessages, localeRuntime.dataMessages[locale] || {}, locale);
+      continue;
+    }
+    await loadScript(localeChunkPath(entry.path));
+    const chunk = window.VIC3_LOCALE_CHUNKS?.[entry.id];
+    if (!chunk || chunk.locale !== locale) throw new Error(`Invalid locale chunk ${entry.id}`);
+    mergeLocaleMessages(targetMessages, chunk.messages || {}, locale);
+    loaded.push(cacheKey);
+  }
+  if (!localeRuntime.dataMessages[locale]) localeRuntime.dataMessages[locale] = targetMessages;
+  loaded.forEach((key) => localeRuntime.loadedChunks.add(key));
+  return loaded;
 }
 
 function versionEntry(version) {
@@ -161,7 +197,7 @@ function loadScriptValue(src, globalName) {
   });
 }
 
-function applyLoadedDataset(nextData, nextMapData) {
+function applyLoadedDataset(nextData, nextMapData, options = {}) {
   data = nextData || {};
   countries = data.countries || [];
   cultures = data.cultures || [];
@@ -208,10 +244,43 @@ function applyLoadedDataset(nextData, nextMapData) {
   landStateRegions = stateRegions.filter((stateRegion) => !isSeaStateRegion(stateRegion));
   landGeographicRegions = geographicRegions.filter((region) => geographicRegionStateRegions(region).some((stateRegion) => !isSeaStateRegion(stateRegion)));
   groupedGeographicRegions = geographicRegions.filter((region) => region.geographic_region_group && !region.is_current_strategic_region);
-  resetDatasetState();
-  resetMapRuntime();
+  if (!options.preserveState) {
+    resetDatasetState();
+    resetMapRuntime();
+  }
   updateMetaLine();
   renderLibraryOptions();
+}
+
+function hydrateLegacyLocalizedFields(value) {
+  const fields = {
+    name: ["name_zh", "name"],
+    description: ["desc_zh", "description_zh"],
+    tier: ["tierZh", "tier_zh"],
+    countryType: ["countryTypeZh", "country_type_zh"],
+    category: ["category_zh"],
+    type: ["type_zh"],
+    groupName: ["group_name_zh"],
+    sourceName: ["source_name_zh"],
+    label: ["label_zh"],
+    summary: ["summary_zh"],
+    valueDisplay: ["value_zh"],
+    adjective: ["adjective_zh"],
+    dlcName: ["dlc_name_zh"],
+  };
+  function visit(item) {
+    if (Array.isArray(item)) return item.forEach(visit);
+    if (!item || typeof item !== "object") return;
+    for (const [field, messageId] of Object.entries(item.loc || {})) {
+      const text = translateMessage(messageId, item.key || item.tag || messageId);
+      for (const legacyField of fields[field] || [`${field}_zh`]) item[legacyField] = text;
+    }
+    const searchEntry = window.VIC3_SEARCH_INDEX?.entries?.find((entry) => entry.id === item.id);
+    if (searchEntry?.names?.en) item.name_en = searchEntry.names.en;
+    for (const child of Object.values(item)) visit(child);
+  }
+  visit(value);
+  return value;
 }
 
 function buildSemanticTagIndexes() {

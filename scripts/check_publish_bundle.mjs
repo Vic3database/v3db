@@ -131,6 +131,12 @@ function readChunkedData(versionDir) {
       }
     }
   }
+  addRequired(`versions/1.13.9/${index.locales?.search_index?.path || ""}`);
+  for (const localeChunks of Object.values(index.locales?.chunks || {})) {
+    for (const chunk of Object.values(localeChunks || {})) {
+      for (const entry of chunk.files || []) addRequired(`versions/1.13.9/${entry.path}`);
+    }
+  }
   return data;
 }
 

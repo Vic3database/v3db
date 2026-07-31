@@ -35,4 +35,8 @@ context.localeRuntime.englishMessages = { fallback: "Fallback" };
 assert.equal(context.translateMessage("fallback", "key"), "Fallback");
 assert.equal(context.translateMessage("missing", "key"), "key");
 assert.equal(context.t("greeting", { name: "Ada" }), "Hello Ada");
+assert.match(source, /async function switchLocale/);
+assert.match(source, /requestId/);
+assert.match(source, /ensureLocaleChunks/);
+assert.match(source, /localeLoadFailed/);
 console.log("multilingual_runtime: ok");
