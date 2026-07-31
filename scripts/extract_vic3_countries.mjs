@@ -1,5 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
+import extractorEn from "./locales/extractor.en.mjs";
+import extractorZhHans from "./locales/extractor.zh-Hans.mjs";
+import { sha256Text, splitLocalizedTrees } from "./lib/localization-schema.mjs";
 
 const DEFAULT_GAME_PATH = "D:\\SteamLibrary\\steamapps\\common\\Victoria 3";
 const DEFAULT_VERSION = "1.13.9";
@@ -412,6 +415,10 @@ function main() {
     formableRules: formables,
     formables: formationRows,
     releasables: releaseRows,
+    localeCatalogs: {
+      "zh-Hans": { ...Object.fromEntries(loc), ...extractorZhHans },
+      en: { ...Object.fromEntries(locEn), ...extractorEn },
+    },
   });
 
   writeNotes(path.join(outDir, `${prefix}_说明.md`), {
@@ -3650,6 +3657,7 @@ function writeDatabase(dir, data) {
     formableRules,
     formables,
     releasables,
+    localeCatalogs,
   } = data;
   const stateRegionByKey = new Map(stateRegionRows.map((stateRegion) => [stateRegion.key, stateRegion]));
   const strategicRegionByKey = new Map(strategicRegionRows.map((strategicRegion) => [strategicRegion.key, strategicRegion]));
@@ -3806,6 +3814,43 @@ function writeDatabase(dir, data) {
     };
   });
 
+  const originalFiles = {
+    countries: countries,
+    cultures: cultureRows,
+    culture_traits: cultureTraitRows,
+    culture_trait_groups: cultureTraitGroupRows,
+    state_regions: stateRegionRows,
+    strategic_regions: strategicRegionRows,
+    geographic_regions: geographicRegionRows,
+    companies: companies,
+    company_charter_types: companyCharterTypes,
+    interest_groups: interestGroups.map(publicInterestGroup),
+    interest_group_traits: [...interestGroupTraits.values()],
+    ideologies: ideologyCoverageRows(ideologies, countryRows, interestGroups, {
+      cultures,
+      cultureTraits,
+      interestGroupTraits,
+      ideologies,
+      existingAtStartTags,
+      locName: (key) => locCleanName(loc, key),
+    }),
+    law_groups: [...lawGroups.values()],
+    laws: [...laws.values()],
+    technologies: technologies,
+    technology_eras: technologyEras,
+    achievements: achievements,
+    dynamic_country_name_variants: dynamicNameVariants,
+    dynamic_country_map_color_rules: dynamicMapColorRules,
+    formable_countries: formables,
+    releasable_countries: releasables,
+  };
+  const projections = Object.fromEntries(Object.entries(localeCatalogs || {}).map(([locale, catalog]) => [
+    locale,
+    localizeProjection(originalFiles, localeCatalogs["zh-Hans"] || {}, catalog, locale),
+  ]));
+  const split = splitLocalizedTrees(projections);
+  const localeFiles = writeLocaleCatalogs(dir, split.catalogs, split.missing);
+
   const index = {
     schema_version: 1,
     dataset_name: datasetName,
@@ -3840,6 +3885,11 @@ function writeDatabase(dir, data) {
       formable_countries: "formable_countries.json",
       releasable_countries: "releasable_countries.json",
     },
+    locales: {
+      default: "en",
+      supported: ["zh-Hans", "en"],
+      files: localeFiles,
+    },
     counts: {
       countries: countries.length,
       cultures: cultureRows.length,
@@ -3866,35 +3916,80 @@ function writeDatabase(dir, data) {
   };
 
   writeJson(path.join(dir, "index.json"), index);
-  writeJson(path.join(dir, "countries.json"), countries);
-  writeJson(path.join(dir, "cultures.json"), cultureRows);
-  writeJson(path.join(dir, "culture_traits.json"), cultureTraitRows);
-  writeJson(path.join(dir, "culture_trait_groups.json"), cultureTraitGroupRows);
-  writeJson(path.join(dir, "state_regions.json"), stateRegionRows);
-  writeJson(path.join(dir, "strategic_regions.json"), strategicRegionRows);
-  writeJson(path.join(dir, "geographic_regions.json"), geographicRegionRows);
-  writeJson(path.join(dir, "companies.json"), companies);
-  writeJson(path.join(dir, "company_charter_types.json"), companyCharterTypes);
-  writeJson(path.join(dir, "interest_groups.json"), interestGroups.map(publicInterestGroup));
-  writeJson(path.join(dir, "interest_group_traits.json"), [...interestGroupTraits.values()]);
-  writeJson(path.join(dir, "ideologies.json"), ideologyCoverageRows(ideologies, countryRows, interestGroups, {
-    cultures,
-    cultureTraits,
-    interestGroupTraits,
-    ideologies,
-    existingAtStartTags,
-    locName: (key) => locCleanName(loc, key),
-  }));
-  writeJson(path.join(dir, "law_groups.json"), [...lawGroups.values()]);
-  writeJson(path.join(dir, "laws.json"), [...laws.values()]);
-  writeJson(path.join(dir, "technologies.json"), technologies);
-  writeJson(path.join(dir, "technology_eras.json"), technologyEras);
-  writeJson(path.join(dir, "achievements.json"), achievements);
-  writeJson(path.join(dir, "dynamic_country_name_variants.json"), dynamicNameVariants);
-  writeJson(path.join(dir, "dynamic_country_map_color_rules.json"), dynamicMapColorRules);
-  writeJson(path.join(dir, "formable_countries.json"), formables);
-  writeJson(path.join(dir, "releasable_countries.json"), releasables);
+  for (const [fileKey, value] of Object.entries(split.structure)) {
+    writeJson(path.join(dir, index.files[fileKey]), value);
+  }
   writeDatabaseReadme(path.join(dir, "README.md"), index);
+}
+
+function localizeProjection(value, sourceCatalog, targetCatalog, locale) {
+  const keysBySourceText = new Map();
+  for (const [key, text] of Object.entries(sourceCatalog || {})) {
+    if (text && !keysBySourceText.has(text)) keysBySourceText.set(text, key);
+  }
+
+  function translate(text, item, field, hasEnglishSource) {
+    if (locale === "zh-Hans") return text;
+    if (hasEnglishSource) return text;
+    const key = item?.key || item?.tag || String(item?.id || "").split(":").pop();
+    const directKey = field === "desc" || field === "description" ? `${key}_desc` : key;
+    if (directKey && targetCatalog[directKey] !== undefined) return targetCatalog[directKey];
+    const sourceKey = keysBySourceText.get(text);
+    return sourceKey ? (targetCatalog[sourceKey] || "") : "";
+  }
+
+  function project(item) {
+    if (Array.isArray(item)) return item.map(project);
+    if (!item || typeof item !== "object") return item;
+    const result = {};
+    const localized = new Map();
+    for (const [key, child] of Object.entries(item)) {
+      if (key === "name" && child && typeof child === "object" && !Array.isArray(child) && typeof child.zh === "string") {
+        localized.set("name", { zh: child.zh });
+        continue;
+      }
+      const match = key.match(/^(.+)_(zh|en)$/);
+      if (match) {
+        const [,, sourceLocale] = match;
+        const entry = localized.get(match[1]) || {};
+        entry[sourceLocale] = child;
+        localized.set(match[1], entry);
+        continue;
+      }
+      result[key] = project(child);
+    }
+    for (const [field, variants] of localized) {
+      const source = locale === "en"
+        ? (variants.en ?? variants.zh ?? "")
+        : (variants.zh ?? variants.en ?? "");
+      const translated = translate(source, item, field, variants.en !== undefined);
+      result[`${field}_zh`] = typeof translated === "string" ? translated : "";
+    }
+    return result;
+  }
+
+  return project(value);
+}
+
+function writeLocaleCatalogs(dir, catalogs, missing) {
+  const localeDir = path.join(dir, "locales");
+  fs.mkdirSync(localeDir, { recursive: true });
+  return Object.fromEntries(["zh-Hans", "en"].map((locale) => {
+    const value = catalogs[locale] || {};
+    const file = path.join(localeDir, `${locale}.json`);
+    const source = `\uFEFF${JSON.stringify(value, null, 2)}\n`;
+    fs.writeFileSync(file, source, "utf8");
+    const missingByCollection = {};
+    for (const messageId of missing[locale] || []) {
+      const collection = messageId.split(":")[0] || "other";
+      missingByCollection[collection] = (missingByCollection[collection] || 0) + 1;
+    }
+    return [locale, {
+      file: `locales/${locale}.json`,
+      sha256: sha256Text(source),
+      missing: { total: (missing[locale] || []).length, by_collection: missingByCollection },
+    }];
+  }));
 }
 
 function writeDatabaseReadme(file, index) {
