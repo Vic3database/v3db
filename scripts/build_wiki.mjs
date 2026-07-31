@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { collectLocalizationRefs, sha256Text } from "./lib/localization-schema.mjs";
 
 const victorianCenturyChangeCollections = [
   ["countries", "tag"],
@@ -102,6 +103,25 @@ const dataChunkFileNames = {
   achievement: "data-achievements.js",
 };
 
+const localeChunkDescriptors = Object.fromEntries(["zh-Hans", "en"].map((locale) => [locale, {}]));
+
+function writeLocaleChunk(board, structureFile, structureChunk) {
+  const refs = collectLocalizationRefs(structureChunk);
+  for (const locale of Object.keys(localeChunkDescriptors)) {
+    const messages = Object.fromEntries([...refs].sort().map((key) => [key, siteData.databaseMessagesByLocale?.[locale]?.[key] || ""]));
+    const base = structureFile.replace(/^data-/, "locale-").replace(/\.js$/, "");
+    const file = `${base}.${locale}.js`;
+    const id = `${locale}:${board}:${base}`;
+    const source = `window.VIC3_LOCALE_CHUNKS = window.VIC3_LOCALE_CHUNKS || {};\nwindow.VIC3_LOCALE_CHUNKS[${JSON.stringify(id)}] = ${JSON.stringify({ locale, messages })};\n`;
+    fs.writeFileSync(path.join(outDir, file), source, "utf8");
+    const entry = { id, path: file, sha256: sha256Text(source), missing: Object.values(messages).filter((value) => !value).length };
+    const descriptor = localeChunkDescriptors[locale][board] || { files: [], missing: 0 };
+    descriptor.files.push(entry);
+    descriptor.missing += entry.missing;
+    localeChunkDescriptors[locale][board] = descriptor;
+  }
+}
+
 for (const [key, keys] of Object.entries(dataChunks)) {
   if (key === "country") continue;
   const chunk = Object.fromEntries(keys.map((field) => [field, wikiData[field] || []]));
@@ -110,6 +130,7 @@ for (const [key, keys] of Object.entries(dataChunks)) {
     `window.VIC3_DATA_CHUNK = ${JSON.stringify(chunk)};\n`,
     "utf8",
   );
+  writeLocaleChunk(key, dataChunkFileNames[key], chunk);
 }
 
 const countryShardCount = 4;
@@ -118,19 +139,26 @@ const countryShardFiles = [];
 for (let index = 0; index < countryShardCount; index += 1) {
   const file = `data-countries-${index + 1}.js`;
   countryShardFiles.push(file);
+  const chunk = { countries: wikiData.countries.slice(index * countryShardSize, (index + 1) * countryShardSize) };
   fs.writeFileSync(
     path.join(outDir, file),
-    `window.VIC3_DATA_CHUNK = ${JSON.stringify({ countries: wikiData.countries.slice(index * countryShardSize, (index + 1) * countryShardSize) })};\n`,
+    `window.VIC3_DATA_CHUNK = ${JSON.stringify(chunk)};\n`,
     "utf8",
   );
+  writeLocaleChunk("country", file, chunk);
 }
 const countryMetaFile = "data-country-meta.js";
 countryShardFiles.push(countryMetaFile);
+const countryMetaChunk = Object.fromEntries(dataChunks.country.slice(1).map((field) => [field, wikiData[field] || []]));
 fs.writeFileSync(
   path.join(outDir, countryMetaFile),
-  `window.VIC3_DATA_CHUNK = ${JSON.stringify(Object.fromEntries(dataChunks.country.slice(1).map((field) => [field, wikiData[field] || []])))};\n`,
+  `window.VIC3_DATA_CHUNK = ${JSON.stringify(countryMetaChunk)};\n`,
   "utf8",
 );
+writeLocaleChunk("country", countryMetaFile, countryMetaChunk);
+
+const searchSource = `window.VIC3_SEARCH_INDEX = ${JSON.stringify({ locales: ["zh-Hans", "en"], entries: createSearchEntries(wikiData, siteData.databaseMessagesByLocale || {}) })};\n`;
+fs.writeFileSync(path.join(outDir, "search-index.js"), searchSource, "utf8");
 
 const dataIndex = {
   meta: wikiData.meta,
@@ -139,6 +167,11 @@ const dataIndex = {
     keys,
     counts: Object.fromEntries(keys.map((field) => [field, Array.isArray(wikiData[field]) ? wikiData[field].length : 0])),
   }])),
+  locales: {
+    supported: ["zh-Hans", "en"],
+    chunks: localeChunkDescriptors,
+    search_index: { path: "search-index.js", sha256: sha256Text(searchSource) },
+  },
 };
 
 fs.writeFileSync(
@@ -211,6 +244,10 @@ function loadSiteData(sourceFile) {
     const releasables = readJson(path.join(baseDir, sourceData.files.releasable_countries));
     const nameById = new Map(dynamicCountryNameVariants.map((variant) => [variant.id, variant]));
     const colorById = new Map(dynamicCountryMapColorRules.map((rule) => [rule.id, rule]));
+    const databaseMessagesByLocale = Object.fromEntries((sourceData.locales?.supported || []).map((locale) => [
+      locale,
+      readJson(path.join(baseDir, sourceData.locales.files[locale].file)),
+    ]));
     return {
       meta: {
         dataset_name: sourceData.dataset_name,
@@ -243,6 +280,7 @@ function loadSiteData(sourceFile) {
       dynamicCountryMapColorRules,
       formables,
       releasables,
+      databaseMessagesByLocale,
     };
   }
   return loadLegacyData(sourceData);
@@ -449,6 +487,9 @@ function flattenDatabaseCountry(country, nameById, colorById) {
     .map((id) => colorById.get(id))
     .filter(Boolean);
   return {
+    id: country.id,
+    key: country.tag,
+    loc: country.loc,
     tag: country.tag,
     name: country.name?.zh || country.tag,
     existsAtStart: boolText(country.status?.exists_at_start),
@@ -596,6 +637,38 @@ function loadLegacyData(data) {
 function readJson(file) {
   const raw = fs.readFileSync(file, "utf8").replace(/^\uFEFF/, "");
   return JSON.parse(raw);
+}
+
+function createSearchEntries(data, messagesByLocale) {
+  const collections = [
+    ["country", "countries", "tag"],
+    ["culture", "cultures", "key"],
+    ["region", "stateRegions", "key"],
+    ["company", "companies", "key"],
+    ["ideology", "ideologies", "key"],
+    ["law", "laws", "key"],
+    ["technology", "technologies", "key"],
+    ["achievement", "achievements", "key"],
+    ["cultureTrait", "cultureTraits", "key"],
+    ["interestGroup", "interestGroups", "key"],
+    ["interestGroupTrait", "interestGroupTraits", "key"],
+    ["strategicRegion", "strategicRegions", "key"],
+    ["geographicRegion", "geographicRegions", "key"],
+  ];
+  return collections.flatMap(([kind, collection, keyField]) => (data[collection] || []).map((item) => {
+    const key = item[keyField] || item.key || item.tag || "";
+    const id = item.id || `${kind}:${key}`;
+    const message = item.loc?.name || "";
+    return {
+      kind,
+      id,
+      key,
+      names: {
+        "zh-Hans": messagesByLocale["zh-Hans"]?.[message] || key,
+        en: messagesByLocale.en?.[message] || key,
+      },
+    };
+  }));
 }
 
 function printHelp() {

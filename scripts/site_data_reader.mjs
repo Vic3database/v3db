@@ -22,3 +22,22 @@ export function readChunkedSiteData(root, relativeVersionDir = "site/versions/1.
   }
   return data;
 }
+
+export function readSiteLocaleChunk(file, chunkId) {
+  const value = readGlobal(file, "VIC3_LOCALE_CHUNKS") || {};
+  return value[chunkId] || null;
+}
+
+export function readSiteSearchIndex(file) {
+  return readGlobal(file, "VIC3_SEARCH_INDEX") || { locales: [], entries: [] };
+}
+
+export function readSiteDataIndex(file) {
+  return readGlobal(file, "VIC3_DATA_INDEX") || {};
+}
+
+function readGlobal(file, globalName) {
+  const context = { window: {} };
+  vm.runInNewContext(fs.readFileSync(file, "utf8"), context, { filename: file });
+  return context.window[globalName];
+}
