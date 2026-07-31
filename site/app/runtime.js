@@ -678,6 +678,8 @@ const els = {
   pageTitle: document.querySelector("#pageTitle"),
   metaLine: document.querySelector("#metaLine"),
   globalSearchButton: document.querySelector("#globalSearchButton"),
+  languageMenuButton: document.querySelector("#languageMenuButton"),
+  languageMenu: document.querySelector("#languageMenu"),
   globalSearchDialog: document.querySelector("#globalSearchDialog"),
   globalSearchDialogInput: document.querySelector("#globalSearchDialogInput"),
   globalSearchDialogResults: document.querySelector("#globalSearchDialogResults"),

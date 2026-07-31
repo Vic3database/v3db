@@ -26,6 +26,9 @@ const requiredFiles = new Set([
   "announcement-data.js",
   "versions.js",
   "site.webmanifest",
+  "locales/manifest.js",
+  "locales/ui.zh-Hans.js",
+  "locales/ui.en.js",
 ]);
 for (const relative of ["vc/index.html", "vc/data-index.js", "vc/map-data.js", "vc/victorian-century-config.js", "vc/assets/map/provinces.png"]) {
   requiredFiles.add(relative);

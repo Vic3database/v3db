@@ -56,6 +56,45 @@ body {
   --panel-glass-strong: rgba(52, 49, 45, 0.98);
 }
 
+.language-menu {
+  position: relative;
+  display: inline-flex;
+}
+
+.language-menu-popover {
+  position: absolute;
+  z-index: 100;
+  top: calc(100% + 6px);
+  right: 0;
+  display: grid;
+  min-width: 132px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel-glass-strong);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.3);
+}
+
+.language-menu-popover[hidden] {
+  display: none;
+}
+
+.language-menu-popover button {
+  min-height: 32px;
+  padding: 5px 8px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.language-menu-popover button:hover,
+.language-menu-popover button[aria-checked="true"] {
+  background: rgba(205, 161, 95, 0.18);
+}
+
 .layout {
   position: relative;
   display: block;

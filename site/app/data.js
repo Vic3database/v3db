@@ -4,8 +4,10 @@ function setOptionalText(node, text) {
 }
 
 async function init() {
+  await initializeLocale();
   await loadCountryFlagData();
   await loadInitialDataset();
+  syncStaticUiText();
   syncViewLabels();
   initTheme();
   initDisplaySettings();

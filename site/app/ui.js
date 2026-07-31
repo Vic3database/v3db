@@ -1,4 +1,19 @@
 function bindEvents() {
+  els.languageMenuButton?.addEventListener("click", () => {
+    const open = els.languageMenu?.hidden !== false;
+    if (els.languageMenu) els.languageMenu.hidden = !open;
+    els.languageMenuButton.setAttribute("aria-expanded", String(open));
+  });
+  els.languageMenu?.addEventListener("click", (event) => {
+    const option = event.target.closest("[data-locale]");
+    if (option) void switchLocale(option.dataset.locale);
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeLanguageMenu();
+  });
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest(".language-menu")) closeLanguageMenu();
+  });
   document.querySelectorAll("[data-nav-view]").forEach((button) => {
     button.addEventListener("click", async () => {
       await setView(button.dataset.navView);
