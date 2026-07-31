@@ -81,6 +81,7 @@ for (const removedIdentifier of [
 assert.match(indexSource, /<span id="mapResourceContext" class="map-resource-context" aria-live="polite" hidden><\/span>/, "toolbar must contain the hidden resource context");
 assert.match(runtimeSource, /mapResourceContext: document\.querySelector\("#mapResourceContext"\)/, "runtime element table must expose the resource context");
 assert.match(mapSource, /function renderMapResourceContext\(/, "map controls must render the selected resource context");
+assert.match(functionSource(mapSource, "renderMapResourceContext"), /const version = standaloneSiteConfig \? "Victorian Century\/真实资源储量&耕地" : \(data\.meta\?\.victoria3_version \|\| "未知"\);/, "Victorian Century resource maps must display the resource and arable-land library name in the context bar");
 assert.match(mapSource, /map-resource-context-swatch/, "resources without a building icon must use a color swatch");
 assert.match(mapStylesSource, /\.map-resource-context/, "resource context must have dedicated compact styles");
 assert.match(mapStylesSource, /\.map-resource-context-version[\s\S]*white-space:\s*nowrap/, "resource context version must not wrap independently");
@@ -92,7 +93,7 @@ assert.doesNotMatch(mapSource, /function resourceMapUsesSolidBase\(/, "resource 
 assert.match(indexSource, /styles\.css\?v=20260731-resource-map-solid-linear1/, "main entry must invalidate changed map styles");
 assert.match(stylesEntrySource, /@import url\("styles\/map\.css\?v=20260731-resource-map-solid-linear1"\);/, "style entry must invalidate the changed map stylesheet");
 assert.match(indexSource, /app\/runtime\.js\?v=20260731-resource-map-paper-sea1/, "main entry must invalidate the changed map runtime");
-assert.match(indexSource, /app\/map\.js\?v=20260731-resource-map-paper-sea1/, "main entry must invalidate the changed map script");
+assert.match(indexSource, /app\/map\.js\?v=20260731-vc-library-label1/, "main entry must invalidate the changed map script");
 
 console.log(JSON.stringify({ resource_map_colors: "ok", resources: resourceKeys.size }, null, 2));
 

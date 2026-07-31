@@ -51,11 +51,12 @@ try {
   page.on("pageerror", (error) => errors.push(`pageerror: ${error.message}`));
 
   await page.goto(`${baseUrl}#/region`, { waitUntil: "networkidle", timeout: 45000 });
+  const libraryLabel = await page.evaluate(() => window.VICTORIAN_CENTURY_SITE_CONFIG ? "Victorian Century/真实资源储量&耕地" : "1.13.9");
   await page.evaluate(() => { window.__resourceMapLayers = []; });
   await page.locator("[data-resource-filter='building_wheat_farm']").click();
   const wheat = await waitForResourceContext(page);
   assert.match(wheat.text, /小麦农场/, "wheat context must show the selected resource name");
-  assert.match(wheat.text, /\d+\.\d+/, "wheat context must show the data version");
+  assert.match(wheat.text, new RegExp(libraryLabel), "wheat context must show the current library label");
   assert.match(wheat.icon, /assets\/buildings\/wheat_farm\.png$/, "wheat context must show the wheat farm icon");
   await page.waitForTimeout(300);
   assert.equal(await page.evaluate(() => window.__resourceMapTextCalls.includes("小麦农场")), false, "wheat must not draw a canvas watermark");
@@ -69,6 +70,7 @@ try {
   await page.locator("[data-resource-filter='building_iron_mine']").click();
   const iron = await waitForResourceContext(page);
   assert.match(iron.text, /铁矿/, "iron context must replace the selected resource name");
+  assert.match(iron.text, new RegExp(libraryLabel), "iron context must show the current library label");
   assert.match(iron.icon, /assets\/buildings\/iron_mine\.png$/, "iron context must show the iron mine icon");
   await page.waitForTimeout(300);
   assert.equal(await page.evaluate(() => window.__resourceMapTextCalls.includes("铁矿")), false, "iron must not draw a canvas watermark");
@@ -80,7 +82,7 @@ try {
   await page.waitForFunction(() => document.querySelector("#mapResourceContext")?.hidden === true, { timeout: 10000 });
   assert.deepEqual(errors, [], `page errors: ${errors.join(" | ")}`);
   await page.close();
-  console.log(JSON.stringify({ resource_map_colors_browser: "ok", wheat, iron, wheatLayer, ironLayer, baseUrl }, null, 2));
+  console.log(JSON.stringify({ resource_map_colors_browser: "ok", libraryLabel, wheat, iron, wheatLayer, ironLayer, baseUrl }, null, 2));
 } finally {
   await context.close();
   await browser.close();

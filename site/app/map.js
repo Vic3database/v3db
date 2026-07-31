@@ -41,7 +41,7 @@ function renderMapResourceContext() {
     ? `<img class="map-resource-context-icon" src="assets/buildings/${encodeURIComponent(fileName)}" alt="">`
     : `<span class="map-resource-context-swatch" style="--map-resource-context-color: ${escapeHtml(resourceMapColor(resourceKey))}" aria-hidden="true"></span>`;
   const label = mapSubjectLabel();
-  const version = data.meta?.victoria3_version || "未知";
+  const version = standaloneSiteConfig ? "Victorian Century/真实资源储量&耕地" : (data.meta?.victoria3_version || "未知");
   els.mapResourceContext.hidden = false;
   els.mapResourceContext.innerHTML = `${icon}<span class="map-resource-context-name">${escapeHtml(label)}</span><span class="map-resource-context-version">· ${escapeHtml(version)}</span>`;
 }
