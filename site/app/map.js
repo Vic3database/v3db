@@ -1137,10 +1137,6 @@ function addCompanyAssociationBorders(data, stateIndexes, features, width, heigh
   }
 }
 
-function resourceMapUsesSolidBase() {
-  return ["resource", "resourceSelection"].includes(state.mapMode);
-}
-
 function paintMapCanvasTarget(canvas, viewport, transform, drawLabels = false) {
   if (!mapRuntime.layerCanvas || !canvas || !viewport || !transform) return;
   const rect = viewport.getBoundingClientRect();
@@ -1155,7 +1151,7 @@ function paintMapCanvasTarget(canvas, viewport, transform, drawLabels = false) {
   const context = canvas.getContext("2d");
   context.setTransform(1, 0, 0, 1, 0, 0);
   context.clearRect(0, 0, width, height);
-  context.fillStyle = resourceMapUsesSolidBase() ? MAP_SEA_COLOR : "#d7c2a4";
+  context.fillStyle = "#d7c2a4";
   context.fillRect(0, 0, width, height);
   context.setTransform(
     transform.scale * ratio,
@@ -1168,7 +1164,7 @@ function paintMapCanvasTarget(canvas, viewport, transform, drawLabels = false) {
   context.imageSmoothingEnabled = false;
   const copyRange = visibleMapCopyRange(rect.width, transform);
   for (let copy = copyRange.start; copy <= copyRange.end; copy += 1) {
-    if (mapRuntime.paperMapImage && !resourceMapUsesSolidBase()) {
+    if (mapRuntime.paperMapImage) {
       context.drawImage(mapRuntime.paperMapImage, copy * mapRuntime.width, 0, mapRuntime.width, mapRuntime.height);
     }
     context.drawImage(mapRuntime.layerCanvas, copy * mapRuntime.width, 0);
