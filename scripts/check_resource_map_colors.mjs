@@ -33,18 +33,39 @@ const agriculturalGradients = new Map([
   ["building_cotton_plantation", { low: "#deecf1", high: "#8baebb" }],
   ["building_dye_plantation", { low: "#c5d0ec", high: "#4c5ea7" }],
 ]);
+const nonAgriculturalGradients = new Map([
+  ["building_coal_mine", { low: "#c6ced1", high: "#596166" }],
+  ["building_iron_mine", { low: "#cde0eb", high: "#557b91" }],
+  ["building_lead_mine", { low: "#d3d7df", high: "#727884" }],
+  ["building_sulfur_mine", { low: "#f0e4ac", high: "#c69b26" }],
+  ["building_gold_mine", { low: "#f2dfaa", high: "#c9a34f" }],
+  ["building_fishing_wharf", { low: "#b8dce1", high: "#3d8293" }],
+  ["building_whaling_station", { low: "#c0d1dc", high: "#42667b" }],
+  ["building_logging_camp", { low: "#c9dbbd", high: "#5e8750" }],
+  ["building_rubber_plantation", { low: "#ced7ab", high: "#657b3a" }],
+  ["building_oil_rig", { low: "#c5c7d2", high: "#47495d" }],
+]);
+const resourceGradients = new Map([...agriculturalGradients, ...nonAgriculturalGradients]);
 
 for (const key of resourceKeys) {
   assert.match(mapSource, new RegExp(`"${key}"`), `resource color definitions must mention ${key}`);
 }
-for (const [key, { low, high }] of agriculturalGradients) {
-  assert.match(mapSource, new RegExp(`\\["${key}", \\{ low: "${low}", high: "${high}" \\}\\]`), `agricultural gradient must define ${key}`);
+for (const [key, { low, high }] of resourceGradients) {
+  assert.match(mapSource, new RegExp(`\\["${key}", \\{ low: "${low}", high: "${high}" \\}\\]`), `${key} must define its own linear color endpoints`);
+}
+for (const key of resourceKeys) {
+  const resolvedKey = key === "building_gold_field" ? "building_gold_mine" : key;
+  assert(resourceGradients.has(resolvedKey), `${key} must resolve to a dedicated gradient`);
 }
 
-assert.match(mapSource, /const RESOURCE_MAP_NEUTRAL_COLOR = "#f6d89a"/, "resources without a dedicated low color must retain the neutral endpoint");
+assert.doesNotMatch(mapSource, /RESOURCE_MAP_NEUTRAL_COLOR/, "resource maps must not retain the former yellow neutral endpoint");
+assert.match(mapSource, /const RESOURCE_MAP_EMPTY_LAND_COLOR = "#e9edeb"/, "resource maps must use a cool-gray empty land color");
+assert.match(mapSource, /const RESOURCE_MAP_COMBINED_GRADIENT = \{ low: "#c9d6de", high: "#58788a" \}/, "multi-resource selections must use a dedicated cool-blue-gray gradient");
 assert.match(mapSource, /const RESOURCE_MAP_COLOR_ALIASES = new Map\(\[\s*\["building_gold_field", "building_gold_mine"\]/, "gold field must inherit the gold mine color");
 assert.match(mapSource, /function resourceMapGradient\(/, "resource maps must resolve a gradient before interpolating");
 assert.match(mapSource, /function resourceMapGradientColor\(/, "both resource views must use the shared gradient helper");
+assert.match(functionSource(mapSource, "resourceMapGradientColor"), /Number\(value \|\| 0\) \/ Math\.max\(Number\(maxValue \|\| 0\), 1\)/, "resource gradients must use a linear value ratio");
+assert.doesNotMatch(functionSource(mapSource, "resourceMapGradientColor"), /Math\.sqrt/, "resource gradients must not use square-root scaling");
 for (const removedIdentifier of [
   "drawAgriculturalResourceWatermarks",
   "computeStrategicRegionMapCenters",
@@ -63,8 +84,10 @@ assert.match(mapSource, /function renderMapResourceContext\(/, "map controls mus
 assert.match(mapSource, /map-resource-context-swatch/, "resources without a building icon must use a color swatch");
 assert.match(mapStylesSource, /\.map-resource-context/, "resource context must have dedicated compact styles");
 assert.match(mapStylesSource, /\.map-resource-context-version[\s\S]*white-space:\s*nowrap/, "resource context version must not wrap independently");
-assert.match(runtimeSource, /const MAP_RESOURCE_LAND_ALPHA = 232;/, "resource maps must use their dedicated land opacity");
-assert.match(functionSource(mapSource, "mapPixelAlpha"), /\["resource", "resourceSelection"\]\.includes\(state\.mapMode\)/, "only resource map modes may use the resource land opacity");
+assert.match(runtimeSource, /const MAP_RESOURCE_LAND_ALPHA = 255;/, "resource maps must draw land fully opaque");
+assert.match(functionSource(mapSource, "mapPixelAlpha"), /\["resource", "resourceSelection"\]\.includes\(state\.mapMode\)[\s\S]*stateLayer\.sea\[stateIndex\] \? MAP_SEA_ALPHA : MAP_RESOURCE_LAND_ALPHA/, "resource maps must use opaque land and transparent sea");
+assert.match(functionSource(mapSource, "paintMapCanvasTarget"), /resourceMapUsesSolidBase\(\)[\s\S]*MAP_SEA_COLOR/, "resource maps must paint a sea-blue base");
+assert.match(functionSource(mapSource, "paintMapCanvasTarget"), /if \(mapRuntime\.paperMapImage && !resourceMapUsesSolidBase\(\)\)/, "resource maps must skip the paper background");
 assert.match(indexSource, /styles\.css\?v=20260731-resource-map-context1/, "main entry must invalidate changed map styles");
 assert.match(stylesEntrySource, /@import url\("styles\/map\.css\?v=20260731-resource-map-context1"\);/, "style entry must invalidate the changed map stylesheet");
 assert.match(indexSource, /app\/map\.js\?v=20260731-resource-map-natural-colors1/, "main entry must invalidate the changed map script");
