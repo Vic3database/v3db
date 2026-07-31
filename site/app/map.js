@@ -1555,7 +1555,7 @@ function resourceSummaryText(stateRegion) {
   const resources = [
     ...(stateRegion?.capped_resources || []).map((item) => compactResourceLabel(item, item.amount)),
     ...(stateRegion?.discoverable_resources || []).map((item) => {
-      const amount = item.undiscovered_amount ?? item.discovered_amount ?? item.amount ?? "";
+      const amount = discoverableResourceAmount(item);
       return compactResourceLabel(item, amount);
     }),
     ...(stateRegion?.arable_resources || []).map((item) => compactResourceLabel(item, "")),
@@ -1596,7 +1596,7 @@ function mapTooltipResourceRows(stateRegion) {
 function mapTooltipResourceGroups(stateRegion) {
   const capped = (stateRegion?.capped_resources || []).map((item) => ({ item, amount: item.amount, className: "resource-chip" }));
   const discoverable = (stateRegion?.discoverable_resources || []).map((item) => {
-    const amount = item.undiscovered_amount ?? item.discovered_amount ?? item.amount ?? "";
+    const amount = discoverableResourceAmount(item);
     return { item, amount, className: "resource-chip discoverable-chip" };
   });
   const resources = [...capped, ...discoverable].filter((entry) => entry.item?.key);

@@ -543,9 +543,26 @@ function cappedResourceList(resources) {
   return items.length ? `<span class="link-list">${items.join("")}</span>` : "";
 }
 
+function discoverableResourceAmount(item, fallback = "") {
+  const amount = numericResourceAmount(item?.amount);
+  if (amount !== null) return amount;
+  const discovered = numericResourceAmount(item?.discovered_amount);
+  const undiscovered = numericResourceAmount(item?.undiscovered_amount);
+  if (discovered !== null && undiscovered !== null) return discovered + undiscovered;
+  if (discovered !== null) return discovered;
+  if (undiscovered !== null) return undiscovered;
+  return fallback;
+}
+
+function numericResourceAmount(value) {
+  if (value === "" || value === null || value === undefined) return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+
 function discoverableResourceList(resources) {
   const items = (resources || []).map((item) => {
-    const amount = item.undiscovered_amount ?? item.discovered_amount ?? item.amount ?? "";
+    const amount = discoverableResourceAmount(item);
     return resourcePill(item, amount);
   });
   return items.length ? `<span class="link-list">${items.join("")}</span>` : "";
@@ -1667,7 +1684,7 @@ function resourceSummaryPills(stateRegion) {
   const resourcePills = [
     ...(stateRegion.capped_resources || []).map((item) => resourcePill(item, item.amount)),
     ...(stateRegion.discoverable_resources || []).map((item) => {
-      const amount = item.undiscovered_amount ?? item.discovered_amount ?? item.amount ?? "";
+      const amount = discoverableResourceAmount(item);
       return resourcePill(item, amount);
     }),
   ];
@@ -1678,7 +1695,7 @@ function stateRegionTooltipResourceHtml(stateRegion) {
   const resources = [
     ...(stateRegion?.capped_resources || []).map((item) => stateRegionTooltipResourceChip(item, item.amount)),
     ...(stateRegion?.discoverable_resources || []).map((item) => {
-      const amount = item.undiscovered_amount ?? item.discovered_amount ?? item.amount ?? "";
+      const amount = discoverableResourceAmount(item);
       return stateRegionTooltipResourceChip(item, amount);
     }),
     ...(stateRegion?.arable_resources || []).map((item) => stateRegionTooltipResourceChip(item)),
@@ -1704,7 +1721,7 @@ function stateRegionBuildingStrip(stateRegion) {
   const resources = [
     ...(stateRegion.capped_resources || []).map((item) => buildingChip(item, item.amount, "resource-chip")),
     ...(stateRegion.discoverable_resources || []).map((item) => {
-      const amount = item.undiscovered_amount ?? item.discovered_amount ?? item.amount ?? "";
+      const amount = discoverableResourceAmount(item);
       return buildingChip(item, amount, "resource-chip discoverable-chip");
     }),
   ];
@@ -2171,7 +2188,7 @@ function stateRegionResourceValue(stateRegion, resourceKey) {
   }
   const discoverable = (stateRegion.discoverable_resources || []).find((item) => item.key === resourceKey);
   if (discoverable) {
-    const amount = discoverable.undiscovered_amount ?? discoverable.discovered_amount ?? discoverable.amount ?? 0;
+    const amount = discoverableResourceAmount(discoverable, 0);
     return {
       value: Number(amount || 0),
       detail: String(amount || 0),
