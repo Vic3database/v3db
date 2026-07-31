@@ -57,6 +57,7 @@ try {
   const wheat = await waitForResourceContext(page);
   assert.match(wheat.text, /小麦农场/, "wheat context must show the selected resource name");
   assert.match(wheat.text, new RegExp(libraryLabel), "wheat context must show the current library label");
+  assert.equal(wheat.versionTitle, libraryLabel, "wheat context hover hint must retain the full library label");
   assert.match(wheat.icon, /assets\/buildings\/wheat_farm\.png$/, "wheat context must show the wheat farm icon");
   await page.waitForTimeout(300);
   assert.equal(await page.evaluate(() => window.__resourceMapTextCalls.includes("小麦农场")), false, "wheat must not draw a canvas watermark");
@@ -71,12 +72,40 @@ try {
   const iron = await waitForResourceContext(page);
   assert.match(iron.text, /铁矿/, "iron context must replace the selected resource name");
   assert.match(iron.text, new RegExp(libraryLabel), "iron context must show the current library label");
+  assert.equal(iron.versionTitle, libraryLabel, "iron context hover hint must retain the full library label");
   assert.match(iron.icon, /assets\/buildings\/iron_mine\.png$/, "iron context must show the iron mine icon");
   await page.waitForTimeout(300);
   assert.equal(await page.evaluate(() => window.__resourceMapTextCalls.includes("铁矿")), false, "iron must not draw a canvas watermark");
   const ironLayer = await page.evaluate(() => window.__resourceMapLayers.at(-1));
   assert.deepEqual(ironLayer?.alpha, [255], "iron resource layer must use only opaque land pixels");
   assert.equal(ironLayer?.ironYellowPixels, 0, "iron resource layer must not use the former yellow starting color");
+
+  if (libraryLabel.startsWith("Victorian Century/")) {
+    await page.setViewportSize({ width: 1000, height: 514 });
+    await page.locator("#leftPanelToggle").click();
+    await page.waitForFunction(() => document.body.classList.contains("filters-collapsed")
+      && getComputedStyle(document.querySelector(".map-toolbar")).left === "12px");
+    const compactContext = await page.locator("#mapResourceContext").evaluate((element) => {
+      const contextBounds = element.getBoundingClientRect();
+      const toolbarBounds = element.closest(".map-toolbar")?.getBoundingClientRect();
+      const version = element.querySelector(".map-resource-context-version");
+      return {
+        clientWidth: element.clientWidth,
+        scrollWidth: element.scrollWidth,
+        right: contextBounds.right,
+        toolbarRight: toolbarBounds?.right || 0,
+        viewportWidth: window.innerWidth,
+        versionClientWidth: version?.clientWidth || 0,
+        versionScrollWidth: version?.scrollWidth || 0,
+      };
+    });
+    assert.equal(compactContext.scrollWidth, compactContext.clientWidth, "Victorian Century label must not escape the resource context pill");
+    assert.equal(compactContext.versionScrollWidth, compactContext.versionClientWidth, "Victorian Century label must not overflow inside the resource context pill");
+    assert(compactContext.right <= compactContext.toolbarRight, "Victorian Century context must remain inside the toolbar");
+    assert(compactContext.right <= compactContext.viewportWidth, "Victorian Century context must remain inside the viewport");
+    await page.locator("#leftPanelToggle").click();
+    await page.waitForFunction(() => !document.body.classList.contains("filters-collapsed"));
+  }
 
   await page.locator("[data-resource-filter='building_iron_mine']").click();
   await page.waitForFunction(() => document.querySelector("#mapResourceContext")?.hidden === true, { timeout: 10000 });
@@ -93,5 +122,6 @@ async function waitForResourceContext(page) {
   return page.locator("#mapResourceContext").evaluate((element) => ({
     text: element.textContent?.replace(/\s+/g, " ").trim() || "",
     icon: element.querySelector("img")?.getAttribute("src") || "",
+    versionTitle: element.querySelector(".map-resource-context-version")?.getAttribute("title") || "",
   }));
 }

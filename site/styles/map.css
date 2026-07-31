@@ -58,8 +58,10 @@
   display: inline-flex;
   align-items: center;
   min-width: 0;
-  max-width: min(250px, calc(100vw - 168px));
+  flex: 0 1 340px;
+  max-width: min(340px, calc(100vw - 168px));
   height: 30px;
+  overflow: hidden;
   gap: 6px;
   padding: 3px 8px 3px 4px;
   border: 1px solid rgba(200, 164, 91, 0.24);
@@ -99,7 +101,9 @@
 }
 
 .map-resource-context-version {
-  flex: none;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   color: rgba(238, 243, 234, 0.76);
   white-space: nowrap;
 }
