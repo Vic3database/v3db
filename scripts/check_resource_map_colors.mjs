@@ -97,7 +97,7 @@ assert.doesNotMatch(mapSource, /function resourceMapUsesSolidBase\(/, "resource 
 assert.match(indexSource, /styles\.css\?v=20260731-resource-context-full-label1/, "main entry must invalidate changed map styles");
 assert.match(stylesEntrySource, /@import url\("styles\/map\.css\?v=20260731-resource-context-full-label1"\);/, "style entry must invalidate the changed map stylesheet");
 assert.match(indexSource, /app\/runtime\.js\?v=20260731-resource-map-paper-sea1/, "main entry must invalidate the changed map runtime");
-assert.match(indexSource, /app\/map\.js\?v=20260731-resource-context-full-label1/, "main entry must invalidate the changed map script");
+assert.match(indexSource, /app\/map\.js\?v=20260731-map-center-wrap1/, "main entry must invalidate the changed map script");
 
 console.log(JSON.stringify({ resource_map_colors: "ok", resources: resourceKeys.size }, null, 2));
 

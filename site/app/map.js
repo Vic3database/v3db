@@ -289,22 +289,38 @@ function decodeMapRuns(runs, expectedLength) {
 }
 
 function computeMapStateCenters(indexes, width, height, stateKeysByIndex) {
-  const sums = Array.from({ length: stateKeysByIndex.length }, () => ({ x: 0, y: 0, count: 0 }));
+  const halfWidth = width / 2;
+  const sums = Array.from({ length: stateKeysByIndex.length }, () => ({
+    x: 0,
+    y: 0,
+    count: 0,
+    leftCount: 0,
+    minX: width,
+    maxX: -1,
+  }));
   for (let pixel = 0; pixel < indexes.length; pixel += 1) {
     const index = indexes[pixel];
     if (!index) continue;
     const item = sums[index];
-    item.x += pixel % width;
+    const x = pixel % width;
+    item.x += x;
     item.y += Math.floor(pixel / width);
     item.count += 1;
+    if (x < halfWidth) item.leftCount += 1;
+    if (x < item.minX) item.minX = x;
+    if (x > item.maxX) item.maxX = x;
   }
   const centers = new Map();
   for (let index = 1; index < sums.length; index += 1) {
     const item = sums[index];
     const key = stateKeysByIndex[index];
     if (!key || !item.count) continue;
+    const wrapsAroundWorldEdge = item.maxX - item.minX > halfWidth;
+    const x = wrapsAroundWorldEdge
+      ? ((item.x + item.leftCount * width) / item.count) % width
+      : item.x / item.count;
     centers.set(key, {
-      x: item.x / item.count,
+      x,
       y: item.y / item.count,
       count: item.count,
     });
