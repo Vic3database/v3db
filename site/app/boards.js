@@ -596,7 +596,7 @@ function renderRegionBoard() {
     state.detailKind = regionListModeDetailKind();
   }
   const selectedStateRegion = byStateRegion.get(state.selectedStateRegion);
-  els.resultCount.textContent = `地域 ${filteredStateRegions.length} 个`;
+  els.resultCount.textContent = t("board.region.resultCount", { count: localizedNumber(filteredStateRegions.length) });
   els.activeHint.textContent = buildActiveHint(filteredStateRegions.length);
   renderRegionList(filteredStrategicRegions, filteredStateRegions, filteredSeaRegions, filteredGeographicRegions);
   renderMap(regionMapStateRegions(filteredStateRegions, filteredSeaStateRegions, filteredGeographicRegions));
@@ -636,7 +636,7 @@ function renderCompanyBoard() {
   if (!isDetailPageRoute() && state.selectedCompany && !filtered.some((company) => company.key === state.selectedCompany)) state.selectedCompany = "";
   const selectedCompany = byCompany.get(state.selectedCompany);
   mapRuntime.companyMapCompanies = selectedCompany ? [selectedCompany] : filtered;
-  els.resultCount.textContent = `${filtered.length} 个公司`;
+  els.resultCount.textContent = t("board.company.resultCount", { count: localizedNumber(filtered.length) });
   els.activeHint.textContent = buildActiveHint(filtered.length);
   renderCompanyList(filtered);
   if (isDetailPageRoute() && companyDetailLocationMapEnabled(selectedCompany) && companyLocationStateRegionKeys(selectedCompany).length) {
@@ -1206,9 +1206,9 @@ function globalSearchResults(query) {
   landStateRegions.forEach((stateRegion) => add({
     id: `stateRegion:${stateRegion.key}`,
     kind: "stateRegion",
-    typeLabel: "地区",
+    typeLabel: t("board.region.stateRegion", "地区"),
     key: stateRegion.key,
-    title: stateRegion.name_zh || stateRegion.key,
+    title: entityText(stateRegion) || stateRegion.key,
     aliases: stateRegionVariantNames(stateRegion),
     subtitle: refNames(stateRegion.strategic_regions),
     color: byStrategicRegion.get(stateRegion.strategic_regions?.[0]?.key)?.map_color?.hex || "",
@@ -1218,10 +1218,10 @@ function globalSearchResults(query) {
   landStrategicRegions.forEach((region) => add({
     id: `strategicRegion:${region.key}`,
     kind: "strategicRegion",
-    typeLabel: "战略区域",
+    typeLabel: t("board.region.strategicRegion", "战略区域"),
     key: region.key,
     title: strategicRegionName(region),
-    subtitle: `地域 ${(region.states || []).length} 个`,
+    subtitle: t("board.region.resultCount", { count: localizedNumber((region.states || []).length) }),
     color: region.map_color?.hex || "",
     raw: region,
     searchText: strategicRegionSearchBlob(region),
@@ -1229,19 +1229,19 @@ function globalSearchResults(query) {
   groupedGeographicRegions.forEach((region) => add({
     id: `geographicRegion:${region.key}`,
     kind: "geographicRegion",
-    typeLabel: "地理区域",
+    typeLabel: t("board.region.geographicRegion", "地理区域"),
     key: region.key,
     title: geographicRegionDisplayName(region),
-    subtitle: `地域 ${geographicRegionStateRegions(region).length} 个`,
+    subtitle: t("board.region.resultCount", { count: localizedNumber(geographicRegionStateRegions(region).length) }),
     raw: region,
     searchText: geographicRegionSearchBlob(region),
   }));
   companies.forEach((company) => add({
     id: `company:${company.key}`,
     kind: "company",
-    typeLabel: "公司",
+    typeLabel: t("entity.company", "公司"),
     key: company.key,
-    title: company.name_zh || company.key,
+    title: entityText(company) || company.key,
     subtitle: companyKindText(company),
     raw: company,
     searchText: companySearchBlob(company),

@@ -32,6 +32,12 @@ for (const [collection, id, expectedEnglish] of samples) {
   assert.equal(en[row.loc.name], expectedEnglish);
   assert(zh[row.loc.name] && zh[row.loc.name] !== row.loc.name, `${id} lacks simplified Chinese`);
 }
+const sampleCompany = database.companies.find((item) => item.id === "company:company_a_markwald_and_company");
+assert.equal(en[sampleCompany.loc.companyKind], "Historical Company");
+assert.equal(en[sampleCompany.loc.prestigeGoodsKind], "Generic Prestige Goods");
+assert.equal(en[sampleCompany.loc.dlcName], "Victoria 3");
+const categorizedCompany = database.companies.find((item) => item.key === "company_argentinian_wine");
+assert.equal(en[categorizedCompany.loc.category], "Partial Shopkeeper Ownership");
 assertNoFixedLocaleFields(database);
 
 console.log(JSON.stringify({

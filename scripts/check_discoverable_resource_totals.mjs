@@ -63,6 +63,7 @@ loadFunction(summaryPillContext, componentsSource, "resourceSummaryPills");
 assert.match(summaryPillContext.resourceSummaryPills(svealand), new RegExp(`<pill>${expectedTotal}</pill>`));
 
 const textContext = {
+  entityText: (item) => item?.name_zh || item?.key || "",
   summarizeTextItems: (items) => items.join("; "),
 };
 loadFunction(textContext, componentsSource, "numericResourceAmount");

@@ -1,5 +1,5 @@
 function renderEntityBadge(kind, entity, label = "") {
-  const text = label || entity?.name_zh || entity?.name || entity?.tag || entity?.key || "?";
+  const text = label || entityText(entity) || entity?.name || entity?.tag || entity?.key || "?";
   const initial = text.trim().slice(0, 1).toUpperCase() || "?";
   if (kind === "country") {
     return countryFlagIconHtml(entity, "entity-badge entity-badge-flag") || `<span class="entity-badge entity-badge-square entity-badge-country">${escapeHtml(initial)}</span>`;
@@ -366,10 +366,10 @@ function renderRegionList(filteredStrategicRegions, filteredStateRegions, filter
     ? stateRegionRowHtml(selectedStateRegionFromMap, { mapSelected: true })
     : "";
   const stateRegionHtml = visibleStateRegions.length ? `
-    <div class="list-section-title">地域</div>
+    <div class="list-section-title">${t("board.region.stateRegion", "地域")}</div>
     ${visibleStateRegions.map((stateRegion) => stateRegionRowHtml(stateRegion)).join("")}
   ` : "";
-  els.countryList.innerHTML = `${selectedFromMapHtml}${stateRegionHtml || (selectedFromMapHtml ? "" : `<p class="empty">没有匹配结果。</p>`)}`;
+  els.countryList.innerHTML = `${selectedFromMapHtml}${stateRegionHtml || (selectedFromMapHtml ? "" : `<p class="empty">${t("board.region.empty", "没有匹配结果。")}</p>`)}`;
 }
 
 function stateRegionRowHtml(stateRegion, { mapSelected = false } = {}) {
@@ -377,12 +377,12 @@ function stateRegionRowHtml(stateRegion, { mapSelected = false } = {}) {
   return `
     <article class="country-row region-row${mapSelected ? " region-map-selected" : ""} selectable-row" data-state-region="${escapeHtml(stateRegion.key)}" style="${stateRegionBorderStyle(stateRegion)}" aria-current="${selected}" tabindex="0">
       <span class="country-heading">
-        ${conceptTag(stateRegion.key, "stateRegion", stateRegion.key, stateRegion.name_zh)}
+        ${conceptTag(stateRegion.key, "stateRegion", stateRegion.key, entityText(stateRegion))}
         <span class="name">${stateRegionNameText(stateRegion)}</span>
         ${rowDetailButton("data-state-region-detail", stateRegion.key)}
       </span>
       <span class="minor country-meta">${escapeHtml(stateRegionSummaryText(stateRegion))}</span>
-      <span class="minor country-meta">本土文化：${escapeHtml(refNames(stateRegion.homeland_cultures))}</span>
+      <span class="minor country-meta">${t("board.region.homelandCultures", "本土文化")}：${escapeHtml(refNames(stateRegion.homeland_cultures))}</span>
       <span class="pill-line country-tags">${stateRegionTagPills(stateRegion)}</span>
       <span class="region-building-strip">${stateRegionBuildingStrip(stateRegion)}</span>
     </article>
@@ -492,7 +492,7 @@ function renderCompanyList(filtered) {
       <span class="company-heading">
         ${companyIconHtml(company)}
         <span class="company-title-text">
-          <span class="name">${escapeHtml(company.name_zh || company.key)}</span>
+          <span class="name">${escapeHtml(entityText(company) || company.key)}</span>
         </span>
         ${companyDlcIconPill(company)}
       </span>
@@ -827,12 +827,12 @@ function companyDetailLocationHtml(company) {
   const stateKeys = companyLocationStateRegionKeys(company);
   return `
     <section class="company-location-section" aria-label="公司位置">
-      <h3>位置</h3>
+      <h3>${t("board.company.location", "位置")}</h3>
       ${stateKeys.length ? `
         <div class="company-location-map">
-          <canvas data-company-location-map aria-label="${escapeHtml(company.name_zh || company.key)}的关联地点地图"></canvas>
+          <canvas data-company-location-map aria-label="${escapeHtml(t("board.company.locationMapAria", { name: entityText(company) || company.key }))}"></canvas>
         </div>
-      ` : `<p class="empty">暂无可定位地点。</p>`}
+      ` : `<p class="empty">${t("board.company.noLocation", "暂无可定位地点。")}</p>`}
     </section>
   `;
 }
@@ -841,17 +841,17 @@ function companyLocationFieldsHtml(company) {
   if (!companyDetailLocationMapEnabled(company)) return "";
   return `
     <dl class="field-grid company-location-fields">
-      ${field("总部倾向", stateRegionLinks(company.preferred_headquarters))}
-      ${field("相关战略区域", strategicRegionLinks(company.referenced_strategic_regions))}
-      ${field("相关地理区域", geographicRegionLinks(company.referenced_geographic_regions))}
-      ${field("相关地域", stateRegionLinks(company.referenced_state_regions))}
+      ${field(t("board.company.headquarters", "总部倾向"), stateRegionLinks(company.preferred_headquarters))}
+      ${field(t("board.company.strategicRegions", "相关战略区域"), strategicRegionLinks(company.referenced_strategic_regions))}
+      ${field(t("board.company.geographicRegions", "相关地理区域"), geographicRegionLinks(company.referenced_geographic_regions))}
+      ${field(t("board.company.stateRegions", "相关地域"), stateRegionLinks(company.referenced_state_regions))}
     </dl>
   `;
 }
 
 function renderCompanyDetail(company) {
   if (!company) {
-    els.detail.innerHTML = `<p class="empty">没有匹配结果。</p>`;
+    els.detail.innerHTML = `<p class="empty">${t("board.company.empty", "没有匹配结果。")}</p>`;
     return;
   }
   els.detail.innerHTML = `
@@ -859,23 +859,23 @@ function renderCompanyDetail(company) {
       ${detailBackButton("company")}
       <div class="detail-title-main">
         <span class="company-icon-box">${companyIconHtml(company)}</span>
-        <h2>${escapeHtml(company.name_zh || company.key)}</h2>
+        <h2>${escapeHtml(entityText(company) || company.key)}</h2>
       </div>
       ${victorianCenturyBadge(company)}
     </div>
 
     <div class="company-detail-overview${companyDetailLocationMapEnabled(company) ? " has-location-map" : ""}">
       <section class="company-detail-base">
-        <h3>基础</h3>
+        <h3>${t("board.company.base", "基础")}</h3>
         <dl class="field-grid">
-          ${field("类型", tagPill(companyKindText(company), companyKindKey(company) === "historical" ? "tag-special" : "tag-type"))}
-          ${field("控股类别", tagPill(company.category_zh || company.category, "tag-company-ownership", company.category, `company-ownership-category:${company.category || ""}`))}
-          ${field("资料片", companyDlcIconPill(company) || tagPill(companyDlcLabel(company), "tag-dlc", company.dlc_name_en || companyDlcKey(company)))}
-          ${field("名贵商品状态", tagPill(companyPrestigeLabel(company), "tag-good"))}
-          ${field("相关文化", cultureLinks(company.referenced_cultures))}
-          ${field("相关国家", countryLinks((company.referenced_countries || []).map((item) => item.tag), (company.referenced_countries || []).map((item) => item.name_zh)))}
-          ${field("所需科技", technologyPills(company.required_technologies))}
-          ${field("AI 倾向科技", technologyPills(company.ai_will_do_technologies))}
+          ${field(t("board.company.type", "类型"), tagPill(companyKindText(company), companyKindKey(company) === "historical" ? "tag-special" : "tag-type"))}
+          ${field(t("board.company.category", "控股类别"), tagPill(entityText(company, "category") || company.category, "tag-company-ownership", company.category, `company-ownership-category:${company.category || ""}`))}
+          ${field(t("board.company.dlc", "资料片"), companyDlcIconPill(company) || tagPill(companyDlcLabel(company), "tag-dlc", companyDlcKey(company)))}
+          ${field(t("board.company.prestige", "名贵商品状态"), tagPill(companyPrestigeLabel(company), "tag-good"))}
+          ${field(t("board.company.relatedCultures", "相关文化"), cultureLinks(company.referenced_cultures))}
+          ${field(t("board.company.relatedCountries", "相关国家"), countryLinks((company.referenced_countries || []).map((item) => item.tag), (company.referenced_countries || []).map((item) => entityText(item))))}
+          ${field(t("board.company.requiredTechnologies", "所需科技"), technologyPills(company.required_technologies))}
+          ${field(t("board.company.aiWillDoTechnologies", "AI 倾向科技"), technologyPills(company.ai_will_do_technologies))}
         </dl>
         ${companyLocationFieldsHtml(company)}
       </section>
@@ -883,21 +883,21 @@ function renderCompanyDetail(company) {
       ${companyDetailLocationHtml(company)}
     </div>
 
-    <h3>经营</h3>
+    <h3>${t("board.company.operation", "经营")}</h3>
     <dl class="field-grid">
-      ${field("主营建筑", buildingList(company.building_types, "tag-industry"))}
-      ${field("扩展建筑", buildingList(company.extension_building_types, "extension-building-pill"))}
-      ${field("名贵商品", companyPrestigeGoodsPills(company))}
-      ${field("繁荣效果", modifierPills(company.prosperity_modifiers))}
+      ${field(t("board.company.primaryBuildings", "主营建筑"), buildingList(company.building_types, "tag-industry"))}
+      ${field(t("board.company.expansionBuildings", "扩展建筑"), buildingList(company.extension_building_types, "extension-building-pill"))}
+      ${field(t("board.company.prestigeGoods", "名贵商品"), companyPrestigeGoodsPills(company))}
+      ${field(t("board.company.prosperityEffect", "繁荣效果"), modifierPills(company.prosperity_modifiers))}
     </dl>
 
-    <h3>条件脚本</h3>
-    ${rawDetails("潜在条件", company.potential_raw)}
-    ${rawDetails("可见条件", company.attainable_raw)}
-    ${rawDetails("成立条件", company.possible_raw)}
-    ${rawDetails("名贵商品条件", company.prestige_goods_trigger_raw)}
-    ${rawDetails("AI 倾向条件", company.ai_will_do_raw)}
-    ${rawDetails("AI 建造目标", company.ai_construction_targets_raw)}
+    <h3>${t("board.company.scriptConditions", "条件脚本")}</h3>
+    ${rawDetails(t("board.company.potentialCondition", "潜在条件"), company.potential_raw)}
+    ${rawDetails(t("board.company.attainableCondition", "可见条件"), company.attainable_raw)}
+    ${rawDetails(t("board.company.possibleCondition", "成立条件"), company.possible_raw)}
+    ${rawDetails(t("board.company.prestigeGoodsCondition", "名贵商品条件"), company.prestige_goods_trigger_raw)}
+    ${rawDetails(t("board.company.aiWillDoCondition", "AI 倾向条件"), company.ai_will_do_raw)}
+    ${rawDetails(t("board.company.aiConstructionTargets", "AI 建造目标"), company.ai_construction_targets_raw)}
   `;
   queueMicrotask(() => renderCompanyDetailLocationMap(company));
 }
@@ -1089,34 +1089,34 @@ function renderStateRegionDetail(stateRegion) {
       <div class="detail-title-main">
         <h2>${stateRegionNameText(stateRegion)}</h2>
       </div>
-      ${conceptTag(stateRegion.key, "stateRegion", stateRegion.key, stateRegion.name_zh)}
+      ${conceptTag(stateRegion.key, "stateRegion", stateRegion.key, entityText(stateRegion))}
       ${victorianCenturyBadge(stateRegion)}
     </div>
-    <h3>基础</h3>
+    <h3>${t("board.region.base", "基础")}</h3>
     <dl class="field-grid">
-      ${field("战略区域", strategicRegionLinks(stateRegion.strategic_regions))}
-      ${field("开局归属", countryLinks((stateRegion.starting_owners || []).map((country) => country.tag), (stateRegion.starting_owners || []).map((country) => country.name_zh)))}
-      ${field("本土文化", cultureLinks(stateRegion.homeland_cultures))}
-      ${field("地区特质", stateTraitPills(stateRegion.traits, stateRegion))}
-      ${field("固定资源", cappedResourceList(stateRegion.capped_resources))}
-      ${field("可发现资源", discoverableResourceList(stateRegion.discoverable_resources))}
-      ${field("农业建筑", buildingList(stateRegion.arable_resources))}
-      ${field("耕地", stateRegion.arable_land === null ? "" : String(stateRegion.arable_land))}
+      ${field(t("board.region.strategicRegion", "战略区域"), strategicRegionLinks(stateRegion.strategic_regions))}
+      ${field(t("board.region.startingOwners", "开局归属"), countryLinks((stateRegion.starting_owners || []).map((country) => country.tag), (stateRegion.starting_owners || []).map((country) => entityText(country))))}
+      ${field(t("board.region.homelandCultures", "本土文化"), cultureLinks(stateRegion.homeland_cultures))}
+      ${field(t("board.region.traits", "地区特质"), stateTraitPills(stateRegion.traits, stateRegion))}
+      ${field(t("board.region.resourcePotential", "固定资源"), cappedResourceList(stateRegion.capped_resources))}
+      ${field(t("board.region.discoverableResources", "可发现资源"), discoverableResourceList(stateRegion.discoverable_resources))}
+      ${field(t("board.region.buildings", "农业建筑"), buildingList(stateRegion.arable_resources))}
+      ${field(t("board.region.arableLand", "耕地"), stateRegion.arable_land === null ? "" : String(stateRegion.arable_land))}
     </dl>
-    <h3>相关公司</h3>
+    <h3>${t("board.region.relatedCompanies", "相关公司")}</h3>
     <dl class="field-grid">
-      ${field("总部倾向", companyAssociationLinks(relatedCompanies.filter((item) => item.kind === "headquarters")))}
-      ${field("条件引用", companyAssociationLinks(relatedCompanies.filter((item) => item.kind === "special")))}
+      ${field(t("board.region.headquartersPreference", "总部倾向"), companyAssociationLinks(relatedCompanies.filter((item) => item.kind === "headquarters")))}
+      ${field(t("board.region.reference", "条件引用"), companyAssociationLinks(relatedCompanies.filter((item) => item.kind === "special")))}
     </dl>
-    <h3>地区特质效果</h3>
+    <h3>${t("board.region.effects", "地区特质效果")}</h3>
     ${stateTraitEffectList(stateRegion.traits)}
-    <h3>名称变体</h3>
+    <h3>${t("board.region.nameVariants", "名称变体")}</h3>
     ${dynamicStateNameList(stateRegion)}
   `;
 }
 
 function renderStrategicRegionDetail(region) {
-  const regionKind = isSeaStrategicRegion(region) ? "海域" : "战略区域";
+  const regionKind = isSeaStrategicRegion(region) ? t("board.region.sea", "海域") : t("board.region.strategicRegion", "战略区域");
   els.detail.innerHTML = `
     <div class="detail-title">
       ${detailBackButton("region")}
@@ -1127,13 +1127,13 @@ function renderStrategicRegionDetail(region) {
       ${conceptTag(region.key, "strategicRegion", region.key, strategicRegionName(region))}
       ${victorianCenturyBadge(region)}
     </div>
-    <h3>基础</h3>
+    <h3>${t("board.region.base", "基础")}</h3>
     <dl class="field-grid">
-      ${field("类型", tagPill(regionKind, isSeaStrategicRegion(region) ? "tag-sea" : "tag-region"))}
-      ${field("颜色", colorValue(region.map_color?.hex, region.map_color?.rgb))}
-      ${field("地域", stateRegionLinks(region.states))}
-      ${field("本土文化", cultureLinks(region.homeland_cultures))}
-      ${field("开局国家", countryLinks((region.starting_owners || []).map((country) => country.tag), (region.starting_owners || []).map((country) => country.name_zh)))}
+      ${field(t("board.region.type", "类型"), tagPill(regionKind, isSeaStrategicRegion(region) ? "tag-sea" : "tag-region"))}
+      ${field(t("board.region.color", "颜色"), colorValue(region.map_color?.hex, region.map_color?.rgb))}
+      ${field(t("board.region.stateRegion", "地域"), stateRegionLinks(region.states))}
+      ${field(t("board.region.homelandCultures", "本土文化"), cultureLinks(region.homeland_cultures))}
+      ${field(t("board.region.startingOwners", "开局国家"), countryLinks((region.starting_owners || []).map((country) => country.tag), (region.starting_owners || []).map((country) => entityText(country))))}
     </dl>
   `;
 }
@@ -1152,19 +1152,19 @@ function renderGeographicRegionDetail(region) {
       ${conceptTag(region.key, "geographicRegion", region.key, geographicRegionDisplayName(region))}
       ${victorianCenturyBadge(region)}
     </div>
-    <h3>基础</h3>
+    <h3>${t("board.region.base", "基础")}</h3>
     <dl class="field-grid">
-      ${field("类型", tagPill("地理区域", "tag-region"))}
-      ${field("分组", tagPill(geographicRegionGroupLabels.get(region.geographic_region_group) || region.geographic_region_group_zh || region.geographic_region_group || "暂置", "tag-muted"))}
-      ${field("战略区域", strategicRegionLinks(strategicRefs))}
-      ${field("地域", stateRegionLinks(stateRefs))}
-      ${field("地域数量", escapeHtml(String(stateRefs.length)))}
-      ${field("开局国家", countryLinks(startingOwners.map((country) => country.tag), startingOwners.map((country) => country.name_zh)))}
-      ${field("本土文化", cultureLinks(homelandCultures))}
+      ${field(t("board.region.type", "类型"), tagPill(t("board.region.geographicRegion", "地理区域"), "tag-region"))}
+      ${field(t("board.region.group", "分组"), tagPill(t(`enum.geographicRegionGroup.${region.geographic_region_group}`) || region.geographic_region_group, "tag-muted"))}
+      ${field(t("board.region.strategicRegion", "战略区域"), strategicRegionLinks(strategicRefs))}
+      ${field(t("board.region.stateRegion", "地域"), stateRegionLinks(stateRefs))}
+      ${field(t("board.region.count", "地域数量"), escapeHtml(String(stateRefs.length)))}
+      ${field(t("board.region.startingOwners", "开局国家"), countryLinks(startingOwners.map((country) => country.tag), startingOwners.map((country) => entityText(country))))}
+      ${field(t("board.region.homelandCultures", "本土文化"), cultureLinks(homelandCultures))}
     </dl>
-    <h3>来源</h3>
+    <h3>${t("board.region.source", "来源")}</h3>
     <dl class="field-grid">
-      ${field("文件", escapeHtml(region.source_file || ""))}
+      ${field(t("board.region.file", "文件"), escapeHtml(region.source_file || ""))}
     </dl>
   `;
 }

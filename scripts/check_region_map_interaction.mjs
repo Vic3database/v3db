@@ -84,7 +84,7 @@ function checkRegionMapFocusResetContracts() {
   assert(/state\.selectedStateRegion = ""/.test(resetRegionMapFocus), "region focus reset should clear the selected state region");
   assert(/state\.mapSelectedStateRegion = ""/.test(resetRegionMapFocus), "region focus reset should clear the temporary map-selected card");
   assert(/render\(\)[\s\S]*fitMapToWidth\(\)/.test(resetRegionMapFocus), "region focus reset should re-render before fitting the map");
-  assert(/state\.view === "region" \? "重置地域焦点和地图位置" : "重置地图位置"/.test(renderMapControls), "region map reset button should expose its region-specific label");
+  assert(/state\.view === "region" \? t\("map\.resetRegionFocus", "重置地域焦点和地图位置"\) : t\("map\.resetPosition", "重置地图位置"\)/.test(renderMapControls), "region map reset button should expose its localized region-specific label");
 }
 
 function checkRegionMapCacheVersionContracts() {

@@ -445,7 +445,7 @@ function companyAssociationLinks(items) {
   const links = (items || []).map((item) => {
     const company = item.company;
     if (!company?.key) return "";
-    const label = company.name_zh || company.key;
+    const label = entityText(company) || company.key;
     return conceptPill({
       label,
       className: `resource-pill company-link-pill ${item.kind === "special" ? "extension-building-pill" : ""}`,
@@ -472,7 +472,7 @@ function companiesForStateRegion(stateRegion) {
     };
   }).filter(Boolean).sort((a, b) => (
     Number(b.kind === "headquarters") - Number(a.kind === "headquarters")
-    || (a.company.name_zh || a.company.key).localeCompare(b.company.name_zh || b.company.key, "zh-Hans-CN")
+    || localizedCompare(entityText(a.company), entityText(b.company))
     || a.company.key.localeCompare(b.company.key)
   ));
 }
@@ -574,7 +574,7 @@ function buildingList(buildings, className = "tag-arable") {
 }
 
 function resourcePill(item, amount = "") {
-  const name = item?.name_zh || item?.key || "";
+  const name = entityText(item) || item?.key || "";
   const suffix = amount !== "" && amount !== null ? ` · ${escapeHtml(amount)}` : "";
   const metadata = buildingTooltipMetadata(item);
   return conceptPill({
@@ -590,9 +590,9 @@ function resourcePill(item, amount = "") {
 }
 
 function buildingPill(item, className = "") {
-  const name = item?.name_zh || item?.key || "";
+  const name = entityText(item) || item?.key || "";
   const classText = className ? ` ${className}` : "";
-  const extensionBadge = className.includes("extension-building-pill") ? `<span class="building-kind-badge">扩展</span>` : "";
+  const extensionBadge = className.includes("extension-building-pill") ? `<span class="building-kind-badge">${t("board.company.expansionBadge", "扩展")}</span>` : "";
   const metadata = buildingTooltipMetadata(item);
   return conceptPill({
     label: name,
@@ -607,7 +607,7 @@ function buildingPill(item, className = "") {
 }
 
 function buildingTooltipMetadata(item) {
-  const label = item?.name_zh || item?.key || "";
+  const label = entityText(item) || item?.key || "";
   return conceptTooltipMetadata(label, "", "building", item?.key || label);
 }
 
@@ -617,7 +617,7 @@ function stateTraitPills(traits, stateRegion = null, { showVictorianCenturyBadge
 }
 
 function stateTraitPill(trait, stateRegion = null) {
-  const label = trait?.name_zh || trait?.key || "";
+  const label = entityText(trait) || trait?.key || "";
   const metadata = conceptTooltipMetadata(label, "", "stateTrait", trait?.key || label);
   const description = stateTraitTooltipDescription(trait);
   const secondaryDescription = stateTraitTooltipSecondaryDescription(trait, stateRegion);
@@ -634,11 +634,11 @@ function stateTraitPill(trait, stateRegion = null) {
 }
 
 function stateTraitTooltipDescription(trait) {
-  const summary = String(trait?.modifier_summary_zh || "").split(/;\s*/).map((item) => item.trim()).filter(Boolean);
+  const summary = String(entityText(trait, "modifierSummary", "")).split(/;\s*/).map((item) => item.trim()).filter(Boolean);
   const parts = [];
   if (summary.length) parts.push(summary.join("\n"));
-  if ((trait?.required_techs_for_colonization || []).length) parts.push(`殖民所需科技：${technologyRefNames(trait.required_techs_for_colonization)}`);
-  if ((trait?.disabling_technologies || []).length) parts.push(`失效科技：${technologyRefNames(trait.disabling_technologies)}`);
+  if ((trait?.required_techs_for_colonization || []).length) parts.push(`${t("board.region.colonizationTechnologies", "殖民所需科技")}：${technologyRefNames(trait.required_techs_for_colonization)}`);
+  if ((trait?.disabling_technologies || []).length) parts.push(`${t("board.region.disablingTechnologies", "失效科技")}：${technologyRefNames(trait.disabling_technologies)}`);
   return parts.join("\n");
 }
 
@@ -646,13 +646,13 @@ function stateTraitTooltipSecondaryDescription(trait, stateRegion = null) {
   const isGeneric = /(?:^|[\\/])00_generic_traits\.txt$/i.test(String(trait?.source_file || ""));
   const otherRegions = (stateTraitRegionsByKey.get(trait?.key || "") || [])
     .filter((region) => region.key && region.key !== stateRegion?.key)
-    .map((region) => region.name_zh || region.key);
-  return !isGeneric && otherRegions.length ? `拥有该特质的地区：\n${otherRegions.join("、")}` : "";
+    .map((region) => entityText(region) || region.key);
+  return !isGeneric && otherRegions.length ? `${t("board.region.otherTraitRegions", "拥有该特质的地区")}：\n${otherRegions.join("、")}` : "";
 }
 
 function stateTraitEffectList(traits) {
   if (!(traits || []).length) {
-    return `<p class="empty compact">无地区特质。</p>`;
+    return `<p class="empty compact">${t("board.region.noTraits", "无地区特质。")}</p>`;
   }
   return `<div class="rule-list">${traits.map((trait) => `
     <article class="rule-item">
@@ -660,14 +660,14 @@ function stateTraitEffectList(traits) {
         ${traitIconHtml(trait, "state")}
         <div class="trait-card-content">
           <div class="rule-head">
-            <strong>${escapeHtml(trait.name_zh || trait.key)}${victorianCenturyBadge(trait)}</strong>
+            <strong>${escapeHtml(entityText(trait) || trait.key)}${victorianCenturyBadge(trait)}</strong>
             <span class="minor">${escapeHtml(trait.key)}</span>
           </div>
           <dl class="mini-grid">
-            ${field("类型", traitCategoryPills(trait.categories))}
-            ${field("效果", modifierPills(trait.modifiers))}
-            ${field("殖民科技", technologyPills(trait.required_techs_for_colonization))}
-            ${field("失效科技", technologyPills(trait.disabling_technologies))}
+            ${field(t("board.region.type", "类型"), traitCategoryPills(trait.categories))}
+            ${field(t("board.region.effect", "效果"), modifierPills(trait.modifiers))}
+            ${field(t("board.region.colonizationTechnologies", "殖民科技"), technologyPills(trait.required_techs_for_colonization))}
+            ${field(t("board.region.disablingTechnologies", "失效科技"), technologyPills(trait.disabling_technologies))}
           </dl>
         </div>
       </div>
@@ -677,7 +677,7 @@ function stateTraitEffectList(traits) {
 
 function traitCategoryPills(categories) {
   const items = (categories || []).map((category) => tagPill(
-    category.name_zh || category.key,
+    entityText(category) || category.key,
     category.key === "mapi" ? "tag-mapi" : "tag-tradition",
     category.key,
     category.key === "mapi" ? "mapi-category" : "state-trait-category",
@@ -713,10 +713,7 @@ function technologyRefNames(items) {
 }
 
 function modifierSummaryLabel(modifier) {
-  if (modifier?.key === "state_market_access_price_impact") {
-    return `市场接入度的价格影响(MAPI)${modifier?.value_zh ? ` ${modifier.value_zh}` : ""}`;
-  }
-  return modifier?.summary_zh || modifier?.key || "";
+  return renderTextSpec({ message: modifier?.loc?.summary, fallback: modifier?.key || "" });
 }
 
 function interestGroupFlavorList(groups) {
@@ -1556,7 +1553,7 @@ function stateRegionMapiPill(stateRegion) {
 }
 
 function companyKindText(company) {
-  return company.company_kind_zh || companyKindLabels.get(companyKindKey(company)) || "通用公司";
+  return t(`enum.companyKind.${companyKindKey(company)}`) || companyKindKey(company);
 }
 
 function companyKindKey(company) {
@@ -1581,12 +1578,11 @@ function companyDlcKey(company) {
 }
 
 function companyDlcLabel(company) {
-  return company?.dlc_name_en || company?.dlc_name_zh || companyDlcLabels.get(companyDlcKey(company)) || companyDlcKey(company);
+  return entityText(company, "dlcName") || t(`enum.companyDlc.${companyDlcKey(company)}`) || companyDlcKey(company);
 }
 
 function companyPrestigeLabel(company) {
-  const label = company?.prestige_goods_kind_zh || companyPrestigeLabels.get(prestigeGoodsKindKey(company)) || "";
-  return label.replace(/^仅(?=通用名贵商品|特殊名贵商品)/, "");
+  return t(`enum.prestigeGoodsKind.${prestigeGoodsKindKey(company)}`) || "";
 }
 
 function companyTagPills(company) {
@@ -1594,16 +1590,16 @@ function companyTagPills(company) {
     victorianCenturyBadge(company),
     limitedRefPills(company.referenced_strategic_regions, "tag-region", 4),
     limitedRefPills(company.referenced_geographic_regions, "tag-region", 3),
-    tagPill(company.category_zh || company.category, "tag-company-ownership", company.category, `company-ownership-category:${company.category || ""}`),
+    tagPill(entityText(company, "category") || company.category, "tag-company-ownership", company.category, `company-ownership-category:${company.category || ""}`),
     companyKindKey(company) === "easter_egg" ? tagPill(companyKindText(company), "tag-special") : "",
   ].filter(Boolean).join("");
 }
 
 function companyMetaLine(company) {
   return [
-    company.preferred_headquarters?.length ? `总部倾向：${refNames(company.preferred_headquarters, " / ")}` : "",
-    company.referenced_cultures?.length ? `限定文化：${refNames(company.referenced_cultures, " / ")}` : "",
-  ].filter(Boolean).join("；");
+    company.preferred_headquarters?.length ? `${t("board.company.headquarters", "总部倾向")}：${refNames(company.preferred_headquarters, " / ")}` : "",
+    company.referenced_cultures?.length ? `${t("board.company.relatedCultures", "限定文化")}：${refNames(company.referenced_cultures, " / ")}` : "",
+  ].filter(Boolean).join(t("ui.semicolon", "；"));
 }
 
 function companyDlcIconPill(company) {
@@ -1628,15 +1624,15 @@ function companyPrestigeGoodsPills(company) {
 function companyPrestigeGoodPill(item) {
   if (!item) return "";
   const key = item.key || "";
-  const label = item.name_zh || key;
+  const label = entityText(item) || key;
   return conceptPill({
     label,
     className: "tag-good prestige-good-pill",
     title: key,
     kind: "goods",
     key,
-    category: "名贵商品",
-    description: `“${label}”是一种名贵商品。`,
+    category: t("board.company.prestigeGoods", "名贵商品"),
+    description: t("board.company.prestigeGoodsDescription", { name: label }),
     html: `${goodsIconHtml(item, "prestige-good-icon")}<span>${escapeHtml(label)}</span>`,
   });
 }
@@ -1664,7 +1660,7 @@ function companyBuildingStrip(company) {
 }
 
 function companyBuildingPill(item, className = "") {
-  const name = item?.name_zh || item?.key || "";
+  const name = entityText(item) || item?.key || "";
   if (!name) return "";
   const classText = className ? ` ${className}` : "";
   const metadata = buildingTooltipMetadata(item);
@@ -1704,7 +1700,7 @@ function stateRegionTooltipResourceHtml(stateRegion) {
 }
 
 function stateRegionTooltipResourceChip(item, amount = "") {
-  const label = item?.name_zh || item?.key || "";
+  const label = entityText(item) || item?.key || "";
   if (!label) return "";
   const icon = buildingIconHtml(item?.key);
   const count = amount !== "" && amount !== null ? `<span class="tooltip-resource-count">${escapeHtml(amount)}</span>` : "";
@@ -1731,7 +1727,7 @@ function stateRegionBuildingStrip(stateRegion) {
 }
 
 function buildingChip(item, amount = "", className = "") {
-  const name = item?.name_zh || item?.key || "";
+  const name = entityText(item) || item?.key || "";
   const count = amount !== "" && amount !== null ? `<span class="building-chip-count">${escapeHtml(amount)}</span>` : "";
   const classText = className ? ` ${className}` : "";
   const defaults = TAG_TOOLTIP_DEFAULTS.building || {};
@@ -1790,19 +1786,19 @@ function dynamicNameList(country) {
 function dynamicStateNameList(stateRegion) {
   const variants = visibleDynamicStateNameVariants(stateRegion);
   if (!variants.length) {
-    return `<p class="empty compact">无地区名称变体。</p>`;
+    return `<p class="empty compact">${t("board.region.noNameVariants", "无地区名称变体。")}</p>`;
   }
   return `<div class="rule-list">${variants.map((variant) => `
     <article class="rule-item">
       <div class="rule-head">
-        <strong>${escapeHtml(variant.name_zh || variant.name_key)}</strong>
+        <strong>${escapeHtml(entityText(variant) || variant.name_key)}</strong>
         <span class="minor">${escapeHtml(variant.name_key)}</span>
       </div>
       <dl class="mini-grid">
-        ${field("采用名称", escapeHtml(variant.name_zh || variant.name_key || ""))}
-        ${field("来源", escapeHtml(fileBaseName(variant.source_file)))}
+        ${field(t("board.region.appliedName", "采用名称"), escapeHtml(entityText(variant) || variant.name_key || ""))}
+        ${field(t("board.region.source", "来源"), escapeHtml(fileBaseName(variant.source_file)))}
       </dl>
-      ${rawDetails("采用条件", variant.trigger_raw)}
+      ${rawDetails(t("board.region.appliedCondition", "采用条件"), variant.trigger_raw)}
     </article>
   `).join("")}</div>`;
 }
@@ -1942,7 +1938,7 @@ function buildingIconHtml(key) {
 }
 
 function companyIconHtml(company) {
-  const label = company?.name_zh || company?.key || "公司";
+  const label = entityText(company) || company?.key || t("entity.company", "公司");
   const title = [label, company?.icon].filter(Boolean).join("；");
   const path = companyIconPath(company?.icon);
   if (!path) return `<span class="company-icon-placeholder" title="${escapeHtml(title)}">司</span>`;
@@ -2055,7 +2051,7 @@ function stateRegionNameText(stateRegion) {
   const suffix = variants.length
     ? `<span class="name-variants">（${escapeHtml(variants.join("/"))}）</span>`
     : "";
-  return `${escapeHtml(stateRegion.name_zh || stateRegion.key)}${suffix}`;
+  return `${escapeHtml(entityText(stateRegion) || stateRegion.key)}${suffix}`;
 }
 
 function countryVariantNames(country) {
@@ -2071,14 +2067,14 @@ function countryVariantNames(country) {
 }
 
 function stateRegionVariantNames(stateRegion) {
-  return visibleDynamicStateNameVariants(stateRegion).map((variant) => variant.name_zh || variant.name_key);
+  return visibleDynamicStateNameVariants(stateRegion).map((variant) => entityText(variant) || variant.name_key);
 }
 
 function visibleDynamicStateNameVariants(stateRegion) {
-  const seen = new Set([stateRegion.name_zh || stateRegion.key]);
+  const seen = new Set([entityText(stateRegion) || stateRegion.key]);
   const visible = [];
   for (const variant of stateRegion.dynamic_name_variants || []) {
-    const name = variant.name_zh || "";
+    const name = entityText(variant, "name", "");
     if (!name || name === variant.name_key || seen.has(name)) continue;
     seen.add(name);
     visible.push(variant);
@@ -2131,16 +2127,16 @@ function countryRefLabel(item) {
 }
 
 function strategicRegionName(region) {
-  const rawName = region?.name_zh || region?.key || "";
+  const rawName = entityText(region) || region?.key || "";
   if (!isWrappedLocalizationKey(rawName)) return rawName;
   const stateKey = rawName.slice(1, -1);
   const stateRegion = byStateRegion.get(stateKey);
-  return stateRegion?.name_zh || stateKey || rawName;
+  return entityText(stateRegion) || stateKey || rawName;
 }
 
 function isSeaStrategicRegion(region) {
   return String(region?.source_file || "").includes("water_strategic_regions")
-    || isWrappedLocalizationKey(region?.name_zh);
+    || isWrappedLocalizationKey(entityText(region));
 }
 
 function isSeaStateRegion(stateRegion) {
@@ -2435,8 +2431,8 @@ function cultureSearchBlob(culture) {
 
 function stateRegionSearchBlob(stateRegion) {
   return [
-    stateRegion.key,
-    stateRegion.name_zh,
+    ...searchNames(stateRegion.id || `state_region:${stateRegion.key}`),
+    entityText(stateRegion),
     stateRegion.numeric_id,
     stateRegion.subsistence_building,
     ...refSearchParts(stateRegion.strategic_regions),
@@ -2453,8 +2449,7 @@ function stateRegionSearchBlob(stateRegion) {
 
 function strategicRegionSearchBlob(region) {
   return [
-    region.key,
-    region.name_zh,
+    ...searchNames(region.id || `strategic_region:${region.key}`),
     strategicRegionName(region),
     region.capital_province,
     ...refSearchParts(region.states),
@@ -2465,31 +2460,27 @@ function strategicRegionSearchBlob(region) {
 
 function geographicRegionSearchBlob(region) {
   return [
-    region.key,
-    region.name_zh,
-    region.display_name_zh,
+    ...searchNames(region.id || `geographic_region:${region.key}`),
+    geographicRegionDisplayName(region),
     ...refSearchParts(geographicRegionStrategicRegions(region)),
     ...refSearchParts(geographicRegionStateRegions(region)),
   ].join(" ").toLowerCase();
 }
 
 function geographicRegionDisplayName(region) {
-  return region?.display_name_zh || region?.name_zh || region?.key || "";
+  return entityText(region) || region?.key || "";
 }
 
 function companySearchBlob(company) {
   return [
-    company.key,
-    company.name_zh,
-    company.desc_zh,
+    ...searchNames(company.id || `company:${company.key}`),
+    entityText(company),
+    entityText(company, "description"),
     company.category,
-    company.category_zh,
     companyKindText(company),
     companyPrestigeLabel(company),
     companyDlcLabel(company),
-    company.dlc_name_en,
     company.source_file,
-    company.prosperity_modifier_summary_zh,
     ...refSearchParts(company.preferred_headquarters),
     ...refSearchParts(company.referenced_state_regions),
     ...refSearchParts(company.referenced_strategic_regions),
@@ -2646,16 +2637,17 @@ function dynamicStateNameSearchParts(variants) {
 
 function resourceOptionToken(filter) {
   const iconKey = (filter.resources || filter.arableResources || filter.companyBuildings || [])[0] || "";
+  const label = entityText(buildingByKey.get(iconKey)) || filter.label || filter.key;
   const checked = state.resourceFilters.has(filter.key);
   return `
-    <button class="filter-token filter-token-with-icon resource-filter-token" type="button" data-filter-token data-resource-filter="${escapeHtml(filter.key)}" aria-label="${escapeHtml(filter.label)}" title="${escapeHtml(filter.label)}" aria-pressed="${checked ? "true" : "false"}">
-      ${buildingIconHtml(iconKey, filter.label)}
+    <button class="filter-token filter-token-with-icon resource-filter-token" type="button" data-filter-token data-resource-filter="${escapeHtml(filter.key)}" aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}" aria-pressed="${checked ? "true" : "false"}">
+      ${buildingIconHtml(iconKey, label)}
     </button>
   `;
 }
 
 function companyDlcOptionToken(option, checked = false) {
-  const title = `${option.label} / ${option.title || option.key}`;
+  const title = `${t(`enum.companyDlc.${option.key}`)} / ${option.title || option.key}`;
   return `
     <button class="filter-token filter-token-with-icon dlc-filter-token" type="button" data-filter-token data-company-dlc="${escapeHtml(option.key)}" aria-label="${escapeHtml(title)}" title="${escapeHtml(title)}" aria-pressed="${checked ? "true" : "false"}">
       ${dlcIconHtml(option)}
@@ -2748,12 +2740,12 @@ function uniqueByKey(items) {
 }
 
 function sortRefByName(a, b) {
-  return (a.name_zh || a.key || a.tag).localeCompare(b.name_zh || b.key || b.tag, "zh-Hans-CN") || (a.key || a.tag).localeCompare(b.key || b.tag);
+  return localizedCompare(entityText(a), entityText(b)) || (a.key || a.tag).localeCompare(b.key || b.tag);
 }
 
 function sortStrategicRegionRef(a, b) {
   return orderValue(strategicRegionOrderByKey, a.key) - orderValue(strategicRegionOrderByKey, b.key)
-    || strategicRegionName(a).localeCompare(strategicRegionName(b), "zh-Hans-CN")
+    || localizedCompare(strategicRegionName(a), strategicRegionName(b))
     || a.key.localeCompare(b.key);
 }
 

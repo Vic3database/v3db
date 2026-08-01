@@ -3933,7 +3933,16 @@ function localizeProjection(value, sourceCatalog, targetCatalog, locale) {
     if (hasEnglishSource) return text;
     const key = item?.key || item?.tag || String(item?.id || "").split(":").pop();
     const directKey = field === "desc" || field === "description" ? `${key}_desc` : key;
-    if (directKey && targetCatalog[directKey] !== undefined) return targetCatalog[directKey];
+    const directKeys = [
+      field === "company_kind" ? `enum.companyKind.${item?.company_kind}` : "",
+      field === "prestige_goods_kind" ? `enum.prestigeGoodsKind.${item?.prestige_goods_kind}` : "",
+      field === "dlc_name" ? `enum.companyDlc.${item?.dlc_key}` : "",
+      field === "category" && item?.company_kind ? `company_category_${item?.category}` : "",
+      directKey,
+    ].filter(Boolean);
+    for (const directKey of directKeys) {
+      if (targetCatalog[directKey] !== undefined) return targetCatalog[directKey];
+    }
     const sourceKey = keysBySourceText.get(text);
     return sourceKey ? (targetCatalog[sourceKey] || "") : "";
   }

@@ -247,7 +247,7 @@ function sortStateRegions(a, b) {
       || Number(a.numeric_id || Number.MAX_SAFE_INTEGER) - Number(b.numeric_id || Number.MAX_SAFE_INTEGER)
       || a.key.localeCompare(b.key);
   }
-  if (state.sort === "name") return a.name_zh.localeCompare(b.name_zh, "zh-Hans-CN") || a.key.localeCompare(b.key);
+  if (state.sort === "name") return localizedCompare(entityText(a), entityText(b)) || a.key.localeCompare(b.key);
   if (state.sort === "region") {
     return firstStrategicRegionOrder(a) - firstStrategicRegionOrder(b)
       || Number(a.numeric_id || Number.MAX_SAFE_INTEGER) - Number(b.numeric_id || Number.MAX_SAFE_INTEGER)
@@ -258,10 +258,10 @@ function sortStateRegions(a, b) {
 }
 
 function sortGeographicRegions(a, b) {
-  if (state.sort === "name") return geographicRegionDisplayName(a).localeCompare(geographicRegionDisplayName(b), "zh-Hans-CN") || a.key.localeCompare(b.key);
+  if (state.sort === "name") return localizedCompare(geographicRegionDisplayName(a), geographicRegionDisplayName(b)) || a.key.localeCompare(b.key);
   if (state.sort === "region") {
     return firstGeographicStrategicRegionOrder(a) - firstGeographicStrategicRegionOrder(b)
-      || geographicRegionDisplayName(a).localeCompare(geographicRegionDisplayName(b), "zh-Hans-CN")
+      || localizedCompare(geographicRegionDisplayName(a), geographicRegionDisplayName(b))
       || a.key.localeCompare(b.key);
   }
   if (state.sort === "resources") return geographicRegionStateRegions(b).length - geographicRegionStateRegions(a).length || a.key.localeCompare(b.key);
@@ -284,7 +284,7 @@ function selectedResourceValue(stateRegion) {
 }
 
 function sortCompanies(a, b) {
-  if (state.sort === "name") return (a.name_zh || a.key).localeCompare(b.name_zh || b.key, "zh-Hans-CN") || a.key.localeCompare(b.key);
+  if (state.sort === "name") return localizedCompare(entityText(a), entityText(b)) || a.key.localeCompare(b.key);
   if (state.sort === "kind") return Number(b.flavored_company) - Number(a.flavored_company) || a.key.localeCompare(b.key);
   if (state.sort === "buildings") {
     return ((b.building_types || []).length + (b.extension_building_types || []).length)
@@ -538,14 +538,14 @@ function renderCompanyFilterOptions() {
   els.industryCharterFilters.innerHTML = optionToken(
     "industry-charter",
     industryCharterOption.key,
-    industryCharterOption.label,
+    t("board.company.includeIndustryCharter", industryCharterOption.label),
     state.includeIndustryCharter,
   );
   els.companyKindFilters.innerHTML = companyKindOptions.map((option) => (
-    optionToken("company-kind", option.key, option.label, state.companyKinds.has(option.key))
+    optionToken("company-kind", option.key, t(`enum.companyKind.${option.key}`), state.companyKinds.has(option.key))
   )).join("");
   els.companyPrestigeFilters.innerHTML = companyPrestigeOptions.map((option) => (
-    optionToken("company-prestige", option.key, option.label, state.companyPrestigeGoods.has(option.key))
+    optionToken("company-prestige", option.key, t(`enum.prestigeGoodsKind.${option.key}`), state.companyPrestigeGoods.has(option.key))
   )).join("");
   els.companyDlcFilters.innerHTML = companyDlcOptions.map((option) => (
     companyDlcOptionToken(option, state.companyDlcs.has(option.key))
@@ -725,7 +725,7 @@ function geographicRegionGroupRows(regions) {
   return [...byGroup.entries()]
     .map(([key, groupRegions]) => ({
       key,
-      label: geographicRegionGroupLabels.get(key) || groupRegions[0]?.geographic_region_group_zh || key,
+      label: t(`enum.geographicRegionGroup.${key}`),
       regions: groupRegions.sort(sortGeographicRegions),
     }))
     .filter((group) => group.regions.length);

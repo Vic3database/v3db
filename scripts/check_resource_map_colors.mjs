@@ -82,7 +82,8 @@ for (const removedIdentifier of [
 assert.match(indexSource, /<span id="mapResourceContext" class="map-resource-context" aria-live="polite" hidden><\/span>/, "toolbar must contain the hidden resource context");
 assert.match(runtimeSource, /mapResourceContext: document\.querySelector\("#mapResourceContext"\)/, "runtime element table must expose the resource context");
 assert.match(mapSource, /function renderMapResourceContext\(/, "map controls must render the selected resource context");
-assert.match(functionSource(mapSource, "renderMapResourceContext"), /const version = standaloneSiteConfig \? "Victorian Century\/真实资源储量&耕地" : \(data\.meta\?\.victoria3_version \|\| "未知"\);/, "Victorian Century resource maps must display the resource and arable-land library name in the context bar");
+assert.match(functionSource(mapSource, "renderMapResourceContext"), /t\("map\.vcResourceContext", "Victorian Century\/真实资源储量与耕地"\)/, "Victorian Century resource maps must use the localized resource and arable-land library name");
+assert.match(functionSource(mapSource, "renderMapResourceContext"), /t\("ui\.unknown", "未知"\)/, "resource context fallback must use the localized unknown label");
 assert.doesNotMatch(functionSource(mapSource, "renderMapResourceContext"), /map-resource-context-version" title=/, "resource context must display the complete library label directly instead of relying on a hover hint");
 assert.match(mapSource, /map-resource-context-swatch/, "resources without a building icon must use a color swatch");
 assert.match(mapStylesSource, /\.map-resource-context/, "resource context must have dedicated compact styles");

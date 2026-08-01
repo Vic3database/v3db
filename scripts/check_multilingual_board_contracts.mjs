@@ -8,6 +8,7 @@ const boardsArg = process.argv.includes("--boards")
   : process.argv.find((arg) => arg.startsWith("--boards="))?.slice("--boards=".length);
 const boards = (boardsArg || "country,culture").split(",").filter(Boolean);
 const app = fs.readFileSync(path.join(root, "site", "app", "presentation.js"), "utf8") + "\n" + fs.readFileSync(path.join(root, "site", "app", "filters.js"), "utf8") + "\n" + fs.readFileSync(path.join(root, "site", "app", "components.js"), "utf8");
+const mapApp = fs.readFileSync(path.join(root, "site", "app", "map.js"), "utf8");
 const uiZh = fs.readFileSync(path.join(root, "site", "locales", "ui.zh-Hans.js"), "utf8");
 const uiEn = fs.readFileSync(path.join(root, "site", "locales", "ui.en.js"), "utf8");
 
@@ -29,6 +30,40 @@ const bodies = {
   mobileCultureSelected: body("mobileCultureSelectedFilters"),
   mobileCultureRefName: body("mobileCultureRefName"),
   countryTierLabel: body("countryTierLabel"),
+  renderRegionList: body("renderRegionList"),
+  stateRegionRowHtml: body("stateRegionRowHtml"),
+  renderStateRegionDetail: body("renderStateRegionDetail"),
+  renderStrategicRegionDetail: body("renderStrategicRegionDetail"),
+  renderGeographicRegionDetail: body("renderGeographicRegionDetail"),
+  renderCompanyList: body("renderCompanyList"),
+  renderCompanyDetail: body("renderCompanyDetail"),
+  companyLocationFieldsHtml: body("companyLocationFieldsHtml"),
+  companyKindText: body("companyKindText"),
+  companyDlcLabel: body("companyDlcLabel"),
+  companyPrestigeLabel: body("companyPrestigeLabel"),
+  companyMetaLine: body("companyMetaLine"),
+  companySearchBlob: body("companySearchBlob"),
+  companyAssociationLinks: body("companyAssociationLinks"),
+  companiesForStateRegion: body("companiesForStateRegion"),
+  companyPrestigeGoodPill: body("companyPrestigeGoodPill"),
+  resourcePill: body("resourcePill"),
+  buildingPill: body("buildingPill"),
+  stateTraitPill: body("stateTraitPill"),
+  stateTraitTooltipDescription: body("stateTraitTooltipDescription"),
+  stateTraitEffectList: body("stateTraitEffectList"),
+  modifierSummaryLabel: body("modifierSummaryLabel"),
+  dynamicStateNameList: body("dynamicStateNameList"),
+  stateRegionNameText: body("stateRegionNameText"),
+  strategicRegionName: body("strategicRegionName"),
+  mapSubjectOptions: body("mapSubjectOptions", mapApp),
+  collectMapResourceRefs: body("collectMapResourceRefs", mapApp),
+  buildCompanyStateAssociations: body("buildCompanyStateAssociations", mapApp),
+  companyLocationSummary: body("companyLocationSummary", mapApp),
+  companyAssociationTitle: body("companyAssociationTitle", mapApp),
+  mapTooltipHtml: body("mapTooltipHtml", mapApp),
+  mapTooltipRowsForView: body("mapTooltipRowsForView", mapApp),
+  mapTooltipTraitSummary: body("mapTooltipTraitSummary", mapApp),
+  compactResourceLabel: body("compactResourceLabel", mapApp),
 };
 
 if (boards.includes("country")) {
@@ -58,10 +93,32 @@ if (boards.includes("culture")) {
   assert.doesNotMatch(bodies.mobileCultureRefName, /name_zh/);
 }
 
+if (boards.includes("region")) {
+  for (const name of ["renderRegionList", "stateRegionRowHtml", "renderStateRegionDetail", "renderStrategicRegionDetail", "renderGeographicRegionDetail", "companyAssociationLinks", "companiesForStateRegion", "resourcePill", "buildingPill", "stateTraitPill", "stateTraitTooltipDescription", "stateTraitEffectList", "modifierSummaryLabel", "dynamicStateNameList", "stateRegionNameText", "strategicRegionName", "mapSubjectOptions", "collectMapResourceRefs", "mapTooltipHtml", "mapTooltipRowsForView", "mapTooltipTraitSummary", "compactResourceLabel"]) {
+    assert.match(bodies[name], /entityText\(|renderTextSpec\(|t\(/, `${name} should use localized accessors`);
+    assert.doesNotMatch(bodies[name], /name_zh|category_zh|display_name_zh|geographic_region_group_zh|modifier_summary_zh|summary_zh|value_zh|localeCompare\([^]*zh-Hans-CN/);
+  }
+}
+
+if (boards.includes("company")) {
+  for (const name of ["renderCompanyList", "renderCompanyDetail", "companyLocationFieldsHtml", "companyKindText", "companyDlcLabel", "companyPrestigeLabel", "companyMetaLine", "companySearchBlob", "companyAssociationLinks", "companiesForStateRegion", "companyPrestigeGoodPill", "buildingPill", "modifierSummaryLabel", "buildCompanyStateAssociations", "companyLocationSummary", "companyAssociationTitle", "mapTooltipHtml", "mapTooltipRowsForView"]) {
+    assert.match(bodies[name], /entityText\(|renderTextSpec\(|t\(/, `${name} should use localized accessors`);
+    assert.doesNotMatch(bodies[name], /name_zh|category_zh|company_kind_zh|prestige_goods_kind_zh|dlc_name_(?:zh|en)|display_name_zh|modifier_summary_zh|summary_zh|value_zh|localeCompare\([^]*zh-Hans-CN/);
+  }
+}
+
 assert(uiZh.includes("board.country"), "zh UI locale should define country board labels");
 assert(uiZh.includes("board.culture"), "zh UI locale should define culture board labels");
 assert(uiEn.includes("board.country"), "en UI locale should define country board labels");
 assert(uiEn.includes("board.culture"), "en UI locale should define culture board labels");
+if (boards.includes("region")) {
+  assert(uiZh.includes("board.region"), "zh UI locale should define region board labels");
+  assert(uiEn.includes("board.region"), "en UI locale should define region board labels");
+}
+if (boards.includes("company")) {
+  assert(uiZh.includes("board.company"), "zh UI locale should define company board labels");
+  assert(uiEn.includes("board.company"), "en UI locale should define company board labels");
+}
 assert(uiZh.includes("主流文化"), "zh UI locale should keep Chinese country labels");
 assert(uiZh.includes("文化搜索与筛选条件"), "zh UI locale should keep Chinese culture labels");
 
