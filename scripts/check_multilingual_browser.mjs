@@ -54,6 +54,13 @@ async function verifyEnglishStructuredDetails() {
 
     await page.goto(urlFor("state-region/STATE_BRANDENBURG", "en"), { waitUntil: "networkidle", timeout: 45000 });
     await waitForEnglishBoardDetail(page, "region");
+    const mapiSummaryLabels = (await page.locator('[data-concept-key="mapi-summary"]').allInnerTexts()).map((item) => item.trim());
+    assert.ok(mapiSummaryLabels.length > 0, `English region list must expose MAPI summary tags at ${viewport.width}px`);
+    assert.deepEqual(
+      [...new Set(mapiSummaryLabels)],
+      ["MAPI"],
+      `Region MAPI summary tags must not distinguish trait names or values at ${viewport.width}px`,
+    );
     const stateTrait = page.locator('.detail [data-concept-kind="stateTrait"][data-concept-key="state_trait_oder_river"]').first();
     const stateTraitEffects = await page.locator('.detail .rule-item:has(.minor:text-is("state_trait_oder_river")) dt:text-is("Effects") + dd .tag-effect, .detail .rule-item:has(.minor:text-is("state_trait_oder_river")) dt:text-is("Effects") + dd .tag-mapi').allInnerTexts();
     assert.equal(

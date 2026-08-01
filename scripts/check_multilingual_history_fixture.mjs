@@ -67,6 +67,9 @@ try {
     await page.setViewportSize(viewport);
     await page.goto(`${server.url}index.html?version=history-fixture&lang=en#/state-region/STATE_BRANDENBURG`, { waitUntil: "networkidle", timeout: 45000 });
     await waitForEnglishDetail(page, "region");
+    const mapiSummaryLabels = (await page.locator('[data-concept-key="mapi-summary"]').allInnerTexts()).map((item) => item.trim());
+    assert.ok(mapiSummaryLabels.length > 0, `history region list must expose MAPI summary tags at ${viewport.width}px`);
+    assert.deepEqual([...new Set(mapiSummaryLabels)], ["MAPI"], `history MAPI summary tags must stay generic at ${viewport.width}px`);
     const stateTrait = page.locator('.detail [data-concept-kind="stateTrait"][data-concept-key="state_trait_oder_river"]').first();
     assert.equal(
       await stateTrait.getAttribute("data-concept-description"),

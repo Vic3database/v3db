@@ -1616,12 +1616,8 @@ function stateRegionTagPills(stateRegion) {
 }
 
 function stateRegionMapiPill(stateRegion) {
-  const values = unique((stateRegion.traits || [])
-    .filter((trait) => trait.has_mapi)
-    .map((trait) => entityText(trait, "mapiValue", ""))
-    .filter(Boolean));
-  if (!values.length) return "";
-  return tagPill(`MAPI ${values.join("/")}`, "tag-mapi", "MAPI", "mapi-summary");
+  if (!(stateRegion.traits || []).some((trait) => trait.has_mapi)) return "";
+  return tagPill("MAPI", "tag-mapi", "MAPI", "mapi-summary");
 }
 
 function companyKindText(company) {
