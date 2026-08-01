@@ -1245,7 +1245,7 @@ function renderCultureTraitDetail(result) {
     }
     return false;
   }).sort(sortCultures);
-  const title = trait?.name_zh || group?.name_zh || result.title;
+  const title = entityText(trait || group) || result.title;
   els.detail.innerHTML = `
     <div class="detail-title">
       <div class="detail-title-main"><h2>${escapeHtml(title)}</h2></div>
@@ -1254,8 +1254,8 @@ function renderCultureTraitDetail(result) {
     <dl class="field-grid">
       ${field("编号", escapeHtml(result.key))}
       ${field("类型", escapeHtml(result.typeLabel))}
-      ${field("所属组", escapeHtml(trait?.group_name_zh || group?.type_zh || ""))}
-      ${field("相关文化", cultureLinks(relatedCultures.map((culture) => ({ key: culture.key, name_zh: culture.name_zh || culture.key }))))}
+      ${field("所属组", escapeHtml(entityText(trait, "groupName", "") || entityText(group, "type", "")))}
+      ${field("相关文化", cultureLinks(relatedCultures))}
     </dl>
   `;
 }
@@ -1270,7 +1270,7 @@ function renderInterestGroupDetail(result) {
     <div class="detail-title">
       <div class="detail-title-main">
         ${interestGroupIconHtml(group)}
-        <h2>${escapeHtml(group.name_zh || group.key)}</h2>
+        <h2>${escapeHtml(entityText(group))}</h2>
       </div>
       <span class="tag">${escapeHtml(group.key)}</span>
     </div>
@@ -1291,7 +1291,7 @@ function renderInterestGroupTraitDetail(result) {
   }
   els.detail.innerHTML = `
     <div class="detail-title">
-      <div class="detail-title-main"><h2>${escapeHtml(trait.name_zh || trait.key)}</h2></div>
+      <div class="detail-title-main"><h2>${escapeHtml(entityText(trait))}</h2></div>
       <span class="tag">${escapeHtml(trait.key)}</span>
     </div>
     ${interestGroupTraitDetailCard(trait)}

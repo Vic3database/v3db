@@ -46,7 +46,7 @@ function groupedTraitPills(groups, traits, groupClass, traitClass) {
   const orderedGroups = [...(groups || [])].sort(groupClass.includes("heritage") ? sortHeritageGroupRef : sortRefByName);
   for (const group of orderedGroups) {
     if (!group?.key) continue;
-    const label = group.name_zh || group.key;
+    const label = entityText(group);
     const metadata = conceptTooltipMetadata(label, groupClass, "cultureTraitGroup", group.key);
     items.push(conceptPill({
       label,
@@ -59,7 +59,7 @@ function groupedTraitPills(groups, traits, groupClass, traitClass) {
     }));
     items.push(victorianCenturyBadge(group));
     for (const trait of traitsByGroup.get(group.key) || []) {
-      const label = trait.name_zh || trait.key;
+      const label = entityText(trait);
       const metadata = conceptTooltipMetadata(label, traitClass, "cultureTrait", trait.key);
       items.push(conceptPill({
         label,
@@ -76,7 +76,7 @@ function groupedTraitPills(groups, traits, groupClass, traitClass) {
   }
   for (const traits of traitsByGroup.values()) {
     for (const trait of traits) {
-      const label = trait.name_zh || trait.key;
+      const label = entityText(trait);
       const metadata = conceptTooltipMetadata(label, traitClass, "cultureTrait", trait.key);
       items.push(conceptPill({
         label,
@@ -91,7 +91,7 @@ function groupedTraitPills(groups, traits, groupClass, traitClass) {
     }
   }
   for (const trait of remaining) {
-    const label = trait.name_zh || trait.key;
+    const label = entityText(trait);
     const metadata = conceptTooltipMetadata(label, traitClass, "cultureTrait", trait.key);
     items.push(conceptPill({
       label,
@@ -285,7 +285,7 @@ function refConceptPill(item, className = "", relation = null) {
     ? strategicRegionName(byStrategicRegion.get(key) || item)
     : kind === "geographicRegion"
       ? geographicRegionDisplayName(byGeographicRegion.get(key) || item)
-    : item.name_zh || item.key || item.tag || "";
+    : entityText(item);
   const metadata = conceptTooltipMetadata(label, className, kind, key);
   const relationMetadata = relation?.semanticKey
     ? tagTooltipMetadata(label, className, "", relation.semanticKey)
@@ -355,7 +355,7 @@ function isVictorianCenturyEntry(item) {
 }
 
 function countryTypeTagLabel(country) {
-  return t(`enum.countryType.${country?.countryType}`) || countryTypeTagLabels[country?.countryType] || country?.countryTypeZh || country?.countryType || "";
+  return t(`enum.countryType.${country?.countryType}`) || countryTypeTagLabels[country?.countryType] || country?.countryType || "";
 }
 
 function field(label, value) {
@@ -383,7 +383,7 @@ function countryLinks(tags, names) {
   const links = (tags || []).map((tag, index) => {
     if (!tag) return "";
     return conceptPill({
-      label: countryRefLabel({ tag, name_zh: names?.[index] }),
+      label: countryRefLabel(byTag.get(tag) || { tag }),
       kind: "country",
       key: tag,
       title: tag,
@@ -412,11 +412,10 @@ function stateRegionLinks(items) {
 function countryStartingStateRegionLinks(country) {
   const items = (country?.startingStates || []).map((key) => {
     const stateRegion = byStateRegion.get(key);
-    const name = stateRegion?.name_zh || key;
-    const suffix = isSplitStartingStateForCountry(stateRegion, country.tag) ? "(分属)" : "";
-    return { key, name_zh: `${name}${suffix}`, id: `state_region:${key}` };
+    const label = `${entityText(stateRegion) || key}${isSplitStartingStateForCountry(stateRegion, country.tag) ? t("board.country.splitStartingState") : ""}`;
+    return conceptPill({ label, kind: "stateRegion", key, title: key, href: conceptHref("stateRegion", key) });
   });
-  return stateRegionLinks(items);
+  return items.length ? `<span class="link-list">${items.join("")}</span>` : "";
 }
 
 function isSplitStartingStateForCountry(stateRegion, tag) {
@@ -485,7 +484,7 @@ function sourceSuffix(source) {
 
 function listText(values) {
   const items = (values || []).map((item) => {
-    const label = typeof item === "string" ? item : item?.name_zh || item?.key || "";
+    const label = typeof item === "string" ? item : entityText(item);
     const title = typeof item === "string" ? "" : item?.key && item.key !== label ? ` title="${escapeHtml(item.key)}"` : "";
     return label ? `<span class="pill"${title}>${escapeHtml(label)}</span>` : "";
   }).filter(Boolean);
@@ -494,7 +493,7 @@ function listText(values) {
 
 function traitPill(trait) {
   if (!trait?.key) return "";
-  const label = trait.name_zh || trait.key;
+  const label = entityText(trait);
   const metadata = conceptTooltipMetadata(label, "", "cultureTrait", trait.key);
   return conceptPill({
     label,
@@ -508,7 +507,7 @@ function traitPill(trait) {
 
 function traitGroupPill(group) {
   if (!group?.key) return "";
-  const label = group.name_zh || group.key;
+  const label = entityText(group);
   const metadata = conceptTooltipMetadata(label, "", "cultureTraitGroup", group.key);
   return conceptPill({
     label,
@@ -532,7 +531,7 @@ function traitGroupList(groups) {
 
 function goodsList(goods) {
   const items = (goods || []).map((item) => conceptPill({
-    label: item.name_zh || item.key,
+    label: entityText(item),
     kind: "goods",
     key: item.key,
     title: item.key,
@@ -699,10 +698,7 @@ function technologyPills(items, className = "tag-technology") {
   const refs = (items || []).map((item) => {
     const key = typeof item === "string" ? item : item?.key;
     const technology = technologyByKey.get(key);
-    return {
-      key,
-      name_zh: technology?.name_zh || (typeof item === "string" ? "" : item?.name_zh) || key,
-    };
+    return technology || (typeof item === "string" ? { key } : item);
   }).filter((item) => item.key);
   return refItemsPills(refs, "technology", className);
 }
@@ -710,7 +706,7 @@ function technologyPills(items, className = "tag-technology") {
 function technologyRefNames(items) {
   return (items || []).map((item) => {
     const key = typeof item === "string" ? item : item?.key;
-    return technologyByKey.get(key)?.name_zh || (typeof item === "string" ? item : item?.name_zh || key);
+    return entityText(technologyByKey.get(key) || (typeof item === "string" ? { key } : item));
   }).filter(Boolean).join("、");
 }
 
@@ -1547,7 +1543,7 @@ function stateRegionTagPills(stateRegion) {
 function stateRegionMapiPill(stateRegion) {
   const values = unique((stateRegion.traits || [])
     .filter((trait) => trait.has_mapi)
-    .map((trait) => trait.mapi_value_zh)
+    .map((trait) => entityText(trait, "mapiValue", ""))
     .filter(Boolean));
   if (!values.length) return "";
   return tagPill(`MAPI ${values.join("/")}`, "tag-mapi", "MAPI", "mapi-summary");
@@ -1755,7 +1751,7 @@ function sameTraditionCultures(traditions, groups) {
     if (!related.length) return "";
     return `
       <div class="inline-block">
-        <span class="minor">${escapeHtml(tradition.name_zh)}</span>
+        <span class="minor">${escapeHtml(entityText(tradition))}</span>
         ${cultureLinks(related)}
       </div>
     `;
@@ -1770,11 +1766,11 @@ function dynamicNameList(country) {
   return `<div class="rule-list">${country.dynamicNameVariants.map((variant) => `
     <article class="rule-item">
       <div class="rule-head">
-        <strong>${escapeHtml(variant.name_zh || variant.name_key)}</strong>
+        <strong>${escapeHtml(entityText(variant) || variant.name_key)}</strong>
         <span class="minor">${escapeHtml(variant.name_key)}</span>
       </div>
       <dl class="mini-grid">
-        ${field("形容词", escapeHtml(variant.adjective_zh || variant.adjective_key || ""))}
+        ${field("形容词", escapeHtml(entityText(variant, "adjective", "") || variant.adjective_key || ""))}
         ${field("优先级", escapeHtml(variant.priority || "0"))}
         ${field("革命名", escapeHtml(variant.is_revolutionary))}
         ${field("引用", refsText(variant))}
@@ -1956,7 +1952,7 @@ function companyIconPath(icon) {
 function countryFlagIconHtml(country, className = "country-flag-inline") {
   const image = countryDefaultFlagImage(country);
   if (!image) return "";
-  const label = country?.name || country?.name_zh || country?.tag || "country";
+  const label = entityText(country) || country?.tag || "country";
   const tag = country?.tag || "";
   const title = [label, tag].filter(Boolean).join(" ");
   return `<img class="${escapeHtml(className)}" src="${escapeHtml(image)}" alt="" title="${escapeHtml(title)}">`;
@@ -2115,7 +2111,7 @@ function refName(item) {
   if (item.tag) return countryRefLabel(item);
   if (item.key && byStrategicRegion.has(item.key)) return strategicRegionName(byStrategicRegion.get(item.key));
   if (item.key && byStateRegion.has(item.key)) return entityText(byStateRegion.get(item.key)) || item.key;
-  return entityText(item) || item.name_zh || item.key || item.tag || "";
+  return entityText(item);
 }
 
 function countryNameWithTag(tag) {
@@ -2132,7 +2128,7 @@ function countryRefLabel(item) {
   const tag = item.tag || item.key || "";
   if (!tag) return "";
   const country = byTag.get(tag);
-  const name = entityText(item) || entityText(country) || item.name || country?.name || tag;
+  const name = entityText(item) || entityText(country) || tag;
   return `${name}(${tag})`;
 }
 
@@ -2219,7 +2215,7 @@ function cultureRelationForStateRegion(stateRegion, selectedCulture) {
   if (isSeaStateRegion(stateRegion)) return { rank: 0, label: "海域" };
   const homelands = stateRegion.homeland_cultures || [];
   if (homelands.some((cultureRef) => cultureRef.key === selectedCulture.key)) {
-    return { rank: 5, label: `${selectedCulture.name_zh || selectedCulture.key}本土` };
+    return { rank: 5, label: t("map.cultureRelation.homeland", { culture: entityText(selectedCulture) }) };
   }
   let best = { rank: 0, label: "无关系" };
   for (const cultureRef of homelands) {
@@ -2233,16 +2229,16 @@ function cultureRelationForStateRegion(stateRegion, selectedCulture) {
 
 function cultureRelation(selectedCulture, culture) {
   if (selectedCulture.language?.key && selectedCulture.language.key === culture.language?.key) {
-    return { rank: 4, label: `同语言：${culture.name_zh}` };
+    return { rank: 4, label: t("map.cultureRelation.sameLanguage", { culture: entityText(culture) }) };
   }
   if (selectedCulture.language_group?.key && selectedCulture.language_group.key === culture.language_group?.key) {
-    return { rank: 3, label: `同语言组：${culture.name_zh}` };
+    return { rank: 3, label: t("map.cultureRelation.sameLanguageGroup", { culture: entityText(culture) }) };
   }
   if (selectedCulture.heritage?.key && selectedCulture.heritage.key === culture.heritage?.key) {
-    return { rank: 2, label: `同传承：${culture.name_zh}` };
+    return { rank: 2, label: t("map.cultureRelation.sameHeritage", { culture: entityText(culture) }) };
   }
   if (selectedCulture.heritage_group?.key && selectedCulture.heritage_group.key === culture.heritage_group?.key) {
-    return { rank: 1, label: `同传承组：${culture.name_zh}` };
+    return { rank: 1, label: t("map.cultureRelation.sameHeritageGroup", { culture: entityText(culture) }) };
   }
   return { rank: 0, label: "无关系" };
 }
@@ -2298,7 +2294,7 @@ function cultureFilterMapLabel() {
   ];
   if (state.tradition) {
     const tradition = cultureTraitByKey.get(state.tradition);
-    labels.push(`传统：${tradition?.name_zh || state.tradition}`);
+    labels.push(t("map.cultureRelation.tradition", { tradition: entityText(tradition) || state.tradition }));
   }
   if (!labels.length) return "未选择文化特质";
   return labels.length > 3 ? `${labels.slice(0, 3).join("、")}等 ${labels.length} 项` : labels.join("、");
@@ -2307,7 +2303,7 @@ function cultureFilterMapLabel() {
 function selectedTraitFilterLabels(values, prefix) {
   return [...values].map((key) => {
     const trait = cultureTraitByKey.get(key);
-    return `${prefix}：${trait?.name_zh || key}`;
+    return `${prefix}：${entityText(trait) || key}`;
   });
 }
 
@@ -2377,19 +2373,13 @@ function splitNumbers(value) {
 function countrySearchBlob(country) {
   return [
     country.tag,
-    country.name,
     country.capital,
-    country.capitalZh,
     country.countryType,
-    country.countryTypeZh,
     countryTypeTagLabel(country),
     country.tier,
-    country.tierZh,
     country.isDualHeritage === "是" ? "双传承" : "",
     country.religion,
-    country.religionZh,
     ...country.primaryCultures,
-    ...country.primaryCulturesZh,
     ...refSearchParts(country.primaryCultureHeritageGroups),
     ...refSearchParts(country.primaryCultureHeritages),
     ...refSearchParts(country.primaryCultureLanguageGroups),
@@ -2405,15 +2395,14 @@ function countrySearchBlob(country) {
     ...country.formationStates,
     ...country.releaseStates,
     ...country.canFormTags,
-    ...country.canFormNames,
     country.specialMechanic,
     ...(country.specialTags || []),
     country.colorHex,
     ...(country.dynamicNameVariants || []).flatMap((variant) => [
       variant.name_key,
-      variant.name_zh,
       variant.adjective_key,
-      variant.adjective_zh,
+      entityText(variant),
+      entityText(variant, "adjective", ""),
       variant.referenced_tags,
       variant.referenced_cultures,
       variant.referenced_laws,
@@ -2426,9 +2415,7 @@ function countrySearchBlob(country) {
 function cultureSearchBlob(culture) {
   return [
     culture.key,
-    culture.name_zh,
     culture.religion?.key,
-    culture.religion?.name_zh,
     ...refSearchParts([culture.heritage_group, culture.heritage, culture.language_group, culture.language]),
     ...refSearchParts(culture.traditions),
     ...refSearchParts(culture.homeland_strategic_regions),
@@ -2614,7 +2601,7 @@ function refSearchParts(items) {
 function resourceSearchParts(items) {
   return (items || []).flatMap((item) => [
     item?.key,
-    item?.name_zh,
+    entityText(item),
     item?.amount,
     item?.discovered_amount,
     item?.undiscovered_amount,
@@ -2623,16 +2610,16 @@ function resourceSearchParts(items) {
 
 function stateTraitSearchParts(traits) {
   return (traits || []).flatMap((trait) => [
-    trait?.category_zh,
-    trait?.modifier_summary_zh,
+    entityText(trait, "category", ""),
+    entityText(trait, "modifierSummary", ""),
     trait?.has_mapi ? "MAPI" : "",
-    ...(trait?.categories || []).flatMap((category) => [category.key, category.name_zh]),
+    ...(trait?.categories || []).flatMap((category) => [category.key, entityText(category)]),
     ...(trait?.modifiers || []).flatMap((modifier) => [
       modifier.key,
-      modifier.name_zh,
-      modifier.desc_zh,
-      modifier.value_zh,
-      modifier.summary_zh,
+      entityText(modifier),
+      entityText(modifier, "description", ""),
+      entityText(modifier, "valueDisplay", ""),
+      entityText(modifier, "summary", ""),
     ]),
   ]).filter(Boolean);
 }
@@ -2640,7 +2627,7 @@ function stateTraitSearchParts(traits) {
 function dynamicStateNameSearchParts(variants) {
   return (variants || []).flatMap((variant) => [
     variant.name_key,
-    variant.name_zh,
+    entityText(variant),
     variant.trigger_raw,
   ]).filter(Boolean);
 }
@@ -2701,7 +2688,7 @@ function buildActiveHint(count) {
 }
 
 function getTraitName(key) {
-  return cultureTraitByKey.get(key)?.name_zh || key;
+  return entityText(cultureTraitByKey.get(key)) || key;
 }
 
 function toggleSet(set, value, checked) {

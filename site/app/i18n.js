@@ -29,7 +29,7 @@ function localeLabel(locale) {
 function loadScript(src) {
   return new Promise((resolve, reject) => {
     const script = document.createElement("script");
-    script.src = `${src}${src.includes("?") ? "&" : "?"}v=20260731-multilingual1`;
+    script.src = `${src}${src.includes("?") ? "&" : "?"}v=20260801-multilingual2`;
     script.async = true;
     script.onload = () => { script.remove(); resolve(); };
     script.onerror = () => { script.remove(); reject(new Error(`Unable to load ${src}`)); };
@@ -152,18 +152,25 @@ async function activateInitialLocaleAfterDataIndex() {
 }
 
 async function switchLocale(locale) {
-  if (!supportedLocaleIds.has(locale) || locale === localeRuntime.current) {
+  if (!supportedLocaleIds.has(locale)) {
+    closeLanguageMenu();
+    return;
+  }
+  if (locale === localeRuntime.current) {
+    localeRuntime.requestId += 1;
     closeLanguageMenu();
     return;
   }
   const requestId = ++localeRuntime.requestId;
   const previousLocale = localeRuntime.current;
   const previousMessages = localeRuntime.messages;
+  let previousViewState = null;
   try {
     const messages = await loadUiLocale(locale);
     const nextDataMessages = { ...(localeRuntime.dataMessages[locale] || {}) };
     const nextCacheKeys = await ensureLocaleChunks(dataChunksForView(routeView()), locale, nextDataMessages);
     if (requestId !== localeRuntime.requestId) return;
+    previousViewState = captureLocaleViewState();
     localeRuntime.current = locale;
     localeRuntime.messages = messages;
     localeRuntime.dataMessages[locale] = nextDataMessages;
@@ -173,10 +180,10 @@ async function switchLocale(locale) {
     localStorage.setItem(localeConfig.storageKey, locale);
     updateLocaleUrl(locale);
     syncStaticUiText();
-    hydrateLegacyLocalizedFields(data);
     applyLoadedDataset(data, mapData, { preserveState: true });
     renderFilterOptions?.();
     render?.();
+    restoreLocaleViewState(previousViewState, requestId);
   } catch (error) {
     if (requestId === localeRuntime.requestId) {
       localeRuntime.current = previousLocale;
@@ -186,6 +193,34 @@ async function switchLocale(locale) {
   } finally {
     closeLanguageMenu();
   }
+}
+
+function captureLocaleViewState() {
+  return {
+    filtersScrollTop: document.querySelector(".filters")?.scrollTop || 0,
+    resultsScrollTop: document.querySelector(".results")?.scrollTop || 0,
+    detailScrollTop: els.detail?.scrollTop || 0,
+    detailScrollNode: els.detail?.firstElementChild || null,
+    pageScrollTop: window.scrollY || 0,
+  };
+}
+
+function restoreLocaleViewState(viewState, requestId) {
+  const restore = () => {
+    if (requestId !== localeRuntime.requestId) return;
+    const filters = document.querySelector(".filters");
+    const results = document.querySelector(".results");
+    if (filters) filters.scrollTop = viewState.filtersScrollTop;
+    if (results) results.scrollTop = viewState.resultsScrollTop;
+    const detail = els.detail;
+    if (detail) {
+      detail.scrollTop = viewState.detailScrollTop;
+      detail.firstElementChild?.scrollTo?.({ top: viewState.detailScrollTop, behavior: "instant" });
+    }
+    window.scrollTo(0, viewState.pageScrollTop);
+  };
+  restore();
+  requestAnimationFrame(restore);
 }
 
 function configureLocaleFormats(locale) {

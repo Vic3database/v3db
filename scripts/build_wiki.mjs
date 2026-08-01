@@ -39,7 +39,7 @@ if (args.help) {
 
 const databaseDir = path.resolve(args.database || "database/vic3_1.13.9");
 const source = path.resolve(args.source || path.join(databaseDir, "index.json"));
-const outDir = path.resolve(args.out || "site");
+const outDir = path.resolve(args.out || path.join("site", "versions", "1.13.9"));
 const baselineDatabaseDir = args["baseline-database"] ? path.resolve(args["baseline-database"]) : "";
 const baselineSource = baselineDatabaseDir ? path.join(baselineDatabaseDir, "index.json") : "";
 
@@ -56,7 +56,7 @@ const siteData = loadSiteData(source);
 registerSiteCountryDisplayNames(siteData);
 const baselineData = baselineSource ? loadSiteData(baselineSource) : null;
 if (baselineData) registerSiteCountryDisplayNames(baselineData);
-const data = deriveSiteData(baselineData ? applyVictorianCenturyChangeTags(siteData, baselineData) : siteData);
+const data = stripLegacyLocalizedFields(deriveSiteData(baselineData ? applyVictorianCenturyChangeTags(siteData, baselineData) : siteData));
 
 const wikiData = {
   meta: data.meta,
@@ -181,17 +181,14 @@ fs.writeFileSync(
   `window.VIC3_DATA_INDEX = ${JSON.stringify(dataIndex)};\n`,
   "utf8",
 );
-if (args["legacy-data"]) {
-  fs.writeFileSync(
-    path.join(outDir, "data.js"),
-    `window.VIC3_DATA = ${JSON.stringify(wikiData)};\n`,
-    "utf8",
-  );
-} else {
-  fs.rmSync(path.join(outDir, "data.js"), { force: true });
-}
-for (const legacyFile of ["data-countries.js", "data-countrys.js", "data-companys.js", "data-ideologys.js"]) {
-  fs.rmSync(path.join(outDir, legacyFile), { force: true });
+for (const generatedFile of fs.readdirSync(outDir)) {
+  if (!/^(?:data-.+|locale-.+|search-index)\.js$/.test(generatedFile)) continue;
+  const active = generatedFile === "data-index.js"
+    || generatedFile === "search-index.js"
+    || countryShardFiles.includes(generatedFile)
+    || Object.values(dataChunkFileNames).includes(generatedFile)
+    || Object.values(localeChunkDescriptors).some((byBoard) => Object.values(byBoard).some((entry) => entry.files.some((file) => file.path === generatedFile)));
+  if (!active) fs.rmSync(path.join(outDir, generatedFile), { force: true });
 }
 
 console.log(JSON.stringify({
@@ -216,7 +213,6 @@ console.log(JSON.stringify({
   dynamicCountryMapColorRules: wikiData.dynamicCountryMapColorRules.length,
   formables: wikiData.formables.length,
   releasables: wikiData.releasables.length,
-  legacyData: Boolean(args["legacy-data"]),
 }, null, 2));
 
 function loadSiteData(sourceFile) {
@@ -285,7 +281,7 @@ function loadSiteData(sourceFile) {
       databaseMessagesByLocale,
     };
   }
-  return loadLegacyData(sourceData);
+  throw new Error(`Unsupported database schema in ${sourceFile}: expected schema_version and files.`);
 }
 
 function deriveSiteData(siteData) {
@@ -504,12 +500,10 @@ function flattenDatabaseCountry(country, nameById, colorById) {
     key: country.tag,
     loc: country.loc,
     tag: country.tag,
-    name: country.name?.zh || country.tag,
     existsAtStart: boolText(country.status?.exists_at_start),
     startingStateCount: (country.starting_states || []).length,
     startingStates: (country.starting_states || []).map((state) => state.key),
     startingOverlordTag: country.starting_subject?.overlord_tag || "",
-    startingOverlordName: country.starting_subject?.overlord_name_zh || "",
     startingSubjectType: country.starting_subject?.type || "",
     startingSubjectUsesOverlordColor: Boolean(country.starting_subject?.uses_overlord_color),
     hasHistoryCountryFile: boolText(country.status?.has_history_country_file),
@@ -518,32 +512,27 @@ function flattenDatabaseCountry(country, nameById, colorById) {
     isMajorFormable: boolText(country.status?.is_major_formable),
     isMinorFormable: boolText(country.status?.is_formable && !country.status?.is_major_formable),
     isSpecial: boolText(country.special_mechanic?.is_special),
-    specialMechanic: country.special_mechanic?.name_zh || "",
+    specialMechanic: country.special_mechanic?.loc?.name || "",
     specialTags: country.special_mechanic?.tags || [],
     canFormTags: (country.can_form_by_primary_culture || []).map((target) => target.tag),
-    canFormNames: (country.can_form_by_primary_culture || []).map((target) => target.name_zh),
     primaryCultures: (country.primary_cultures || []).map((culture) => culture.key),
-    primaryCulturesZh: (country.primary_cultures || []).map((culture) => culture.name_zh),
     religion: country.religion?.key || "",
-    religionZh: country.religion?.name_zh || "",
     religionSource: country.religion?.source || "",
     tier: country.classification?.tier || "",
-    tierZh: country.classification?.tier_zh || "",
+    tierLoc: country.classification?.loc?.tier || "",
     tierPrestige: String(country.classification?.tier_prestige ?? ""),
     countryType: country.classification?.country_type || "",
-    countryTypeZh: country.classification?.country_type_zh || "",
+    countryTypeLoc: country.classification?.loc?.countryType || "",
     colorRgb: country.color?.rgb || [],
     colorHex: country.color?.hex || "",
     primaryUnitColor: country.unit_colors?.primary || "",
     secondaryUnitColor: country.unit_colors?.secondary || "",
     tertiaryUnitColor: country.unit_colors?.tertiary || "",
     capital: country.capital?.key || "",
-    capitalZh: country.capital?.name_zh || "",
     dynamicNameVariants,
     usesDefaultDynamicCountryNameVariants: Boolean(country.uses_default_dynamic_country_name_variants),
     dynamicMapColorRules,
     formationRequiredCultures: (country.formation?.required_cultures || []).map((culture) => culture.key),
-    formationRequiredCulturesZh: (country.formation?.required_cultures || []).map((culture) => culture.name_zh),
     formationStates: (country.formation?.states || []).map((state) => state.key),
     formationStateRegions: country.formation_state_regions || [],
     formationStrategicRegions: country.formation_strategic_regions || [],
@@ -557,93 +546,6 @@ function flattenDatabaseCountry(country, nameById, colorById) {
     primaryCultureHomelandStrategicRegions: country.primary_culture_homeland_strategic_regions || [],
     interestGroups: country.interest_groups || [],
     definitionFile: country.source?.definition_file || "",
-  };
-}
-
-function loadLegacyData(data) {
-  const dynamicCountryNameVariants = data.dynamic_country_name_variants || [];
-  const dynamicCountryMapColorRules = data.dynamic_country_map_color_rules || [];
-  const namesByTag = groupBy(dynamicCountryNameVariants, "country_tag");
-  const colorsByTag = new Map();
-  for (const rule of dynamicCountryMapColorRules) {
-    for (const tag of split(rule.referenced_tags)) {
-      if (!colorsByTag.has(tag)) colorsByTag.set(tag, []);
-      colorsByTag.get(tag).push(rule);
-    }
-  }
-  return {
-    meta: {
-      ...data.meta,
-      default_dynamic_country_name_variant_count: dynamicCountryNameVariants.filter((variant) => variant.scope === "DEFAULT").length,
-    },
-    countries: (data.countries || []).map((country) => ({
-      tag: country.tag,
-      name: country.name_zh,
-      existsAtStart: country.exists_at_start,
-      startingStateCount: Number(country.starting_state_count || 0),
-      startingStates: split(country.starting_states),
-      startingOverlordTag: country.starting_overlord_tag || "",
-      startingOverlordName: "",
-      startingSubjectType: country.starting_subject_type || "",
-      startingSubjectUsesOverlordColor: country.starting_subject_uses_overlord_color === "是",
-      hasHistoryCountryFile: country.has_history_country_file,
-      isReleasable: country.is_releasable,
-      isFormable: country.is_formable,
-      isMajorFormable: country.is_major_formable,
-      isMinorFormable: country.is_formable === "是" && country.is_major_formable !== "是" ? "是" : "否",
-      isSpecial: "否",
-      specialMechanic: "",
-      specialTags: [],
-      canFormTags: split(country.can_form_tags_by_primary_culture),
-      canFormNames: split(country.can_form_names_zh_by_primary_culture),
-      primaryCultures: split(country.primary_cultures),
-      primaryCulturesZh: split(country.primary_cultures_zh),
-      religion: country.religion,
-      religionZh: country.religion_zh,
-      religionSource: country.religion_source,
-      tier: country.tier,
-      tierZh: country.tier_zh,
-      tierPrestige: country.tier_prestige,
-      countryType: country.country_type,
-      countryTypeZh: country.country_type_zh,
-      colorRgb: split(country.color_rgb).map(Number).filter(Number.isFinite),
-      colorHex: country.color_hex,
-      primaryUnitColor: country.primary_unit_color,
-      secondaryUnitColor: country.secondary_unit_color,
-      tertiaryUnitColor: country.tertiary_unit_color,
-      capital: country.capital,
-      capitalZh: country.capital_zh,
-      dynamicNameVariants: namesByTag.get(country.tag) || [],
-      usesDefaultDynamicCountryNameVariants: dynamicCountryNameVariants.some((variant) => variant.scope === "DEFAULT"),
-      dynamicMapColorRules: colorsByTag.get(country.tag) || [],
-      formationRequiredCultures: split(country.formation_required_cultures),
-      formationRequiredCulturesZh: split(country.formation_required_cultures_zh),
-      formationStates: split(country.formation_states),
-      formationStateRegions: [],
-      formationStrategicRegions: [],
-      locationStateRegions: [],
-      locationStrategicRegions: [],
-      formationRegion: country.formation_region,
-      releaseStates: split(country.release_states),
-      primaryCultureTraits: [],
-      primaryCultureTraitGroups: [],
-      primaryCultureHomelandStateRegions: [],
-      primaryCultureHomelandStrategicRegions: [],
-      definitionFile: country.definition_file,
-    })),
-    cultures: data.cultures || [],
-    cultureTraits: data.culture_traits || [],
-    cultureTraitGroups: data.culture_trait_groups || [],
-    stateRegions: data.state_regions || [],
-    strategicRegions: data.strategic_regions || [],
-    geographicRegions: data.geographic_regions || [],
-    interestGroups: data.interest_groups || [],
-    interestGroupTraits: data.interest_group_traits || [],
-    ideologies: data.ideologies || [],
-    dynamicCountryNameVariants,
-    dynamicCountryMapColorRules,
-    formables: data.formable_countries || [],
-    releasables: data.releasable_countries || [],
   };
 }
 
@@ -691,8 +593,7 @@ Options:
   --database <path>  Database directory, default database/vic3_1.13.9
   --source <path>    Source index.json, default <database>/index.json
   --baseline-database <path>  Compare against this database and tag added or adjusted records
-  --out <path>       Output site directory, default site
-  --legacy-data      Also write a compatibility data.js bundle
+  --out <path>       Output site directory, default site/versions/1.13.9
   --help             Show this help
 `);
 }
@@ -710,7 +611,7 @@ function relatedCulturesByKeys(cultureKeys, currentKey, byKey) {
       return {
         id: `culture:${key}`,
         key,
-        name_zh: culture.name_zh || key,
+        loc: culture.loc || { name: `culture:${key}.name` },
       };
     });
 }
@@ -720,10 +621,22 @@ function traitToGroupRef(trait) {
   return {
     id: `culture_trait_group:${trait.group_key}`,
     key: trait.group_key,
-    name_zh: trait.group_name_zh || trait.group_key,
     type: trait.type || "",
-    type_zh: trait.type_zh || "",
+    loc: { name: `culture_trait_group:${trait.group_key}.name`, type: `culture_trait_group:${trait.group_key}.type` },
   };
+}
+
+function stripLegacyLocalizedFields(value) {
+  const legacyFieldPattern = /(?:^|_)(?:zh|en)$/i;
+  const legacyCamelFields = new Set([
+    "tierZh", "countryTypeZh", "capitalZh", "religionZh", "primaryCulturesZh", "formationRequiredCulturesZh",
+    "canFormNames", "startingOverlordName",
+  ]);
+  if (Array.isArray(value)) return value.map(stripLegacyLocalizedFields);
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(Object.entries(value)
+    .filter(([key]) => !legacyFieldPattern.test(key) && !legacyCamelFields.has(key))
+    .map(([key, item]) => [key, stripLegacyLocalizedFields(item)]));
 }
 
 function uniqueByKey(items) {
@@ -743,16 +656,6 @@ function pushMapSet(map, key, value) {
   map.get(key).add(value);
 }
 
-function groupBy(rows, field) {
-  const result = new Map();
-  for (const row of rows || []) {
-    const key = row[field] || "";
-    if (!result.has(key)) result.set(key, []);
-    result.get(key).push(row);
-  }
-  return result;
-}
-
 function parseArgs(argv) {
   const result = {};
   for (let i = 0; i < argv.length; i += 1) {
@@ -768,12 +671,4 @@ function parseArgs(argv) {
     }
   }
   return result;
-}
-
-function split(value) {
-  if (!value) return [];
-  return String(value)
-    .split(";")
-    .map((item) => item.trim())
-    .filter(Boolean);
 }

@@ -1265,7 +1265,7 @@ body[data-view="law"][data-results-panel="collapsed"] .detail {
   touch-action: pan-x;
 }
 
-@media (max-aspect-ratio: 3 / 2) {
+@media (max-width: 1180px) and (max-aspect-ratio: 3 / 2) {
   .layout::before {
     display: none;
   }
@@ -1565,6 +1565,10 @@ body[data-view="law"][data-results-panel="collapsed"] .detail {
     scrollbar-width: thin;
   }
 
+  .topbar-nav-item {
+    flex: 0 0 auto;
+  }
+
   .topbar-actions {
     width: 100%;
     justify-content: stretch;
@@ -1605,6 +1609,10 @@ body[data-view="law"][data-results-panel="collapsed"] .detail {
   .detail {
     position: relative;
     inset: auto;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    left: auto;
     width: auto;
     height: auto;
     max-height: none;

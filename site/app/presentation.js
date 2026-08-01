@@ -700,12 +700,12 @@ function interestGroupFlavorSearchResults() {
       typeLabel: "利益集团风味",
       key: group.key,
       navigationKey: `${country.tag}:${group.key}`,
-      title: group.display_name?.name_zh || group.name_zh || group.key,
-      aliases: [group.name_zh].filter((name) => name && name !== group.display_name?.name_zh),
-      subtitle: country.name,
+      title: entityText(group.display_name || group),
+      aliases: [entityText(group)].filter((name) => name && name !== entityText(group.display_name)),
+      subtitle: entityText(country),
       raw: group,
       countryTag: country.tag,
-      searchText: [country.tag, country.name, group.key, group.name_zh, group.display_name?.key, group.display_name?.name_zh].filter(Boolean).join(" "),
+      searchText: [country.tag, entityText(country), group.key, entityText(group), group.display_name?.key, entityText(group.display_name)].filter(Boolean).join(" "),
     })));
   const byFlavor = new Map();
   for (const candidate of candidates) {
@@ -954,7 +954,7 @@ function renderCountryDetail(country) {
       ${detailBackButton("country")}
       <div class="detail-title-main">
         ${countryFlagIconHtml(country, "country-flag-title") || `<span class="country-color large" style="${colorStyle(country.colorHex)}" aria-hidden="true"></span>`}
-        <h2>${escapeHtml(entityText(country) || country.name || country.tag || "")}</h2>
+        <h2>${escapeHtml(entityText(country))}</h2>
       </div>
       ${conceptTag(country.tag, "country", country.tag, entityText(country))}
       ${victorianCenturyBadge(country)}
@@ -974,7 +974,7 @@ function renderCountryDetail(country) {
       ${field(t("board.country.language", "语言"), `<span class="grouped-trait-pills">${groupedTraitPills(country.primaryCultureLanguageGroups, country.primaryCultureLanguages, "tag-language-group", "tag-language")}</span>`)}
       ${field(t("board.country.tradition", "传统"), traitList(country.primaryCultureTraditions))}
       ${field(t("board.country.religion", "宗教"), linkedTerms([country.religion], [entityText(country.religion)], "religion") + sourceSuffix(country.religionSource))}
-      ${field(t("board.country.capital", "首都"), stateRegionLinks(country.capital ? [{ key: country.capital, name_zh: capitalName }] : []))}
+      ${field(t("board.country.capital", "首都"), stateRegionLinks(country.capital ? [byStateRegion.get(country.capital) || { key: country.capital, id: `state_region:${country.capital}` }] : []))}
     </dl>
 
     ${collapsibleDetailSection(t("board.country.interestGroupFlavor", "利益集团风味"), interestGroupFlavorList(country.interestGroups), t("board.country.groupCount", "{count} 组", { count: (country.interestGroups || []).length }))}
@@ -999,19 +999,19 @@ function renderCountryDetail(country) {
     <dl class="field-grid">
       ${field(t("board.country.isMinorFormable", "次要统一"), country.isMinorFormable)}
       ${field(t("board.country.isMajorFormable", "重大统一"), country.isMajorFormable)}
-      ${field(t("board.country.specialMechanic", "特殊机制"), country.specialMechanic)}
-      ${field(t("board.country.canForm", "同文化可成立"), countryLinks(country.canFormTags, country.canFormNames))}
-      ${field(t("board.country.formationCultures", "成立文化"), linkedTerms(country.formationRequiredCultures, country.formationRequiredCulturesZh, "culture"))}
+      ${field(t("board.country.specialMechanic", "特殊机制"), renderTextSpec({ message: country.specialMechanic, fallback: "" }))}
+      ${field(t("board.country.canForm", "同文化可成立"), countryLinks(country.canFormTags))}
+      ${field(t("board.country.formationCultures", "成立文化"), cultureLinks((country.formationRequiredCultures || []).map((key) => byCulture.get(key) || { key, id: `culture:${key}` })))}
       ${field(t("board.country.formationStrategicRegions", "成立范围战略区域"), strategicRegionLinks(country.formationStrategicRegions))}
       ${field(t("board.country.formationStateRegions", "成立范围地域"), stateRegionLinks(country.formationStateRegions))}
-      ${field(t("board.country.formationStates", "规则直接列州"), stateRegionLinks((country.formationStates || []).map((key) => ({ key, name_zh: entityText(byStateRegion.get(key)) || key }))))}
+      ${field(t("board.country.formationStates", "规则直接列州"), stateRegionLinks((country.formationStates || []).map((key) => byStateRegion.get(key) || { key, id: `state_region:${key}` })))}
       ${field(t("board.country.formationRegion", "成立地区"), escapeHtml(country.formationRegion || ""))}
     </dl>
 
     <h3>${t("board.country.section.release", "释放")}</h3>
     <dl class="field-grid">
       ${field(t("board.country.isReleasable", "可释放"), country.isReleasable)}
-      ${field(t("board.country.releaseStates", "释放州"), stateRegionLinks((country.releaseStates || []).map((key) => ({ key, name_zh: entityText(byStateRegion.get(key)) || key }))))}
+      ${field(t("board.country.releaseStates", "释放州"), stateRegionLinks((country.releaseStates || []).map((key) => byStateRegion.get(key) || { key, id: `state_region:${key}` })))}
     </dl>
   `;
 }

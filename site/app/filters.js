@@ -21,7 +21,7 @@ function matchesCountryFilters(country) {
 
 function countryCivilWarMatch(country) {
   if (country.isCivilWar || country.is_civil_war || country.civil_war) return true;
-  return /civil_war/i.test([country.tag, country.name, country.name_zh, country.key].filter(Boolean).join(" "));
+  return /civil_war/i.test([country.tag, country.name, entityText(country), country.key].filter(Boolean).join(" "));
 }
 
 function isIndigenousCulture(culture) {
@@ -491,10 +491,10 @@ function renderGroupedFilterOptions({ container, groups, traits, selectedGroups,
     const singleTraitClass = groupKind === "language-group" && groupTraits.length === 1 ? " filter-single-trait" : "";
     return `
       <div class="filter-row filter-group-block${singleTraitClass}">
-        <div class="filter-row-label">${optionToken(groupKind, group.key, group.name_zh || group.key, selectedGroups.has(group.key), "filter-token-group")}</div>
+        <div class="filter-row-label">${optionToken(groupKind, group.key, entityText(group), selectedGroups.has(group.key), "filter-token-group")}</div>
         <span class="filter-row-items">
           ${groupTraits.map((trait) => (
-            optionToken(traitKind, trait.key, trait.name_zh || trait.key, selectedTraits.has(trait.key))
+            optionToken(traitKind, trait.key, entityText(trait), selectedTraits.has(trait.key))
           )).join("")}
         </span>
       </div>

@@ -172,7 +172,6 @@ async function runUpdate(config, { skipMap }) {
     "--database", config.databaseDir,
     "--baseline-database", path.join(PROJECT_DIR, "database", "vic3_1.13.9"),
     "--out", config.siteDir,
-    "--legacy-data",
   ], PROJECT_DIR);
 
   if (!skipMap) {
@@ -216,7 +215,6 @@ function runCommand(command, commandArgs, cwd) {
 
 function makeState(config, { remote, installed, index, skipMap }) {
   const siteFiles = {
-    data_js: fileStamp(path.join(config.siteDir, "data.js")),
     data_index_js: fileStamp(path.join(config.siteDir, "data-index.js")),
     map_data_js: fileStamp(path.join(config.siteDir, "map-data.js")),
     index_html: fileStamp(path.join(config.siteDir, "index.html")),

@@ -127,7 +127,6 @@ async function ensureDataChunks(chunkKeys) {
   })();
   try {
     await dataChunkLoadPromise;
-    hydrateLegacyLocalizedFields(data);
     applyLoadedDataset(data, mapData);
   } finally {
     dataChunkLoadPromise = null;
@@ -252,37 +251,6 @@ function applyLoadedDataset(nextData, nextMapData, options = {}) {
   renderLibraryOptions();
 }
 
-function hydrateLegacyLocalizedFields(value) {
-  const fields = {
-    name: ["name_zh", "name"],
-    description: ["desc_zh", "description_zh"],
-    tier: ["tierZh", "tier_zh"],
-    countryType: ["countryTypeZh", "country_type_zh"],
-    category: ["category_zh"],
-    type: ["type_zh"],
-    groupName: ["group_name_zh"],
-    sourceName: ["source_name_zh"],
-    label: ["label_zh"],
-    summary: ["summary_zh"],
-    valueDisplay: ["value_zh"],
-    adjective: ["adjective_zh"],
-    dlcName: ["dlc_name_zh"],
-  };
-  function visit(item) {
-    if (Array.isArray(item)) return item.forEach(visit);
-    if (!item || typeof item !== "object") return;
-    for (const [field, messageId] of Object.entries(item.loc || {})) {
-      const text = translateMessage(messageId, item.key || item.tag || messageId);
-      for (const legacyField of fields[field] || [`${field}_zh`]) item[legacyField] = text;
-    }
-    const searchEntry = window.VIC3_SEARCH_INDEX?.entries?.find((entry) => entry.id === item.id);
-    if (searchEntry?.names?.en) item.name_en = searchEntry.names.en;
-    for (const child of Object.values(item)) visit(child);
-  }
-  visit(value);
-  return value;
-}
-
 function buildSemanticTagIndexes() {
   stateTraitByKey = new Map();
   stateTraitRegionsByKey = new Map();
@@ -306,7 +274,11 @@ function buildSemanticTagIndexes() {
 }
 
 function indexStateTraitRegions(stateRegion) {
-  const region = { key: stateRegion?.key || "", name_zh: stateRegion?.name_zh || "" };
+  const region = {
+    id: stateRegion?.id || `state_region:${stateRegion?.key || ""}`,
+    key: stateRegion?.key || "",
+    loc: stateRegion?.loc || {},
+  };
   if (!region.key) return;
   for (const trait of stateRegion?.traits || []) {
     const key = trait?.key || "";
@@ -449,8 +421,7 @@ function renderFilterOptions() {
   const traditions = collectCultureRefs((culture) => culture.traditions || []);
 
   els.tierFilters.innerHTML = tiers.map((tier) => {
-    const sample = countries.find((country) => country.tier === tier);
-    return optionToken("tier", tier, sample?.tierZh || tier, state.tiers.has(tier));
+    return optionToken("tier", tier, t(`enum.tier.${tier}`), state.tiers.has(tier));
   }).join("");
 
   els.countryTypeFilters.innerHTML = types.map((type) => {
@@ -459,15 +430,15 @@ function renderFilterOptions() {
   }).join("");
 
   els.heritageGroupFilters.innerHTML = heritageGroups.map((group) => (
-    optionToken("heritage-group", group.key, group.name_zh, state.heritageGroups.has(group.key))
+    optionToken("heritage-group", group.key, entityText(group), state.heritageGroups.has(group.key))
   )).join("");
 
   els.languageGroupFilters.innerHTML = languageGroups.map((group) => (
-    optionToken("language-group", group.key, group.name_zh, state.languageGroups.has(group.key))
+    optionToken("language-group", group.key, entityText(group), state.languageGroups.has(group.key))
   )).join("");
 
   els.traditionFilters.innerHTML = traditions.map((trait) => (
-    optionToken("tradition", trait.key, trait.name_zh || trait.key, state.tradition === trait.key)
+    optionToken("tradition", trait.key, entityText(trait), state.tradition === trait.key)
   )).join("");
 
   renderDependentFilterOptions();

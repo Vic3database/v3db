@@ -31,7 +31,7 @@ assert(fs.existsSync(htmlFile), "missing Victorian Century index.html");
 assert(fs.existsSync(configFile), "missing Victorian Century standalone configuration");
 assert(fs.existsSync(dataIndexFile), "missing Victorian Century data index");
 assert(fs.existsSync(mapFile), "missing Victorian Century map index");
-assert(fs.existsSync(path.join(siteRoot, "data.js")), "missing Victorian Century compatibility data bundle");
+assert(!fs.existsSync(path.join(siteRoot, "data.js")), "VC site must not retain the removed compatibility data bundle");
 for (const relative of ["index.html", "data-index.js", "map-data.js", "victorian-century-config.js", "assets/map/provinces.png"]) {
   const standaloneFile = path.join(siteRoot, relative);
   const publishedFile = path.join(publishedRoot, relative);
@@ -129,7 +129,7 @@ const updateScript = fs.readFileSync(updateScriptFile, "utf8");
 assert.match(updateScript, /build_victorian_century_site\.mjs/, "VC update workflow must rebuild the standalone front end");
 assert.match(updateScript, /--baseline-database/, "VC update workflow must compare the mod data with the base-game database");
 assert.match(updateScript, /--target/, "VC update workflow must pass its standalone directory to the front-end build");
-assert.match(updateScript, /--legacy-data/, "VC update workflow must preserve the compatibility data bundle");
+assert.doesNotMatch(updateScript, /--legacy-data/, "VC update workflow must not rebuild the removed compatibility data bundle");
 
 console.log(JSON.stringify({
   victorian_century_standalone_site: "ok",

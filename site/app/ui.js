@@ -877,9 +877,9 @@ function conceptTooltipDescription(target, kind, key, label) {
 
 function countryTooltipMainInfo(country) {
   if (!country) return "";
-  const primaryCultures = (country.primaryCulturesZh || []).filter(Boolean).join("、");
-  const religion = country.religionZh || country.religion || "";
-  const capital = country.capitalZh || country.capital || "";
+  const primaryCultures = (country.primaryCultures || []).map((key) => entityText(byCulture.get(key)) || key).filter(Boolean).join("、");
+  const religion = entityText(country.religion) || country.religion || "";
+  const capital = entityText(byStateRegion.get(country.capital)) || country.capital || "";
   return [
     primaryCultures ? `主流文化：${primaryCultures}` : "",
     religion ? `宗教：${religion}` : "",
@@ -911,11 +911,11 @@ function conceptTooltipContextLine(kind, key) {
   if (!key) return "";
   if (kind === "country") {
     const country = byTag.get(key);
-    return [countryTypeTagLabel(country || {}), country?.tierZh].filter(Boolean).join(" · ");
+    return [countryTypeTagLabel(country || {}), t(`enum.tier.${country?.tier}`)].filter(Boolean).join(" · ");
   }
   if (kind === "culture") {
     const culture = byCulture.get(key);
-    return [culture?.heritage?.name_zh, culture?.language?.name_zh].filter(Boolean).join(" · ");
+    return [entityText(culture?.heritage), entityText(culture?.language)].filter(Boolean).join(" · ");
   }
   if (kind === "stateRegion") {
     const stateRegion = byStateRegion.get(key);
@@ -933,7 +933,7 @@ function conceptTooltipContextLine(kind, key) {
   }
   if (kind === "company") {
     const company = byCompany.get(key);
-    return [companyKindText(company || {}), company?.category_zh || company?.category].filter(Boolean).join(" · ");
+    return [companyKindText(company || {}), entityText(company, "category", "") || company?.category].filter(Boolean).join(" · ");
   }
   if (kind === "ideology") {
     const ideology = ideologyByKey.get(key);
@@ -944,11 +944,11 @@ function conceptTooltipContextLine(kind, key) {
     ].filter(Boolean).join(" · ");
   }
   if (kind === "stateTrait") {
-    return (stateTraitByKey.get(key)?.categories || []).map((category) => category.name_zh || category.key).filter(Boolean).join(" · ");
+    return (stateTraitByKey.get(key)?.categories || []).map((category) => entityText(category)).filter(Boolean).join(" · ");
   }
   if (kind === "technology") {
     const technology = technologyByKey.get(key);
-    return [technology?.category_zh, technology?.era_label_zh].filter(Boolean).join(" · ");
+    return [entityText(technology, "category", ""), entityText(technology, "eraLabel", "")].filter(Boolean).join(" · ");
   }
   if (kind === "building" || kind === "goods") return "";
   if (kind === "cultureTrait" || kind === "cultureTraitGroup") return "文化特质";
