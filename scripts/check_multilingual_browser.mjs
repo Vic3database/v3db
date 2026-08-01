@@ -321,9 +321,17 @@ async function verifyEnglishSharedSurfaces() {
     if (siteName === "vc") {
       assert.match(
         await page.locator("#mapResourceContext").innerText(),
-        /Victorian Century\/Exploreable Real-World Resources/,
+        /Victorian Century\/Explorable Real-World Resources/,
         `Victorian Century resource context must use the approved English label for ${resourceKey}`,
       );
+      const resourceNameSize = await page.locator("#mapResourceContext .map-resource-context-name").evaluate((element) => ({
+        clientWidth: element.clientWidth,
+        scrollWidth: element.scrollWidth,
+        clientHeight: element.clientHeight,
+        scrollHeight: element.scrollHeight,
+      }));
+      assert.equal(resourceNameSize.scrollWidth, resourceNameSize.clientWidth, `Victorian Century resource name must not be clipped for ${resourceKey}`);
+      assert.equal(resourceNameSize.scrollHeight, resourceNameSize.clientHeight, `Victorian Century resource name must fit its context for ${resourceKey}`);
     }
   }
   const box = await page.locator("#mapCanvas").boundingBox();

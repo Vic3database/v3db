@@ -465,7 +465,7 @@ window.VICDATA_UI_LOCALES.en = {
     "map.agriculture": "Agriculture",
     "map.resetRegionFocus": "Reset state-region focus and map position",
     "map.resetPosition": "Reset map position",
-    "map.vcResourceContext": "Victorian Century/Exploreable Real-World Resources",
+    "map.vcResourceContext": "Victorian Century/Explorable Real-World Resources",
     "map.noResource": "No {resource}",
     "ui.unknown": "Unknown",
     "map.outsideGeographicRegion": "Outside the current geographic region",
