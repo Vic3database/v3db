@@ -29,7 +29,9 @@ const browser = await chromium.launch({ headless: true, ...(chromePath ? { execu
 
 try {
   await verifyLocaleBoundaries();
+  await verifyEnglishSharedSurfaces();
   const screenshots = await captureBoardScreenshots();
+  const detailAudit = await auditAllEnglishDetails();
   console.log(JSON.stringify({
     multilingual_browser: "ok",
     base_url: baseUrl,
@@ -37,6 +39,7 @@ try {
     routes: routes.map(({ board }) => board),
     viewports: viewports.map(({ name }) => name),
     screenshots,
+    detail_audit: detailAudit,
   }));
 } finally {
   await browser.close();
@@ -83,11 +86,19 @@ async function verifyLocaleBoundaries() {
     query: document.querySelector("#searchInput")?.value || "",
     scrollTop: document.querySelector(".detail")?.scrollTop || 0,
     title: document.querySelector(".detail h2")?.textContent || "",
+    hanTextLines: [...new Set(document.body.innerText
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => /[\u3400-\u9fff\uf900-\ufaff]/.test(line)))],
   }));
   assert.equal(switched.hash, before.hash, "language switch must retain the current detail");
   assert.equal(switched.query, before.query, "language switch must retain the active filter");
   assert.equal(switched.scrollTop, beforeSwitch.scrollTop, "language switch must retain detail scroll position");
   assert.match(switched.title, /Prussia/, "English country detail must render after switching");
+  assert.ok(
+    switched.hanTextLines.length === 0,
+    `English language switch with active filters contains Chinese text: ${switched.hanTextLines.slice(0, 8).join(" | ")}`,
+  );
   await page.reload({ waitUntil: "networkidle", timeout: 45000 });
   await waitForDetail(page, "en");
   assert.match(page.url(), /[?&]lang=en(?:&|#|$)/, "refresh must retain the selected locale");
@@ -146,9 +157,23 @@ async function captureBoardScreenshots() {
       await page.goto(urlFor(item.route, "en"), { waitUntil: "networkidle", timeout: 45000 });
       await page.waitForSelector(item.list, { state: "attached", timeout: 20000 });
       await waitForDetail(page, "en");
+      await page.locator("details").evaluateAll((nodes) => nodes.forEach((node) => { node.open = true; }));
+      const conceptTarget = page.locator(".detail [data-concept-kind]").first();
+      if (await conceptTarget.count()) {
+        await conceptTarget.hover();
+        await page.waitForSelector("#conceptTooltip:not([hidden])", { timeout: 5000 });
+      }
       const layout = await page.evaluate(() => ({
         scrollWidth: document.documentElement.scrollWidth,
         viewportWidth: innerWidth,
+        hanTextLines: [...new Set(document.body.innerText
+          .split(/\r?\n/)
+          .map((line) => line.trim())
+          .filter((line) => /[\u3400-\u9fff\uf900-\ufaff]/.test(line)))],
+        hanAttributes: [...new Set([...document.querySelectorAll("[placeholder], [title], [aria-label]")]
+          .filter((node) => node.getClientRects().length > 0)
+          .flatMap((node) => [node.getAttribute("placeholder"), node.getAttribute("title"), node.getAttribute("aria-label")])
+          .filter((value) => /[\u3400-\u9fff\uf900-\ufaff]/.test(value || "")))],
         overlappingNavigationLabels: [...document.querySelectorAll(".topbar-nav-item span")].some((node, index, labels) => {
           const current = node.getBoundingClientRect();
           const next = labels[index + 1]?.getBoundingClientRect();
@@ -157,6 +182,14 @@ async function captureBoardScreenshots() {
       }));
       assert.ok(layout.scrollWidth <= layout.viewportWidth + 1, `${item.board} English layout overflows at ${viewport.width}px`);
       assert.equal(layout.overlappingNavigationLabels, false, `${item.board} English navigation labels overlap at ${viewport.width}px`);
+      assert.ok(
+        layout.hanTextLines.length === 0,
+        `${item.board} English page contains Chinese text at ${viewport.width}px: ${layout.hanTextLines.slice(0, 8).join(" | ")}`,
+      );
+      assert.ok(
+        layout.hanAttributes.length === 0,
+        `${item.board} English page contains Chinese accessible text at ${viewport.width}px: ${layout.hanAttributes.slice(0, 8).join(" | ")}`,
+      );
       const output = path.join(screenshotRoot, `${siteName}-${item.board}-en-${viewport.name}.png`);
       await page.screenshot({ path: output, fullPage: false });
       screenshots.push(path.relative(process.cwd(), output).replace(/\\/g, "/"));
@@ -164,6 +197,88 @@ async function captureBoardScreenshots() {
   }
   await page.close();
   return screenshots;
+}
+
+async function verifyEnglishSharedSurfaces() {
+  const page = await newPage({ width: 1440, height: 1000 });
+  await page.addInitScript(() => localStorage.clear());
+  await page.goto(urlFor("country/PRU", "en"), { waitUntil: "networkidle", timeout: 45000 });
+  await waitForDetail(page, "en");
+
+  for (const [button, name] of [["#settingsNavButton", "settings"], ["#aboutNavButton", "about"]]) {
+    await page.locator(button).click();
+    await page.waitForSelector("#infoDialog:not([hidden])", { timeout: 5000 });
+    assertNoHanText(await page.locator("#infoDialog").innerText(), `${name} dialog`);
+    await page.locator("#infoDialogCloseButton").click();
+  }
+
+  await page.locator("#globalSearchButton").click();
+  await page.locator("#globalSearchDialogInput").fill("Prussia");
+  await page.waitForSelector('[data-result-key="PRU"]', { timeout: 10000 });
+  assertNoHanText(await page.locator("#globalSearchDialog").innerText(), "global search dialog");
+  await page.locator("#globalSearchCloseButton").click();
+
+  await page.goto(urlFor("region", "en"), { waitUntil: "networkidle", timeout: 45000 });
+  await page.waitForFunction(() => document.documentElement.lang === "en" && document.body.dataset.view === "region" && Boolean(document.querySelector("#mapCanvas")), { timeout: 20000 });
+  const box = await page.locator("#mapCanvas").boundingBox();
+  let tooltipText = "";
+  for (let y = box.y + 20; y < box.y + box.height - 10 && !tooltipText; y += 50) {
+    for (let x = box.x + 20; x < box.x + box.width - 10 && !tooltipText; x += 50) {
+      await page.mouse.move(x, y);
+      if (await page.locator("#mapTooltip:not([hidden])").count()) tooltipText = await page.locator("#mapTooltip").innerText();
+    }
+  }
+  assert.ok(tooltipText, "English region map must expose a state-region tooltip");
+  assertNoHanText(tooltipText, "region map tooltip");
+  await page.close();
+}
+
+async function auditAllEnglishDetails() {
+  const page = await newPage({ width: 1440, height: 1000 });
+  await page.addInitScript(() => localStorage.clear());
+  for (const item of routes) {
+    await page.goto(urlFor(item.route, "en"), { waitUntil: "networkidle", timeout: 45000 });
+    await page.waitForSelector(item.list, { state: "attached", timeout: 20000 });
+    await page.waitForFunction((expectedView) => document.body.dataset.view === expectedView, item.board, { timeout: 20000 });
+    await waitForDetail(page, "en");
+  }
+  const audit = await page.evaluate(() => {
+    const sets = [
+      ["country", countries, renderCountryDetail, (item) => item.tag],
+      ["culture", cultures, renderCultureDetail, (item) => item.key],
+      ["stateRegion", stateRegions, renderStateRegionDetail, (item) => item.key],
+      ["strategicRegion", strategicRegions, renderStrategicRegionDetail, (item) => item.key],
+      ["geographicRegion", geographicRegions, renderGeographicRegionDetail, (item) => item.key],
+      ["company", companies, renderCompanyDetail, (item) => item.key],
+      ["ideology", ideologies, renderIdeologyDetail, (item) => item.key],
+      ["law", laws, renderLawDetail, (item) => item.key],
+      ["technology", technologies, (item) => { els.detail.innerHTML = renderTechnologyDetail(item); }, (item) => item.key],
+      ["achievement", achievements, renderAchievementDetail, (item) => item.key],
+    ];
+    return sets.map(([kind, items, renderDetail, keyOf]) => {
+      const findings = [];
+      for (const item of items) {
+        renderDetail(item);
+        document.querySelectorAll(".detail details").forEach((node) => { node.open = true; });
+        const lines = [...new Set((els.detail.innerText || "")
+          .split(/\r?\n/)
+          .map((line) => line.trim())
+          .filter((line) => /[\u3400-\u9fff\uf900-\ufaff]/.test(line)))];
+        if (lines.length) findings.push({ key: keyOf(item), samples: lines.slice(0, 8) });
+        if (findings.length >= 8) break;
+      }
+      return { kind, count: items.length, findings };
+    });
+  });
+  await page.close();
+  const failures = audit.filter((entry) => entry.findings.length);
+  const emptySets = audit.filter((entry) => entry.count === 0);
+  assert.ok(emptySets.length === 0, `English detail audit did not load: ${emptySets.map((entry) => entry.kind).join(", ")}`);
+  assert.ok(
+    failures.length === 0,
+    `English detail audit contains Chinese text: ${failures.map((entry) => `${entry.kind} ${JSON.stringify(entry.findings)}`).join(" | ")}`,
+  );
+  return Object.fromEntries(audit.map((entry) => [entry.kind, entry.count]));
 }
 
 function urlFor(route, locale) {
@@ -182,4 +297,12 @@ async function waitForDetail(page, locale) {
 
 async function newPage(viewport) {
   return browser.newPage({ viewport: { width: viewport.width, height: viewport.height } });
+}
+
+function assertNoHanText(text, label) {
+  const lines = [...new Set(String(text || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => /[\u3400-\u9fff\uf900-\ufaff]/.test(line)))];
+  assert.ok(lines.length === 0, `${label} contains Chinese text: ${lines.slice(0, 8).join(" | ")}`);
 }

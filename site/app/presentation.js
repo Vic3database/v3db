@@ -38,7 +38,7 @@ function renderCountryList(filtered) {
         ${rowDetailButton("data-country-detail", country.tag)}
       </span>
       <span class="minor country-meta">${countryCapitalText(country)}</span>
-      <span class="minor country-meta">${t("board.country.primaryCulture", "主流文化")}：${(country.primaryCultures || []).map((cultureRef) => entityText(byCulture.get(cultureRef.key) || cultureRef)).filter(Boolean).join("、") || t("board.country.none", "无")}</span>
+      <span class="minor country-meta">${t("board.country.primaryCulture", "主流文化")}${t("ui.colon")}${(country.primaryCultures || []).map((cultureRef) => entityText(byCulture.get(cultureRef.key) || cultureRef)).filter(Boolean).join(t("ui.listSeparator")) || t("board.country.none", "无")}</span>
       <span class="pill-line country-tags">${countryTagPills(country)}</span>
     </article>
   `).join("");
@@ -125,7 +125,7 @@ function renderMobileCultureFilterOptions() {
     const options = regions.filter((region) => strategicRegionContinentByKey.get(region.key) === expanded);
     return `
       <div class="mobile-culture-filter-options" aria-label="${escapeHtml(t("board.culture.strategicRegionGroups", "本土战略区域洲别"))}">
-        ${groups.map((group) => `<button class="mobile-culture-filter-option" type="button" data-mobile-culture-expand-strategic-region-continent="${escapeHtml(group.key)}" aria-pressed="${String(expanded === group.key)}">${escapeHtml(group.name)}</button>`).join("")}
+        ${groups.map((group) => `<button class="mobile-culture-filter-option" type="button" data-mobile-culture-expand-strategic-region-continent="${escapeHtml(group.key)}" aria-pressed="${String(expanded === group.key)}">${escapeHtml(t(`continent.${group.key}`))}</button>`).join("")}
       </div>
       ${expanded ? `<div class="mobile-culture-filter-layer-divider"></div><div class="mobile-culture-filter-options" aria-label="${escapeHtml(t("board.culture.strategicRegionOptions", "本土战略区域选项"))}">${renderCultureMobileActualOption(category, "", t("board.culture.any", "不限"))}${options.map((item) => renderCultureMobileActualOption(category, item.key, strategicRegionName(item))).join("")}</div>` : ""}
     `;
@@ -205,11 +205,11 @@ function renderMobileCountryControls() {
   const chips = renderMobileCountryFilterChips();
   els.mobileCountryToolbar.innerHTML = `
     <div class="mobile-country-toolbar-row">
-      <label class="mobile-country-search-input" aria-label="国家搜索与筛选条件">
+      <label class="mobile-country-search-input" aria-label="${escapeHtml(t("board.country.searchAria"))}">
         ${chips}
         <input id="mobileCountrySearchInput" data-mobile-country-search type="search" autocomplete="off" placeholder="${escapeHtml(t("board.country.searchPlaceholder", "搜索国家、文化或标签"))}" value="${escapeHtml(state.countryMobileSearchDraft)}">
       </label>
-      <button class="mobile-country-tool-button" type="button" data-mobile-country-search-submit aria-label="执行搜索" title="执行搜索"><img class="lucide-icon" src="assets/lucide/icons/search.svg" alt="" aria-hidden="true"></button>
+      <button class="mobile-country-tool-button" type="button" data-mobile-country-search-submit aria-label="${escapeHtml(t("board.country.executeSearch"))}" title="${escapeHtml(t("board.country.executeSearch"))}"><img class="lucide-icon" src="assets/lucide/icons/search.svg" alt="" aria-hidden="true"></button>
       <button class="mobile-country-tool-button" type="button" data-mobile-country-filter-toggle aria-expanded="${String(state.countryMobileFiltersOpen)}" aria-label="${escapeHtml(state.countryMobileFiltersOpen ? t("board.country.collapseFilters", "收起筛选") : t("board.country.expandFilters", "展开筛选"))}" title="${escapeHtml(state.countryMobileFiltersOpen ? t("board.country.collapseFilters", "收起筛选") : t("board.country.expandFilters", "展开筛选"))}"><img class="lucide-icon" src="assets/lucide/icons/sliders-horizontal.svg" alt="" aria-hidden="true"></button>
       <button class="mobile-country-tool-button" type="button" data-mobile-country-map-toggle aria-pressed="${String(state.countryMobileMapOpen)}" aria-label="${escapeHtml(state.countryMobileMapOpen ? t("board.country.collapseMap", "收起地图") : t("board.country.expandMap", "展开地图"))}" title="${escapeHtml(state.countryMobileMapOpen ? t("board.country.collapseMap", "收起地图") : t("board.country.expandMap", "展开地图"))}"><img class="lucide-icon" src="assets/lucide/icons/map.svg" alt="" aria-hidden="true"></button>
     </div>
@@ -822,7 +822,7 @@ function companyDetailLocationHtml(company) {
   if (!companyDetailLocationMapEnabled(company)) return "";
   const stateKeys = companyLocationStateRegionKeys(company);
   return `
-    <section class="company-location-section" aria-label="公司位置">
+    <section class="company-location-section" aria-label="${escapeHtml(t("board.company.locationAria"))}">
       <h3>${t("board.company.location", "位置")}</h3>
       ${stateKeys.length ? `
         <div class="company-location-map">
@@ -989,16 +989,16 @@ function renderCountryDetail(country) {
 
     <h3>${t("board.country.section.start", "开局")}</h3>
     <dl class="field-grid">
-      ${field(t("board.country.existsAtStart", "开局存在"), country.existsAtStart)}
+      ${field(t("board.country.existsAtStart", "开局存在"), localizedBoolean(country.existsAtStart))}
       ${field(t("board.country.startingStateCount", "开局州数"), String(country.startingStateCount))}
       ${field(t("board.country.startingStates", "开局州"), countryStartingStateRegionLinks(country))}
-      ${field(t("board.country.historyFile", "历史文件"), country.hasHistoryCountryFile)}
+      ${field(t("board.country.historyFile", "历史文件"), localizedBoolean(country.hasHistoryCountryFile))}
     </dl>
 
     <h3>${t("board.country.section.formation", "成立")}</h3>
     <dl class="field-grid">
-      ${field(t("board.country.isMinorFormable", "次要统一"), country.isMinorFormable)}
-      ${field(t("board.country.isMajorFormable", "重大统一"), country.isMajorFormable)}
+      ${field(t("board.country.isMinorFormable", "次要统一"), localizedBoolean(country.isMinorFormable))}
+      ${field(t("board.country.isMajorFormable", "重大统一"), localizedBoolean(country.isMajorFormable))}
       ${field(t("board.country.specialMechanic", "特殊机制"), renderTextSpec({ message: country.specialMechanic, fallback: "" }))}
       ${field(t("board.country.canForm", "同文化可成立"), countryLinks(country.canFormTags))}
       ${field(t("board.country.formationCultures", "成立文化"), cultureLinks((country.formationRequiredCultures || []).map((key) => byCulture.get(key) || { key, id: `culture:${key}` })))}
@@ -1010,7 +1010,7 @@ function renderCountryDetail(country) {
 
     <h3>${t("board.country.section.release", "释放")}</h3>
     <dl class="field-grid">
-      ${field(t("board.country.isReleasable", "可释放"), country.isReleasable)}
+      ${field(t("board.country.isReleasable", "可释放"), localizedBoolean(country.isReleasable))}
       ${field(t("board.country.releaseStates", "释放州"), stateRegionLinks((country.releaseStates || []).map((key) => byStateRegion.get(key) || { key, id: `state_region:${key}` })))}
     </dl>
   `;

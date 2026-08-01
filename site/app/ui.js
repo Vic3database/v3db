@@ -877,13 +877,13 @@ function conceptTooltipDescription(target, kind, key, label) {
 
 function countryTooltipMainInfo(country) {
   if (!country) return "";
-  const primaryCultures = (country.primaryCultures || []).map((key) => entityText(byCulture.get(key)) || key).filter(Boolean).join("、");
+  const primaryCultures = (country.primaryCultures || []).map((key) => entityText(byCulture.get(key)) || key).filter(Boolean).join(t("ui.listSeparator"));
   const religion = entityText(country.religion) || country.religion || "";
   const capital = entityText(byStateRegion.get(country.capital)) || country.capital || "";
   return [
-    primaryCultures ? `主流文化：${primaryCultures}` : "",
-    religion ? `宗教：${religion}` : "",
-    capital ? `首都：${capital}` : "",
+    primaryCultures ? t("tooltip.country.primaryCultures", { value: primaryCultures }) : "",
+    religion ? t("tooltip.country.religion", { value: religion }) : "",
+    capital ? t("tooltip.country.capital", { value: capital }) : "",
   ].filter(Boolean).join("\n");
 }
 
@@ -924,12 +924,12 @@ function conceptTooltipContextLine(kind, key) {
   if (kind === "strategicRegion") {
     const region = byStrategicRegion.get(key);
     const count = (region?.states || []).length;
-    return count ? `${count} 个地域` : "";
+    return count ? t("tooltip.stateRegionCount", { count: localizedNumber(count) }) : "";
   }
   if (kind === "geographicRegion") {
     const region = byGeographicRegion.get(key);
     const count = geographicRegionStateRegions(region).length;
-    return count ? `${count} 个地域` : "";
+    return count ? t("tooltip.stateRegionCount", { count: localizedNumber(count) }) : "";
   }
   if (kind === "company") {
     const company = byCompany.get(key);
@@ -962,7 +962,7 @@ function conceptTooltipIdeologyLawStance(ideology) {
   const law = state.detailKind === "law" ? lawByKey.get(state.selectedLaw) : null;
   const stanceLaw = law ? lawByKey.get(lawStanceSourceKey(law)) || law : null;
   const stance = stanceLaw && (ideology?.law_stances || []).find((item) => item.law_key === stanceLaw.key);
-  return stance ? `对${lawDisplayName(law)}：${lawStanceLabel(stance.stance)}` : "";
+  return stance ? t("tooltip.ideologyLawStance", { law: lawDisplayName(law), stance: lawStanceLabel(stance.stance) }) : "";
 }
 
 function moveConceptTooltip(event) {
@@ -993,26 +993,7 @@ function searchConcept(target) {
 }
 
 function conceptKindLabel(kind) {
-  return {
-    country: "国家",
-    culture: "文化",
-    stateRegion: "地域",
-    strategicRegion: "战略区域",
-    geographicRegion: "地理区域",
-    company: "公司",
-    interestGroup: "利益集团",
-    interestGroupTrait: "利益集团特质",
-    ideology: "意识形态",
-    law: "法律",
-    building: "建筑",
-    technology: "科技",
-    cultureTrait: "文化特质",
-    cultureTraitGroup: "文化特质组",
-    stateTrait: "地区特质",
-    goods: "商品",
-    religion: "宗教",
-    trait: "角色特质",
-  }[kind] || "概念";
+  return t(`tooltip.kind.${kind || "concept"}`);
 }
 
 async function openGlobalSearchDialog() {
@@ -1307,14 +1288,16 @@ function updatePanelToggleState() {
   if (els.leftPanelToggle) {
     const collapsed = document.body.classList.contains("filters-collapsed");
     els.leftPanelToggle.setAttribute("aria-pressed", String(collapsed));
-    els.leftPanelToggle.setAttribute("aria-label", collapsed ? "展开筛选" : "折叠筛选");
-    els.leftPanelToggle.title = collapsed ? "展开筛选" : "折叠筛选";
+    const label = t(collapsed ? "ui.expandFilters" : "ui.collapseFilters");
+    els.leftPanelToggle.setAttribute("aria-label", label);
+    els.leftPanelToggle.title = label;
   }
   if (els.bottomPanelToggle) {
     const collapsed = (state.resultsPanelMode || "side") === "collapsed";
     els.bottomPanelToggle.setAttribute("aria-pressed", String(collapsed));
-    els.bottomPanelToggle.setAttribute("aria-label", collapsed ? "展开列表" : "折叠列表");
-    els.bottomPanelToggle.title = collapsed ? "展开列表" : "折叠列表";
+    const label = t(collapsed ? "ui.expandList" : "ui.collapseList");
+    els.bottomPanelToggle.setAttribute("aria-label", label);
+    els.bottomPanelToggle.title = label;
   }
 }
 
@@ -1344,8 +1327,12 @@ function render() {
     button.setAttribute("aria-current", String(button.dataset.navView === state.view));
   });
   setTokenPressed(els.filteredCountryMapToggle, state.dimUnfilteredCountries);
-  els.strategicRegionFilterTitle.textContent = state.view === "culture" ? "本土战略区域" : state.view === "company" ? "相关战略区域" : "所在战略区域";
-  els.resourceFilterTitle.textContent = state.view === "company" ? "相关建筑" : "资源";
+  els.strategicRegionFilterTitle.textContent = state.view === "culture"
+    ? t("filter.homelandStrategicRegions")
+    : state.view === "company"
+      ? t("filter.relatedStrategicRegions")
+      : t("filter.strategicRegions");
+  els.resourceFilterTitle.textContent = state.view === "company" ? t("filter.relatedBuildings") : t("filter.resources");
   els.searchInput.placeholder = searchPlaceholder();
   renderSortOptions();
   renderStrategicRegionFilterOptions();

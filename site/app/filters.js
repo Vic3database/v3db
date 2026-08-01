@@ -392,37 +392,37 @@ function sortCountriesByTag(a, b) {
 function renderSortOptions() {
   const options = state.view === "culture"
     ? [
-      ["key", "按 Key"],
-      ["name", "按名称"],
-      ["homelands", "按本土地域数"],
+      ["key", t("sort.key")],
+      ["name", t("sort.name")],
+      ["homelands", t("sort.homelands")],
     ]
     : state.view === "region"
       ? [
-        ["key", "按州编号"],
-        ["name", "按名称"],
-        ["region", "按战略区域"],
-        ["resources", "按资源项数"],
+        ["key", t("sort.id")],
+        ["name", t("sort.name")],
+        ["region", t("sort.region")],
+        ["resources", t("sort.resources")],
       ]
       : state.view === "company"
         ? [
-          ["key", "按 Key"],
-          ["name", "按名称"],
-          ["kind", "按类型"],
-          ["buildings", "按建筑数"],
+          ["key", t("sort.key")],
+          ["name", t("sort.name")],
+          ["kind", t("sort.kind")],
+          ["buildings", t("sort.buildings")],
         ]
         : state.view === "ideology"
           ? [
-            ["key", "按编号"],
-            ["name", "按名称"],
-            ["type", "按类型"],
+            ["key", t("sort.id")],
+            ["name", t("sort.name")],
+            ["type", t("sort.type")],
           ]
           : state.view === "law"
-            ? [["key", "游戏内顺序"]]
+            ? [["key", t("sort.gameOrder")]]
     : [
-      ["key", "按 Tag"],
-      ["name", "按名称"],
-      ["tier", "按位阶"],
-      ["states", "按开局州数"],
+      ["key", t("sort.tag")],
+      ["name", t("sort.name")],
+      ["tier", t("sort.tier")],
+      ["states", t("sort.states")],
     ];
   if (!options.some(([key]) => key === state.sort)) state.sort = options[0][0];
   els.sortSelect.innerHTML = options.map(([key, label]) => (
@@ -699,10 +699,10 @@ function renderStrategicRegionGroups(options) {
     else otherRegions.push(region);
   }
   const rows = strategicRegionContinentGroups
-    .map((group) => renderStrategicRegionGroupRow(group.name, regionsByGroup.get(group.key)))
+    .map((group) => renderStrategicRegionGroupRow(t(`continent.${group.key}`), regionsByGroup.get(group.key)))
     .filter(Boolean);
   if (otherRegions.length) {
-    rows.push(renderStrategicRegionGroupRow("其他", otherRegions.sort(sortStrategicRegionRef)));
+    rows.push(renderStrategicRegionGroupRow(t("filter.other"), otherRegions.sort(sortStrategicRegionRef)));
   }
   els.strategicRegionFilters.innerHTML = rows.join("");
 }

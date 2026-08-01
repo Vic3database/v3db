@@ -38,12 +38,14 @@ try {
   ), { timeout: 20000 });
   assert.match(page.url(), /version=history-fixture/, "direct link must retain the fixture version");
   assert.match(page.url(), /lang=en/, "direct link must retain English");
+  assertEnglishHasNoHanText(await page.locator("body").innerText(), "country");
 
   await page.reload({ waitUntil: "networkidle", timeout: 45000 });
   await page.waitForFunction(() => (
     document.documentElement.lang === "en"
       && document.querySelector(".detail-title h2")?.textContent?.trim() === "Prussia"
   ), { timeout: 20000 });
+  assertEnglishHasNoHanText(await page.locator("body").innerText(), "culture");
 
   await page.goto(`${server.url}index.html?version=history-fixture&lang=en#/culture`, { waitUntil: "networkidle", timeout: 45000 });
   await page.waitForFunction(() => (
@@ -59,6 +61,14 @@ try {
   await browser?.close();
   await new Promise((resolve) => server?.httpServer.close(resolve) || resolve());
   fs.rmSync(fixtureRoot, { recursive: true, force: true });
+}
+
+function assertEnglishHasNoHanText(text, board) {
+  const lines = [...new Set(String(text || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => /[\u3400-\u9fff\uf900-\ufaff]/.test(line)))];
+  assert.ok(lines.length === 0, `${board} English history page contains Chinese text: ${lines.slice(0, 8).join(" | ")}`);
 }
 
 function createFixtureSite() {

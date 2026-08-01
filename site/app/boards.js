@@ -537,7 +537,7 @@ function renderCountryBoard() {
   if (state.selectedTag && !byTag.has(state.selectedTag)) state.selectedTag = "";
   if (!isDetailPageRoute() && state.selectedTag && !filtered.some((country) => country.tag === state.selectedTag)) state.selectedTag = "";
   const selectedCountry = byTag.get(state.selectedTag);
-  els.resultCount.textContent = `${filtered.length} 个国家`;
+  els.resultCount.textContent = t("board.country.resultCount", { count: localizedNumber(filtered.length) });
   els.activeHint.textContent = buildActiveHint(filtered.length);
   renderCountryList(filtered);
   renderMap(countryMapStateRegions(selectedCountry));
@@ -557,7 +557,7 @@ function renderCultureBoard() {
   const filtered = cultures.filter(matchesCultureFilters).sort(sortCultures);
   if (state.selectedCulture && !byCulture.has(state.selectedCulture)) state.selectedCulture = "";
   if (!isDetailPageRoute() && state.selectedCulture && !filtered.some((culture) => culture.key === state.selectedCulture)) state.selectedCulture = "";
-  els.resultCount.textContent = `${filtered.length} 个文化`;
+  els.resultCount.textContent = t("board.culture.resultCount", { count: localizedNumber(filtered.length) });
   els.activeHint.textContent = buildActiveHint(filtered.length);
   renderCultureList(filtered);
   renderMap(stateRegions);
@@ -647,7 +647,7 @@ function renderIdeologyBoard() {
   const filtered = ideologies.filter(matchesIdeologyFilters).sort(sortIdeologies);
   if (state.selectedIdeology && !ideologyByKey.has(state.selectedIdeology)) state.selectedIdeology = "";
   if (!isDetailPageRoute() && state.selectedIdeology && !filtered.some((ideology) => ideology.key === state.selectedIdeology)) state.selectedIdeology = "";
-  els.resultCount.textContent = `${filtered.length} 个意识形态`;
+  els.resultCount.textContent = t("board.ideology.resultCount", { count: localizedNumber(filtered.length) });
   els.activeHint.textContent = buildActiveHint(filtered.length);
   renderIdeologyList(filtered);
 }
@@ -656,7 +656,7 @@ function renderLawBoard() {
   const filtered = laws.filter(matchesLawFilters).sort(sortLaws);
   if (state.selectedLaw && !lawByKey.has(state.selectedLaw)) state.selectedLaw = "";
   if (!isDetailPageRoute() && state.selectedLaw && !filtered.some((law) => law.key === state.selectedLaw)) state.selectedLaw = "";
-  els.resultCount.textContent = `${filtered.length} 条法律`;
+  els.resultCount.textContent = t("board.law.resultCount", { count: localizedNumber(filtered.length) });
   els.activeHint.textContent = buildActiveHint(filtered.length);
   renderLawList(filtered);
 }

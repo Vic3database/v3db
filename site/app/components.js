@@ -22,12 +22,12 @@ function countryTagPills(country) {
 
 function statusPills(country) {
   const pills = [];
-  if (country.existsAtStart === "是") pills.push(tagPill("开局", "good", "", "country-status:start"));
-  if (country.isReleasable === "是") pills.push(tagPill("释放", "tag-release", "", "country-status:releasable"));
-  if (country.isMajorFormable === "是") pills.push(tagPill("重大统一", "warn", "", "country-formation:major"));
-  else if (country.isMinorFormable === "是") pills.push(tagPill("次要统一", "warn", "", "country-formation:minor"));
-  if (country.isSpecial === "是") pills.push(tagPill("特殊", "special", "", "country-status:special"));
-  if (country.isDualHeritage === "是") pills.push(tagPill("双传承", "tag-dual", "", "country-status:dual-heritage"));
+  if (country.existsAtStart === "是") pills.push(tagPill(t("board.country.status.startsInPlay"), "good", "", "country-status:start"));
+  if (country.isReleasable === "是") pills.push(tagPill(t("board.country.status.releasable"), "tag-release", "", "country-status:releasable"));
+  if (country.isMajorFormable === "是") pills.push(tagPill(t("board.country.status.majorFormable"), "warn", "", "country-formation:major"));
+  else if (country.isMinorFormable === "是") pills.push(tagPill(t("board.country.status.minorFormable"), "warn", "", "country-formation:minor"));
+  if (country.isSpecial === "是") pills.push(tagPill(t("board.country.status.special"), "special", "", "country-status:special"));
+  if (country.isDualHeritage === "是") pills.push(tagPill(t("board.country.status.dualHeritage"), "tag-dual", "", "country-status:dual-heritage"));
   return pills.join("");
 }
 
@@ -344,10 +344,8 @@ function tagPill(label, className = "", title = "", semanticKey = "", html = "")
 function victorianCenturyBadge(item) {
   if (!isVictorianCenturyEntry(item)) return "";
   const isAdded = item.vc_change_kind === "added";
-  const title = isAdded
-    ? "Victorian Century 新增的条目"
-    : "Victorian Century 调整的条目";
-  return tagPill(isAdded ? "VC新增" : "VC调整", `tag-vc ${isAdded ? "tag-vc-added" : "tag-vc-adjusted"}`, title);
+  const title = t(isAdded ? "vc.badge.addedTitle" : "vc.badge.adjustedTitle");
+  return tagPill(t(isAdded ? "vc.badge.added" : "vc.badge.adjusted"), `tag-vc ${isAdded ? "tag-vc-added" : "tag-vc-adjusted"}`, title);
 }
 
 function isVictorianCenturyEntry(item) {
@@ -359,7 +357,7 @@ function countryTypeTagLabel(country) {
 }
 
 function field(label, value) {
-  const html = value || `<span class="empty">无</span>`;
+  const html = value || `<span class="empty">${escapeHtml(t("ui.none"))}</span>`;
   return `<dt>${escapeHtml(label)}</dt><dd>${html}</dd>`;
 }
 
@@ -479,7 +477,14 @@ function companiesForStateRegion(stateRegion) {
 }
 
 function sourceSuffix(source) {
-  return source ? ` <span class="minor">来源：${escapeHtml(source)}</span>` : "";
+  if (!source) return "";
+  const sourceKey = {
+    国家定义: "countryDefinition",
+    历史开局: "startingHistory",
+    首个主流文化: "primaryCulture",
+  }[source];
+  const label = sourceKey ? t(`board.country.religionSource.${sourceKey}`) : source;
+  return ` <span class="minor">${escapeHtml(t("ui.source", { source: label }))}</span>`;
 }
 
 function listText(values) {
@@ -1453,7 +1458,7 @@ function limitedCountryLinks(items, limit = 36) {
     title: country.tag,
     href: conceptHref("country", country.tag),
   })).join("");
-  const more = (items || []).length > limit ? tagPill(`另有 ${(items || []).length - limit} 个国家`, "tag-more") : "";
+  const more = (items || []).length > limit ? tagPill(t("ui.moreCountries", { count: localizedNumber((items || []).length - limit) }), "tag-more") : "";
   return links || more ? `<span class="link-list">${links}${more}</span>` : "";
 }
 
@@ -1515,8 +1520,8 @@ function interestGroupEffectRefPills(items, kind, className) {
 
 function interestGroupTraitApprovalText(trait) {
   const parts = [];
-  if (trait?.min_approval) parts.push(`最低支持：${trait.min_approval}`);
-  if (trait?.max_approval) parts.push(`最高支持：${trait.max_approval}`);
+  if (trait?.min_approval) parts.push(t("board.ideology.minimumApproval", { value: trait.min_approval }));
+  if (trait?.max_approval) parts.push(t("board.ideology.maximumApproval", { value: trait.max_approval }));
   return parts.join("；");
 }
 
@@ -1742,7 +1747,7 @@ function buildingChip(item, amount = "", className = "") {
 function limitedHtmlItems(items, limit) {
   const filtered = (items || []).filter(Boolean);
   if (filtered.length <= limit) return filtered.join("");
-  return `${filtered.slice(0, limit).join("")}${tagPill(`另有 ${filtered.length - limit} 项`, "tag-more")}`;
+  return `${filtered.slice(0, limit).join("")}${tagPill(t("ui.moreItems", { count: localizedNumber(filtered.length - limit) }), "tag-more")}`;
 }
 
 function sameTraditionCultures(traditions, groups) {
@@ -1761,7 +1766,7 @@ function sameTraditionCultures(traditions, groups) {
 
 function dynamicNameList(country) {
   if (!(country.dynamicNameVariants || []).length) {
-    return `<p class="empty compact">无专属国名变体。</p>`;
+    return `<p class="empty compact">${escapeHtml(t("board.country.dynamic.noNames"))}</p>`;
   }
   return `<div class="rule-list">${country.dynamicNameVariants.map((variant) => `
     <article class="rule-item">
@@ -1770,12 +1775,12 @@ function dynamicNameList(country) {
         <span class="minor">${escapeHtml(variant.name_key)}</span>
       </div>
       <dl class="mini-grid">
-        ${field("形容词", escapeHtml(entityText(variant, "adjective", "") || variant.adjective_key || ""))}
-        ${field("优先级", escapeHtml(variant.priority || "0"))}
-        ${field("革命名", escapeHtml(variant.is_revolutionary))}
-        ${field("引用", refsText(variant))}
+        ${field(t("board.country.dynamic.adjective"), escapeHtml(entityText(variant, "adjective", "") || variant.adjective_key || ""))}
+        ${field(t("board.country.dynamic.priority"), escapeHtml(variant.priority || "0"))}
+        ${field(t("board.country.dynamic.revolutionary"), localizedBoolean(variant.is_revolutionary))}
+        ${field(t("board.country.dynamic.references"), refsText(variant))}
       </dl>
-      ${rawDetails("条件脚本", variant.trigger_raw)}
+      ${rawDetails(t("board.country.dynamic.conditionScript"), variant.trigger_raw)}
     </article>
   `).join("")}</div>`;
 }
@@ -1802,7 +1807,7 @@ function dynamicStateNameList(stateRegion) {
 
 function dynamicMapColorList(country) {
   if (!(country.dynamicMapColorRules || []).length) {
-    return `<p class="empty compact">无专属特殊地图色。</p>`;
+    return `<p class="empty compact">${escapeHtml(t("board.country.dynamic.noMapColors"))}</p>`;
   }
   return `<div class="rule-list">${country.dynamicMapColorRules.map((rule) => `
     <article class="rule-item color-rule">
@@ -1814,10 +1819,10 @@ function dynamicMapColorList(country) {
         <span class="minor">${escapeHtml(rule.color_key)} ${escapeHtml(rule.color_hex)}</span>
       </div>
       <dl class="mini-grid">
-        ${field("颜色", colorValue(rule.color_hex, splitNumbers(rule.color_rgb)))}
-        ${field("引用", refsText(rule))}
+        ${field(t("board.country.dynamic.color"), colorValue(rule.color_hex, splitNumbers(rule.color_rgb)))}
+        ${field(t("board.country.dynamic.references"), refsText(rule))}
       </dl>
-      ${rawDetails("条件脚本", rule.possible_raw)}
+      ${rawDetails(t("board.country.dynamic.conditionScript"), rule.possible_raw)}
     </article>
   `).join("")}</div>`;
 }
@@ -1837,39 +1842,52 @@ function countryFlagVariantSection(country) {
               ${conceptTag(variant.exportKey || variant.key, "tag", `country-flag-variant:${variant.exportKey || variant.key}`)}
             </div>
             <dl class="mini-grid country-flag-variant-meta">
-              ${field("优先级", escapeHtml(String(variant.priority ?? 0)))}
-              ${field("触发", escapeHtml(variant.triggerSummary || "默认候选"))}
-              ${field("附属旗角", escapeHtml(variant.subjectCanton || ""))}
-              ${field("领主旗角", escapeHtml(flagYesNo(variant.allowOverlordCanton)))}
+              ${field(t("board.country.dynamic.priority"), escapeHtml(String(variant.priority ?? 0)))}
+              ${field(t("board.country.flags.trigger"), escapeHtml(localizedFlagTriggerSummary(variant.triggerSummary)))}
+              ${field(t("board.country.flags.subjectCanton"), escapeHtml(variant.subjectCanton || ""))}
+              ${field(t("board.country.flags.overlordCanton"), localizedBoolean(variant.allowOverlordCanton))}
             </dl>
-            ${rawDetails("触发条件", variant.triggerRaw)}
+            ${rawDetails(t("board.country.flags.triggerCondition"), variant.triggerRaw)}
           </div>
         </article>
       `).join("")}
     </div>
   `;
-  return collapsibleDetailSection("国旗变体", body, `${variants.length} 种`);
+  return collapsibleDetailSection(t("board.country.flags.title"), body, t("board.country.flags.count", { count: localizedNumber(variants.length) }));
 }
 
 function countryFlagVariantAlt(country, variant) {
-  const name = country?.name || country?.tag || "国家";
-  return `${name} ${variant.key || variant.exportKey || "国旗"}`;
+  const name = entityText(country) || country?.tag || t("board.country.flags.countryAlt");
+  return `${name} ${variant.key || variant.exportKey || t("board.country.flags.flagAlt")}`;
 }
 
-function flagYesNo(value) {
-  if (value === "yes") return "是";
-  if (value === "no") return "否";
-  return "";
+function localizedFlagTriggerSummary(value) {
+  const messageKey = {
+    默认候选: "defaultCandidate",
+    控制印度的一部分地区: "controlsPartOfIndia",
+    使用英国旗帜: "usesBritishFlag",
+    君主制: "monarchy",
+    共和制: "republic",
+    委员会共和制: "councilRepublic",
+    神权制: "theocracy",
+  }[value];
+  return messageKey ? t(`board.country.flags.${messageKey}`) : value || t("board.country.flags.defaultCandidate");
+}
+
+function localizedBoolean(value) {
+  if (value === true || value === "yes" || value === "是") return escapeHtml(t("ui.yes"));
+  if (value === false || value === "no" || value === "否") return escapeHtml(t("ui.no"));
+  return value == null ? "" : escapeHtml(String(value));
 }
 
 function refsText(rule) {
   const parts = [];
-  if (rule.referenced_tags) parts.push(`国家：${rule.referenced_tags}`);
-  if (rule.referenced_cultures) parts.push(`文化：${rule.referenced_cultures}`);
-  if (rule.referenced_laws) parts.push(`法律：${rule.referenced_laws}`);
-  if (rule.referenced_journal_entries) parts.push(`日志条目：${rule.referenced_journal_entries}`);
-  if (rule.referenced_variables) parts.push(`变量：${rule.referenced_variables}`);
-  return parts.length ? escapeHtml(parts.join("；")) : "";
+  if (rule.referenced_tags) parts.push(`${t("board.country.reference.country")}${t("ui.colon")}${rule.referenced_tags}`);
+  if (rule.referenced_cultures) parts.push(`${t("board.country.reference.culture")}${t("ui.colon")}${rule.referenced_cultures}`);
+  if (rule.referenced_laws) parts.push(`${t("board.country.reference.law")}${t("ui.colon")}${rule.referenced_laws}`);
+  if (rule.referenced_journal_entries) parts.push(`${t("board.country.reference.journalEntry")}${t("ui.colon")}${rule.referenced_journal_entries}`);
+  if (rule.referenced_variables) parts.push(`${t("board.country.reference.variable")}${t("ui.colon")}${rule.referenced_variables}`);
+  return parts.length ? escapeHtml(parts.join(t("ui.clauseSeparator"))) : "";
 }
 
 function rawDetails(label, value) {
@@ -2089,21 +2107,21 @@ function visibleDynamicStateNameVariants(stateRegion) {
 }
 
 function countryCapitalText(country) {
-  const capital = entityText(byStateRegion.get(country.capital), "name", country.capital) || country.capital || "无";
+  const capital = entityText(byStateRegion.get(country.capital), "name", country.capital) || country.capital || t("ui.none");
   const stateRegion = byStateRegion.get(country.capital);
   const strategicRegionNames = (stateRegion?.strategic_regions || [])
-    .map((region) => `${strategicRegionName(byStrategicRegion.get(region.key) || region)}战略区域`);
-  const suffix = strategicRegionNames.length ? `（${strategicRegionNames.join("、")}）` : "";
-  return `首都：${escapeHtml(capital)}${escapeHtml(suffix)}`;
+    .map((region) => t("board.country.strategicRegionSummary", { name: strategicRegionName(byStrategicRegion.get(region.key) || region) }));
+  const suffix = strategicRegionNames.length ? t("ui.parenthetical", { value: strategicRegionNames.join(t("ui.listSeparator")) }) : "";
+  return escapeHtml(t("board.country.capitalSummary", { capital, suffix }));
 }
 
 function stateRegionSummaryText(stateRegion) {
-  return `开局归属：${countryRefNames(stateRegion.starting_owners)}`;
+  return t("board.region.startingOwnersSummary", { owners: countryRefNames(stateRegion.starting_owners) });
 }
 
-function refNames(items, separator = "、") {
+function refNames(items, separator = t("ui.listSeparator")) {
   const names = (items || []).map(refName).filter(Boolean);
-  return names.length ? names.join(separator) : "无";
+  return names.length ? names.join(separator) : t("ui.none");
 }
 
 function refName(item) {
@@ -2118,9 +2136,9 @@ function countryNameWithTag(tag) {
   return countryRefLabel({ tag });
 }
 
-function countryRefNames(items, separator = "、") {
+function countryRefNames(items, separator = t("ui.listSeparator")) {
   const names = (items || []).map(countryRefLabel).filter(Boolean);
-  return names.length ? names.join(separator) : "无";
+  return names.length ? names.join(separator) : t("ui.none");
 }
 
 function countryRefLabel(item) {
@@ -2347,21 +2365,21 @@ function clampNumber(value, min, max) {
 }
 
 function searchPlaceholder() {
-  if (state.view === "culture") return "文化、特质、宗教、本土战略区域、地域";
-  if (state.view === "region") return "地域、战略区域、海域、资源、地区特质、国家、文化";
-  if (state.view === "company") return "公司、建筑、名贵商品、总部、战略区域、条件";
-  if (state.view === "ideology") return "板块内搜索：意识形态、利益集团、法律组、法律";
-  if (state.view === "law") return "法律、法律组、修正、条件";
-  return "国家、Tag、文化、宗教、地域";
+  if (state.view === "culture") return t("board.culture.searchPlaceholder");
+  if (state.view === "region") return t("board.region.searchPlaceholder");
+  if (state.view === "company") return t("board.company.searchPlaceholder");
+  if (state.view === "ideology") return t("board.ideology.searchPlaceholder");
+  if (state.view === "law") return t("board.law.searchPlaceholder");
+  return t("board.country.searchPlaceholder");
 }
 
 function unitColorText(country) {
   const values = [
-    country.primaryUnitColor && `一色 ${country.primaryUnitColor}`,
-    country.secondaryUnitColor && `二色 ${country.secondaryUnitColor}`,
-    country.tertiaryUnitColor && `三色 ${country.tertiaryUnitColor}`,
+    country.primaryUnitColor && t("board.country.unitColor.primary", { value: country.primaryUnitColor }),
+    country.secondaryUnitColor && t("board.country.unitColor.secondary", { value: country.secondaryUnitColor }),
+    country.tertiaryUnitColor && t("board.country.unitColor.tertiary", { value: country.tertiaryUnitColor }),
   ].filter(Boolean);
-  return values.length ? escapeHtml(values.join("；")) : "";
+  return values.length ? escapeHtml(values.join(t("ui.listSeparator"))) : "";
 }
 
 function splitNumbers(value) {
@@ -2659,32 +2677,33 @@ function optionToken(kind, value, label, checked = false, extraClass = "") {
 
 function buildActiveHint(count) {
   const parts = [];
-  if (state.search) parts.push(`搜索：${state.search}`);
-  if (state.globalSearch) parts.push(`全局：${state.globalSearch}`);
-  if (state.view === "country" && state.flags.size) parts.push(`状态 ${state.flags.size}`);
-  if (state.view === "country" && state.tiers.size) parts.push(`位阶 ${state.tiers.size}`);
-  if (state.view === "country" && state.types.size) parts.push(`类型 ${state.types.size}`);
+  const addCount = (labelKey, value) => value && parts.push(t("filter.active.count", { label: t(labelKey), count: localizedNumber(value) }));
+  if (state.search) parts.push(t("filter.active.search", { value: state.search }));
+  if (state.globalSearch) parts.push(t("filter.active.global", { value: state.globalSearch }));
+  if (state.view === "country") addCount("filter.active.status", state.flags.size);
+  if (state.view === "country") addCount("filter.active.tier", state.tiers.size);
+  if (state.view === "country") addCount("filter.active.type", state.types.size);
   if (state.view !== "ideology" && state.strategicRegions.size) {
-    parts.push(`${state.view === "culture" ? "本土战略区域" : state.view === "company" ? "相关战略区域" : "所在战略区域"} ${state.strategicRegions.size}`);
+    addCount(state.view === "culture" ? "filter.homelandStrategicRegions" : state.view === "company" ? "filter.relatedStrategicRegions" : "filter.strategicRegions", state.strategicRegions.size);
   }
-  if (["country", "culture"].includes(state.view) && state.heritageGroups.size) parts.push(`传承组 ${state.heritageGroups.size}`);
-  if (["country", "culture"].includes(state.view) && state.heritages.size) parts.push(`传承 ${state.heritages.size}`);
-  if (["country", "culture"].includes(state.view) && state.languageGroups.size) parts.push(`语言组 ${state.languageGroups.size}`);
-  if (["country", "culture"].includes(state.view) && state.languages.size) parts.push(`语言 ${state.languages.size}`);
+  if (["country", "culture"].includes(state.view)) addCount("filter.active.heritageGroup", state.heritageGroups.size);
+  if (["country", "culture"].includes(state.view)) addCount("filter.active.heritage", state.heritages.size);
+  if (["country", "culture"].includes(state.view)) addCount("filter.active.languageGroup", state.languageGroups.size);
+  if (["country", "culture"].includes(state.view)) addCount("filter.active.language", state.languages.size);
   if ((state.view === "region" || state.view === "company") && state.resourceFilters.size) {
-    parts.push(`${state.view === "company" ? "建筑" : "资源"} ${state.resourceFilters.size}`);
+    addCount(state.view === "company" ? "filter.active.buildings" : "filter.resources", state.resourceFilters.size);
   }
-  if (state.view === "company" && state.companyKinds.size) parts.push(`公司类型 ${state.companyKinds.size}`);
-  if (state.view === "company" && state.includeIndustryCharter) parts.push("包含产业特许");
-  if (state.view === "company" && state.companyPrestigeGoods.size) parts.push(`名贵商品 ${state.companyPrestigeGoods.size}`);
-  if (state.view === "company" && state.companyDlcs.size) parts.push(`资料片 ${state.companyDlcs.size}`);
-  if (state.view === "ideology" && state.ideologyTypes.size) parts.push(`类型 ${state.ideologyTypes.size}`);
-  if (state.view === "ideology" && state.ideologyGroups.size) parts.push(`利益集团 ${state.ideologyGroups.size}`);
-  if (state.view === "ideology" && state.ideologyOccurrences.size) parts.push(`出现方式 ${state.ideologyOccurrences.size}`);
-  if (state.view === "ideology" && state.ideologyLawGroups.size) parts.push(`法律组 ${state.ideologyLawGroups.size}`);
-  if (state.view === "law" && state.lawGroups.size) parts.push(`法律组 ${state.lawGroups.size}`);
-  if (["country", "culture"].includes(state.view) && state.tradition) parts.push(`传统 ${getTraitName(state.tradition)}`);
-  return parts.join("；");
+  if (state.view === "company") addCount("filter.active.companyType", state.companyKinds.size);
+  if (state.view === "company" && state.includeIndustryCharter) parts.push(t("filter.active.industryCharter"));
+  if (state.view === "company") addCount("filter.active.prestigeGoods", state.companyPrestigeGoods.size);
+  if (state.view === "company") addCount("filter.active.dlc", state.companyDlcs.size);
+  if (state.view === "ideology") addCount("filter.active.type", state.ideologyTypes.size);
+  if (state.view === "ideology") addCount("filter.active.interestGroup", state.ideologyGroups.size);
+  if (state.view === "ideology") addCount("filter.active.occurrence", state.ideologyOccurrences.size);
+  if (state.view === "ideology") addCount("filter.active.lawGroup", state.ideologyLawGroups.size);
+  if (state.view === "law") addCount("filter.active.lawGroup", state.lawGroups.size);
+  if (["country", "culture"].includes(state.view) && state.tradition) parts.push(t("filter.active.tradition", { value: getTraitName(state.tradition) }));
+  return parts.join(t("ui.listSeparator"));
 }
 
 function getTraitName(key) {
