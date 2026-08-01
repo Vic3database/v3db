@@ -9,6 +9,7 @@ const indexSource = read("site/index.html");
 const stylesEntrySource = read("site/styles.css");
 const mapStylesSource = read("site/styles/map.css");
 const shellStylesSource = read("site/styles/shell.css");
+const englishUiSource = read("site/locales/ui.en.js");
 const dataSource = read("site/versions/1.13.9/data-regions.js");
 const data = JSON.parse(dataSource.replace(/^window\.VIC3_DATA_CHUNK\s*=\s*/, "").replace(/;\s*$/, ""));
 const resourceKeys = new Set(data.stateRegions.flatMap((stateRegion) => [
@@ -82,6 +83,7 @@ for (const removedIdentifier of [
 assert.match(indexSource, /<span id="mapResourceContext" class="map-resource-context" aria-live="polite" hidden><\/span>/, "toolbar must contain the hidden resource context");
 assert.match(runtimeSource, /mapResourceContext: document\.querySelector\("#mapResourceContext"\)/, "runtime element table must expose the resource context");
 assert.match(mapSource, /function renderMapResourceContext\(/, "map controls must render the selected resource context");
+assert.match(englishUiSource, /"map\.vcResourceContext": "Victorian Century\/Exploreable Real-World Resources"/, "English resource context must use the approved Victorian Century label");
 assert.match(functionSource(mapSource, "renderMapResourceContext"), /t\("map\.vcResourceContext", "Victorian Century\/真实资源储量与耕地"\)/, "Victorian Century resource maps must use the localized resource and arable-land library name");
 assert.match(functionSource(mapSource, "renderMapResourceContext"), /t\("ui\.unknown", "未知"\)/, "resource context fallback must use the localized unknown label");
 assert.doesNotMatch(functionSource(mapSource, "renderMapResourceContext"), /map-resource-context-version" title=/, "resource context must display the complete library label directly instead of relying on a hover hint");
@@ -95,7 +97,7 @@ assert.match(functionSource(mapSource, "mapPixelAlpha"), /\["resource", "resourc
 assert.match(functionSource(mapSource, "paintMapCanvasTarget"), /context\.fillStyle = "#d7c2a4";/, "resource maps must retain the paper-toned canvas base");
 assert.match(functionSource(mapSource, "paintMapCanvasTarget"), /if \(mapRuntime\.paperMapImage\) \{/, "resource maps must draw the paper background for sea areas");
 assert.doesNotMatch(mapSource, /function resourceMapUsesSolidBase\(/, "resource maps must not suppress the paper background");
-assert.match(indexSource, /styles\.css\?v=20260801-multilingual3/, "main entry must retain the current stylesheet cache version");
+assert.match(indexSource, /styles\.css\?v=20260802-detail-formatting1/, "main entry must retain the current stylesheet cache version");
 assert.match(stylesEntrySource, /@import url\("styles\/map\.css\?v=20260801-multilingual3"\);/, "style entry must retain the current map stylesheet cache version");
 assert.match(indexSource, /app\/runtime\.js\?v=20260801-multilingual3/, "main entry must retain the current map runtime cache version");
 assert.match(indexSource, /app\/map\.js\?v=20260802-resource-localization1/, "main entry must invalidate the changed map script");

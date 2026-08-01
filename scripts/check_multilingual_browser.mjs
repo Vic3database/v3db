@@ -318,6 +318,13 @@ async function verifyEnglishSharedSurfaces() {
         && Boolean(document.querySelector("#mapResourceContext:not([hidden])"))
     ), resourceKey, { timeout: 10000 });
     assertNoHanText(await page.locator("body").innerText(), `region selected resource ${resourceKey}`);
+    if (siteName === "vc") {
+      assert.match(
+        await page.locator("#mapResourceContext").innerText(),
+        /Victorian Century\/Exploreable Real-World Resources/,
+        `Victorian Century resource context must use the approved English label for ${resourceKey}`,
+      );
+    }
   }
   const box = await page.locator("#mapCanvas").boundingBox();
   let tooltipText = "";
