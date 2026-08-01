@@ -4,6 +4,7 @@ import path from "node:path";
 
 const databaseDir = path.join(process.cwd(), "database", "vic3_1.13.9");
 const index = readJson(path.join(databaseDir, "index.json"));
+const locales = Object.fromEntries(["zh-Hans", "en"].map((locale) => [locale, readJson(path.join(databaseDir, "locales", `${locale}.json`))]));
 
 assert.equal(index.files?.technologies, "technologies.json", "database index must declare technologies.json");
 assert.equal(index.files?.technology_eras, "technology_eras.json", "database index must declare technology_eras.json");
@@ -30,8 +31,15 @@ assert.deepEqual(
 );
 
 for (const technology of technologies) {
-  for (const key of ["id", "key", "name_zh", "desc_zh", "icon", "category", "category_zh", "era", "era_cost", "prerequisites", "unlocks", "modifiers", "source_file"]) {
+  for (const key of ["id", "key", "icon", "category", "era", "era_cost", "prerequisites", "unlocks", "modifiers", "source_file", "loc"]) {
     assert(Object.hasOwn(technology, key), `${technology.key || "technology"} must contain ${key}`);
+  }
+  for (const field of ["name", "description", "category", "eraLabel", "modifierSummary"]) {
+    assert(technology.loc?.[field], `${technology.key} must declare loc.${field}`);
+  }
+  for (const locale of ["zh-Hans", "en"]) {
+    assert(locales[locale][technology.loc.name], `${technology.key} must have a ${locale} name`);
+    assert(Object.hasOwn(locales[locale], technology.loc.description), `${technology.key} description message must exist in ${locale}`);
   }
   assert.match(technology.icon, /^gfx\/interface\/icons\/invention_icons\//, `${technology.key} icon must use invention icon assets`);
   assert.equal(technology.era_cost, eras.find((era) => era.key === technology.era)?.cost, `${technology.key} era cost must match its era`);
@@ -44,8 +52,8 @@ for (const technology of technologies) {
     const unlocked = byKey.get(unlock.key);
     assert(unlocked?.prerequisites.includes(technology.key), `${technology.key} unlock ${unlock.key} must retain reverse prerequisite`);
   }
-  for (const law of technology.references.laws) assert(law.key && law.name_zh, `${technology.key} law reference must be labeled`);
-  for (const company of technology.references.companies) assert(company.key && company.name_zh, `${technology.key} company reference must be labeled`);
+  for (const law of technology.references.laws) assert(law.key && law.loc?.name, `${technology.key} law reference must be localized`);
+  for (const company of technology.references.companies) assert(company.key && company.loc?.name, `${technology.key} company reference must be localized`);
 }
 
 console.log(JSON.stringify({

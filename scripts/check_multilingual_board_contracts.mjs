@@ -9,6 +9,8 @@ const boardsArg = process.argv.includes("--boards")
 const boards = (boardsArg || "country,culture").split(",").filter(Boolean);
 const app = fs.readFileSync(path.join(root, "site", "app", "presentation.js"), "utf8") + "\n" + fs.readFileSync(path.join(root, "site", "app", "filters.js"), "utf8") + "\n" + fs.readFileSync(path.join(root, "site", "app", "components.js"), "utf8");
 const mapApp = fs.readFileSync(path.join(root, "site", "app", "map.js"), "utf8");
+const boardsApp = fs.readFileSync(path.join(root, "site", "app", "boards.js"), "utf8");
+const achievementsApp = fs.readFileSync(path.join(root, "site", "app", "achievements.js"), "utf8");
 const uiZh = fs.readFileSync(path.join(root, "site", "locales", "ui.zh-Hans.js"), "utf8");
 const uiEn = fs.readFileSync(path.join(root, "site", "locales", "ui.en.js"), "utf8");
 
@@ -91,6 +93,15 @@ const bodies = {
   sortLawGroup: body("sortLawGroup"),
   renderLawGroupFilterSections: body("renderLawGroupFilterSections"),
   renderIdeologyLawGroupFilterSections: body("renderIdeologyLawGroupFilterSections"),
+  technologyGraphLayout: body("technologyGraphLayout", boardsApp),
+  technologyNodeHtml: body("technologyNodeHtml", boardsApp),
+  renderTechnologyBoard: body("renderTechnologyBoard", boardsApp),
+  renderTechnologyDetail: body("renderTechnologyDetail", boardsApp),
+  achievementMatches: body("achievementMatches", achievementsApp),
+  renderAchievementBoard: body("renderAchievementBoard", achievementsApp),
+  achievementGroupHtml: body("achievementGroupHtml", achievementsApp),
+  achievementCardHtml: body("achievementCardHtml", achievementsApp),
+  renderAchievementDetail: body("renderAchievementDetail", achievementsApp),
 };
 
 if (boards.includes("country")) {
@@ -150,6 +161,21 @@ if (boards.includes("law")) {
   assert.doesNotMatch(bodies.sortLaws, /name_zh|law_name_zh|localeCompare\([^]*zh-Hans-CN/);
 }
 
+if (boards.includes("technology")) {
+  for (const name of ["technologyGraphLayout", "technologyNodeHtml", "renderTechnologyBoard", "renderTechnologyDetail"]) {
+    assert.match(bodies[name], /entityText\(|renderTextSpec\(|t\(|matchesLocalizedQuery\(|localizedCompare\(/, `${name} should use localized accessors`);
+    assert.doesNotMatch(bodies[name], /name_zh|desc_zh|category_zh|era_label_zh|description_zh|modifier_summary_zh|summary_zh|name_en|localeCompare\([^]*zh-Hans-CN/);
+  }
+}
+
+if (boards.includes("achievement")) {
+  for (const name of ["achievementMatches", "renderAchievementBoard", "achievementGroupHtml", "achievementCardHtml", "renderAchievementDetail"]) {
+    assert.match(bodies[name], /entityText\(|renderTextSpec\(|t\(|searchNames\(|localizedNumber\(/, `${name} should use localized accessors`);
+    assert.doesNotMatch(bodies[name], /name_zh|desc_zh|category_zh|era_label_zh|description_zh|group_name_zh|text_zh|name_en|localeCompare\([^]*zh-Hans-CN/);
+  }
+  assert.match(bodies.renderAchievementDetail, /conceptPill\(/, "achievement related countries should use concept pills");
+}
+
 assert(uiZh.includes("board.country"), "zh UI locale should define country board labels");
 assert(uiZh.includes("board.culture"), "zh UI locale should define culture board labels");
 assert(uiEn.includes("board.country"), "en UI locale should define country board labels");
@@ -169,6 +195,14 @@ if (boards.includes("ideology")) {
 if (boards.includes("law")) {
   assert(uiZh.includes("board.law"), "zh UI locale should define law board labels");
   assert(uiEn.includes("board.law"), "en UI locale should define law board labels");
+}
+if (boards.includes("technology")) {
+  assert(uiZh.includes("board.technology"), "zh UI locale should define technology board labels");
+  assert(uiEn.includes("board.technology"), "en UI locale should define technology board labels");
+}
+if (boards.includes("achievement")) {
+  assert(uiZh.includes("board.achievement"), "zh UI locale should define achievement board labels");
+  assert(uiEn.includes("board.achievement"), "en UI locale should define achievement board labels");
 }
 assert(uiZh.includes("主流文化"), "zh UI locale should keep Chinese country labels");
 assert(uiZh.includes("文化搜索与筛选条件"), "zh UI locale should keep Chinese culture labels");

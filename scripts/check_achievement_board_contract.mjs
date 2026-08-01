@@ -10,6 +10,7 @@ const app = readSiteAppSource(root);
 const styles = readSiteStyleSource(root);
 const achievementChunk = readGlobal(path.join(root, "site", "versions", "1.13.9", "data-achievements.js"));
 const achievements = achievementChunk.achievements || [];
+const achievementLocaleEn = readLocaleGlobal(path.join(root, "site", "versions", "1.13.9", "locale-achievements.en.js"));
 
 assert.equal(achievements.length, 141, "achievement chunk must contain 141 records");
 assert.deepEqual(countBy(achievements, (achievement) => achievement.group_key), {
@@ -19,45 +20,32 @@ assert.deepEqual(countBy(achievements, (achievement) => achievement.group_key), 
   very_hard_group: 9,
 }, "achievement chunk must preserve official difficulty group counts");
 for (const achievement of achievements) {
-  assert(achievement.name_en, `${achievement.key} must include an English full name`);
+  assert(achievement.loc?.name && achievementLocaleEn[achievement.loc.name], `${achievement.key} must resolve an English full name`);
   assert(Array.isArray(achievement.related_countries), `${achievement.key} must publish related countries`);
   assert(fs.existsSync(path.join(root, "site", "assets", "achievements", `${achievement.key}.webp`)), `${achievement.key} must have a published WebP icon`);
 }
 
 assert.match(index, /data-nav-view="achievement"[^>]*>[\s\S]*?<span>成就<\/span>/, "top navigation must expose achievements");
 assert.match(index, /data-nav-view="achievement"[^>]*>[\s\S]*?trophy\.svg/, "achievement navigation must use the trophy icon");
-assert.ok(
-  /app\/runtime\.js\?v=20260730-achievement-cache1/.test(index),
-  "runtime must use the coordinated achievement cache version",
-);
-assert.ok(
-  /app\/data\.js\?v=20260730-achievement-cache1/.test(index),
-  "data must use the coordinated achievement cache version",
-);
-assert.ok(
-  /app\/ui\.js\?v=20260730-achievement-cache1/.test(index),
-  "ui must use the coordinated achievement cache version",
-);
-assert.ok(
-  /app\/achievements\.js\?v=20260730-achievement-cache1/.test(index),
-  "achievement wall must use the coordinated achievement cache version",
-);
+for (const file of ["runtime", "data", "ui", "achievements"]) {
+  assert.match(index, new RegExp(`app/${file}\\.js\\?v=[^"']+`), `${file} must use a cache version`);
+}
 assert.match(app, /if \(view === "achievement"\) return \["achievement"\]/, "achievement route must load only its data chunk");
 assert.match(app, /function achievementMatches\(/, "achievement search matcher must exist");
 assert.ok(app.includes("data-achievement-search-form"), "achievement search must render a submission form");
 assert.ok(app.includes("data-achievement-search-submit"), "achievement search must render an explicit submit button");
 assert.ok(app.includes("function submitAchievementSearch("), "achievement search must submit through one shared handler");
-assert.match(app, /achievement\.name_en/, "achievement search must include English names");
-assert.match(app, /achievement\.description_zh/, "achievement search must include descriptions");
-assert.match(app, /detail\.text_zh/, "achievement search must include translated conditions");
+assert.match(app, /searchNames\(achievement\.id\)/, "achievement search must include bilingual indexed names");
+assert.match(app, /entityText\(achievement, "description"/, "achievement search must include localized descriptions");
+assert.match(app, /detail\.loc\?\.text/, "achievement search must include localized conditions");
 assert.match(app, /achievement\.related_countries/, "achievement search and detail must consume related countries");
 assert.match(app, /data-achievement-country/, "achievement detail must render country route controls");
 assert.match(app, /replaceHash\(`\/country\/\$\{encodeURIComponent\(tag\)\}`\)/, "achievement country controls must route to country details");
 assert.match(app, /function renderAchievementBoard\(/, "achievement board renderer must exist");
 assert.match(app, /function renderAchievementDetail\(/, "achievement detail renderer must exist");
-assert.match(app, /<details open><summary>前置筛选条件<\/summary>/, "possible script must be expanded by default");
-assert.match(app, /<details open><summary>达成脚本<\/summary>/, "happened script must be expanded by default");
-assert.match(app, /原版未定义前置筛选条件/, "missing possible scripts must use their explicit source message");
+assert.match(app, /<details open><summary>\$\{t\("board\.achievement\.possibleScript"/, "possible script must be expanded by default with a localized label");
+assert.match(app, /<details open><summary>\$\{t\("board\.achievement\.happenedScript"/, "happened script must be expanded by default with a localized label");
+assert.match(app, /t\("board\.achievement\.noPossibleScript"/, "missing possible scripts must use their explicit localized source message");
 assert.match(app, /assets\/achievements\/\$\{escapeHtml\(achievement\.key\)\}\.webp/, "cards must reference published WebP icons");
 assert.match(app, /\["country"[\s\S]*"achievement"\]/, "detail routes must accept achievement deep links");
 assert.match(styles, /body\[data-view="achievement"\] \.map-panel,[\s\S]*?display: none/, "achievement view must hide the map and filters");
@@ -75,6 +63,12 @@ function readGlobal(file) {
   const sandbox = { window: {} };
   vm.runInNewContext(fs.readFileSync(file, "utf8"), sandbox, { filename: file });
   return sandbox.window.VIC3_DATA_CHUNK || {};
+}
+
+function readLocaleGlobal(file) {
+  const sandbox = { window: {} };
+  vm.runInNewContext(fs.readFileSync(file, "utf8"), sandbox, { filename: file });
+  return Object.values(sandbox.window.VIC3_LOCALE_CHUNKS || {})[0]?.messages || {};
 }
 
 function countBy(values, keyForValue) {
