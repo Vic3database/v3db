@@ -2,8 +2,8 @@ window.VIC3_VERSION_CONFIG = {
   site_title: "Vicdata",
   default_version: "1.13.9",
   libraries: [
-    { id: "vic3", label: "Victoria 3 原版 1.13.9", href: "./" },
-    { id: "victorian-century", label: "Victorian Century", href: "vc/index.html" },
+    { id: "vic3", label: "Victoria 3 1.13.9", labelKey: "library.vic3", href: "./" },
+    { id: "victorian-century", label: "Victorian Century", labelKey: "library.victorianCentury", href: "vc/index.html" },
   ],
   version_groups: [
     {

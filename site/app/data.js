@@ -413,7 +413,7 @@ function renderLibraryOptions() {
   if (!els.librarySelect || !versionConfig) return;
   const entries = Array.isArray(versionConfig.libraries) ? versionConfig.libraries : [];
   els.librarySelect.innerHTML = entries.map((entry) => (
-    `<option value="${escapeHtml(entry.id)}">${escapeHtml(entry.label)}</option>`
+    `<option value="${escapeHtml(entry.id)}">${escapeHtml(t(entry.labelKey || "ui.libraryLabel", { label: entry.label }))}</option>`
   )).join("");
   els.librarySelect.value = "vic3";
 }

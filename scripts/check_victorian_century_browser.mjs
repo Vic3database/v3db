@@ -4,9 +4,14 @@ const require = createRequire(import.meta.url);
 const { chromium } = require("playwright");
 
 const baseUrl = process.argv[2] || "http://127.0.0.1:8877/index.html";
-const mainLibraryUrl = new URL("../index.html", baseUrl).href;
+const mainLibraryUrl = new URL("../index.html", baseUrl);
+mainLibraryUrl.searchParams.set("lang", "zh-Hans");
 const chromePath = process.env.VC_CHROME_PATH || "";
-const routes = ["country", "culture", "region", "company", "ideology", "law", "technology"];
+const allRoutes = ["country", "culture", "region", "company", "ideology", "law", "technology", "achievement"];
+const fixturesOnly = process.argv.includes("--fixtures-only");
+const requestedRoutes = process.argv.slice(3).filter((argument) => argument !== "--fixtures" && argument !== "--fixtures-only");
+const routes = requestedRoutes.length ? requestedRoutes : allRoutes;
+const runFixtures = fixturesOnly || requestedRoutes.length === 0 || process.argv.includes("--fixtures");
 const vcChangeRowSelectorByRoute = {
   country: "[data-country]",
   culture: "[data-culture]",
@@ -15,6 +20,7 @@ const vcChangeRowSelectorByRoute = {
   ideology: "[data-ideology]",
   law: "[data-law]",
   technology: "[data-technology-key]",
+  achievement: "[data-achievement-key]",
 };
 const vcChangeFilterSelectorsByRoute = {
   country: { added: "#victorianCenturyAddedFilter", adjusted: "#victorianCenturyAdjustedFilter" },
@@ -32,7 +38,7 @@ const browser = await chromium.launch({
 const errors = [];
 try {
   const homePage = await openPage();
-  await homePage.goto(`${baseUrl}#/home`, { waitUntil: "networkidle", timeout: 45000 });
+  await homePage.goto(`${baseUrl}?lang=zh-Hans#/home`, { waitUntil: "networkidle", timeout: 45000 });
   await homePage.waitForSelector("#countryList .home-category-card", { timeout: 20000 });
   const home = await homePage.evaluate(() => ({
     title: document.title,
@@ -59,15 +65,17 @@ try {
   ]), "standalone library selector options are incorrect");
   assert(home.canvas.width === 4096 && home.canvas.height === 1808, "map canvas dimensions are incorrect");
   await Promise.all([
-    homePage.waitForURL(mainLibraryUrl, { timeout: 20000 }),
+    homePage.waitForURL(mainLibraryUrl.href, { timeout: 20000 }),
     homePage.selectOption("#standaloneLibrarySelect", "vic3"),
   ]);
   await homePage.close();
 
   const views = {};
+  if (!fixturesOnly) {
   for (const route of routes) {
+    process.stderr.write(`checking localized board: zh-Hans ${route}\n`);
     const page = await openPage();
-    await page.goto(`${baseUrl}#/${route}`, { waitUntil: "networkidle", timeout: 45000 });
+    await page.goto(`${baseUrl}?lang=zh-Hans#/${route}`, { waitUntil: "networkidle", timeout: 45000 });
     await page.waitForFunction((expected) => document.body.dataset.view === expected, route, { timeout: 20000 });
     views[route] = await page.evaluate(() => ({
       view: document.body.dataset.view,
@@ -78,7 +86,12 @@ try {
     }));
     assert(views[route].hasRows, `${route} board has no rendered rows`);
     assert(!views[route].mapHidden, `${route} board unexpectedly hides the map`);
-    if (route === "technology") {
+    if (["technology", "achievement"].includes(route)) {
+      if (route === "achievement") {
+        await page.waitForSelector("[data-achievement-key]", { state: "attached", timeout: 15000 });
+        await page.close();
+        continue;
+      }
       await page.waitForSelector(".technology-graph-canvas [data-technology-key='united_fruit_banana_tech']", { state: "attached", timeout: 15000 });
       views[route].addedTechnologyLayout = await page.evaluate(() => {
         const fruit = document.querySelector(".technology-graph-canvas [data-technology-key='united_fruit_banana_tech']")?.getBoundingClientRect();
@@ -142,8 +155,38 @@ try {
     await page.close();
   }
 
+  const englishViews = {};
+  for (const route of routes) {
+    process.stderr.write(`checking localized board: en ${route}\n`);
+    const page = await openPage();
+    await page.goto(`${baseUrl}?lang=en#/${route}`, { waitUntil: "networkidle", timeout: 45000 });
+    await page.waitForFunction((expected) => document.body.dataset.view === expected && document.documentElement.lang === "en", route, { timeout: 20000 });
+    englishViews[route] = await page.evaluate(() => ({
+      title: document.title,
+      resultCount: document.querySelector("#resultCount")?.textContent?.trim() || "",
+      hasRows: Boolean(document.querySelector("#countryList button, #countryList article, #countryList .technology-tree")),
+      overflow: document.documentElement.scrollWidth > innerWidth + 1,
+    }));
+    assert(englishViews[route].hasRows, `${route} English board has no rendered rows`);
+    assert(!englishViews[route].overflow, `${route} English board overflows horizontally`);
+    await page.close();
+  }
+  }
+
+  if (runFixtures) {
+  const englishSamplePage = await openPage();
+  await englishSamplePage.goto(`${baseUrl}?lang=en#/technology/united_fruit_banana_tech`, { waitUntil: "networkidle", timeout: 45000 });
+  await englishSamplePage.waitForFunction(() => document.querySelector(".technology-detail h2")?.textContent.includes("Vertically Integrated Plantations"), { timeout: 20000 });
+  const englishSample = await englishSamplePage.evaluate(() => ({
+    title: document.querySelector(".technology-detail h2")?.textContent?.trim() || "",
+    body: document.querySelector(".technology-detail")?.textContent || "",
+  }));
+  assert(englishSample.title === "Vertically Integrated Plantations", `VC English technology title is incorrect: ${englishSample.title}`);
+  assert(englishSample.body.includes("The United Fruit Company"), "VC English technology description is missing");
+  await englishSamplePage.close();
+
   const companyListPage = await openPage();
-  await companyListPage.goto(`${baseUrl}#/company`, { waitUntil: "networkidle", timeout: 45000 });
+  await companyListPage.goto(`${baseUrl}?lang=zh-Hans#/company`, { waitUntil: "networkidle", timeout: 45000 });
   await companyListPage.waitForSelector("[data-company='company_admiralty_rijkswerf'], [data-company='company_a_markwald_and_company']", { state: "attached", timeout: 15000 });
   const companyIconLayout = await companyListPage.evaluate(() => {
     const readLayout = (companyKey) => {
@@ -168,7 +211,7 @@ try {
   await companyListPage.close();
 
   const companyPage = await openPage();
-  await companyPage.goto(`${baseUrl}#/company/company_benz_cie`, { waitUntil: "networkidle", timeout: 45000 });
+  await companyPage.goto(`${baseUrl}?lang=zh-Hans#/company/company_benz_cie`, { waitUntil: "networkidle", timeout: 45000 });
   await companyPage.waitForSelector("picture source[type='image/webp'][srcset*='benz_cie.webp']", { state: "attached", timeout: 15000 });
   const webp = await companyPage.evaluate(() => ({
     source: document.querySelector("picture source[type='image/webp'][srcset*='benz_cie.webp']")?.getAttribute("srcset") || "",
@@ -183,7 +226,7 @@ try {
     { tag: "RME", name: "罗马帝国", defaultImage: "assets/victorian-century-flags/RME/RME_Flag_Monarchy.png", variants: 4 },
   ]) {
     const page = await openPage();
-    await page.goto(`${baseUrl}#/country/${expected.tag}`, { waitUntil: "networkidle", timeout: 45000 });
+    await page.goto(`${baseUrl}?lang=zh-Hans#/country/${expected.tag}`, { waitUntil: "networkidle", timeout: 45000 });
     await page.waitForSelector(".detail-title .country-flag-title", { state: "visible", timeout: 15000 });
     await page.waitForFunction(() => Array.from(document.querySelectorAll(".country-flag-variant-image")).every((image) => image.complete && image.naturalWidth > 0), { timeout: 15000 });
     const flagState = await page.evaluate(() => ({
@@ -204,7 +247,7 @@ try {
   }
 
   const regionPage = await openPage();
-  await regionPage.goto(`${baseUrl}#/region`, { waitUntil: "networkidle", timeout: 45000 });
+  await regionPage.goto(`${baseUrl}?lang=zh-Hans#/region`, { waitUntil: "networkidle", timeout: 45000 });
   const reset = await regionPage.evaluate(() => {
     const button = document.querySelector("#mapFitWidthButton");
     button?.click();
@@ -212,15 +255,21 @@ try {
   });
   assert(reset, "region map reset button is missing");
   await regionPage.close();
+  }
 
   if (errors.length) throw new Error(errors.join("\n"));
-  console.log(JSON.stringify({ victorian_century_browser: "ok", home, views, companyIconLayout, webp, victorianCountryFlags }, null, 2));
+  console.log(JSON.stringify({
+    victorian_century_browser: "ok",
+    routes: fixturesOnly ? 0 : routes.length,
+    locales: ["zh-Hans", "en"],
+    verified: runFixtures ? ["home", "change-filters", "company-icons", "country-flags", "map-reset"] : ["home", "change-filters"],
+  }));
 } finally {
   await browser.close();
 }
 
 function openPage() {
-  return browser.newPage({ viewport: { width: 1440, height: 1000 } }).then((page) => {
+  return browser.newPage({ viewport: { width: 1440, height: 900 } }).then((page) => {
     page.on("console", (message) => {
       if (message.type() === "error") errors.push(`console: ${message.text()}`);
     });

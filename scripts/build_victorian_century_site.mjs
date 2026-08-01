@@ -19,9 +19,10 @@ assertFile(path.join(targetSite, "assets", "map", "provinces.png"), "VC province
 const copied = [];
 copyDirectory(path.join(sourceSite, "app"), path.join(targetSite, "app"), copied);
 copyDirectory(path.join(sourceSite, "styles"), path.join(targetSite, "styles"), copied);
+copyDirectory(path.join(sourceSite, "locales"), path.join(targetSite, "locales"), copied);
 copyFile(path.join(sourceSite, "styles.css"), path.join(targetSite, "styles.css"), copied);
 copyAssets(path.join(sourceSite, "assets"), path.join(targetSite, "assets"), copied);
-if (!args.skipVcAssets) runVcAssetSync(args.python);
+if (!args.skipVcAssets) runVcAssetSync(args.python, args.vcDatabase);
 writeStandaloneFiles(copied);
 publishStandaloneSite(copied);
 
@@ -35,7 +36,7 @@ console.log(JSON.stringify({
 }, null, 2));
 
 function parseArgs(values) {
-  const parsed = { python: "", skipVcAssets: false, source: "", target: "", publishTarget: "" };
+  const parsed = { python: "", skipVcAssets: false, source: "", target: "", publishTarget: "", vcDatabase: "" };
   for (let index = 0; index < values.length; index += 1) {
     const value = values[index];
     if (value === "--python") {
@@ -43,13 +44,13 @@ function parseArgs(values) {
       index += 1;
     } else if (value === "--skip-vc-assets") {
       parsed.skipVcAssets = true;
-    } else if (value === "--source" || value === "--target" || value === "--publish-target") {
-      const key = value === "--publish-target" ? "publishTarget" : value.slice(2);
+    } else if (value === "--source" || value === "--target" || value === "--publish-target" || value === "--vc-database") {
+      const key = value === "--publish-target" ? "publishTarget" : value === "--vc-database" ? "vcDatabase" : value.slice(2);
       parsed[key] = values[index + 1] || "";
       if (!parsed[key]) throw new Error(`Missing value for ${value}`);
       index += 1;
     } else if (value === "--help" || value === "-h") {
-      console.log("Usage: node scripts/build_victorian_century_site.mjs [--source <dir>] [--target <dir>] [--publish-target <dir>] [--python <path>] [--skip-vc-assets]");
+      console.log("Usage: node scripts/build_victorian_century_site.mjs [--source <dir>] [--target <dir>] [--publish-target <dir>] [--vc-database <dir>] [--python <path>] [--skip-vc-assets]");
       process.exit(0);
     } else {
       throw new Error(`Unknown argument: ${value}`);
@@ -115,9 +116,9 @@ function buildStandaloneHtml(sourceHtml) {
     .replace(/\s*<label class="version-menu topbar-icon-select">[\s\S]*?<\/label>/, `
         <label class="version-menu topbar-icon-select">
           <img class="lucide-icon" src="assets/lucide/icons/milestone.svg" alt="" aria-hidden="true">
-          <select id="standaloneLibrarySelect" aria-label="资料库切换">
-            <option value="victorian-century" selected>Victorian Century</option>
-            <option value="vic3">Victoria 3 原版 1.13.9</option>
+          <select id="standaloneLibrarySelect" aria-label="资料库切换" data-i18n-aria-label="ui.librarySwitch">
+            <option value="victorian-century" data-i18n="library.victorianCentury" selected>Victorian Century</option>
+            <option value="vic3" data-i18n="library.vic3">Victoria 3 原版 1.13.9</option>
           </select>
         </label>`)
     .replace(/\s*<label class="global-search-legacy-toggle">[\s\S]*?<\/label>/, "")
@@ -140,12 +141,14 @@ function standaloneConfigSource() {
     .filter((asset) => asset.webp)
     .map((asset) => `assets/${asset.path}`)
     .sort();
-  return `window.VICTORIAN_CENTURY_SITE_CONFIG = Object.freeze({\n  siteTitle: "Victorian Century Database",\n  dataIndex: "data-index.js",\n  mapData: "map-data.js",\n  dataRoot: ".",\n  webpAssetPaths: ${JSON.stringify(webpAssetPaths)},\n});\n`;
+  return `window.VICTORIAN_CENTURY_SITE_CONFIG = Object.freeze({\n  siteTitle: "Victorian Century Database",\n  dataIndex: "data-index.js",\n  mapData: "map-data.js",\n  dataRoot: ".",\n  localeRoot: "locales",\n  webpAssetPaths: ${JSON.stringify(webpAssetPaths)},\n});\n`;
 }
 
-function runVcAssetSync(explicitPython) {
+function runVcAssetSync(explicitPython, explicitDatabase) {
   const python = explicitPython || process.env.VICTORIAN_CENTURY_PYTHON || process.env.PYTHON || "python";
-  const result = spawnSync(python, [path.join(root, "scripts", "sync_victorian_century_assets.py"), "--json"], {
+  const syncArgs = [path.join(root, "scripts", "sync_victorian_century_assets.py"), "--json", "--target-assets", path.join(targetSite, "assets")];
+  if (explicitDatabase) syncArgs.push("--database", path.resolve(explicitDatabase));
+  const result = spawnSync(python, syncArgs, {
     cwd: root,
     encoding: "utf8",
     shell: false,

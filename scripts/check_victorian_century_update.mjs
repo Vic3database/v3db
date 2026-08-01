@@ -192,6 +192,7 @@ async function runUpdate(config, { skipMap }) {
     path.join(PROJECT_DIR, "scripts", "build_victorian_century_site.mjs"),
     "--target", config.siteDir,
     "--publish-target", path.join(PROJECT_DIR, "site", "vc"),
+    "--vc-database", config.databaseDir,
   ], PROJECT_DIR);
 }
 

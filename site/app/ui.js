@@ -89,12 +89,16 @@ function bindEvents() {
       els.librarySelect.value = "vic3";
       return;
     }
-    location.assign(new URL(entry.href, window.location.href).href);
+    const url = new URL(entry.href, window.location.href);
+    url.searchParams.set("lang", localeRuntime.current);
+    location.assign(url.href);
   });
   els.standaloneLibrarySelect?.addEventListener("change", () => {
     if (els.standaloneLibrarySelect.value !== "vic3") return;
     hideTransientOverlays();
-    location.assign(new URL("../index.html", window.location.href).href);
+    const url = new URL("../index.html", window.location.href);
+    url.searchParams.set("lang", localeRuntime.current);
+    location.assign(url.href);
   });
   els.searchInput.addEventListener("input", () => {
     state.search = els.searchInput.value.trim().toLowerCase();
@@ -1340,7 +1344,6 @@ function render() {
     button.setAttribute("aria-current", String(button.dataset.navView === state.view));
   });
   setTokenPressed(els.filteredCountryMapToggle, state.dimUnfilteredCountries);
-  syncVictorianCenturyChangeFilter();
   els.strategicRegionFilterTitle.textContent = state.view === "culture" ? "本土战略区域" : state.view === "company" ? "相关战略区域" : "所在战略区域";
   els.resourceFilterTitle.textContent = state.view === "company" ? "相关建筑" : "资源";
   els.searchInput.placeholder = searchPlaceholder();
@@ -1351,6 +1354,7 @@ function render() {
   renderCompanyFilterOptions();
   renderIdeologyFilterOptions();
   renderLawFilterOptions();
+  syncVictorianCenturyChangeFilter();
   syncFilterSectionOpenStates();
   renderMapControls();
 

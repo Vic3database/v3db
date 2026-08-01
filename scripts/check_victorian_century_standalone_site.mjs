@@ -11,9 +11,10 @@ const configFile = path.join(siteRoot, "victorian-century-config.js");
 const dataIndexFile = path.join(siteRoot, "data-index.js");
 const mapFile = path.join(siteRoot, "map-data.js");
 const updateScriptFile = path.join(root, "scripts", "check_victorian_century_update.mjs");
-const expectedChunks = ["country", "culture", "region", "company", "ideology", "law", "technology"];
+const expectedChunks = ["country", "culture", "region", "company", "ideology", "law", "technology", "achievement"];
 const expectedModules = [
   "app/runtime.js",
+  "app/i18n.js",
   "app/data.js",
   "app/ui.js",
   "app/company-location-rules.js",
@@ -47,8 +48,8 @@ assert.match(html, /<title>Victorian Century Database<\/title>/, "page title mus
 assert.match(html, /src="victorian-century-config\.js/, "page must load the standalone configuration");
 assert.doesNotMatch(html, /id="versionSelect"/, "standalone page must not render a version selector");
 assert.match(html, /id="standaloneLibrarySelect"/, "standalone page must offer a library return selector");
-assert.match(html, /<option value="victorian-century" selected>Victorian Century<\/option>/, "standalone selector must identify the current VC library");
-assert.match(html, /<option value="vic3">Victoria 3 原版 1\.13\.9<\/option>/, "standalone selector must offer the main library");
+assert.match(html, /<option value="victorian-century" data-i18n="library\.victorianCentury" selected>Victorian Century<\/option>/, "standalone selector must identify the current VC library");
+assert.match(html, /<option value="vic3" data-i18n="library\.vic3">Victoria 3 原版 1\.13\.9<\/option>/, "standalone selector must offer the main library");
 assert.doesNotMatch(html, /versionGroupSelect|announcement-data\.js|news-data\.js|changelogLink|changelog\.html/, "standalone page must not load version, announcement, news, or changelog features");
 assert.doesNotMatch(html, /src="data\.js/, "module front end must not load the compatibility data bundle");
 assert.doesNotMatch(html, /id="vcHomeEntry"/, "standalone site must not link to itself");
@@ -61,6 +62,7 @@ assert.equal(config?.siteTitle, "Victorian Century Database", "standalone config
 assert.equal(config?.dataIndex, "data-index.js", "standalone configuration must use the local data index");
 assert.equal(config?.mapData, "map-data.js", "standalone configuration must use the local map index");
 assert.equal(config?.dataRoot, ".", "standalone configuration must load chunks from the local directory");
+assert.equal(config?.localeRoot, "locales", "standalone configuration must load UI locale files from its local locale directory");
 assert.equal(config?.webpAssetPaths?.length, 18, "standalone configuration must enumerate every VC display WebP");
 assert(config.webpAssetPaths.includes("assets/companies/benz_cie.png"), "standalone configuration must prefer the VC company WebP when available");
 
@@ -74,6 +76,27 @@ for (const key of expectedChunks) {
   for (const file of chunk.files) {
     assert(fs.existsSync(path.join(siteRoot, file)), `missing ${key} chunk file ${file}`);
   }
+}
+assert.equal(dataIndex?.locales?.search_index?.path, "search-index.js", "VC data index must expose its bilingual search index");
+assert(fs.existsSync(path.join(siteRoot, dataIndex.locales.search_index.path)), "missing VC bilingual search index");
+const searchIndex = readGlobal(path.join(siteRoot, dataIndex.locales.search_index.path), "VIC3_SEARCH_INDEX");
+const vcTechnology = searchIndex?.entries?.find((entry) => entry.kind === "technology" && entry.key === "united_fruit_banana_tech");
+assert(vcTechnology, "missing VC-added technology in the bilingual search index");
+assert.equal(vcTechnology.names?.["zh-Hans"], "垂直整合种植园", "VC-added technology must retain its Chinese name");
+assert.equal(vcTechnology.names?.en, "Vertically Integrated Plantations", "VC-added technology must retain its English name");
+assert.notEqual(vcTechnology.names.en, vcTechnology.names["zh-Hans"], "VC English localization must not be filled with Chinese text");
+for (const locale of ["zh-Hans", "en"]) {
+  for (const key of expectedChunks) {
+    const localeChunk = dataIndex?.locales?.chunks?.[locale]?.[key];
+    assert(localeChunk, `missing ${locale} ${key} locale chunk`);
+    assert(Array.isArray(localeChunk.files) && localeChunk.files.length, `missing ${locale} ${key} locale files`);
+    for (const entry of localeChunk.files) {
+      assert(fs.existsSync(path.join(siteRoot, entry.path)), `missing ${locale} ${key} locale file ${entry.path}`);
+    }
+  }
+}
+for (const relative of ["locales/manifest.js", "locales/ui.zh-Hans.js", "locales/ui.en.js"]) {
+  assert(fs.existsSync(path.join(siteRoot, relative)), `missing VC interface locale file ${relative}`);
 }
 
 const mapData = readGlobal(mapFile, "VIC3_MAP_DATA");
@@ -91,6 +114,7 @@ assert.match(dataLoader, /if \(!standaloneSiteConfig\) return `versions\/\$\{loa
 assert.match(dataLoader, /return !dataRoot \|\| dataRoot === "\." \? file : `\$\{dataRoot\}\/\$\{file\}`/, "VC mode must load chunks from its local data root");
 const ui = fs.readFileSync(path.join(siteRoot, "app", "ui.js"), "utf8");
 assert.match(ui, /els\.standaloneLibrarySelect\?\.addEventListener\("change"/, "standalone selector must navigate back to the main library");
+assert.match(ui, /url\.searchParams\.set\("lang", localeRuntime\.current\)/, "library navigation must preserve the active locale");
 assert.match(components, /function webpPreferredImageHtml/, "component renderer must support WebP with PNG fallback");
 assert.match(components, /webpPreferredImageHtml\(\{[^}]*path[^}]*\}\)/, "company, law, and ideology renderers must use the WebP-aware image helper");
 const companyIconPathSource = components.match(/function companyIconPath\(icon\) \{[\s\S]*?\n\}/)?.[0];
@@ -110,6 +134,7 @@ assert.match(updateScript, /--legacy-data/, "VC update workflow must preserve th
 console.log(JSON.stringify({
   victorian_century_standalone_site: "ok",
   chunks: expectedChunks,
+  locales: ["zh-Hans", "en"],
   modules: expectedModules.length,
 }, null, 2));
 
