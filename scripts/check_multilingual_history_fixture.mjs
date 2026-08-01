@@ -53,10 +53,19 @@ try {
       && document.body.dataset.view === "culture"
       && Boolean(document.querySelector("[data-culture]"))
   ), { timeout: 20000 });
+  await page.goto(`${server.url}index.html?version=history-fixture&lang=en#/region`, { waitUntil: "networkidle", timeout: 45000 });
+  await page.waitForFunction(() => (
+    document.documentElement.lang === "en"
+      && document.body.dataset.view === "region"
+      && Boolean(document.querySelector('[data-resource-filter="building_coal_mine"]'))
+  ), { timeout: 20000 });
+  await page.locator('[data-resource-filter="building_coal_mine"]').click();
+  await page.waitForFunction(() => document.querySelector("#mapResourceContext")?.textContent?.trim(), { timeout: 10000 });
+  assertEnglishHasNoHanText(await page.locator("body").innerText(), "region selected resource");
   assert.deepEqual(failedScriptUrls, [], `fixture failed to load scripts: ${failedScriptUrls.join(", ")}`);
   assert.deepEqual(runtimeErrors, [], runtimeErrors.join("\n"));
   await page.close();
-  console.log(JSON.stringify({ multilingual_history_fixture: "ok", version: "history-fixture", locale: "en", routes: ["country", "culture"] }));
+  console.log(JSON.stringify({ multilingual_history_fixture: "ok", version: "history-fixture", locale: "en", routes: ["country", "culture", "region selected resource"] }));
 } finally {
   await browser?.close();
   await new Promise((resolve) => server?.httpServer.close(resolve) || resolve());

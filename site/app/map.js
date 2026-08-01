@@ -819,7 +819,7 @@ function buildSelectedResourceMapFeatures() {
       const valueInfo = stateRegionResourceValue(stateRegion, resourceKey);
       return {
         key: resourceKey,
-        label: entityText(buildingByKey.get(resourceKey)) || filter.label,
+        label: resourceFilterLabel(filter),
         ...valueInfo,
       };
     }).filter((item) => item.value > 0);

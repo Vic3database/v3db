@@ -2297,10 +2297,12 @@ function automaticMapSubjectLabel(mode) {
 
 function selectedResourceMapLabel() {
   const labels = [...state.resourceFilters]
-    .map((key) => resourceFilterByKey.get(key)?.label)
+    .map((key) => resourceFilterLabel(resourceFilterByKey.get(key)))
     .filter(Boolean);
-  if (!labels.length) return "战略区域";
-  return labels.length > 3 ? `${labels.slice(0, 3).join("、")}等 ${labels.length} 项` : labels.join("、");
+  if (!labels.length) return t("filter.strategicRegions");
+  return labels.length > 3
+    ? `${labels.slice(0, 3).join(t("ui.listSeparator"))}${t("ui.listSeparator")}${t("ui.moreItems", { count: labels.length - 3 })}`
+    : labels.join(t("ui.listSeparator"));
 }
 
 function cultureFilterMapLabel() {
@@ -2652,13 +2654,18 @@ function dynamicStateNameSearchParts(variants) {
 
 function resourceOptionToken(filter) {
   const iconKey = (filter.resources || filter.arableResources || filter.companyBuildings || [])[0] || "";
-  const label = entityText(buildingByKey.get(iconKey)) || filter.label || filter.key;
+  const label = resourceFilterLabel(filter);
   const checked = state.resourceFilters.has(filter.key);
   return `
     <button class="filter-token filter-token-with-icon resource-filter-token" type="button" data-filter-token data-resource-filter="${escapeHtml(filter.key)}" aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}" aria-pressed="${checked ? "true" : "false"}">
       ${buildingIconHtml(iconKey, label)}
     </button>
   `;
+}
+
+function resourceFilterLabel(filter) {
+  const resourceKey = (filter?.resources || filter?.arableResources || filter?.companyBuildings || [])[0] || filter?.key || "";
+  return entityText(buildingByKey.get(resourceKey), "name", resourceKey) || resourceKey;
 }
 
 function companyDlcOptionToken(option, checked = false) {

@@ -220,6 +220,18 @@ async function verifyEnglishSharedSurfaces() {
 
   await page.goto(urlFor("region", "en"), { waitUntil: "networkidle", timeout: 45000 });
   await page.waitForFunction(() => document.documentElement.lang === "en" && document.body.dataset.view === "region" && Boolean(document.querySelector("#mapCanvas")), { timeout: 20000 });
+  const resourceKeys = await page.locator("[data-resource-filter]").evaluateAll((nodes) => (
+    nodes.map((node) => node.dataset.resourceFilter).filter(Boolean)
+  ));
+  assert.ok(resourceKeys.length > 0, "English region page must expose resource filters");
+  for (const resourceKey of resourceKeys) {
+    await page.locator(`[data-resource-filter="${resourceKey}"]`).click();
+    await page.waitForFunction((key) => (
+      document.querySelector(`[data-resource-filter="${key}"]`)?.getAttribute("aria-pressed") === "true"
+        && Boolean(document.querySelector("#mapResourceContext:not([hidden])"))
+    ), resourceKey, { timeout: 10000 });
+    assertNoHanText(await page.locator("body").innerText(), `region selected resource ${resourceKey}`);
+  }
   const box = await page.locator("#mapCanvas").boundingBox();
   let tooltipText = "";
   for (let y = box.y + 20; y < box.y + box.height - 10 && !tooltipText; y += 50) {
@@ -230,6 +242,13 @@ async function verifyEnglishSharedSurfaces() {
   }
   assert.ok(tooltipText, "English region map must expose a state-region tooltip");
   assertNoHanText(tooltipText, "region map tooltip");
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(urlFor("region", "en"), { waitUntil: "networkidle", timeout: 45000 });
+  await page.waitForFunction(() => document.documentElement.lang === "en" && document.body.dataset.view === "region", { timeout: 20000 });
+  await page.locator('[data-resource-filter="building_coal_mine"]').click();
+  await page.waitForFunction(() => document.querySelector("#mapResourceContext")?.textContent?.trim(), { timeout: 10000 });
+  assertNoHanText(await page.locator("body").innerText(), "region selected resource at 390px");
   await page.close();
 }
 
