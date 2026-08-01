@@ -734,11 +734,11 @@ function ideologyTooltipAttitudeLines(stances) {
 function cultureTooltipRelationSection(title, items) {
   if (!title) return "";
   const labels = [...(items || [])]
-    .map((item) => item?.name_zh || item?.key || "")
+    .map((item) => entityText(item) || item?.key || "")
     .filter(Boolean)
-    .sort((left, right) => left.localeCompare(right, "zh-Hans-CN"));
-  const empty = TAG_TOOLTIP_DEFAULTS.cultureRelations?.empty || "无";
-  return `<section class="concept-tooltip-relation"><h4>${escapeHtml(title)}</h4><p>${escapeHtml(labels.join("、") || empty)}</p></section>`;
+    .sort(localizedCompare);
+  const empty = t("ui.none", "无");
+  return `<section class="concept-tooltip-relation"><h4>${escapeHtml(title)}</h4><p>${escapeHtml(labels.join(t("ui.listSeparator", "、")) || empty)}</p></section>`;
 }
 
 function cultureTooltipRelationSections(kind, key) {
@@ -746,7 +746,7 @@ function cultureTooltipRelationSections(kind, key) {
   if (kind === "cultureTraitGroup") {
     const group = cultureTraitGroupByKey.get(key);
     if (!group || !["heritage", "language"].includes(group.type)) return "";
-    const title = group.type === "heritage" ? labels.heritageGroup : labels.languageGroup;
+    const title = t(group.type === "heritage" ? labels.heritageGroup : labels.languageGroup);
     const items = cultureTraits.filter((trait) => trait.group_key === key && trait.type === group.type);
     return cultureTooltipRelationSection(title, items);
   }
@@ -755,19 +755,19 @@ function cultureTooltipRelationSections(kind, key) {
     if (!trait) return "";
     if (trait.type === "heritage") {
       return cultureTooltipRelationSection(
-        labels.heritage,
+        t(labels.heritage),
         cultures.filter((culture) => culture.heritage?.key === key),
       );
     }
     if (trait.type === "language") {
       return cultureTooltipRelationSection(
-        labels.language,
+        t(labels.language),
         cultures.filter((culture) => culture.language?.key === key),
       );
     }
     if (trait.type === "tradition") {
       return cultureTooltipRelationSection(
-        labels.tradition,
+        t(labels.tradition),
         cultures.filter((culture) => (culture.traditions || []).some((item) => item.key === key)),
       );
     }
@@ -777,9 +777,9 @@ function cultureTooltipRelationSections(kind, key) {
     const culture = byCulture.get(key);
     if (!culture) return "";
     return [
-      cultureTooltipRelationSection(labels.primaryCultureCountries, culture.related_countries),
-      cultureTooltipRelationSection(labels.obsessions, culture.obsessions),
-      cultureTooltipRelationSection(labels.taboos, culture.taboos),
+      cultureTooltipRelationSection(t(labels.primaryCultureCountries), culture.related_countries),
+      cultureTooltipRelationSection(t(labels.obsessions), culture.obsessions),
+      cultureTooltipRelationSection(t(labels.taboos), culture.taboos),
     ].join("");
   }
   return "";
@@ -805,11 +805,11 @@ function conceptTooltipType(target) {
   const key = target.dataset.conceptKey || "";
   if (kind === "cultureTraitGroup") {
     const group = cultureTraitGroupByKey.get(key);
-    return group?.type_zh ? `${group.type_zh}特质组` : "文化特质组";
+    return t("tooltip.cultureTraitGroupType", { type: t(`enum.cultureTraitType.${group?.type || "unknown"}`) });
   }
   if (kind === "cultureTrait") {
     const trait = cultureTraitByKey.get(key);
-    return trait?.type_zh ? `${trait.type_zh}特质` : "文化特质";
+    return t("tooltip.cultureTraitType", { type: t(`enum.cultureTraitType.${trait?.type || "unknown"}`) });
   }
   return target.dataset.conceptCategory || conceptKindLabel(kind);
 }
@@ -836,9 +836,9 @@ function conceptTooltipContent(target, relationSections = "") {
 
 function conceptTooltipActionHints(target) {
   return [
-    target.matches("a[href]") ? "左键进入详情页" : "",
-    target.dataset.conceptSearch?.trim() ? "右键进行筛选" : "",
-  ].filter(Boolean).join("　");
+    target.matches("a[href]") ? t("tooltip.openDetail") : "",
+    target.dataset.conceptSearch?.trim() ? t("tooltip.filter") : "",
+  ].filter(Boolean).join(t("ui.actionSeparator"));
 }
 
 function conceptTooltipRows(target, relationSections = "") {
@@ -1056,12 +1056,12 @@ function closeInfoDialog() {
 function renderInfoDialog() {
   if (!els.infoDialogTitle || !els.infoDialogBody || !state.infoDialog) return;
   if (state.infoDialog === "settings") {
-    els.infoDialogTitle.textContent = "设置";
+    els.infoDialogTitle.textContent = t("ui.settings");
     els.infoDialogBody.innerHTML = renderSettingsDialogContent();
     bindSettingsControls(els.infoDialogBody);
     return;
   }
-  els.infoDialogTitle.textContent = "关于";
+  els.infoDialogTitle.textContent = t("ui.about");
   els.infoDialogBody.innerHTML = renderAboutDialogContent();
 }
 
@@ -1271,8 +1271,8 @@ function hideTransientOverlays() {
 }
 
 function updatePageChrome() {
-  const label = viewLabels[state.view] || "国家";
-  const title = `${label} - ${siteTitle}`;
+  const label = viewLabel(state.view);
+  const title = t("template.documentTitle", { board: label, site: siteTitle });
   setOptionalText(els.pageTitle, title);
   document.title = title;
   const achievementAvailable = achievementBoardAvailable();

@@ -1021,13 +1021,14 @@ function renderCountryDetailPage(country) {
 
 function detailBackButton(view = state.view) {
   const target = view === "region" ? "region" : view || "country";
-  const label = viewLabels[target] || "国家";
+  const label = viewLabel(target);
   const mobileBackAttribute = target === "country" ? " data-country-mobile-detail-back" : target === "culture" ? " data-culture-mobile-detail-back" : "";
   return `<button class="detail-back-button" type="button" data-detail-back="${escapeHtml(target)}"${mobileBackAttribute} aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}"><img class="lucide-icon" src="assets/lucide/icons/arrow-left.svg" alt="" aria-hidden="true"></button>`;
 }
 
 function rowDetailButton(attributeName, key) {
-  return `<button class="row-detail-button" type="button" ${attributeName}="${escapeHtml(key)}" aria-label="进入详情" title="进入详情"><img class="lucide-icon" src="assets/lucide/icons/arrow-right.svg" alt="" aria-hidden="true"></button>`;
+  const label = t("ui.openDetail");
+  return `<button class="row-detail-button" type="button" ${attributeName}="${escapeHtml(key)}" aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}"><img class="lucide-icon" src="assets/lucide/icons/arrow-right.svg" alt="" aria-hidden="true"></button>`;
 }
 
 function renderCultureDetail(culture) {

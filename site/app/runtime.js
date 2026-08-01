@@ -533,18 +533,22 @@ const ideologyTypeOptions = [
 ];
 
 const viewLabels = {
-  home: "首页",
-  country: "国家",
-  culture: "文化",
-  region: "地区（资源）",
-  company: "公司",
-  ideology: "意识形态",
-  law: "法律",
-  technology: "科技",
-  achievement: "成就",
-  changelog: "更新日志",
-  news: "游戏资讯",
+  home: "nav.home",
+  country: "nav.country",
+  culture: "nav.culture",
+  region: "nav.region",
+  company: "nav.company",
+  ideology: "nav.ideology",
+  law: "nav.law",
+  technology: "nav.technology",
+  achievement: "nav.achievement",
+  changelog: "nav.changelog",
+  news: "nav.news",
 };
+
+function viewLabel(view) {
+  return t(viewLabels[view] || "nav.country");
+}
 
 const feedbackEmail = "vic3database@outlook.com";
 const feedbackMailto = "mailto:vic3database@outlook.com?subject=Vicdata%20feature%20request";

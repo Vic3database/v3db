@@ -36,7 +36,7 @@ async function loadInitialDataset() {
 }
 
 async function loadStandaloneDataset() {
-  setOptionalText(els.metaLine, "正在加载 Victorian Century 数据");
+  setOptionalText(els.metaLine, t("ui.loadingDataset", { dataset: "Victorian Century" }));
   const [nextDataIndex, nextMapData] = await Promise.all([
     loadScriptValue(standaloneSiteConfig.dataIndex, "VIC3_DATA_INDEX"),
     loadScriptValue(standaloneSiteConfig.mapData, "VIC3_MAP_DATA"),
@@ -61,7 +61,7 @@ async function loadVersion(version, options = {}) {
     applyLoadedDataset(window.VIC3_DATA || {}, window.VIC3_MAP_DATA || null);
     return;
   }
-  setOptionalText(els.metaLine, `正在加载 ${entry.label || entry.version}`);
+  setOptionalText(els.metaLine, t("ui.loadingDataset", { dataset: entry.label || entry.version }));
   const [nextDataIndex, nextMapData] = await Promise.all([
     loadScriptValue(entry.data_index, "VIC3_DATA_INDEX"),
     loadScriptValue(entry.map_data, "VIC3_MAP_DATA"),
@@ -191,7 +191,7 @@ function loadScriptValue(src, globalName) {
     };
     script.onerror = () => {
       script.remove();
-      reject(new Error(`无法加载 ${src}`));
+      reject(new Error(t("ui.scriptLoadFailed", { src })));
     };
     document.head.appendChild(script);
   });
@@ -396,8 +396,17 @@ function resetMapRuntime() {
 }
 
 function updateMetaLine() {
-  const datasetPrefix = data.meta?.dataset_name ? `${data.meta.dataset_name}，` : "";
-  setOptionalText(els.metaLine, `${datasetPrefix}版本 ${data.meta?.victoria3_version || "未知"}，国家 ${dataCount("countries", countries)} 个，文化 ${dataCount("cultures", cultures)} 个，地域 ${dataCount("stateRegions", stateRegions)} 个，地理区域 ${dataCount("geographicRegions", groupedGeographicRegions)} 个，公司 ${dataCount("companies", companies)} 个，意识形态 ${dataCount("ideologies", ideologies)} 个，法律 ${dataCount("laws", laws)} 条`);
+  setOptionalText(els.metaLine, t("ui.datasetSummary", {
+    dataset: data.meta?.dataset_name || siteTitle,
+    version: data.meta?.victoria3_version || t("ui.unknown"),
+    countries: localizedNumber(dataCount("countries", countries)),
+    cultures: localizedNumber(dataCount("cultures", cultures)),
+    regions: localizedNumber(dataCount("stateRegions", stateRegions)),
+    geographicRegions: localizedNumber(dataCount("geographicRegions", groupedGeographicRegions)),
+    companies: localizedNumber(dataCount("companies", companies)),
+    ideologies: localizedNumber(dataCount("ideologies", ideologies)),
+    laws: localizedNumber(dataCount("laws", laws)),
+  }));
 }
 
 function renderLibraryOptions() {
@@ -422,7 +431,8 @@ function syncViewLabels() {
     ideology: els.ideologyViewButton,
     law: els.lawViewButton,
   };
-  for (const [view, label] of Object.entries(viewLabels)) {
+  for (const view of Object.keys(viewLabels)) {
+    const label = viewLabel(view);
     if (buttonByView[view]) buttonByView[view].textContent = label;
     const option = els.viewSelect?.querySelector(`option[value="${view}"]`);
     if (option) option.textContent = label;

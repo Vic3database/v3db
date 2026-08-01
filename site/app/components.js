@@ -144,8 +144,9 @@ function tagTooltipMetadata(label, className, sourceKey, semanticKey) {
   const definition = TAG_TOOLTIP_DEFINITIONS[definitionKey] || {};
   const defaults = TAG_TOOLTIP_DEFAULTS.tag || {};
   const key = semanticKey || sourceKey || label || "";
-  const category = definition.category || defaults.category || "";
-  const description = formatTooltipDescription(definition.description || defaults.description, { label, key, category });
+  const category = definition.categoryKey ? t(definition.categoryKey) : defaults.categoryKey ? t(defaults.categoryKey) : definition.category || defaults.category || "";
+  const descriptionTemplate = definition.descriptionKey ? t(definition.descriptionKey) : defaults.descriptionKey ? t(defaults.descriptionKey) : definition.description || defaults.description;
+  const description = formatTooltipDescription(descriptionTemplate, { label, key, category });
   return { key, category, description };
 }
 
@@ -154,9 +155,10 @@ function conceptTooltipMetadata(label, className, kind, key) {
   const definitionKey = [key, kind, ...classKeys].find((candidate) => candidate && TAG_TOOLTIP_DEFINITIONS[candidate]);
   const definition = TAG_TOOLTIP_DEFINITIONS[definitionKey] || {};
   const defaults = TAG_TOOLTIP_DEFAULTS[kind] || {};
-  if (!definition.category && !definition.categoryKey && !definition.description && !defaults.category && !defaults.categoryKey && !defaults.description) return {};
+  if (!definition.category && !definition.categoryKey && !definition.description && !definition.descriptionKey && !defaults.category && !defaults.categoryKey && !defaults.description && !defaults.descriptionKey) return {};
   const category = definition.categoryKey ? t(definition.categoryKey) : defaults.categoryKey ? t(defaults.categoryKey) : definition.category || defaults.category || "";
-  const description = formatTooltipDescription(definition.description || defaults.description || "", { label, key, category });
+  const descriptionTemplate = definition.descriptionKey ? t(definition.descriptionKey) : defaults.descriptionKey ? t(defaults.descriptionKey) : definition.description || defaults.description || "";
+  const description = formatTooltipDescription(descriptionTemplate, { label, key, category });
   return { category, description };
 }
 

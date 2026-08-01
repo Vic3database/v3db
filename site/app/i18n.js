@@ -199,4 +199,5 @@ function syncStaticUiText() {
   document.querySelectorAll("[data-i18n]").forEach((node) => setOptionalText(node, t(node.dataset.i18n)));
   document.querySelectorAll("[data-i18n-title]").forEach((node) => node.title = t(node.dataset.i18nTitle));
   document.querySelectorAll("[data-i18n-aria-label]").forEach((node) => node.setAttribute("aria-label", t(node.dataset.i18nAriaLabel)));
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((node) => node.setAttribute("placeholder", t(node.dataset.i18nPlaceholder)));
 }

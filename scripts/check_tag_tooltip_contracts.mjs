@@ -91,7 +91,7 @@ assert.match(definitionsSource, /const TAG_TOOLTIP_DEFAULTS\s*=\s*{/, "tooltip d
 for (const defaultKey of ["tag", "building", "goods", "technology", "stateTrait", "culture", "cultureTrait", "cultureTraitGroup"]) {
   assert.match(
     definitionsSource,
-    new RegExp(`${defaultKey}:\\s*{[\\s\\S]{0,300}category:`),
+    new RegExp(`${defaultKey}:\\s*{[\\s\\S]{0,300}category(?:Key)?:`),
     `${defaultKey} category default is missing`,
   );
 }
@@ -213,9 +213,9 @@ assert.ok(/function\s+conceptTooltipContent\s*\(/.test(uiSource), "generic toolt
 assert.ok(/function\s+conceptTooltipActionHints\s*\(/.test(uiSource), "generic tooltip action resolver is missing");
 assert.ok(/concept-tooltip-head/.test(uiSource), "generic tooltip must render a two-column header");
 assert.ok(/concept-tooltip-divider/.test(uiSource), "generic tooltip must separate header, content, and actions");
-assert.match(uiSource, /左键进入详情页/, "generic tooltip must name the detail action");
-assert.match(uiSource, /右键进行筛选/, "generic tooltip must name the filter action");
-assert.match(uiSource, /\$\{group\.type_zh\}特质组/, "heritage groups must identify themselves as trait groups");
+assert.match(uiSource, /t\("tooltip\.openDetail"\)/, "generic tooltip must localize the detail action");
+assert.match(uiSource, /t\("tooltip\.filter"\)/, "generic tooltip must localize the filter action");
+assert.match(uiSource, /tooltip\.cultureTraitGroupType/, "heritage groups must identify themselves with a localized trait-group template");
 assert.match(uiSource, /cultureTraitGroupByKey\.get\(key\)/, "culture trait groups must resolve from their own index");
 assert.match(uiSource, /related_countries/, "culture tooltip must show primary-culture countries");
 assert.match(uiSource, /obsessions/, "culture tooltip must show obsessions");
