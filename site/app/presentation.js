@@ -773,8 +773,8 @@ function lawEffectItemHtml(entry) {
   if (entry.kind === "institution") return `<li class="law-effect-neutral">${escapeHtml(t("board.law.unlockInstitutionValue", { institution: entityText(entry.institution) }))}</li>`;
   if (entry.kind === "enactment") return `<li class="law-effect-neutral">${escapeHtml(renderTextSpec(entry.label))}</li>`;
   const modifier = entry.modifier || entry;
-  const label = entityText(modifier);
-  const value = renderTextSpec({ message: modifier?.loc?.value, fallback: modifier?.value_raw || "" });
+  const label = modifierNameLabel(modifier);
+  const value = modifierValueLabel(modifier);
   return `<li class="law-effect-neutral"><span>${escapeHtml(label)}</span>${value ? ` <strong class="law-effect-value ${lawEffectClassName(modifier)}">${escapeHtml(value)}</strong>` : ""}</li>`;
 }
 
@@ -865,7 +865,7 @@ function renderCompanyDetail(company) {
         <h3>${t("board.company.base", "基础")}</h3>
         <dl class="field-grid">
           ${field(t("board.company.type", "类型"), tagPill(companyKindText(company), companyKindKey(company) === "historical" ? "tag-special" : "tag-type"))}
-          ${field(t("board.company.category", "控股类别"), tagPill(entityText(company, "category") || company.category, "tag-company-ownership", company.category, `company-ownership-category:${company.category || ""}`))}
+          ${field(t("board.company.category", "控股类别"), companyCategoryLabel(company) ? tagPill(companyCategoryLabel(company), "tag-company-ownership", company.category, `company-ownership-category:${company.category}`) : "")}
           ${field(t("board.company.dlc", "资料片"), companyDlcIconPill(company) || tagPill(companyDlcLabel(company), "tag-dlc", companyDlcKey(company)))}
           ${field(t("board.company.prestige", "名贵商品状态"), tagPill(companyPrestigeLabel(company), "tag-good"))}
           ${field(t("board.company.relatedCultures", "相关文化"), cultureLinks(company.referenced_cultures))}

@@ -716,7 +716,36 @@ function technologyRefNames(items) {
 }
 
 function modifierSummaryLabel(modifier) {
-  return renderTextSpec({ message: modifier?.loc?.summary, fallback: modifier?.key || "" });
+  const label = modifierNameLabel(modifier);
+  const value = modifierValueLabel(modifier);
+  return [label, value].filter(Boolean).join(" ");
+}
+
+function modifierNameLabel(modifier) {
+  const label = cleanGameLocalizationText(entityText(modifier))
+    || humanizeGameLocalizationKey(modifier?.key || "", false);
+  return label ? `${label.charAt(0).toLocaleUpperCase()}${label.slice(1)}` : "";
+}
+
+function modifierValueLabel(modifier) {
+  const rawValue = modifier?.value;
+  const numericValue = rawValue === null || rawValue === undefined || rawValue === "" ? NaN : Number(rawValue);
+  if (!Number.isFinite(numericValue)) {
+    return modifier?.value_raw === "yes" ? "" : cleanGameLocalizationText(modifier?.value_raw || "");
+  }
+  const percentage = isPercentageModifierKey(modifier?.key || "");
+  const displayedValue = percentage ? numericValue * 100 : numericValue;
+  const sign = displayedValue > 0 ? "+" : "";
+  return `${sign}${localizedNumber(displayedValue)}${percentage ? "%" : ""}`;
+}
+
+function isPercentageModifierKey(key) {
+  return key === "state_market_access_price_impact"
+    || key.endsWith("_mult")
+    || key.includes("_throughput_add")
+    || key.includes("_efficiency_add")
+    || key.includes("_speed_add")
+    || key.includes("_rate_add");
 }
 
 function interestGroupFlavorList(groups) {
@@ -943,7 +972,48 @@ function cleanIdeologyDescription(value) {
 }
 
 function cleanDescriptionText(value) {
-  return String(value || "").replace(/!+$/, "").trim();
+  return cleanGameLocalizationText(value);
+}
+
+function cleanGameLocalizationText(value) {
+  return String(value || "")
+    .replace(/\\_/g, "_")
+    .replace(/\[Concept\(\s*'([^']+)'\s*,\s*'([^']+)'\s*\)\]/gi, (_, conceptKey, displayKey) => (
+      gameLocalizationReferenceLabel(displayKey.replace(/^\$|\$$/g, "") || conceptKey)
+    ))
+    .replace(/\[Nbsp\]/gi, " ")
+    .replace(/\[(concept_[A-Za-z0-9_]+)\]/gi, (_, key) => gameLocalizationReferenceLabel(key))
+    .replace(/\$([A-Za-z0-9_:.]+)(?:\|[^$]+)?\$/g, (_, key) => gameLocalizationReferenceLabel(key))
+    .replace(/@[A-Za-z0-9_]+!/g, "")
+    .replace(/#!/g, "")
+    .replace(/#[A-Za-z0-9_]+\s*/g, "")
+    .replace(/#$/g, "")
+    .replace(/!(?=\p{L})/gu, "")
+    .replace(/!+$/, "")
+    .replace(/\s+([,.;:!?])/g, "$1")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function gameLocalizationReferenceLabel(key) {
+  const normalizedKey = String(key || "").replace(/^\$|\$$/g, "");
+  const entity = buildingByKey.get(normalizedKey)
+    || goodsByKey.get(normalizedKey)
+    || byInterestGroup.get(normalizedKey)
+    || ideologyByKey.get(normalizedKey)
+    || lawByKey.get(normalizedKey)
+    || technologyByKey.get(normalizedKey);
+  if (entity) return entityText(entity);
+  if (normalizedKey.startsWith("concept_")) return humanizeGameLocalizationKey(normalizedKey.slice("concept_".length), false);
+  if (normalizedKey.startsWith("ship_group_")) return humanizeGameLocalizationKey(normalizedKey.slice("ship_group_".length), true);
+  if (normalizedKey.startsWith("ig_variant_")) return humanizeGameLocalizationKey(normalizedKey.slice("ig_variant_".length), true);
+  return humanizeGameLocalizationKey(normalizedKey, true);
+}
+
+function humanizeGameLocalizationKey(key, titleCase) {
+  const words = String(key || "").replace(/[_:.]+/g, " ").trim();
+  if (!titleCase) return words.toLocaleLowerCase();
+  return words.replace(/\b\p{L}/gu, (letter) => letter.toLocaleUpperCase());
 }
 
 function ideologyInterestGroupRefs(ideology) {
@@ -1588,13 +1658,19 @@ function companyPrestigeLabel(company) {
 }
 
 function companyTagPills(company) {
+  const categoryLabel = companyCategoryLabel(company);
   return [
     victorianCenturyBadge(company),
     limitedRefPills(company.referenced_strategic_regions, "tag-region", 4),
     limitedRefPills(company.referenced_geographic_regions, "tag-region", 3),
-    tagPill(entityText(company, "category") || company.category, "tag-company-ownership", company.category, `company-ownership-category:${company.category || ""}`),
+    categoryLabel ? tagPill(categoryLabel, "tag-company-ownership", company.category, `company-ownership-category:${company.category}`) : "",
     companyKindKey(company) === "easter_egg" ? tagPill(companyKindText(company), "tag-special") : "",
   ].filter(Boolean).join("");
+}
+
+function companyCategoryLabel(company) {
+  if (!company?.category) return "";
+  return entityText(company, "category", company.category) || company.category;
 }
 
 function companyMetaLine(company) {

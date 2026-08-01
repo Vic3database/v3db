@@ -13,8 +13,8 @@ const routes = [
   { board: "country", route: "country/PRU", list: "[data-country]" },
   { board: "culture", route: "culture/north_german", list: "[data-culture]" },
   { board: "region", route: "state-region/STATE_BRANDENBURG", list: "[data-state-region]" },
-  { board: "company", route: "company/company_a_markwald_and_company", list: "[data-company]" },
-  { board: "ideology", route: "ideology/ideology_abolitionist", list: "[data-ideology]" },
+  { board: "company", route: "company/company_aker_mek", list: "[data-company]" },
+  { board: "ideology", route: "ideology/ideology_ibadi_imamate", list: "[data-ideology]" },
   { board: "law", route: "law/law_monarchy", list: "[data-law]" },
   { board: "technology", route: "technology/academia", list: "[data-technology-key]" },
   { board: "achievement", route: "achievement/achievement_viva_la_confederacion", list: "[data-achievement-key]" },
@@ -29,6 +29,7 @@ const browser = await chromium.launch({ headless: true, ...(chromePath ? { execu
 
 try {
   await verifyLocaleBoundaries();
+  await verifyEnglishStructuredDetails();
   await verifyEnglishSharedSurfaces();
   const screenshots = await captureBoardScreenshots();
   const detailAudit = await auditAllEnglishDetails();
@@ -43,6 +44,92 @@ try {
   }));
 } finally {
   await browser.close();
+}
+
+async function verifyEnglishStructuredDetails() {
+  const page = await newPage(viewports[0]);
+  await page.addInitScript(() => localStorage.clear());
+  for (const viewport of viewports) {
+    await page.setViewportSize({ width: viewport.width, height: viewport.height });
+
+    await page.goto(urlFor("law/law_monarchy", "en"), { waitUntil: "networkidle", timeout: 45000 });
+    await waitForEnglishBoardDetail(page, "law");
+    const lawEffects = await page.locator(".detail > .law-effect-list > li:not(.law-effect-section-label)").evaluateAll((nodes) => (
+      nodes.map((node) => ({
+        label: node.querySelector("span")?.textContent?.trim() || "",
+        value: node.querySelector("strong")?.textContent?.trim() || "",
+        text: node.textContent?.trim() || "",
+      }))
+    ));
+    assert.deepEqual(
+      lawEffects.map((item) => item.value),
+      ["+20", "+10%", "+25%", "+200"],
+      `English law effects must expose structural values at ${viewport.width}px`,
+    );
+    assert.ok(lawEffects.every((item) => item.label && item.label !== item.value), `English law effect labels must not repeat as values at ${viewport.width}px`);
+    assertNoGameMarkup(lawEffects.map((item) => item.text).join("\n"), `English law effects at ${viewport.width}px`);
+
+    await page.goto(urlFor("ideology/ideology_ibadi_imamate", "en"), { waitUntil: "networkidle", timeout: 45000 });
+    await waitForEnglishBoardDetail(page, "ideology");
+    const ideologyDescription = (await page.locator(".vic3-ideology-desc").innerText()).trim();
+    assert.equal(
+      ideologyDescription,
+      "This group supports the leadership of an Imam, and promotes the political supremacy of the Imamate and an ideal political-religious order.",
+      `English ideology description must remove game formatting at ${viewport.width}px`,
+    );
+    assertNoGameMarkup(ideologyDescription, `English ideology description at ${viewport.width}px`);
+
+    await page.goto(urlFor("ideology/ideology_ibadi_imamate", "zh-Hans"), { waitUntil: "networkidle", timeout: 45000 });
+    await page.waitForFunction(() => (
+      document.documentElement.lang === "zh-Hans"
+        && document.body.dataset.view === "ideology"
+        && Boolean(document.querySelector(".vic3-ideology-desc"))
+    ), { timeout: 20000 });
+    assert.equal(
+      (await page.locator(".vic3-ideology-desc").innerText()).trim(),
+      "这个集团支持伊玛目的领导，并主张伊玛目政权在政治上至高无上的地位，以及一种理想的政治‑宗教秩序。",
+      `Chinese ideology description must remove residual game formatting at ${viewport.width}px`,
+    );
+
+    await page.goto(urlFor("company/company_aker_mek", "en"), { waitUntil: "networkidle", timeout: 45000 });
+    await waitForEnglishBoardDetail(page, "company");
+    const companyDetail = await page.evaluate(() => {
+      const fieldValue = (label) => {
+        const term = [...document.querySelectorAll(".detail dt")].find((node) => node.textContent?.trim() === label);
+        return term?.nextElementSibling?.textContent?.trim() || "";
+      };
+      return {
+        name: document.querySelector(".company-detail-base h2, .detail-title h2")?.textContent?.trim() || "",
+        category: fieldValue("Ownership category"),
+        listTags: [...document.querySelectorAll('[data-company="company_aker_mek"] .tag-pill')].map((node) => node.textContent?.trim() || ""),
+        prosperity: [...document.querySelectorAll(".tag-effect")].map((node) => node.textContent?.trim() || ""),
+        prosperityOverflow: [...document.querySelectorAll(".tag-effect")].some((node) => {
+          const detailRect = document.querySelector(".detail")?.getBoundingClientRect();
+          const nodeRect = node.getBoundingClientRect();
+          return Boolean(detailRect && (nodeRect.right > detailRect.right + 1 || node.scrollWidth > node.clientWidth + 1));
+        }),
+      };
+    });
+    assert.equal(companyDetail.category, "None", `Company without an ownership category must not repeat its name at ${viewport.width}px`);
+    assert.notEqual(companyDetail.category, companyDetail.name, `Company ownership category must differ from the company name at ${viewport.width}px`);
+    assert.equal(companyDetail.listTags.includes(companyDetail.name), false, `Company list tags must not repeat the company name at ${viewport.width}px`);
+    assert.deepEqual(
+      companyDetail.prosperity.map((item) => item.match(/[+-][\d.,]+%?$/)?.[0] || ""),
+      ["+15%", "+5%"],
+      `English company prosperity effects must expose structural values at ${viewport.width}px`,
+    );
+    assertNoGameMarkup(companyDetail.prosperity.join("\n"), `English company prosperity effects at ${viewport.width}px`);
+    assert.equal(companyDetail.prosperityOverflow, false, `English company prosperity effects must remain readable at ${viewport.width}px`);
+  }
+  await page.close();
+}
+
+async function waitForEnglishBoardDetail(page, view) {
+  await page.waitForFunction((expectedView) => (
+    document.documentElement.lang === "en"
+      && document.body.dataset.view === expectedView
+      && Boolean(document.querySelector(".detail h2"))
+  ), view, { timeout: 20000 });
 }
 
 async function verifyLocaleBoundaries() {
@@ -276,6 +363,7 @@ async function auditAllEnglishDetails() {
     ];
     return sets.map(([kind, items, renderDetail, keyOf]) => {
       const findings = [];
+      const markupFindings = [];
       for (const item of items) {
         renderDetail(item);
         document.querySelectorAll(".detail details").forEach((node) => { node.open = true; });
@@ -284,18 +372,37 @@ async function auditAllEnglishDetails() {
           .map((line) => line.trim())
           .filter((line) => /[\u3400-\u9fff\uf900-\ufaff]/.test(line)))];
         if (lines.length) findings.push({ key: keyOf(item), samples: lines.slice(0, 8) });
-        if (findings.length >= 8) break;
+        const markupSelector = kind === "law"
+          ? ".law-effect-list"
+          : kind === "ideology"
+            ? ".vic3-ideology-desc"
+            : kind === "company"
+              ? ".tag-effect"
+              : "";
+        const markupSamples = markupSelector
+          ? [...els.detail.querySelectorAll(markupSelector)]
+            .map((node) => node.textContent?.trim() || "")
+            .filter((text) => /#!|#(?:lore|italic)\b|\[(?:concept_[A-Za-z0-9_]+|Nbsp)\]|\$[A-Za-z0-9_:.]+\$|@[A-Za-z0-9_]+!/.test(text))
+            .slice(0, 8)
+          : [];
+        if (markupSamples.length) markupFindings.push({ key: keyOf(item), samples: markupSamples });
+        if (findings.length >= 8 && markupFindings.length >= 8) break;
       }
-      return { kind, count: items.length, findings };
+      return { kind, count: items.length, findings, markupFindings };
     });
   });
   await page.close();
   const failures = audit.filter((entry) => entry.findings.length);
+  const markupFailures = audit.filter((entry) => entry.markupFindings.length);
   const emptySets = audit.filter((entry) => entry.count === 0);
   assert.ok(emptySets.length === 0, `English detail audit did not load: ${emptySets.map((entry) => entry.kind).join(", ")}`);
   assert.ok(
     failures.length === 0,
     `English detail audit contains Chinese text: ${failures.map((entry) => `${entry.kind} ${JSON.stringify(entry.findings)}`).join(" | ")}`,
+  );
+  assert.ok(
+    markupFailures.length === 0,
+    `English detail audit contains raw game localization markup: ${markupFailures.map((entry) => `${entry.kind} ${JSON.stringify(entry.markupFindings)}`).join(" | ")}`,
   );
   return Object.fromEntries(audit.map((entry) => [entry.kind, entry.count]));
 }
@@ -324,4 +431,12 @@ function assertNoHanText(text, label) {
     .map((line) => line.trim())
     .filter((line) => /[\u3400-\u9fff\uf900-\ufaff]/.test(line)))];
   assert.ok(lines.length === 0, `${label} contains Chinese text: ${lines.slice(0, 8).join(" | ")}`);
+}
+
+function assertNoGameMarkup(text, label) {
+  assert.doesNotMatch(
+    String(text || ""),
+    /#!|#(?:lore|italic)\b|\[(?:concept_[A-Za-z0-9_]+|Nbsp)\]|\$[A-Za-z0-9_:.]+\$|@[A-Za-z0-9_]+!/,
+    `${label} contains raw game localization markup`,
+  );
 }

@@ -757,6 +757,8 @@ body.results-collapsed .concept-tooltip {
   color: #44595d;
   border-color: rgba(68, 89, 93, 0.24);
   background: rgba(68, 89, 93, 0.08);
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .pill.tag-ig-trait-1 {

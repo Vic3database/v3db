@@ -62,14 +62,43 @@ try {
   await page.locator('[data-resource-filter="building_coal_mine"]').click();
   await page.waitForFunction(() => document.querySelector("#mapResourceContext")?.textContent?.trim(), { timeout: 10000 });
   assertEnglishHasNoHanText(await page.locator("body").innerText(), "region selected resource");
+
+  await page.goto(`${server.url}index.html?version=history-fixture&lang=en#/law/law_monarchy`, { waitUntil: "networkidle", timeout: 45000 });
+  await waitForEnglishDetail(page, "law");
+  const lawValues = await page.locator(".detail > .law-effect-list > li:not(.law-effect-section-label) strong").allInnerTexts();
+  assert.deepEqual(lawValues.map((value) => value.trim()), ["+20", "+10%", "+25%", "+200"], "history law effects must expose structural values");
+  assertEnglishHasNoGameMarkup(await page.locator(".detail > .law-effect-list").innerText(), "law effects");
+
+  await page.goto(`${server.url}index.html?version=history-fixture&lang=en#/ideology/ideology_ibadi_imamate`, { waitUntil: "networkidle", timeout: 45000 });
+  await waitForEnglishDetail(page, "ideology");
+  assertEnglishHasNoGameMarkup(await page.locator(".vic3-ideology-desc").innerText(), "ideology description");
+
+  await page.goto(`${server.url}index.html?version=history-fixture&lang=en#/company/company_aker_mek`, { waitUntil: "networkidle", timeout: 45000 });
+  await waitForEnglishDetail(page, "company");
+  const ownershipCategory = await page.evaluate(() => {
+    const term = [...document.querySelectorAll(".detail dt")].find((node) => node.textContent?.trim() === "Ownership category");
+    return term?.nextElementSibling?.textContent?.trim() || "";
+  });
+  assert.equal(ownershipCategory, "None", "history company without an ownership category must not repeat its name");
+  const prosperityText = await page.locator(".tag-effect").allInnerTexts();
+  assert.deepEqual(prosperityText.map((value) => value.match(/[+-][\d.,]+%?$/)?.[0] || ""), ["+15%", "+5%"], "history company prosperity effects must expose structural values");
+  assertEnglishHasNoGameMarkup(prosperityText.join("\n"), "company prosperity effects");
   assert.deepEqual(failedScriptUrls, [], `fixture failed to load scripts: ${failedScriptUrls.join(", ")}`);
   assert.deepEqual(runtimeErrors, [], runtimeErrors.join("\n"));
   await page.close();
-  console.log(JSON.stringify({ multilingual_history_fixture: "ok", version: "history-fixture", locale: "en", routes: ["country", "culture", "region selected resource"] }));
+  console.log(JSON.stringify({ multilingual_history_fixture: "ok", version: "history-fixture", locale: "en", routes: ["country", "culture", "region selected resource", "law", "ideology", "company"] }));
 } finally {
   await browser?.close();
   await new Promise((resolve) => server?.httpServer.close(resolve) || resolve());
   fs.rmSync(fixtureRoot, { recursive: true, force: true });
+}
+
+async function waitForEnglishDetail(page, view) {
+  await page.waitForFunction((expectedView) => (
+    document.documentElement.lang === "en"
+      && document.body.dataset.view === expectedView
+      && Boolean(document.querySelector(".detail h2"))
+  ), view, { timeout: 20000 });
 }
 
 function assertEnglishHasNoHanText(text, board) {
@@ -78,6 +107,14 @@ function assertEnglishHasNoHanText(text, board) {
     .map((line) => line.trim())
     .filter((line) => /[\u3400-\u9fff\uf900-\ufaff]/.test(line)))];
   assert.ok(lines.length === 0, `${board} English history page contains Chinese text: ${lines.slice(0, 8).join(" | ")}`);
+}
+
+function assertEnglishHasNoGameMarkup(text, board) {
+  assert.doesNotMatch(
+    String(text || ""),
+    /#!|#(?:lore|italic)\b|\[(?:concept_[A-Za-z0-9_]+|Nbsp)\]|\$[A-Za-z0-9_:.]+\$|@[A-Za-z0-9_]+!/,
+    `${board} English history page contains raw game localization markup`,
+  );
 }
 
 function createFixtureSite() {
