@@ -53,7 +53,9 @@ if (baselineSource && !fs.existsSync(baselineSource)) {
 fs.mkdirSync(outDir, { recursive: true });
 
 const siteData = loadSiteData(source);
+registerSiteCountryDisplayNames(siteData);
 const baselineData = baselineSource ? loadSiteData(baselineSource) : null;
+if (baselineData) registerSiteCountryDisplayNames(baselineData);
 const data = deriveSiteData(baselineData ? applyVictorianCenturyChangeTags(siteData, baselineData) : siteData);
 
 const wikiData = {
@@ -403,7 +405,7 @@ function stableJson(value) {
 }
 
 function deriveCountryRecord(country) {
-  const countryName = disambiguateCountryName(country.tag, country.name || country.name_zh || country.tag);
+  const displayName = ["BIC", "DEI"].includes(country.tag) ? `country:${country.tag}.displayName` : "";
   const primaryCultureTraits = uniqueByKey(country.primaryCultureTraits || []);
   const primaryCultureTraitGroups = uniqueByKey(country.primaryCultureTraitGroups || []);
   const primaryCultureHomelandStateRegions = uniqueByKey(country.primaryCultureHomelandStateRegions || []);
@@ -419,7 +421,7 @@ function deriveCountryRecord(country) {
   const primaryCultureLanguageGroups = primaryCultureTraitGroups.filter((group) => group.type === "language");
   return {
     ...country,
-    name: countryName,
+    loc: displayName ? { ...country.loc, displayName } : country.loc,
     primaryCultureTraits,
     primaryCultureTraitGroups,
     primaryCultureHomelandStateRegions,
@@ -437,11 +439,22 @@ function deriveCountryRecord(country) {
   };
 }
 
-function disambiguateCountryName(tag, name) {
-  const text = String(name || "");
-  if (tag === "BIC" && /^(东印度|East India)$/.test(text)) return "东印度（英属）";
-  if (tag === "DEI" && /^(东印度|East India)$/.test(text)) return "东印度（荷属）";
-  return text;
+function registerSiteCountryDisplayNames(data) {
+  const messages = data?.databaseMessagesByLocale;
+  if (!messages) return;
+  const values = {
+    "zh-Hans": {
+      "country:BIC.displayName": "东印度（英属）",
+      "country:DEI.displayName": "东印度（荷属）",
+    },
+    en: {
+      "country:BIC.displayName": "East India (British)",
+      "country:DEI.displayName": "East India (Dutch)",
+    },
+  };
+  for (const [locale, entries] of Object.entries(values)) {
+    messages[locale] = { ...(messages[locale] || {}), ...entries };
+  }
 }
 
 function deriveCultureRecords(cultures) {
@@ -658,7 +671,7 @@ function createSearchEntries(data, messagesByLocale) {
   return collections.flatMap(([kind, collection, keyField]) => (data[collection] || []).map((item) => {
     const key = item[keyField] || item.key || item.tag || "";
     const id = item.id || `${kind}:${key}`;
-    const message = item.loc?.name || "";
+    const message = item.loc?.displayName || item.loc?.name || "";
     return {
       kind,
       id,

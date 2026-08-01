@@ -58,7 +58,7 @@ function warnMissingOnce(key) {
   console.warn(`Missing localization message: ${key}`);
 }
 
-function translateMessage(messageId, fallbackKey = "") {
+function translateMessage(messageId, fallbackKey) {
   if (!messageId) return fallbackKey;
   const value = localeRuntime.messages?.[messageId]
     ?? localeRuntime.dataMessages?.[localeRuntime.current]?.[messageId]
@@ -66,13 +66,13 @@ function translateMessage(messageId, fallbackKey = "") {
     ?? localeRuntime.dataMessages?.en?.[messageId];
   if (value) return value;
   warnMissingOnce(`${localeRuntime.current}:${messageId}`);
-  return fallbackKey || messageId;
+  return fallbackKey === undefined ? messageId : fallbackKey;
 }
 
 function renderTextSpec(spec) {
   if (spec == null) return "";
   if (typeof spec === "string" || typeof spec === "number") return String(spec);
-  if (spec.message) return translateMessage(spec.message, spec.fallback || spec.message);
+  if (spec.message) return translateMessage(spec.message, Object.hasOwn(spec, "fallback") ? spec.fallback : spec.message);
   if (spec.template) return t(spec.template, spec.args || {});
   return "";
 }
@@ -88,7 +88,10 @@ function tc(key, count, args = {}) {
 }
 
 function entityText(entity, field = "name", fallbackKey = entity?.key || entity?.tag || "") {
-  return translateMessage(entity?.loc?.[field], fallbackKey);
+  const message = field === "name" && entity?.loc?.displayName
+    ? entity.loc.displayName
+    : entity?.loc?.[field];
+  return translateMessage(message, fallbackKey);
 }
 
 function stableEntityKey(entity) {

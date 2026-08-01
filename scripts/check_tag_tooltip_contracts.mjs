@@ -126,7 +126,7 @@ for (const functionName of ["groupedTraitPills", "refConceptPill", "traitPill", 
 
 const countryTagPillsSource = functionSource("countryTagPills");
 assert.match(countryTagPillsSource, /`country-type:\$\{countryTypeTagLabel\(country\)\}`/);
-assert.match(countryTagPillsSource, /`country-tier:\$\{country\.tierZh \|\| ""\}`/);
+assert.match(countryTagPillsSource, /`country-tier:\$\{country\.tier \|\| ""\}`/);
 
 const statusPillsSource = functionSource("statusPills");
 for (const semanticKey of [
@@ -249,12 +249,12 @@ assert.match(source, /function\s+buildingChip\s*\([\s\S]*conceptDataAttributes\(
 
 const rootStyleSource = fs.readFileSync(path.join(process.cwd(), "site/styles.css"), "utf8");
 const presentationSource = fs.readFileSync(path.join(process.cwd(), "site/app/presentation.js"), "utf8");
-assert.match(indexSource, /styles\.css\?v=20260725-tooltip-layout3/, "main stylesheet cache version is missing");
-assert.match(indexSource, /app\/runtime\.js\?v=20260725-tooltip-layout1/, "tooltip runtime cache version is missing");
-assert.match(indexSource, /app\/ui\.js\?v=20260725-tooltip-layout3/, "tooltip UI cache version is missing");
-assert.match(indexSource, /app\/tag-tooltip-definitions\.js\?v=20260725-tooltip-layout1/, "tooltip definitions cache version is missing");
-assert.match(indexSource, /app\/components\.js\?v=20260725-tooltip-layout3/, "tooltip component cache version is missing");
-assert.match(rootStyleSource, /styles\/records\.css\?v=20260725-tooltip-layout3/, "tooltip record-style cache version is missing");
+assert.match(indexSource, /styles\.css\?v=[^"']+/, "main stylesheet cache version is missing");
+assert.match(indexSource, /app\/runtime\.js\?v=[^"']+/, "tooltip runtime cache version is missing");
+assert.match(indexSource, /app\/ui\.js\?v=[^"']+/, "tooltip UI cache version is missing");
+assert.match(indexSource, /app\/tag-tooltip-definitions\.js\?v=[^"']+/, "tooltip definitions cache version is missing");
+assert.match(indexSource, /app\/components\.js\?v=[^"']+/, "tooltip component cache version is missing");
+assert.match(rootStyleSource, /styles\/records\.css\?v=[^"']+/, "tooltip record-style cache version is missing");
 
 const definitionsScriptOffset = indexSource.indexOf("app/tag-tooltip-definitions.js");
 const componentsScriptOffset = indexSource.indexOf("app/components.js");

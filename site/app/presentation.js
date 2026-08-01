@@ -536,7 +536,7 @@ function renderIdeologyList(filtered) {
   const visible = filtered.slice(0, 220);
   els.countryList.className = "country-list ideology-list";
   if (!visible.length) {
-    els.countryList.innerHTML = `<p class="empty">没有匹配结果。</p>`;
+    els.countryList.innerHTML = `<p class="empty">${t("board.ideology.empty", "没有匹配结果。")}</p>`;
     return;
   }
   const grouped = ideologyTypeOptions.map((type) => ({
@@ -544,18 +544,18 @@ function renderIdeologyList(filtered) {
     items: visible.filter((ideology) => ideologyTypeKey(ideology) === type.key),
   })).filter((type) => type.items.length > 0);
   els.countryList.innerHTML = grouped.map((type) => `
-    <div class="list-section-title">${escapeHtml(type.label)}</div>
+    <div class="list-section-title">${escapeHtml(ideologyTypeLabel(type.key))}</div>
     ${type.items.map((ideology) => `
       <article class="country-row ideology-row selectable-row" data-ideology="${escapeHtml(ideology.key)}" aria-current="${ideology.key === state.selectedIdeology && state.detailKind === "ideology"}" tabindex="0">
         <span class="country-heading ideology-row-heading">
           ${ideologyIconHtml(ideology, "ideology-icon ideology-row-icon")}
           <span class="ideology-row-title">
-            ${conceptTag(ideology.key, "ideology", ideology.key, ideology.name_zh)}
-            <span class="name">${escapeHtml(ideology.name_zh || ideology.key)}</span>
+            ${conceptTag(ideology.key, "ideology", ideology.key, entityText(ideology))}
+            <span class="name">${escapeHtml(entityText(ideology))}</span>
           </span>
           ${rowDetailButton("data-ideology-detail", ideology.key)}
         </span>
-        <span class="minor country-meta">${escapeHtml(cleanIdeologyDescription(ideology.desc_zh) || "无描述")}</span>
+        <span class="minor country-meta">${escapeHtml(cleanIdeologyDescription(entityText(ideology, "description")) || t("ui.noDescription", "无描述"))}</span>
         <span class="pill-line country-tags">${victorianCenturyBadge(ideology)}</span>
         ${ideologyLawGroupPreviewHtml(ideology)}
       </article>
@@ -605,7 +605,7 @@ function renderLawList(filtered) {
   const categories = new Map();
   for (const law of filtered) {
     const groupKey = law.group_key || "uncategorized";
-    const group = lawGroupByKey.get(groupKey) || { key: groupKey, name_zh: law.group_name_zh || groupKey, category: "uncategorized" };
+    const group = lawGroupByKey.get(groupKey) || { key: groupKey, loc: { name: law.loc?.groupName }, category: "uncategorized" };
     const categoryKey = group.category || "uncategorized";
     if (!categories.has(categoryKey)) categories.set(categoryKey, { key: categoryKey, groups: new Map() });
     const groups = categories.get(categoryKey).groups;
@@ -613,10 +613,10 @@ function renderLawList(filtered) {
     groups.get(groupKey).laws.push(law);
   }
   const sections = [...categories.values()].sort((a, b) => lawGroupCategoryOrder(a.key) - lawGroupCategoryOrder(b.key)
-    || lawGroupCategoryLabel(a.key).localeCompare(lawGroupCategoryLabel(b.key), "zh-Hans-CN"));
+    || localizedCompare(lawGroupCategoryLabel(a.key), lawGroupCategoryLabel(b.key)));
   els.countryList.className = "country-list law-list";
   if (!sections.length) {
-    els.countryList.innerHTML = `<p class="empty">没有匹配结果。</p>`;
+    els.countryList.innerHTML = `<p class="empty">${t("board.law.empty", "没有匹配结果。")}</p>`;
     return;
   }
   els.countryList.innerHTML = sections.map((category) => `
@@ -624,7 +624,7 @@ function renderLawList(filtered) {
       <summary class="law-category-title">${escapeHtml(lawGroupCategoryLabel(category.key))}</summary>
       ${[...category.groups.values()].sort(sortLawGroup).map((group) => `
         <section class="law-group-section">
-          <h3 class="list-section-title">${escapeHtml(group.name_zh)}</h3>
+          <h3 class="list-section-title">${escapeHtml(entityText(group))}</h3>
           ${group.laws.sort(sortLaws).map((law) => `
       <article class="country-row law-row selectable-row" data-law="${escapeHtml(law.key)}" aria-current="${law.key === state.selectedLaw && state.detailKind === "law"}" tabindex="0">
           <span class="country-heading law-row-heading">
@@ -677,8 +677,8 @@ function openLawDetail(lawKey) {
 
 function lawProgressivenessLabel(value) {
   const numeric = Number(value);
-  if (!Number.isFinite(numeric)) return "进步度：无";
-  return `进步度：${numeric > 0 ? "+" : ""}${numeric}`;
+  if (!Number.isFinite(numeric)) return t("ui.none", "无");
+  return `${numeric > 0 ? "+" : ""}${localizedNumber(numeric)}`;
 }
 
 function globalSearchDisplayTitle(result, needle) {
@@ -741,19 +741,14 @@ function bindLawGroupFilterTokens() {
 
 function lawDisplayName(law) {
   if (!law) return "";
-  const name = law.name_zh || law.key || "";
+  const name = entityText(law);
   const parent = law.parent ? lawByKey.get(law.parent) : null;
-  const parentName = parent?.name_zh || law.parent || "";
-  return parentName ? `${name}（${parentName}）` : name;
+  const parentName = parent ? entityText(parent) : law.parent || "";
+  return parentName ? t("board.law.amendmentDisplayName", { name, parent: parentName }) : name;
 }
 
 function lawGroupCategoryLabel(category) {
-  return {
-    power_structure: "权力结构",
-    economy: "经济",
-    human_rights: "人权",
-    uncategorized: "未分类",
-  }[category] || category || "未分类";
+  return t(`enum.lawGroupCategory.${category || "uncategorized"}`, category || t("enum.lawGroupCategory.uncategorized", "未分类"));
 }
 
 function lawGroupCategoryOrder(category) {
@@ -765,21 +760,21 @@ function lawEffectListHtml(law) {
   const institutionModifiers = (law.institution_modifiers || []).map((modifier) => ({ kind: "modifier", modifier }));
   const enactmentEffects = (law.enactment_effects || []).map((label) => ({ kind: "enactment", label }));
   const hasInstitutionEffects = Boolean(law.institution) || institutionModifiers.length > 0;
-  if (!modifiers.length && !hasInstitutionEffects && !enactmentEffects.length) return `<p class="empty compact">暂无可直接展示的效果。</p>`;
+  if (!modifiers.length && !hasInstitutionEffects && !enactmentEffects.length) return `<p class="empty compact">${t("board.law.noEffects", "暂无可直接展示的效果。")}</p>`;
   return `<ul class="law-effect-list">
     ${modifiers.map(lawEffectItemHtml).join("")}
     ${law.institution ? lawEffectItemHtml({ kind: "institution", institution: law.institution }) : ""}
-    ${institutionModifiers.length ? `<li class="law-effect-section-label">机构效果(每级):</li>${institutionModifiers.map(lawEffectItemHtml).join("")}` : ""}
+    ${institutionModifiers.length ? `<li class="law-effect-section-label">${t("board.law.institutionEffectPerLevel", "机构效果（每级）：")}</li>${institutionModifiers.map(lawEffectItemHtml).join("")}` : ""}
     ${enactmentEffects.map(lawEffectItemHtml).join("")}
   </ul>`;
 }
 
 function lawEffectItemHtml(entry) {
-  if (entry.kind === "institution") return `<li class="law-effect-neutral">解锁${escapeHtml(entry.institution.name_zh || entry.institution.key)}机构</li>`;
-  if (entry.kind === "enactment") return `<li class="law-effect-neutral">${escapeHtml(entry.label)}</li>`;
+  if (entry.kind === "institution") return `<li class="law-effect-neutral">${escapeHtml(t("board.law.unlockInstitutionValue", { institution: entityText(entry.institution) }))}</li>`;
+  if (entry.kind === "enactment") return `<li class="law-effect-neutral">${escapeHtml(renderTextSpec(entry.label))}</li>`;
   const modifier = entry.modifier || entry;
-  const label = modifier?.name_zh || modifier?.key || "";
-  const value = modifier?.value_zh || "";
+  const label = entityText(modifier);
+  const value = renderTextSpec({ message: modifier?.loc?.value, fallback: modifier?.value_raw || "" });
   return `<li class="law-effect-neutral"><span>${escapeHtml(label)}</span>${value ? ` <strong class="law-effect-value ${lawEffectClassName(modifier)}">${escapeHtml(value)}</strong>` : ""}</li>`;
 }
 
@@ -793,19 +788,20 @@ function lawEffectClassName(modifier) {
 function lawAmendmentDetailsHtml(amendments) {
   if (!(amendments || []).length) return "";
   return `
-    <h3>相关修正案</h3>
+    <h3>${t("board.law.amendments", "相关修正案")}</h3>
     <div class="law-amendment-list">
       ${amendments.map((amendment) => `
         <details class="law-amendment-card">
-          <summary>${escapeHtml(amendment.name_zh || amendment.key)}</summary>
-          ${amendment.desc_zh ? `<p>${escapeHtml(cleanDescriptionText(amendment.desc_zh))}</p>` : ""}
+          <summary>${escapeHtml(entityText(amendment))}</summary>
+          ${entityText(amendment, "description", "") ? `<p>${escapeHtml(cleanDescriptionText(entityText(amendment, "description", "")))}</p>` : ""}
           <dl class="field-grid">
-            ${field("上位法", lawPill(lawByKey.get(amendment.parent_law) || { key: amendment.parent_law, name_zh: amendment.parent_law }))}
-            ${field("适用法律", lawPills(amendment.allowed_laws || []))}
+            ${field(t("board.law.parentLaw", "上位法"), lawPill(lawByKey.get(amendment.parent_law) || { key: amendment.parent_law }))}
+            ${field(t("board.law.allowedLaws", "适用法律"), lawPills(amendment.allowed_laws || []))}
           </dl>
-          <h4>效果</h4>
+          <h4>${t("board.law.effects", "效果")}</h4>
           ${lawEffectListHtml({ modifiers: amendment.modifiers || [] })}
-          ${rawDetails("触发条件", amendment.possible?.raw)}
+          ${amendment.possible ? `<p>${escapeHtml(renderTextSpec({ message: amendment.possible.loc?.summary, fallback: t("board.law.scriptCondition", "脚本条件") }))}</p>` : ""}
+          ${rawDetails(t("board.law.triggerCondition", "触发条件"), amendment.possible?.raw)}
         </details>
       `).join("")}
     </div>
@@ -816,8 +812,8 @@ function ideologyLawGroupPreviewHtml(ideology) {
   const groups = ideologyLawGroupRefs(ideology).slice(0, 6);
   if (!groups.length) return "";
   return `
-    <span class="ideology-law-preview" aria-label="相关法律组">
-      ${groups.map((group) => `<span>${escapeHtml(group.name_zh || group.key)}</span>`).join("")}
+    <span class="ideology-law-preview" aria-label="${escapeHtml(t("board.ideology.relatedLawGroups", "相关法律组"))}">
+      ${groups.map((group) => `<span>${escapeHtml(entityText(group))}</span>`).join("")}
     </span>
   `;
 }
@@ -904,13 +900,13 @@ function renderCompanyDetail(company) {
 
 function renderIdeologyDetail(ideology) {
   if (!ideology) {
-    els.detail.innerHTML = `<p class="empty">没有匹配结果。</p>`;
+    els.detail.innerHTML = `<p class="empty">${t("board.ideology.empty", "没有匹配结果。")}</p>`;
     return;
   }
   const typeKey = ideologyTypeKey(ideology);
   const related = relatedIdeologyUsage(ideology);
   const relatedGroups = ideologyInterestGroupRefs(ideology).slice(0, 8);
-  const description = cleanIdeologyDescription(ideology.desc_zh);
+  const description = cleanIdeologyDescription(entityText(ideology, "description", ""));
   els.detail.innerHTML = `
     <article class="vic3-ideology-panel">
       <header class="vic3-ideology-header">
@@ -918,20 +914,20 @@ function renderIdeologyDetail(ideology) {
         <div class="vic3-ideology-title">
           ${ideologyIconHtml(ideology, "ideology-icon ideology-detail-icon")}
           <div>
-            <h2>${escapeHtml(ideology.name_zh || ideology.key)}</h2>
+            <h2>${escapeHtml(entityText(ideology))}</h2>
             <div class="vic3-ideology-meta">
-              <span>${escapeHtml(ideologyTypeLabels.get(typeKey) || "意识形态")}</span>
+              <span>${escapeHtml(ideologyTypeLabel(typeKey))}</span>
               <span>${escapeHtml(ideology.key)}</span>
               ${victorianCenturyBadge(ideology)}
             </div>
           </div>
         </div>
-        <span class="vic3-ideology-kind">意识形态</span>
+        <span class="vic3-ideology-kind">${t("board.ideology.title", "意识形态")}</span>
       </header>
       ${relatedGroups.length ? `
         <div class="vic3-ideology-interest-groups">
           ${relatedGroups.map((group) => `
-            <span class="vic3-ig-icon" title="${escapeHtml(group.name_zh || group.key)}">${interestGroupIconHtml(group)}</span>
+            <span class="vic3-ig-icon" title="${escapeHtml(entityText(group))}">${interestGroupIconHtml(group)}</span>
           `).join("")}
         </div>
       ` : ""}

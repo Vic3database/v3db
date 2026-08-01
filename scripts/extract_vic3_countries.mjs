@@ -1822,8 +1822,8 @@ function lawEnactmentEffects(node, loc) {
     .map((value) => stringifyScriptValue(value))
     .join("\n");
   const labels = [];
-  if (/\bliberate_slaves\s*=\s*yes\b/.test(raw)) labels.push("颁布时解放奴隶");
-  if (/\bliberate_slaves_in_incorporated_states\s*=\s*yes\b/.test(raw)) labels.push("颁布时解放已整合州的奴隶");
+  if (/\bliberate_slaves\s*=\s*yes\b/.test(raw)) labels.push({ template: "enum.lawEnactmentEffect.liberateSlaves" });
+  if (/\bliberate_slaves_in_incorporated_states\s*=\s*yes\b/.test(raw)) labels.push({ template: "enum.lawEnactmentEffect.liberateSlavesInIncorporatedStates" });
   return labels;
 }
 

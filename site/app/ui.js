@@ -688,14 +688,14 @@ function ideologyTooltipRows(target) {
       <div class="ideology-tooltip-identity">
         ${ideologyIconHtml(ideology, "ideology-tooltip-icon")}
         <div>
-          <div class="ideology-tooltip-title">${escapeHtml(ideology.name_zh || ideology.key)}</div>
+          <div class="ideology-tooltip-title">${escapeHtml(entityText(ideology))}</div>
           <div class="ideology-tooltip-id">${escapeHtml(ideology.key)}</div>
         </div>
       </div>
-      <div class="ideology-tooltip-type">${escapeHtml(ideologyTypeLabels.get(ideologyTypeKey(ideology)) || "")}</div>
+      <div class="ideology-tooltip-type">${escapeHtml(ideologyTypeLabel(ideologyTypeKey(ideology)))}</div>
     </div>
     ${ideologyTooltipAttitudeGroups(ideology)}
-    ${ideology.desc_zh ? `<p class="ideology-tooltip-desc">${escapeHtml(cleanIdeologyDescription(ideology.desc_zh))}</p>` : ""}
+    ${entityText(ideology, "description", "") ? `<p class="ideology-tooltip-desc">${escapeHtml(cleanIdeologyDescription(entityText(ideology, "description", "")))}</p>` : ""}
   `;
 }
 
@@ -708,7 +708,7 @@ function ideologyTooltipAttitudeGroups(ideology) {
     });
     return `
       <section class="ideology-tooltip-attitude-group">
-        <h4>对${escapeHtml(group.name)}的态度</h4>
+        <h4>${escapeHtml(t("board.ideology.stanceToward", { group: group.name }))}</h4>
         ${ideologyTooltipAttitudeLines(items)}
       </section>
     `;
@@ -726,7 +726,7 @@ function ideologyTooltipAttitudeLines(stances) {
     const names = grouped.get(stance).map((item) => {
       const law = lawByKey.get(item.law_key) || item;
       return lawDisplayName(law);
-    }).filter(Boolean).join("、");
+    }).filter(Boolean).join(t("ui.listSeparator", "、"));
     return `<div class="ideology-tooltip-attitude-line ${lawStanceClassName(stance)}"><span>${escapeHtml(lawStanceSentencePrefix(stance))}</span> ${escapeHtml(names)}</div>`;
   }).join("");
 }
@@ -864,7 +864,7 @@ function conceptTooltipDescription(target, kind, key, label) {
   const entity = conceptTooltipEntity(kind, key);
   if (kind === "country") return [countryTooltipMainInfo(entity), explicit].filter(Boolean).join("\n");
   if (explicit) return explicit;
-  const description = String(entity?.desc_zh || entity?.modifier_summary_zh || "").replace(/\s+/g, " ").trim();
+  const description = String(entityText(entity, "description", "") || entityText(entity, "modifierSummary", "")).replace(/\s+/g, " ").trim();
   if (description) return description;
   const category = target.dataset.conceptCategory || conceptKindLabel(kind);
   const defaults = TAG_TOOLTIP_DEFAULTS.concept || {};
@@ -934,7 +934,7 @@ function conceptTooltipContextLine(kind, key) {
   if (kind === "ideology") {
     const ideology = ideologyByKey.get(key);
     return [
-      ideologyTypeLabels.get(ideologyTypeKey(ideology || {})),
+      ideologyTypeLabel(ideologyTypeKey(ideology || {})),
       refNames(ideologyInterestGroupRefs(ideology || {})),
       conceptTooltipIdeologyLawStance(ideology),
     ].filter(Boolean).join(" · ");
@@ -948,9 +948,9 @@ function conceptTooltipContextLine(kind, key) {
   }
   if (kind === "building" || kind === "goods") return "";
   if (kind === "cultureTrait" || kind === "cultureTraitGroup") return "文化特质";
-  if (kind === "interestGroup") return "利益集团";
-  if (kind === "interestGroupTrait") return "利益集团特质";
-  if (kind === "law") return "法律";
+  if (kind === "interestGroup") return t("board.ideology.interestGroup", "利益集团");
+  if (kind === "interestGroupTrait") return t("board.ideology.interestGroupTrait", "利益集团特质");
+  if (kind === "law") return t("board.law.title", "法律");
   return "";
 }
 

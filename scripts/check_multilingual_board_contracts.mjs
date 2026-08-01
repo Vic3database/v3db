@@ -64,6 +64,33 @@ const bodies = {
   mapTooltipRowsForView: body("mapTooltipRowsForView", mapApp),
   mapTooltipTraitSummary: body("mapTooltipTraitSummary", mapApp),
   compactResourceLabel: body("compactResourceLabel", mapApp),
+  renderIdeologyList: body("renderIdeologyList"),
+  renderIdeologyDetail: body("renderIdeologyDetail"),
+  ideologyPill: body("ideologyPill"),
+  ideologyLawGroupNames: body("ideologyLawGroupNames"),
+  ideologyLawGroupRefs: body("ideologyLawGroupRefs"),
+  lawStanceGroupsHtml: body("lawStanceGroupsHtml"),
+  lawStanceChip: body("lawStanceChip"),
+  lawAttitudeLinesHtml: body("lawAttitudeLinesHtml"),
+  ideologyUnlockTagsHtml: body("ideologyUnlockTagsHtml"),
+  ideologySourceText: body("ideologySourceText"),
+  ideologyFlavorDefinitionHtml: body("ideologyFlavorDefinitionHtml"),
+  ideologyWeightSectionHtml: body("ideologyWeightSectionHtml"),
+  interestGroupRefPills: body("interestGroupRefPills"),
+  interestGroupRuleSummary: body("interestGroupRuleSummary"),
+  interestGroupRuleDetails: body("interestGroupRuleDetails"),
+  interestGroupEffectRefPills: body("interestGroupEffectRefPills"),
+  renderLawList: body("renderLawList"),
+  renderLawDetail: body("renderLawDetail"),
+  lawDisplayName: body("lawDisplayName"),
+  lawEffectListHtml: body("lawEffectListHtml"),
+  lawEffectItemHtml: body("lawEffectItemHtml"),
+  lawAmendmentDetailsHtml: body("lawAmendmentDetailsHtml"),
+  lawPill: body("lawPill"),
+  sortLaws: body("sortLaws"),
+  sortLawGroup: body("sortLawGroup"),
+  renderLawGroupFilterSections: body("renderLawGroupFilterSections"),
+  renderIdeologyLawGroupFilterSections: body("renderIdeologyLawGroupFilterSections"),
 };
 
 if (boards.includes("country")) {
@@ -107,6 +134,22 @@ if (boards.includes("company")) {
   }
 }
 
+if (boards.includes("ideology")) {
+  for (const name of ["renderIdeologyList", "renderIdeologyDetail", "ideologyPill", "ideologyLawGroupNames", "ideologyLawGroupRefs", "lawStanceGroupsHtml", "lawStanceChip", "lawAttitudeLinesHtml", "ideologyUnlockTagsHtml", "ideologySourceText", "ideologyFlavorDefinitionHtml", "ideologyWeightSectionHtml", "interestGroupRefPills", "interestGroupRuleSummary", "interestGroupRuleDetails", "interestGroupEffectRefPills", "renderIdeologyLawGroupFilterSections"]) {
+    assert.match(bodies[name], /entityText\(|renderTextSpec\(|t\(/, `${name} should use localized accessors`);
+    assert.doesNotMatch(bodies[name], /name_zh|desc_zh|law_group_name_zh|law_name_zh|condition_summary_zh|flavor_definition_note_zh|source_name_zh|modifier_summary_zh|summary_zh|localeCompare\([^]*zh-Hans-CN/);
+  }
+}
+
+if (boards.includes("law")) {
+  for (const name of ["renderLawList", "renderLawDetail", "lawDisplayName", "lawEffectListHtml", "lawEffectItemHtml", "lawAmendmentDetailsHtml", "lawPill", "sortLawGroup", "renderLawGroupFilterSections", "lawStanceChip", "lawAttitudeLinesHtml"]) {
+    assert.match(bodies[name], /entityText\(|renderTextSpec\(|t\(|localizedCompare\(/, `${name} should use localized accessors`);
+    assert.doesNotMatch(bodies[name], /name_zh|desc_zh|law_group_name_zh|law_name_zh|condition_summary_zh|flavor_definition_note_zh|source_name_zh|modifier_summary_zh|summary_zh|localeCompare\([^]*zh-Hans-CN/);
+  }
+  assert.match(bodies.sortLaws, /sort_order/, "law sort should preserve structural sort order");
+  assert.doesNotMatch(bodies.sortLaws, /name_zh|law_name_zh|localeCompare\([^]*zh-Hans-CN/);
+}
+
 assert(uiZh.includes("board.country"), "zh UI locale should define country board labels");
 assert(uiZh.includes("board.culture"), "zh UI locale should define culture board labels");
 assert(uiEn.includes("board.country"), "en UI locale should define country board labels");
@@ -118,6 +161,14 @@ if (boards.includes("region")) {
 if (boards.includes("company")) {
   assert(uiZh.includes("board.company"), "zh UI locale should define company board labels");
   assert(uiEn.includes("board.company"), "en UI locale should define company board labels");
+}
+if (boards.includes("ideology")) {
+  assert(uiZh.includes("board.ideology"), "zh UI locale should define ideology board labels");
+  assert(uiEn.includes("board.ideology"), "en UI locale should define ideology board labels");
+}
+if (boards.includes("law")) {
+  assert(uiZh.includes("board.law"), "zh UI locale should define law board labels");
+  assert(uiEn.includes("board.law"), "en UI locale should define law board labels");
 }
 assert(uiZh.includes("主流文化"), "zh UI locale should keep Chinese country labels");
 assert(uiZh.includes("文化搜索与筛选条件"), "zh UI locale should keep Chinese culture labels");

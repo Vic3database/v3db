@@ -13,6 +13,18 @@ const TAG_TOOLTIP_DEFAULTS = {
   technology: {
     category: "科技",
   },
+  ideology: {
+    categoryKey: "tooltip.category.ideology",
+  },
+  law: {
+    categoryKey: "tooltip.category.law",
+  },
+  interestGroup: {
+    categoryKey: "tooltip.category.interestGroup",
+  },
+  interestGroupTrait: {
+    categoryKey: "tooltip.category.interestGroupTrait",
+  },
   stateTrait: {
     category: "地区特质",
   },

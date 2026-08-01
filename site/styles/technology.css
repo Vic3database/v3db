@@ -157,6 +157,15 @@ body.detail-page[data-view="law"] .detail {
     margin: 10px;
   }
 
+  body.detail-page[data-view="ideology"] .results,
+  body.detail-page[data-view="law"] .results,
+  body.detail-page[data-view="ideology"] .detail,
+  body.detail-page[data-view="law"] .detail {
+    left: auto;
+    right: auto;
+    width: auto;
+  }
+
   .developer-card {
     grid-template-columns: minmax(0, 1fr);
   }
