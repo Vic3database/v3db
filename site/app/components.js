@@ -640,7 +640,7 @@ function stateTraitPill(trait, stateRegion = null) {
 }
 
 function stateTraitTooltipDescription(trait) {
-  const summary = String(entityText(trait, "modifierSummary", "")).split(/;\s*/).map((item) => item.trim()).filter(Boolean);
+  const summary = (trait?.modifiers || []).map(modifierSummaryLabel).filter(Boolean);
   const parts = [];
   if (summary.length) parts.push(summary.join("\n"));
   if ((trait?.required_techs_for_colonization || []).length) parts.push(`${t("board.region.colonizationTechnologies", "殖民所需科技")}：${technologyRefNames(trait.required_techs_for_colonization)}`);

@@ -63,6 +63,26 @@ try {
   await page.waitForFunction(() => document.querySelector("#mapResourceContext")?.textContent?.trim(), { timeout: 10000 });
   assertEnglishHasNoHanText(await page.locator("body").innerText(), "region selected resource");
 
+  for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
+    await page.setViewportSize(viewport);
+    await page.goto(`${server.url}index.html?version=history-fixture&lang=en#/state-region/STATE_BRANDENBURG`, { waitUntil: "networkidle", timeout: 45000 });
+    await waitForEnglishDetail(page, "region");
+    const stateTrait = page.locator('.detail [data-concept-kind="stateTrait"][data-concept-key="state_trait_oder_river"]').first();
+    assert.equal(
+      await stateTrait.getAttribute("data-concept-description"),
+      "Infrastructure +15",
+      `history English state-trait tooltip must expose structural modifier values at ${viewport.width}px`,
+    );
+    await stateTrait.hover();
+    await page.locator("#conceptTooltip:not([hidden])").waitFor({ timeout: 5000 });
+    assert.match(
+      await page.locator("#conceptTooltip").innerText(),
+      /Infrastructure \+15/,
+      `history English state-trait tooltip must render modifier values at ${viewport.width}px`,
+    );
+  }
+  await page.setViewportSize({ width: 1440, height: 900 });
+
   await page.goto(`${server.url}index.html?version=history-fixture&lang=en#/law/law_monarchy`, { waitUntil: "networkidle", timeout: 45000 });
   await waitForEnglishDetail(page, "law");
   const lawValues = await page.locator(".detail > .law-effect-list > li:not(.law-effect-section-label) strong").allInnerTexts();
@@ -86,7 +106,7 @@ try {
   assert.deepEqual(failedScriptUrls, [], `fixture failed to load scripts: ${failedScriptUrls.join(", ")}`);
   assert.deepEqual(runtimeErrors, [], runtimeErrors.join("\n"));
   await page.close();
-  console.log(JSON.stringify({ multilingual_history_fixture: "ok", version: "history-fixture", locale: "en", routes: ["country", "culture", "region selected resource", "law", "ideology", "company"] }));
+  console.log(JSON.stringify({ multilingual_history_fixture: "ok", version: "history-fixture", locale: "en", routes: ["country", "culture", "region selected resource", "state trait", "law", "ideology", "company"] }));
 } finally {
   await browser?.close();
   await new Promise((resolve) => server?.httpServer.close(resolve) || resolve());

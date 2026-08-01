@@ -54,6 +54,8 @@ const bodies = {
   stateTraitTooltipDescription: body("stateTraitTooltipDescription"),
   stateTraitEffectList: body("stateTraitEffectList"),
   modifierSummaryLabel: body("modifierSummaryLabel"),
+  modifierNameLabel: body("modifierNameLabel"),
+  modifierValueLabel: body("modifierValueLabel"),
   dynamicStateNameList: body("dynamicStateNameList"),
   stateRegionNameText: body("stateRegionNameText"),
   strategicRegionName: body("strategicRegionName"),
@@ -132,10 +134,13 @@ if (boards.includes("culture")) {
 }
 
 if (boards.includes("region")) {
-  for (const name of ["renderRegionList", "stateRegionRowHtml", "renderStateRegionDetail", "renderStrategicRegionDetail", "renderGeographicRegionDetail", "companyAssociationLinks", "companiesForStateRegion", "resourcePill", "buildingPill", "stateTraitPill", "stateTraitTooltipDescription", "stateTraitEffectList", "modifierSummaryLabel", "dynamicStateNameList", "stateRegionNameText", "strategicRegionName", "mapSubjectOptions", "collectMapResourceRefs", "mapTooltipHtml", "mapTooltipRowsForView", "mapTooltipTraitSummary", "compactResourceLabel"]) {
+  for (const name of ["renderRegionList", "stateRegionRowHtml", "renderStateRegionDetail", "renderStrategicRegionDetail", "renderGeographicRegionDetail", "companyAssociationLinks", "companiesForStateRegion", "resourcePill", "buildingPill", "stateTraitPill", "stateTraitTooltipDescription", "stateTraitEffectList", "modifierNameLabel", "dynamicStateNameList", "stateRegionNameText", "strategicRegionName", "mapSubjectOptions", "collectMapResourceRefs", "mapTooltipHtml", "mapTooltipRowsForView", "mapTooltipTraitSummary", "compactResourceLabel"]) {
     assert.match(bodies[name], /entityText\(|renderTextSpec\(|t\(/, `${name} should use localized accessors`);
     assert.doesNotMatch(bodies[name], /name_zh|category_zh|display_name_zh|geographic_region_group_zh|modifier_summary_zh|summary_zh|value_zh|localeCompare\([^]*zh-Hans-CN/);
   }
+  assert.match(bodies.modifierSummaryLabel, /modifierNameLabel\(/, "modifier summaries should use localized modifier names");
+  assert.match(bodies.modifierSummaryLabel, /modifierValueLabel\(/, "modifier summaries should use structural modifier values");
+  assert.match(bodies.modifierValueLabel, /localizedNumber\(/, "modifier values should use localized number formatting");
 }
 
 if (boards.includes("company")) {

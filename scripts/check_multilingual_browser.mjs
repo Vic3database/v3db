@@ -52,6 +52,24 @@ async function verifyEnglishStructuredDetails() {
   for (const viewport of viewports) {
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
 
+    await page.goto(urlFor("state-region/STATE_BRANDENBURG", "en"), { waitUntil: "networkidle", timeout: 45000 });
+    await waitForEnglishBoardDetail(page, "region");
+    const stateTrait = page.locator('.detail [data-concept-kind="stateTrait"][data-concept-key="state_trait_oder_river"]').first();
+    const stateTraitEffects = await page.locator('.detail .rule-item:has(.minor:text-is("state_trait_oder_river")) dt:text-is("Effects") + dd .tag-effect, .detail .rule-item:has(.minor:text-is("state_trait_oder_river")) dt:text-is("Effects") + dd .tag-mapi').allInnerTexts();
+    assert.equal(
+      await stateTrait.getAttribute("data-concept-description"),
+      stateTraitEffects.map((item) => item.trim()).join("\n"),
+      `English state-trait tooltip must expose structural modifier values at ${viewport.width}px`,
+    );
+    assert.ok(
+      stateTraitEffects.length > 0 && stateTraitEffects.every((item) => /[+-][\d.,]+%?$/.test(item.trim())),
+      `English state-trait effects must all include values at ${viewport.width}px`,
+    );
+    await stateTrait.hover();
+    await page.locator("#conceptTooltip:not([hidden])").waitFor({ timeout: 5000 });
+    const stateTraitTooltipText = await page.locator("#conceptTooltip").innerText();
+    assert.ok(stateTraitEffects.every((item) => stateTraitTooltipText.includes(item.trim())), `English state-trait tooltip must render every modifier value at ${viewport.width}px`);
+
     await page.goto(urlFor("law/law_monarchy", "en"), { waitUntil: "networkidle", timeout: 45000 });
     await waitForEnglishBoardDetail(page, "law");
     const lawEffects = await page.locator(".detail > .law-effect-list > li:not(.law-effect-section-label)").evaluateAll((nodes) => (
