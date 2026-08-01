@@ -1,5 +1,10 @@
 window.VICDATA_ANNOUNCEMENTS = [
   {
+    "date": "2026-08-01",
+    "title": "更新",
+    "body": "新增了英语选项；调整了地域板块的资源表现。"
+  },
+  {
     "date": "2026-07-30",
     "title": "更新",
     "body": "新增成就板块。"
