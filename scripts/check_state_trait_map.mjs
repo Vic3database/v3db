@@ -30,6 +30,9 @@ assert.ok(/const iconSize = 22;/.test(functionSource(mapSource, "drawStateTraitM
 assert.ok(/for \(const trait of feature\.traits \|\| \[\]\)/.test(functionSource(mapSource, "drawStateTraitMapIcons")), "icon layer should draw every trait without truncation");
 assert.ok(/drawStateTraitMapIcons\(context, copyRange, transform\)/.test(functionSource(mapSource, "paintMapCanvasTarget")), "icon layer should draw after the transformed map layer");
 assert.ok(/mapRuntime\.stateTraitIconImages = new Map\(\)/.test(functionSource(dataSource, "resetMapRuntime")), "dataset resets should clear trait icon images");
+assert.ok(/state\.mapMode === "traitIcons"/.test(functionSource(mapSource, "mapTooltipRowsForView")), "trait icon mode should use a dedicated tooltip branch");
+assert.ok(/stateTraitIconFileName/.test(functionSource(mapSource, "mapTooltipStateTraitHtml")), "trait tooltip should resolve the same icon files as the map");
+assert.ok(/modifier_summary_zh/.test(functionSource(mapSource, "mapTooltipStateTraitHtml")), "trait tooltip should include effects");
 
 console.log(JSON.stringify({ state_trait_map: "ok", unique_traits: uniqueTraits.length }, null, 2));
 

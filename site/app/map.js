@@ -1717,6 +1717,12 @@ function mapTooltipRowsForView(stateRegion, feature, ownerTag = "", terrainKey =
       ["战略区域", refNames(stateRegion.strategic_regions)],
     ]);
   }
+  if (state.mapMode === "traitIcons") {
+    return compactTooltipRows([
+      ["战略区域", refNames(stateRegion.strategic_regions)],
+      ["地区特质", tooltipHtml(mapTooltipStateTraitHtml(feature?.traits || stateRegion.traits || []))],
+    ]);
+  }
   if (state.view === "country" || state.mapMode === "country") {
     return compactTooltipRows([
       ["开局归属", refNames(stateRegion.starting_owners)],
@@ -1778,6 +1784,15 @@ function resourceSummaryText(stateRegion) {
 function mapTooltipTraitSummary(stateRegion) {
   const traits = (stateRegion?.traits || []).map((trait) => trait.name_zh || trait.key).filter(Boolean);
   return summarizeTextItems(traits, 4);
+}
+
+function mapTooltipStateTraitHtml(traits) {
+  return (traits || []).map((trait) => {
+    const fileName = stateTraitIconFileName(trait);
+    const label = trait.name_zh || trait.key;
+    const effect = trait.modifier_summary_zh || "";
+    return `<span class="map-tooltip-trait"><img class="map-tooltip-trait-icon" src="assets/state-traits/${encodeURIComponent(fileName)}" alt=""><span>${escapeHtml(label)}${effect ? `：${escapeHtml(effect)}` : ""}</span></span>`;
+  }).join("");
 }
 
 function compactResourceLabel(item, amount = "") {
