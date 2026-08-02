@@ -7,16 +7,27 @@ const indexSource = readText("site/index.html");
 const runtimeSource = readText("site/app/runtime.js");
 const uiSource = readText("site/app/ui.js");
 const mapSource = readText("site/app/map.js");
+const dataRoot = process.env.VICDATA_DATA_ROOT || root;
+const states = JSON.parse(readText(path.join(dataRoot, "database/vic3_1.13.9/state_regions.json")));
+const assignments = states.flatMap((stateRegion) => stateRegion.traits || []);
+const uniqueTraits = [...new Map(assignments.map((trait) => [trait.key, trait])).values()];
 
 assert.ok(/id="stateTraitMapViewButton"/.test(indexSource), "region filters should expose the state-trait view button");
 assert.ok(/stateTraitMapViewButton: document\.querySelector\("#stateTraitMapViewButton"\)/.test(runtimeSource), "runtime should expose the state-trait button");
 assert.ok(/state\.regionMapView = state\.regionMapView === "traits" \? "default" : "traits"/.test(functionSource(uiSource, "bindEvents")), "trait button should toggle the trait view");
 assert.ok(/state\.regionMapView === "traits"[\s\S]*state\.mapMode = "traitIcons"/.test(functionSource(mapSource, "syncMapModeForView")), "trait view should take precedence over region resource mode");
+assert.equal(uniqueTraits.length, 221, "current main dataset should retain 221 unique state traits");
+assert.equal(states.filter((stateRegion) => (stateRegion.traits || []).length > 0).length, 507, "every trait-bearing region must be considered");
+for (const trait of uniqueTraits) {
+  assert.ok(fs.existsSync(path.join(root, "site/assets/state-traits", stateTraitIconFileName(trait))), `${trait.key} should resolve to a shipped icon`);
+}
+assert.ok(/traits: stateRegion\.traits \|\| \[\]/.test(functionSource(mapSource, "buildTraitIconMapFeatures")), "trait icon features should retain every trait in each region");
+assert.ok(/replace\(\/\\\.dds\$\/i, "\.png"\)/.test(functionSource(mapSource, "stateTraitIconFileName")), "icon names should derive from DDS icon paths");
 
-console.log(JSON.stringify({ state_trait_map: "ok" }, null, 2));
+console.log(JSON.stringify({ state_trait_map: "ok", unique_traits: uniqueTraits.length }, null, 2));
 
-function readText(relative) {
-  return fs.readFileSync(path.join(root, relative), "utf8").replace(/^\uFEFF/, "");
+function readText(filename) {
+  return fs.readFileSync(path.isAbsolute(filename) ? filename : path.join(root, filename), "utf8").replace(/^\uFEFF/, "");
 }
 
 function functionSource(source, name) {
@@ -34,4 +45,11 @@ function functionSource(source, name) {
     }
   }
   return source.slice(start);
+}
+
+function stateTraitIconFileName(trait) {
+  const iconPath = String(trait?.icon || "");
+  return iconPath
+    ? iconPath.split(/[\\/]/).at(-1).replace(/\.dds$/i, ".png")
+    : `${String(trait?.key || "").replace(/^state_trait_/, "")}.png`;
 }

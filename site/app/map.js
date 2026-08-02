@@ -362,6 +362,7 @@ function computeMapStateCenters(indexes, width, height, stateKeysByIndex) {
 function buildMapFeatures() {
   if (state.mapMode === "country") return buildCountryMapFeatures();
   if (state.mapMode === "strategicRegion") return buildStrategicRegionMapFeatures();
+  if (state.mapMode === "traitIcons") return buildTraitIconMapFeatures();
   if (state.mapMode === "terrain") return buildTerrainMapFeatures();
   if (state.mapMode === "company") return buildCompanyMapFeatures();
   if (state.mapMode === "resourceSelection") return buildSelectedResourceMapFeatures();
@@ -369,6 +370,28 @@ function buildMapFeatures() {
   if (state.mapMode === "culture") return buildCultureMapFeatures();
   if (state.mapMode === "trait") return buildTraitMapFeatures();
   return buildResourceMapFeatures();
+}
+
+function stateTraitIconFileName(trait) {
+  const iconPath = String(trait?.icon || "");
+  return iconPath
+    ? iconPath.split(/[\\/]/).at(-1).replace(/\.dds$/i, ".png")
+    : `${String(trait?.key || "").replace(/^state_trait_/, "")}.png`;
+}
+
+function buildTraitIconMapFeatures() {
+  const features = new Map();
+  for (const stateRegion of stateRegions) {
+    const traits = stateRegion.traits || [];
+    const isSea = isSeaStateRegion(stateRegion);
+    features.set(stateRegion.key, {
+      color: mapFeatureColor(stateRegion, isSea ? MAP_SEA_COLOR : "#eee9df"),
+      active: traits.length > 0,
+      value: traits.length,
+      traits: stateRegion.traits || [],
+    });
+  }
+  return features;
 }
 
 function mapFeatureColor(stateRegion, color) {
