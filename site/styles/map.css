@@ -168,6 +168,43 @@
   overflow-wrap: anywhere;
 }
 
+.terrain-map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 10px;
+  padding: 7px 10px;
+  border: 1px solid rgba(200, 164, 91, 0.3);
+  border-radius: 8px;
+  color: #f5efe3;
+  background: rgba(28, 34, 30, 0.86);
+  box-shadow: 0 5px 22px rgba(0, 0, 0, 0.24);
+  font-family: var(--font-ui);
+  font-size: var(--text-xs);
+  line-height: 1;
+  pointer-events: none;
+}
+
+.terrain-map-legend[hidden] {
+  display: none;
+}
+
+.terrain-map-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.terrain-map-legend-swatch {
+  width: 10px;
+  height: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.52);
+  border-radius: 2px;
+  background: var(--terrain-map-color);
+}
+
 .result-head {
   display: flex;
   align-items: center;

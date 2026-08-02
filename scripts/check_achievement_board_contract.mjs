@@ -27,15 +27,15 @@ for (const achievement of achievements) {
 assert.match(index, /data-nav-view="achievement"[^>]*>[\s\S]*?<span>成就<\/span>/, "top navigation must expose achievements");
 assert.match(index, /data-nav-view="achievement"[^>]*>[\s\S]*?trophy\.svg/, "achievement navigation must use the trophy icon");
 assert.ok(
-  /app\/runtime\.js\?v=20260730-achievement-cache1/.test(index),
+  /app\/runtime\.js\?v=20260802-province-terrain1/.test(index),
   "runtime must use the coordinated achievement cache version",
 );
 assert.ok(
-  /app\/data\.js\?v=20260730-achievement-cache1/.test(index),
+  /app\/data\.js\?v=20260802-province-terrain1/.test(index),
   "data must use the coordinated achievement cache version",
 );
 assert.ok(
-  /app\/ui\.js\?v=20260730-achievement-cache1/.test(index),
+  /app\/ui\.js\?v=20260802-province-terrain1/.test(index),
   "ui must use the coordinated achievement cache version",
 );
 assert.ok(

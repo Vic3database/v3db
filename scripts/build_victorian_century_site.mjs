@@ -140,7 +140,7 @@ function standaloneConfigSource() {
     .filter((asset) => asset.webp)
     .map((asset) => `assets/${asset.path}`)
     .sort();
-  return `window.VICTORIAN_CENTURY_SITE_CONFIG = Object.freeze({\n  siteTitle: "Victorian Century Database",\n  dataIndex: "data-index.js",\n  mapData: "map-data.js",\n  dataRoot: ".",\n  webpAssetPaths: ${JSON.stringify(webpAssetPaths)},\n});\n`;
+  return `window.VICTORIAN_CENTURY_SITE_CONFIG = Object.freeze({\n  siteTitle: "Victorian Century Database",\n  dataIndex: "data-index.js",\n  mapData: "map-data.js?v=20260802-province-terrain1",\n  dataRoot: ".",\n  webpAssetPaths: ${JSON.stringify(webpAssetPaths)},\n});\n`;
 }
 
 function runVcAssetSync(explicitPython) {

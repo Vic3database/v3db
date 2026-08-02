@@ -13,6 +13,7 @@ checkRegionRowDetailButtonContracts();
 checkRegionMapListSyncContracts();
 checkRegionMapFocusColorContracts();
 checkRegionMapFocusResetContracts();
+checkTerrainViewContracts();
 checkRegionMapCacheVersionContracts();
 checkPrimaryListEventContracts();
 
@@ -87,9 +88,19 @@ function checkRegionMapFocusResetContracts() {
   assert(/state\.view === "region" \? "重置地域焦点和地图位置" : "重置地图位置"/.test(renderMapControls), "region map reset button should expose its region-specific label");
 }
 
+function checkTerrainViewContracts() {
+  const bindMapEvents = functionSource("bindMapEvents");
+  const syncMapModeForView = functionSource("syncMapModeForView");
+
+  assert(/state\.regionMapView === "terrain"[\s\S]*state\.mapMode = "terrain"/.test(syncMapModeForView), "terrain view should keep its own map mode ahead of resource selection");
+  assert(/state\.mapMode === "terrain" && !terrainLandKeys\.has\(terrainKeyFromPointerEvent\(event\)\)\) return;/.test(bindMapEvents), "terrain view should ignore water clicks and double-clicks");
+  assert(/selectStateRegionFromMap\(stateRegion\.key\)/.test(bindMapEvents), "terrain view should retain single-click state-region selection");
+  assert(/openStateRegionDetail\(stateRegion\.key\)/.test(bindMapEvents), "terrain view should retain double-click state-region detail navigation");
+}
+
 function checkRegionMapCacheVersionContracts() {
-  assert(/app\/ui\.js\?v=20260730-culture-mobile1/.test(indexSource), "region map UI script should use the current release cache version");
-  assert(/app\/map\.js\?v=20260731-map-center-wrap1/.test(indexSource), "region map script should use the current release cache version");
+  assert(/app\/ui\.js\?v=20260802-province-terrain1/.test(indexSource), "region map UI script should use the current release cache version");
+  assert(/app\/map\.js\?v=20260802-province-terrain1/.test(indexSource), "region map script should use the current release cache version");
   assert(/app\/presentation\.js\?v=20260730-culture-mobile2/.test(indexSource), "fast region selection should use the current presentation cache version");
 }
 

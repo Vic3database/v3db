@@ -2254,6 +2254,7 @@ function cultureRelationColor(rank, isSea) {
 function mapModeLabel(mode) {
   if (mode === "country") return "开局归属";
   if (mode === "strategicRegion") return "战略区域";
+  if (mode === "terrain") return "地形视图";
   if (mode === "company") return "公司关联";
   if (mode === "cultureFilter") return "文化筛选";
   if (mode === "resourceSelection") return "资源潜力";

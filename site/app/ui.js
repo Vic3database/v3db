@@ -283,6 +283,11 @@ function bindEvents() {
     state.mapSubject = els.mapSubjectSelect.value;
     render();
   });
+  els.terrainMapViewButton?.addEventListener("click", () => {
+    state.regionMapView = state.regionMapView === "terrain" ? "default" : "terrain";
+    state.mapSubject = "";
+    render();
+  });
   els.mapFitWidthButton?.addEventListener("click", () => {
     if (state.view === "region") {
       resetRegionMapFocus();
@@ -325,6 +330,7 @@ function bindEvents() {
     state.commonLawIdeologyOnly = false;
     state.victorianCenturyChangeKinds.clear();
     state.dimUnfilteredCountries = false;
+    state.regionMapView = "default";
     state.tradition = "";
     state.mapSubject = "";
     state.countryMobileFiltersOpen = false;
@@ -1231,6 +1237,7 @@ async function setView(view) {
 
 function changeBoard(view, detailKind) {
   if (state.view !== view) resetBoardView();
+  if (view !== "region") state.regionMapView = "default";
   state.view = view;
   state.detailKind = detailKind;
 }
@@ -1435,6 +1442,7 @@ function syncVictorianCenturyChangeFilter() {
 function initializeDefaultFilterSectionOpenStates() {
   const defaultOpenFilterIds = new Set([
     "resourceFilters",
+    "terrainMapViewButton",
     "companyKindFilters",
     "companyPrestigeFilters",
     "companyDlcFilters",
