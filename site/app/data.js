@@ -82,6 +82,7 @@ function dataChunksForView(view) {
   if (view === "ideology") return ["ideology", "law", "country"];
   if (view === "law") return ["law", "ideology", "country"];
   if (view === "technology") return ["technology"];
+  if (view === "achievement") return ["achievement"];
   return [];
 }
 
@@ -91,7 +92,7 @@ async function ensureDataChunksForRoute() {
 
 function routeView() {
   const segment = location.hash.replace(/^#\/?/, "").split("/")[0];
-  if (["country", "culture", "region", "company", "ideology", "law", "technology"].includes(segment)) return segment;
+  if (["country", "culture", "region", "company", "ideology", "law", "technology", "achievement"].includes(segment)) return segment;
   if (["news", "changelog"].includes(segment)) return segment;
   if (["state-region", "strategic-region", "geographic-region"].includes(segment)) return "region";
   return "home";
@@ -176,6 +177,7 @@ function applyLoadedDataset(nextData, nextMapData) {
   lawGroups = data.lawGroups || [];
   technologies = data.technologies || [];
   technologyEras = data.technologyEras || [];
+  achievements = data.achievements || [];
   mapData = nextMapData || null;
   siteTitle = versionConfig?.site_title || data.meta?.site_title || data.meta?.dataset_name || "Vicdata";
 
@@ -191,6 +193,7 @@ function applyLoadedDataset(nextData, nextMapData) {
   lawByKey = new Map(laws.map((law) => [law.key, law]));
   lawGroupByKey = new Map(lawGroups.map((group) => [group.key, group]));
   technologyByKey = new Map(technologies.map((technology) => [technology.key, technology]));
+  achievementByKey = new Map(achievements.map((achievement) => [achievement.key, achievement]));
   cultureTraitByKey = new Map(cultureTraits.map((trait) => [trait.key, trait]));
   cultureTraitGroupByKey = new Map(cultureTraitGroups.map((group) => [group.key, group]));
   buildSemanticTagIndexes();
@@ -282,9 +285,15 @@ function resetDatasetState() {
   state.lawGroups.clear();
   state.victorianCenturyOnly = false;
   state.dimUnfilteredCountries = false;
-  state.tradition = "";
-  state.mapSubject = "";
-  state.selectedTag = "";
+  state.regionMapView = "default";
+    state.tradition = "";
+    state.mapSubject = "";
+    state.countryMobileFiltersOpen = false;
+    state.countryMobileMapOpen = true;
+    state.countryMobileFilterCategory = "type";
+    state.countryMobileListScrollTop = 0;
+    state.countryMobileRestoreScrollPending = false;
+    state.selectedTag = "";
   state.selectedCulture = "";
   state.selectedStateRegion = "";
   state.selectedStrategicRegion = "";
@@ -305,10 +314,14 @@ function resetMapRuntime() {
   mapRuntime.loading = false;
   mapRuntime.error = "";
   mapRuntime.sourcePixels = null;
+  mapRuntime.provinceMapImage = null;
+  mapRuntime.provinceSampleContext = null;
   mapRuntime.stateKeysByIndex = [""];
   mapRuntime.ownerKeysByIndex = [""];
+  mapRuntime.terrainKeysByIndex = [""];
   mapRuntime.pixelStateIndexes = null;
   mapRuntime.pixelOwnerIndexes = null;
+  mapRuntime.pixelTerrainIndexes = null;
   mapRuntime.filteredCountryTags = new Set();
   mapRuntime.countrySearchMatchedTags = new Set();
   mapRuntime.layerCache = new Map();

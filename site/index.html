@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Vicdata</title>
-    <link rel="stylesheet" href="styles.css?v=20260729-vc-region-trait-badges2">
+    <link rel="stylesheet" href="styles.css?v=20260802-province-terrain1">
     <link rel="icon" type="image/png" sizes="16x16" href="assets/brand/favicon-16.png?v=20260720-v">
     <link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png?v=20260720-v">
     <link rel="apple-touch-icon" sizes="180x180" href="assets/brand/apple-touch-icon.png">
@@ -22,6 +22,7 @@
           <button class="topbar-nav-item" type="button" data-nav-view="ideology"><img class="lucide-icon" src="assets/lucide/icons/user-star.svg" alt="" aria-hidden="true"><span>意识形态</span></button>
           <button class="topbar-nav-item" type="button" data-nav-view="law"><img class="lucide-icon" src="assets/lucide/icons/scale.svg" alt="" aria-hidden="true"><span>法律</span></button>
           <button class="topbar-nav-item" type="button" data-nav-view="technology"><img class="lucide-icon" src="assets/lucide/icons/lightbulb.svg" alt="" aria-hidden="true"><span>科技</span></button>
+          <button class="topbar-nav-item" type="button" data-nav-view="achievement"><img class="lucide-icon" src="assets/lucide/icons/trophy.svg" alt="" aria-hidden="true"><span>成就</span></button>
         </nav>
       </div>
       <div class="topbar-actions" aria-label="全局控制">
@@ -41,6 +42,7 @@
           <option value="ideology">意识形态</option>
           <option value="law">法律</option>
           <option value="technology">科技</option>
+          <option value="achievement">成就</option>
         </select>
       </div>
     </header>
@@ -51,6 +53,7 @@
           <button id="leftPanelToggle" class="map-tool-button panel-toggle" type="button" aria-label="折叠筛选" title="折叠筛选"><img class="lucide-icon" src="assets/lucide/icons/text-search.svg" alt="" aria-hidden="true"></button>
           <button id="bottomPanelToggle" class="map-tool-button panel-toggle" type="button" aria-label="折叠列表" title="折叠列表"><img class="lucide-icon" src="assets/lucide/icons/layout-list.svg" alt="" aria-hidden="true"></button>
           <button id="mapFitWidthButton" class="map-tool-button" type="button" aria-label="重置地图位置" title="重置地图位置"><img class="lucide-icon" src="assets/lucide/icons/refresh-ccw.svg" alt="" aria-hidden="true"></button>
+          <span id="mapResourceContext" class="map-resource-context" aria-live="polite" hidden></span>
           <label hidden>
             <span>地图模式</span>
             <select id="mapModeSelect">
@@ -68,7 +71,13 @@
           <canvas id="mapCanvas" width="4096" height="1808"></canvas>
           <div id="mapTooltip" class="map-tooltip" hidden></div>
         </div>
+        <div id="terrainMapLegend" class="terrain-map-legend" aria-label="陆地地形图例" hidden></div>
       </section>
+
+      <section id="mobileCountryToolbar" class="mobile-country-toolbar" aria-label="国家窄屏工具栏"></section>
+      <section id="mobileCountryFilterPanel" class="mobile-country-filter-panel" aria-label="国家窄屏筛选"></section>
+      <section id="mobileCultureToolbar" class="mobile-culture-toolbar" aria-label="文化窄屏工具栏"></section>
+      <section id="mobileCultureFilterPanel" class="mobile-culture-filter-panel" aria-label="文化窄屏筛选"></section>
 
       <aside class="filters" aria-label="筛选">
         <div class="panel-head">
@@ -95,6 +104,13 @@
           <summary id="resourceFilterTitle">资源</summary>
           <div id="industryCharterFilters" class="option-list company-only company-option-strip"></div>
           <div id="resourceFilters" class="option-list scroll-list grouped-filter-list"></div>
+        </details>
+
+        <details class="filter-section region-only">
+          <summary>地图</summary>
+          <div class="option-list">
+            <button id="terrainMapViewButton" class="filter-token" type="button" aria-pressed="false">地形视图</button>
+          </div>
         </details>
 
         <details id="victorianCenturyChangeFilterSection" class="filter-section" hidden>
@@ -218,7 +234,7 @@
           <span class="home-guide-arrow" aria-hidden="true">→</span>
         </button>
         <!-- MAIN_SITE_VC_ENTRY_START -->
-        <a id="vcHomeEntry" class="home-mod-database-entry" href="vc/" aria-label="进入 Victorian Century 资料库">
+        <a id="vcHomeEntry" class="home-mod-database-entry" href="vc/index.html" aria-label="进入 Victorian Century 资料库">
           <img class="lucide-icon home-mod-database-icon" src="assets/lucide/icons/library-big.svg" alt="" aria-hidden="true">
           <span class="home-mod-database-copy"><strong>Victorian Century 资料库</strong><small>模组数据与地图</small></span>
           <span class="home-guide-arrow" aria-hidden="true">→</span>
@@ -283,20 +299,21 @@
     </main>
 
     <script src="announcement-data.js?v=20260726-announcements1"></script>
-    <script src="versions.js?v=20260729-vc-entry1"></script>
+    <script src="versions.js?v=20260729-vc-library-navigation1"></script>
     <script src="news-data.js?v=20260718-news3"></script>
     <script src="assets/flags/country-flags.js?v=20260712-all-flags2"></script>
     <script src="assets/victorian-century-flags.js?v=20260729-country-flags1"></script>
-    <script src="app/runtime.js?v=20260729-vc-change-kind-split1"></script>
-    <script src="app/data.js?v=20260729-vc-change-tags1"></script>
-    <script src="app/ui.js?v=20260729-vc-change-kind-split1"></script>
+    <script src="app/runtime.js?v=20260802-province-terrain1"></script>
+    <script src="app/data.js?v=20260802-province-terrain1"></script>
+    <script src="app/ui.js?v=20260802-province-terrain1"></script>
     <script src="app/company-location-rules.js?v=20260718-company-location2"></script>
-    <script src="app/boards.js?v=20260729-vc-tech-layout2"></script>
-    <script src="app/filters.js?v=20260729-vc-change-kind-split1"></script>
-    <script src="app/presentation.js?v=20260729-vc-change-tags1"></script>
-    <script src="app/map.js?v=20260729-vc-change-kind-split1"></script>
+    <script src="app/boards.js?v=20260730-culture-mobile1"></script>
+    <script src="app/filters.js?v=20260730-culture-mobile1"></script>
+    <script src="app/presentation.js?v=20260730-culture-mobile2"></script>
+    <script src="app/map.js?v=20260802-province-terrain1"></script>
     <script src="app/tag-tooltip-definitions.js?v=20260725-tooltip-layout1"></script>
-    <script src="app/components.js?v=20260729-vc-region-trait-badges1"></script>
+    <script src="app/components.js?v=20260802-province-terrain1"></script>
+    <script src="app/achievements.js?v=20260730-achievement-cache1"></script>
     <script src="app/bootstrap.js?v=20260718-file-split1"></script>
   </body>
 </html>

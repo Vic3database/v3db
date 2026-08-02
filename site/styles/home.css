@@ -191,6 +191,10 @@ body[data-view="home"] .filters {
   display: none;
 }
 
+body[data-view="home"] .layout::before {
+  display: none;
+}
+
 .home-left-column {
   display: contents;
 }
@@ -830,7 +834,7 @@ body[data-view="news"] .detail {
   }
 }
 
-@media (max-width: 820px) {
+@media (max-aspect-ratio: 3 / 2) {
   body[data-view="home"] {
     overflow: auto;
   }

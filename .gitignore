@@ -38,6 +38,9 @@ site/server.*.out.log
 site/server.*.err.log
 site/debug-*.png
 site/debug-*.html
+test-fixtures/
+vc-server.err
+vc-server.out
 
 # Local Codex and planning state
 .codex/

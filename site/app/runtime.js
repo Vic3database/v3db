@@ -24,6 +24,7 @@ let laws = [];
 let lawGroups = [];
 let technologies = [];
 let technologyEras = [];
+let achievements = [];
 let mapData = null;
 let siteTitle = "Vicdata";
 
@@ -39,6 +40,7 @@ let ideologyByKey = new Map();
 let lawByKey = new Map();
 let lawGroupByKey = new Map();
 let technologyByKey = new Map();
+let achievementByKey = new Map();
 let stateTraitByKey = new Map();
 let stateTraitRegionsByKey = new Map();
 let buildingByKey = new Map();
@@ -64,6 +66,7 @@ const MAP_MUTED_COLOR = "#e4e8e3";
 const MAP_CULTURE_MATCH_COLOR = "#2f7f64";
 const MAP_LAYER_CACHE_LIMIT = 5;
 const MAP_LAND_ALPHA = 210;
+const MAP_RESOURCE_LAND_ALPHA = 255;
 const MAP_SEA_ALPHA = 0;
 const MAP_MUTED_ALPHA = 150;
 const MAP_LABEL_FONT_FAMILY = "\"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Noto Sans CJK SC\", Arial, sans-serif";
@@ -79,6 +82,8 @@ const mapRuntime = {
   image: null,
   paperMapUrl: "assets/map/flatmap_votp.png",
   paperMapImage: null,
+  provinceMapImage: null,
+  provinceSampleContext: null,
   sourcePixels: null,
   width: 4096,
   height: 1808,
@@ -94,8 +99,10 @@ const mapRuntime = {
   visibleStateKeys: new Set(),
   stateKeysByIndex: [""],
   ownerKeysByIndex: [""],
+  terrainKeysByIndex: [""],
   pixelStateIndexes: null,
   pixelOwnerIndexes: null,
+  pixelTerrainIndexes: null,
   filteredCountryTags: new Set(),
   countrySearchMatchedTags: new Set(),
   layerCache: new Map(),
@@ -138,6 +145,21 @@ const state = {
   commonLawIdeologyOnly: false,
   victorianCenturyChangeKinds: new Set(),
   resultsPanelMode: "side",
+  countryMobileFiltersOpen: false,
+  countryMobileMapOpen: true,
+  countryMobileListScrollTop: 0,
+  countryMobileSearchDraft: "",
+  countryMobileFilterCategory: "type",
+  countryMobileRestoreScrollPending: false,
+  cultureMobileFiltersOpen: false,
+  cultureMobileMapOpen: true,
+  cultureMobileListScrollTop: 0,
+  cultureMobileSearchDraft: "",
+  cultureMobileFilterCategory: "heritage",
+  cultureMobileExpandedHeritageGroup: "",
+  cultureMobileExpandedLanguageGroup: "",
+  cultureMobileExpandedStrategicRegionContinent: "",
+  cultureMobileRestoreScrollPending: false,
   whiteDecentralized: false,
   subjectOverlordColors: true,
   omitIndigenousLanguagesCultures: true,
@@ -155,6 +177,9 @@ const state = {
   selectedIdeology: "",
   selectedLaw: "",
   selectedTechnology: "",
+  selectedAchievement: "",
+  achievementSearch: "",
+  achievementWallScrollTop: 0,
   technologyCategory: "production",
   technologySearch: "",
   technologyViewport: { x: 0, y: 0, scale: 1 },
@@ -162,6 +187,7 @@ const state = {
   globalSearchColorRestoreTag: "",
   detailKind: "country",
   regionListMode: "state",
+  regionMapView: "default",
   mapMode: "resource",
   mapSubject: "",
   theme: "votp",
@@ -520,6 +546,7 @@ const viewLabels = {
   ideology: "意识形态",
   law: "法律",
   technology: "科技",
+  achievement: "成就",
   changelog: "更新日志",
   news: "游戏资讯",
 };
@@ -678,6 +705,10 @@ const els = {
   ideologyViewButton: document.querySelector("#ideologyViewButton"),
   lawViewButton: document.querySelector("#lawViewButton"),
   searchInput: document.querySelector("#searchInput"),
+  mobileCountryToolbar: document.querySelector("#mobileCountryToolbar"),
+  mobileCountryFilterPanel: document.querySelector("#mobileCountryFilterPanel"),
+  mobileCultureToolbar: document.querySelector("#mobileCultureToolbar"),
+  mobileCultureFilterPanel: document.querySelector("#mobileCultureFilterPanel"),
   tierFilters: document.querySelector("#tierFilters"),
   countryTypeFilters: document.querySelector("#countryTypeFilters"),
   filteredCountryMapToggle: document.querySelector("#filteredCountryMapToggle"),
@@ -714,6 +745,9 @@ const els = {
   mapModeSelect: document.querySelector("#mapModeSelect"),
   mapSubjectSelect: document.querySelector("#mapSubjectSelect"),
   mapFitWidthButton: document.querySelector("#mapFitWidthButton"),
+  mapResourceContext: document.querySelector("#mapResourceContext"),
+  terrainMapViewButton: document.querySelector("#terrainMapViewButton"),
+  terrainMapLegend: document.querySelector("#terrainMapLegend"),
   mapViewport: document.querySelector("#mapViewport"),
   mapCanvas: document.querySelector("#mapCanvas"),
   mapTooltip: document.querySelector("#mapTooltip"),

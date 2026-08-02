@@ -197,6 +197,10 @@ function dataAssetReferences(data, helpers) {
     if (fileName) out.push(`assets/interest-groups/${fileName}`);
   }
 
+  for (const achievement of data.achievements || []) {
+    if (achievement?.key) out.push(`assets/achievements/${achievement.key}.webp`);
+  }
+
   return [...new Set(out)];
 }
 

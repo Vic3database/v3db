@@ -1,12 +1,101 @@
 param(
   [string]$Database = "database/vic3_1.13.9",
   [string]$ProvinceMap = "D:\SteamLibrary\steamapps\common\Victoria 3\game\map_data\provinces.png",
+  [string]$TerrainFile = "D:\SteamLibrary\steamapps\common\Victoria 3\game\map_data\province_terrains.txt",
   [string]$OutFile = "site/map-data.js",
   [int]$Width = 0,
   [int]$Height = 0
 )
 
 Add-Type -AssemblyName System.Drawing
+
+if (-not ("VicdataMapRunEncoder" -as [type])) {
+  Add-Type -TypeDefinition @'
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+public sealed class VicdataMapRunData
+{
+    public int[] StateRuns { get; private set; }
+    public int[] OwnerRuns { get; private set; }
+    public int[] TerrainRuns { get; private set; }
+
+    public VicdataMapRunData(int[] stateRuns, int[] ownerRuns, int[] terrainRuns)
+    {
+        StateRuns = stateRuns;
+        OwnerRuns = ownerRuns;
+        TerrainRuns = terrainRuns;
+    }
+}
+
+public static class VicdataMapRunEncoder
+{
+    public static VicdataMapRunData Encode(
+        byte[] pixels,
+        int stride,
+        int sourceWidth,
+        int sourceHeight,
+        int width,
+        int height,
+        Hashtable stateByColor,
+        Hashtable ownerByColor,
+        Hashtable terrainByColor)
+    {
+        var stateRuns = new List<int>();
+        var ownerRuns = new List<int>();
+        var terrainRuns = new List<int>();
+        int lastState = -1, stateLength = 0;
+        int lastOwner = -1, ownerLength = 0;
+        int lastTerrain = -1, terrainLength = 0;
+
+        for (int y = 0; y < height; y++)
+        {
+            int sourceY = Math.Min(sourceHeight - 1, (int)((long)y * sourceHeight / height));
+            for (int x = 0; x < width; x++)
+            {
+                int sourceX = Math.Min(sourceWidth - 1, (int)((long)x * sourceWidth / width));
+                int offset = sourceY * stride + sourceX * 4;
+                int color = (pixels[offset + 2] << 16) | (pixels[offset + 1] << 8) | pixels[offset];
+                AddValue(stateRuns, ref lastState, ref stateLength, Lookup(stateByColor, color));
+                AddValue(ownerRuns, ref lastOwner, ref ownerLength, Lookup(ownerByColor, color));
+                AddValue(terrainRuns, ref lastTerrain, ref terrainLength, Lookup(terrainByColor, color));
+            }
+        }
+
+        Flush(stateRuns, lastState, stateLength);
+        Flush(ownerRuns, lastOwner, ownerLength);
+        Flush(terrainRuns, lastTerrain, terrainLength);
+        return new VicdataMapRunData(stateRuns.ToArray(), ownerRuns.ToArray(), terrainRuns.ToArray());
+    }
+
+    private static int Lookup(Hashtable values, int color)
+    {
+        object value = values[color];
+        return value == null ? 0 : (int)value;
+    }
+
+    private static void AddValue(List<int> runs, ref int last, ref int length, int value)
+    {
+        if (value == last)
+        {
+            length++;
+            return;
+        }
+        Flush(runs, last, length);
+        last = value;
+        length = 1;
+    }
+
+    private static void Flush(List<int> runs, int value, int length)
+    {
+        if (value < 0) return;
+        runs.Add(value);
+        runs.Add(length);
+    }
+}
+'@
+}
 
 function Read-Utf8Json($Path) {
   $text = [System.IO.File]::ReadAllText((Resolve-Path $Path), [System.Text.Encoding]::UTF8)
@@ -22,6 +111,23 @@ function Normalize-ProvinceColor($Value) {
   return ""
 }
 
+function Convert-ProvinceColorToRgb($Value) {
+  $raw = [string]$Value
+  if ($raw -match '^x?([0-9a-fA-F]{6})$') {
+    return [Convert]::ToInt32($matches[1], 16)
+  }
+  return -1
+}
+
+function Write-RunPairs($Writer, $Runs) {
+  $writer.Write("[")
+  for ($i = 0; $i -lt $Runs.Count; $i += 1) {
+    if ($i -gt 0) { $writer.Write(",") }
+    $writer.Write($Runs[$i])
+  }
+  $writer.Write("]")
+}
+
 $stateRegions = Read-Utf8Json (Join-Path $Database "state_regions.json")
 $stateKeys = New-Object System.Collections.Generic.List[string]
 $stateKeys.Add("") | Out-Null
@@ -31,6 +137,23 @@ $ownerKeys = New-Object System.Collections.Generic.List[string]
 $ownerKeys.Add("") | Out-Null
 $ownerIndexByTag = @{}
 $colorToOwnerIndex = @{}
+$terrainKeys = New-Object System.Collections.Generic.List[string]
+$terrainKeys.Add("") | Out-Null
+$terrainIndexByKey = @{}
+$colorToTerrainIndex = @{}
+
+foreach ($line in [System.IO.File]::ReadLines((Resolve-Path $TerrainFile))) {
+  $terrainMatch = [regex]::Match($line, '^x([0-9A-Fa-f]{6})\s*=\s*"([^"]+)"')
+  if (-not $terrainMatch.Success) { continue }
+  $provinceColor = "x$($terrainMatch.Groups[1].Value.ToUpperInvariant())"
+  $terrainKey = [string]$terrainMatch.Groups[2].Value
+  if (-not $terrainIndexByKey.ContainsKey($terrainKey)) {
+    $terrainIndexByKey[$terrainKey] = $terrainKeys.Count
+    $terrainKeys.Add($terrainKey) | Out-Null
+  }
+  $provinceRgb = Convert-ProvinceColorToRgb $provinceColor
+  $colorToTerrainIndex[$provinceRgb] = [int]$terrainIndexByKey[$terrainKey]
+}
 
 foreach ($stateRegion in $stateRegions) {
   $index = $stateKeys.Count
@@ -39,7 +162,8 @@ foreach ($stateRegion in $stateRegions) {
   foreach ($color in @($stateRegion.province_colors)) {
     $normalized = Normalize-ProvinceColor $color
     if ($normalized) {
-      $colorToIndex[$normalized] = $index
+      $colorRgb = Convert-ProvinceColorToRgb $normalized
+      if ($colorRgb -ge 0) { $colorToIndex[$colorRgb] = $index }
     }
   }
   foreach ($owner in @($stateRegion.starting_province_owners)) {
@@ -53,7 +177,8 @@ foreach ($stateRegion in $stateRegions) {
     foreach ($color in @($owner.province_colors)) {
       $normalized = Normalize-ProvinceColor $color
       if ($normalized) {
-        $colorToOwnerIndex[$normalized] = $ownerIndex
+        $colorRgb = Convert-ProvinceColorToRgb $normalized
+        if ($colorRgb -ge 0) { $colorToOwnerIndex[$colorRgb] = $ownerIndex }
       }
     }
   }
@@ -78,56 +203,20 @@ try {
   $pixelBytes = New-Object byte[] ($stride * $bitmap.Height)
   [System.Runtime.InteropServices.Marshal]::Copy($bitmapData.Scan0, $pixelBytes, 0, $pixelBytes.Length)
 
-  $runs = New-Object System.Collections.Generic.List[int]
-  $ownerRuns = New-Object System.Collections.Generic.List[int]
-  $lastIndex = -1
-  $runLength = 0
-  $lastOwnerIndex = -1
-  $ownerRunLength = 0
-  for ($y = 0; $y -lt $Height; $y += 1) {
-    $sourceY = [Math]::Min($bitmap.Height - 1, [Math]::Floor($y * $bitmap.Height / $Height))
-    for ($x = 0; $x -lt $Width; $x += 1) {
-      $sourceX = [Math]::Min($bitmap.Width - 1, [Math]::Floor($x * $bitmap.Width / $Width))
-      $offset = [int]($sourceY * $stride + $sourceX * 4)
-      $key = "x{0:X2}{1:X2}{2:X2}" -f $pixelBytes[$offset + 2], $pixelBytes[$offset + 1], $pixelBytes[$offset]
-      $index = 0
-      if ($colorToIndex.ContainsKey($key)) {
-        $index = [int]$colorToIndex[$key]
-      }
-      $ownerIndex = 0
-      if ($colorToOwnerIndex.ContainsKey($key)) {
-        $ownerIndex = [int]$colorToOwnerIndex[$key]
-      }
-      if ($index -eq $lastIndex) {
-        $runLength += 1
-      } else {
-        if ($lastIndex -ge 0) {
-          $runs.Add($lastIndex) | Out-Null
-          $runs.Add($runLength) | Out-Null
-        }
-        $lastIndex = $index
-        $runLength = 1
-      }
-      if ($ownerIndex -eq $lastOwnerIndex) {
-        $ownerRunLength += 1
-      } else {
-        if ($lastOwnerIndex -ge 0) {
-          $ownerRuns.Add($lastOwnerIndex) | Out-Null
-          $ownerRuns.Add($ownerRunLength) | Out-Null
-        }
-        $lastOwnerIndex = $ownerIndex
-        $ownerRunLength = 1
-      }
-    }
-  }
-  if ($lastIndex -ge 0) {
-    $runs.Add($lastIndex) | Out-Null
-    $runs.Add($runLength) | Out-Null
-  }
-  if ($lastOwnerIndex -ge 0) {
-    $ownerRuns.Add($lastOwnerIndex) | Out-Null
-    $ownerRuns.Add($ownerRunLength) | Out-Null
-  }
+  $encodedRuns = [VicdataMapRunEncoder]::Encode(
+    $pixelBytes,
+    $stride,
+    $bitmap.Width,
+    $bitmap.Height,
+    $Width,
+    $Height,
+    $colorToIndex,
+    $colorToOwnerIndex,
+    $colorToTerrainIndex
+  )
+  $runs = $encodedRuns.StateRuns
+  $ownerRuns = $encodedRuns.OwnerRuns
+  $terrainRuns = $encodedRuns.TerrainRuns
 } finally {
   if ($bitmapData -ne $null -and $bitmap -ne $null) {
     $bitmap.UnlockBits($bitmapData)
@@ -148,17 +237,18 @@ try {
   $writer.Write(($stateKeys | ConvertTo-Json -Compress))
   $writer.Write(",""ownerKeys"":")
   $writer.Write(($ownerKeys | ConvertTo-Json -Compress))
+  $writer.Write(",""terrainKeys"":")
+  $writer.Write(($terrainKeys | ConvertTo-Json -Compress))
   $writer.Write(",""runs"":[")
   for ($i = 0; $i -lt $runs.Count; $i += 1) {
     if ($i -gt 0) { $writer.Write(",") }
     $writer.Write($runs[$i])
   }
-  $writer.Write("],""ownerRuns"":[")
-  for ($i = 0; $i -lt $ownerRuns.Count; $i += 1) {
-    if ($i -gt 0) { $writer.Write(",") }
-    $writer.Write($ownerRuns[$i])
-  }
-  $writer.Write("]};")
+  $writer.Write("],""ownerRuns"":")
+  Write-RunPairs $writer $ownerRuns
+  $writer.Write(",""terrainRuns"":")
+  Write-RunPairs $writer $terrainRuns
+  $writer.Write("};")
   $writer.WriteLine()
 } finally {
   $writer.Dispose()
@@ -172,4 +262,5 @@ Write-Output (@{
   ownerCount = $ownerKeys.Count - 1
   runPairs = [int]($runs.Count / 2)
   ownerRunPairs = [int]($ownerRuns.Count / 2)
+  terrainRunPairs = [int]($terrainRuns.Count / 2)
 } | ConvertTo-Json -Compress)

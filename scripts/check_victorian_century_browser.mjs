@@ -4,7 +4,7 @@ const require = createRequire(import.meta.url);
 const { chromium } = require("playwright");
 
 const baseUrl = process.argv[2] || "http://127.0.0.1:8877/index.html";
-const mainLibraryUrl = new URL("../", baseUrl).href;
+const mainLibraryUrl = new URL("../index.html", baseUrl).href;
 const chromePath = process.env.VC_CHROME_PATH || "";
 const routes = ["country", "culture", "region", "company", "ideology", "law", "technology"];
 const vcChangeRowSelectorByRoute = {

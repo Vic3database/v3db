@@ -23,6 +23,7 @@ const expectedChunks = {
   ideology: ["interestGroups", "interestGroupTraits", "ideologies"],
   law: ["laws", "lawGroups"],
   technology: ["technologies", "technologyEras"],
+  achievement: ["achievements"],
 };
 
 for (const [key, keys] of Object.entries(expectedChunks)) {

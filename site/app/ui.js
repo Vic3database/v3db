@@ -34,6 +34,8 @@ function bindEvents() {
   document.addEventListener("click", async (event) => {
     const button = event.target.closest("[data-detail-back]");
     if (!button) return;
+    if (button.matches("[data-country-mobile-detail-back]") && window.matchMedia("(max-aspect-ratio: 3 / 2)").matches) state.countryMobileRestoreScrollPending = true;
+    if (button.matches("[data-culture-mobile-detail-back]") && window.matchMedia("(max-aspect-ratio: 3 / 2)").matches) state.cultureMobileRestoreScrollPending = true;
     await setView(button.dataset.detailBack || "country");
     render();
   });
@@ -77,12 +79,140 @@ function bindEvents() {
   els.standaloneLibrarySelect?.addEventListener("change", () => {
     if (els.standaloneLibrarySelect.value !== "vic3") return;
     hideTransientOverlays();
-    location.assign(new URL("../", window.location.href).href);
+    location.assign(new URL("../index.html", window.location.href).href);
   });
   els.searchInput.addEventListener("input", () => {
     state.search = els.searchInput.value.trim().toLowerCase();
+    state.countryMobileSearchDraft = els.searchInput.value;
+    state.cultureMobileSearchDraft = els.searchInput.value;
     state.globalSearchColorRestoreTag = "";
     render();
+  });
+  els.mobileCountryToolbar?.addEventListener("input", (event) => {
+    const input = event.target.closest("[data-mobile-country-search]");
+    if (!input) return;
+    state.countryMobileSearchDraft = input.value;
+  });
+  els.mobileCountryToolbar?.addEventListener("keydown", (event) => {
+    const input = event.target.closest("[data-mobile-country-search]");
+    if (!input || event.key !== "Enter" || event.isComposing) return;
+    event.preventDefault();
+    submitMobileCountrySearch(input);
+  });
+  els.mobileCountryToolbar?.addEventListener("focusin", (event) => {
+    const input = event.target.closest("[data-mobile-country-search]");
+    if (!input) return;
+    input.closest(".mobile-country-search-input")?.scrollTo({ left: 99999 });
+  });
+  els.mobileCountryToolbar?.addEventListener("click", (event) => {
+    if (event.target.closest("[data-mobile-country-search-submit]")) {
+      const input = els.mobileCountryToolbar.querySelector("[data-mobile-country-search]");
+      submitMobileCountrySearch(input);
+      return;
+    }
+    if (event.target.closest("[data-mobile-country-filter-toggle]")) {
+      state.countryMobileFiltersOpen = !state.countryMobileFiltersOpen;
+      render();
+      return;
+    }
+    if (event.target.closest("[data-mobile-country-map-toggle]")) {
+      state.countryMobileMapOpen = !state.countryMobileMapOpen;
+      render();
+      return;
+    }
+    const clear = event.target.closest("[data-mobile-country-filter-clear]");
+    if (clear) {
+      clearCountryMobileFilter(clear.dataset.mobileCountryFilterClear);
+      render();
+    }
+  });
+  els.mobileCountryFilterPanel?.addEventListener("click", (event) => {
+    const category = event.target.closest("[data-mobile-country-filter-category]");
+    if (category) {
+      state.countryMobileFilterCategory = category.dataset.mobileCountryFilterCategory;
+      render();
+      return;
+    }
+    const option = event.target.closest("[data-mobile-country-filter-option]");
+    if (option) {
+      selectCountryMobileFilter(state.countryMobileFilterCategory, option.dataset.mobileCountryFilterOption);
+      render();
+    }
+  });
+  els.mobileCultureToolbar?.addEventListener("input", (event) => {
+    const input = event.target.closest("[data-mobile-culture-search]");
+    if (input) state.cultureMobileSearchDraft = input.value;
+  });
+  els.mobileCultureToolbar?.addEventListener("keydown", (event) => {
+    const input = event.target.closest("[data-mobile-culture-search]");
+    if (!input || event.key !== "Enter" || event.isComposing) return;
+    event.preventDefault();
+    submitMobileCultureSearch(input);
+  });
+  els.mobileCultureToolbar?.addEventListener("focusin", (event) => {
+    const input = event.target.closest("[data-mobile-culture-search]");
+    if (input) input.closest(".mobile-culture-search-input")?.scrollTo({ left: 99999 });
+  });
+  els.mobileCultureToolbar?.addEventListener("click", (event) => {
+    if (event.target.closest("[data-mobile-culture-search-submit]")) {
+      submitMobileCultureSearch(els.mobileCultureToolbar.querySelector("[data-mobile-culture-search]"));
+      return;
+    }
+    if (event.target.closest("[data-mobile-culture-filter-toggle]")) {
+      state.cultureMobileFiltersOpen = !state.cultureMobileFiltersOpen;
+      render();
+      return;
+    }
+    if (event.target.closest("[data-mobile-culture-map-toggle]")) {
+      state.cultureMobileMapOpen = !state.cultureMobileMapOpen;
+      render();
+      return;
+    }
+    const clear = event.target.closest("[data-mobile-culture-filter-clear]");
+    if (clear) {
+      clearCultureMobileFilter(clear.dataset.mobileCultureFilterClear);
+      render();
+    }
+  });
+  els.mobileCultureFilterPanel?.addEventListener("click", (event) => {
+    const heritageGroup = event.target.closest("[data-mobile-culture-expand-heritage-group]");
+    if (heritageGroup) {
+      const key = heritageGroup.dataset.mobileCultureExpandHeritageGroup;
+      state.cultureMobileExpandedHeritageGroup = state.cultureMobileExpandedHeritageGroup === key ? "" : key;
+      render();
+      return;
+    }
+    const languageGroup = event.target.closest("[data-mobile-culture-expand-language-group]");
+    if (languageGroup) {
+      const key = languageGroup.dataset.mobileCultureExpandLanguageGroup;
+      state.cultureMobileExpandedLanguageGroup = state.cultureMobileExpandedLanguageGroup === key ? "" : key;
+      render();
+      return;
+    }
+    const continent = event.target.closest("[data-mobile-culture-expand-strategic-region-continent]");
+    if (continent) {
+      const key = continent.dataset.mobileCultureExpandStrategicRegionContinent;
+      state.cultureMobileExpandedStrategicRegionContinent = state.cultureMobileExpandedStrategicRegionContinent === key ? "" : key;
+      render();
+      return;
+    }
+    const clear = event.target.closest("[data-mobile-culture-filter-clear-option]");
+    if (clear) {
+      clearCultureMobileFilter(clear.dataset.mobileCultureFilterClearOption);
+      render();
+      return;
+    }
+    const option = event.target.closest("[data-mobile-culture-filter-option]");
+    if (option) {
+      selectCultureMobileFilter(option.dataset.mobileCultureFilterCategory, option.dataset.mobileCultureFilterOption);
+      render();
+      return;
+    }
+    const category = event.target.closest("[data-mobile-culture-filter-category]");
+    if (category) {
+      state.cultureMobileFilterCategory = category.dataset.mobileCultureFilterCategory;
+      render();
+    }
   });
 
   bindTokenSet("[data-filter]", state.flags, "filter");
@@ -153,6 +283,11 @@ function bindEvents() {
     state.mapSubject = els.mapSubjectSelect.value;
     render();
   });
+  els.terrainMapViewButton?.addEventListener("click", () => {
+    state.regionMapView = state.regionMapView === "terrain" ? "default" : "terrain";
+    state.mapSubject = "";
+    render();
+  });
   els.mapFitWidthButton?.addEventListener("click", () => {
     if (state.view === "region") {
       resetRegionMapFocus();
@@ -195,8 +330,24 @@ function bindEvents() {
     state.commonLawIdeologyOnly = false;
     state.victorianCenturyChangeKinds.clear();
     state.dimUnfilteredCountries = false;
+    state.regionMapView = "default";
     state.tradition = "";
     state.mapSubject = "";
+    state.countryMobileFiltersOpen = false;
+    state.countryMobileMapOpen = true;
+    state.countryMobileSearchDraft = "";
+    state.countryMobileFilterCategory = "type";
+    state.countryMobileListScrollTop = 0;
+    state.countryMobileRestoreScrollPending = false;
+    state.cultureMobileFiltersOpen = false;
+    state.cultureMobileMapOpen = true;
+    state.cultureMobileListScrollTop = 0;
+    state.cultureMobileSearchDraft = "";
+    state.cultureMobileFilterCategory = "heritage";
+    state.cultureMobileExpandedHeritageGroup = "";
+    state.cultureMobileExpandedLanguageGroup = "";
+    state.cultureMobileExpandedStrategicRegionContinent = "";
+    state.cultureMobileRestoreScrollPending = false;
     state.selectedGlobalResult = "";
     els.searchInput.value = "";
     if (els.commonLawIdeologyFilter) els.commonLawIdeologyFilter.checked = false;
@@ -211,6 +362,10 @@ function bindEvents() {
     state.globalSearch = "";
     state.selectedGlobalResult = "";
     if (els.globalSearchDialogInput) els.globalSearchDialogInput.value = "";
+    const returningToCountryList = location.hash.replace(/^#\/?/, "") === "country" && state.view === "country" && state.detailKind === "country";
+    if (returningToCountryList && window.matchMedia("(max-aspect-ratio: 3 / 2)").matches) state.countryMobileRestoreScrollPending = true;
+    const returningToCultureList = location.hash.replace(/^#\/?/, "") === "culture" && state.view === "culture" && state.detailKind === "culture";
+    if (returningToCultureList && window.matchMedia("(max-aspect-ratio: 3 / 2)").matches) state.cultureMobileRestoreScrollPending = true;
     await applyHash();
     render();
   });
@@ -342,6 +497,68 @@ function bindTokenChoice(container, datasetKey, onChange) {
     if (!button || !container.contains(button)) return;
     onChange(button.dataset[datasetKey]);
   });
+}
+
+function submitMobileCountrySearch(input) {
+  const query = input?.value ?? state.countryMobileSearchDraft;
+  state.countryMobileSearchDraft = query;
+  if (query.trim().toLowerCase() === state.search) return;
+  state.search = query.trim().toLowerCase();
+  state.globalSearchColorRestoreTag = "";
+  if (els.searchInput) els.searchInput.value = query;
+  render();
+}
+
+function submitMobileCultureSearch(input) {
+  const query = input?.value ?? state.cultureMobileSearchDraft;
+  state.cultureMobileSearchDraft = query;
+  if (query.trim().toLowerCase() === state.search) return;
+  state.search = query.trim().toLowerCase();
+  state.globalSearchColorRestoreTag = "";
+  if (els.searchInput) els.searchInput.value = query;
+  render();
+}
+
+function selectCultureMobileFilter(category, value) {
+  const toggleSingleSet = (set) => {
+    const selected = set.has(value);
+    set.clear();
+    if (!selected) set.add(value);
+  };
+  if (category === "heritage") toggleSingleSet(state.heritages);
+  else if (category === "language") toggleSingleSet(state.languages);
+  else if (category === "strategicRegion") toggleSingleSet(state.strategicRegions);
+  else if (category === "tradition") state.tradition = state.tradition === value ? "" : value;
+}
+
+function clearCultureMobileFilter(category) {
+  if (category === "heritage") state.heritages.clear();
+  else if (category === "language") state.languages.clear();
+  else if (category === "strategicRegion") state.strategicRegions.clear();
+  else if (category === "tradition") state.tradition = "";
+}
+
+function selectCountryMobileFilter(category, value) {
+  const toggleSingleSet = (set) => {
+    const selected = set.has(value);
+    set.clear();
+    if (!selected) set.add(value);
+  };
+  if (category === "type") toggleSingleSet(state.flags);
+  else if (category === "tier") toggleSingleSet(state.tiers);
+  else if (category === "strategicRegion") toggleSingleSet(state.strategicRegions);
+  else if (category === "heritage") toggleSingleSet(state.heritages);
+  else if (category === "language") toggleSingleSet(state.languages);
+  else if (category === "tradition") state.tradition = state.tradition === value ? "" : value;
+}
+
+function clearCountryMobileFilter(category) {
+  if (category === "type") state.flags.clear();
+  else if (category === "tier") state.tiers.clear();
+  else if (category === "strategicRegion") state.strategicRegions.clear();
+  else if (category === "heritage") state.heritages.clear();
+  else if (category === "language") state.languages.clear();
+  else if (category === "tradition") state.tradition = "";
 }
 
 function bindConceptEvents() {
@@ -890,6 +1107,10 @@ async function applyHash() {
     changeBoard("home", "home");
     return;
   }
+  if (parts[0] === "achievement" && !achievementBoardAvailable()) {
+    changeBoard("home", "home");
+    return;
+  }
   if (!parts.length || parts[0] === "home") {
     changeBoard("home", "home");
     return;
@@ -988,6 +1209,16 @@ async function applyHash() {
     state.technologyCategory = technologyByKey.get(state.selectedTechnology).category;
     return;
   }
+  if (parts[0] === "achievement" && achievementBoardAvailable() && !parts[1]) {
+    changeBoard("achievement", "achievement");
+    state.selectedAchievement = "";
+    return;
+  }
+  if (parts[0] === "achievement" && parts[1] && achievementByKey.has(decodeURIComponent(parts[1]))) {
+    changeBoard("achievement", "achievement");
+    state.selectedAchievement = decodeURIComponent(parts[1]);
+    return;
+  }
   if (parts[0] === "religion" && parts[1]) {
     state.search = decodeURIComponent(parts[1]).toLowerCase();
     els.searchInput.value = state.search;
@@ -1006,6 +1237,7 @@ async function setView(view) {
 
 function changeBoard(view, detailKind) {
   if (state.view !== view) resetBoardView();
+  if (view !== "region") state.regionMapView = "default";
   state.view = view;
   state.detailKind = detailKind;
 }
@@ -1035,6 +1267,9 @@ function updatePageChrome() {
   const title = `${label} - ${siteTitle}`;
   setOptionalText(els.pageTitle, title);
   document.title = title;
+  const achievementAvailable = achievementBoardAvailable();
+  document.querySelectorAll('[data-nav-view="achievement"]').forEach((button) => { button.hidden = !achievementAvailable; });
+  document.querySelector('#viewSelect option[value="achievement"]')?.toggleAttribute("hidden", !achievementAvailable);
   if (els.viewSelect) {
     els.viewSelect.value = state.view;
   }
@@ -1074,6 +1309,12 @@ function updatePanelToggleState() {
 function render() {
   hideTransientOverlays();
   document.body.dataset.view = state.view;
+  document.body.dataset.countryMobileMap = String(state.countryMobileMapOpen);
+  document.body.dataset.countryMobileFilters = String(state.countryMobileFiltersOpen);
+  document.body.dataset.countryMobileDetail = String(state.view === "country" && isDetailPageRoute() ? "open" : "closed");
+  document.body.dataset.cultureMobileMap = String(state.cultureMobileMapOpen);
+  document.body.dataset.cultureMobileFilters = String(state.cultureMobileFiltersOpen);
+  document.body.dataset.cultureMobileDetail = String(state.view === "culture" && isDetailPageRoute() ? "open" : "closed");
   if (els.homeWelcome) els.homeWelcome.hidden = state.view !== "home";
   if (els.homeLinks) els.homeLinks.hidden = state.view !== "home";
   document.body.classList.toggle("detail-page", isDetailPageRoute());
@@ -1123,10 +1364,12 @@ function render() {
     renderLawBoard();
   } else if (state.view === "technology") {
     renderTechnologyBoard();
+  } else if (state.view === "achievement") {
+    renderAchievementBoard();
   } else {
     renderCountryBoard();
   }
-  const boardManagesDetail = state.view === "home" || state.view === "technology" || state.view === "news";
+  const boardManagesDetail = state.view === "home" || state.view === "technology" || state.view === "achievement" || state.view === "news";
   if (!boardManagesDetail && state.view !== "changelog" && isDetailPageRoute()) {
     renderDetailForState();
   } else if (!boardManagesDetail) {
@@ -1141,7 +1384,7 @@ function isDetailPageRoute() {
 function detailRouteKey() {
   const [route, key] = location.hash.replace(/^#\/?/, "").split("/").filter(Boolean);
   if (!route || !key) return "";
-  return ["country", "culture", "state-region", "strategic-region", "geographic-region", "company", "ideology", "law", "technology"].includes(route) ? key : "";
+  return ["country", "culture", "state-region", "strategic-region", "geographic-region", "company", "ideology", "law", "technology", "achievement"].includes(route) ? key : "";
 }
 
 function syncFilterSectionOpenStates() {
@@ -1199,6 +1442,7 @@ function syncVictorianCenturyChangeFilter() {
 function initializeDefaultFilterSectionOpenStates() {
   const defaultOpenFilterIds = new Set([
     "resourceFilters",
+    "terrainMapViewButton",
     "companyKindFilters",
     "companyPrestigeFilters",
     "companyDlcFilters",

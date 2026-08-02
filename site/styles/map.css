@@ -54,6 +54,58 @@
   background: color-mix(in srgb, var(--accent-blue) 86%, var(--panel));
 }
 
+.map-resource-context {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  flex: 1 1 340px;
+  max-width: min(340px, calc(100vw - 168px));
+  min-height: 30px;
+  overflow: hidden;
+  gap: 6px;
+  padding: 3px 8px 3px 4px;
+  border: 1px solid rgba(200, 164, 91, 0.24);
+  border-radius: 6px;
+  color: #eef3ea;
+  background: rgba(28, 41, 35, 0.76);
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.map-resource-context[hidden] {
+  display: none;
+}
+
+.map-resource-context-icon {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
+.map-resource-context-swatch {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  border-radius: 50%;
+  background: var(--map-resource-context-color);
+}
+
+.map-resource-context-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.map-resource-context-version {
+  color: rgba(238, 243, 234, 0.76);
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
 .map-viewport {
   position: relative;
   height: 360px;
@@ -114,6 +166,43 @@
   margin: 0;
   min-width: 0;
   overflow-wrap: anywhere;
+}
+
+.terrain-map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 10px;
+  padding: 7px 10px;
+  border: 1px solid rgba(200, 164, 91, 0.3);
+  border-radius: 8px;
+  color: #f5efe3;
+  background: rgba(28, 34, 30, 0.86);
+  box-shadow: 0 5px 22px rgba(0, 0, 0, 0.24);
+  font-family: var(--font-ui);
+  font-size: var(--text-xs);
+  line-height: 1;
+  pointer-events: none;
+}
+
+.terrain-map-legend[hidden] {
+  display: none;
+}
+
+.terrain-map-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.terrain-map-legend-swatch {
+  width: 10px;
+  height: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.52);
+  border-radius: 2px;
+  background: var(--terrain-map-color);
 }
 
 .result-head {

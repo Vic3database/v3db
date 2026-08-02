@@ -73,6 +73,7 @@ const wikiData = {
   lawGroups: data.lawGroups,
   technologies: data.technologies,
   technologyEras: data.technologyEras,
+  achievements: data.achievements,
   dynamicCountryNameVariants: data.dynamicCountryNameVariants,
   dynamicCountryMapColorRules: data.dynamicCountryMapColorRules,
   formables: data.formables,
@@ -87,6 +88,7 @@ const dataChunks = {
   ideology: ["interestGroups", "interestGroupTraits", "ideologies"],
   law: ["laws", "lawGroups"],
   technology: ["technologies", "technologyEras"],
+  achievement: ["achievements"],
 };
 
 const dataChunkFileNames = {
@@ -97,6 +99,7 @@ const dataChunkFileNames = {
   ideology: "data-ideologies.js",
   law: "data-laws.js",
   technology: "data-technologies.js",
+  achievement: "data-achievements.js",
 };
 
 for (const [key, keys] of Object.entries(dataChunks)) {
@@ -173,6 +176,7 @@ console.log(JSON.stringify({
   ideologies: wikiData.ideologies.length,
   laws: wikiData.laws.length,
   lawGroups: wikiData.lawGroups.length,
+  achievements: wikiData.achievements.length,
   dynamicCountryNameVariants: wikiData.dynamicCountryNameVariants.length,
   dynamicCountryMapColorRules: wikiData.dynamicCountryMapColorRules.length,
   formables: wikiData.formables.length,
@@ -199,6 +203,7 @@ function loadSiteData(sourceFile) {
     const laws = sourceData.files.laws ? readJson(path.join(baseDir, sourceData.files.laws)) : [];
     const technologies = sourceData.files.technologies ? readJson(path.join(baseDir, sourceData.files.technologies)) : [];
     const technologyEras = sourceData.files.technology_eras ? readJson(path.join(baseDir, sourceData.files.technology_eras)) : [];
+    const achievements = sourceData.files.achievements ? readJson(path.join(baseDir, sourceData.files.achievements)) : [];
     const lawGroups = sourceData.files.law_groups ? readJson(path.join(baseDir, sourceData.files.law_groups)) : [];
     const dynamicCountryNameVariants = readJson(path.join(baseDir, sourceData.files.dynamic_country_name_variants));
     const dynamicCountryMapColorRules = readJson(path.join(baseDir, sourceData.files.dynamic_country_map_color_rules));
@@ -233,6 +238,7 @@ function loadSiteData(sourceFile) {
       lawGroups,
       technologies,
       technologyEras,
+      achievements,
       dynamicCountryNameVariants,
       dynamicCountryMapColorRules,
       formables,
@@ -258,6 +264,7 @@ function deriveSiteData(siteData) {
     lawGroups: siteData.lawGroups || [],
     technologies: siteData.technologies || [],
     technologyEras: siteData.technologyEras || [],
+    achievements: siteData.achievements || [],
   };
 }
 
