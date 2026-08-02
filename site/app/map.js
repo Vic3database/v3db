@@ -5,6 +5,8 @@ function renderMapControls() {
   syncMapModeForView();
   const terrainViewEnabled = state.view === "region" && state.regionMapView === "terrain";
   els.terrainMapViewButton?.setAttribute("aria-pressed", String(terrainViewEnabled));
+  const stateTraitViewEnabled = state.view === "region" && state.regionMapView === "traits";
+  els.stateTraitMapViewButton?.setAttribute("aria-pressed", String(stateTraitViewEnabled));
   if (state.view === "ideology" || state.view === "law") {
     renderMapResourceContext();
     renderTerrainMapLegend();
@@ -86,6 +88,11 @@ function syncMapModeForView() {
     } else {
       state.mapMode = "culture";
     }
+    return;
+  }
+  if (state.view === "region" && state.regionMapView === "traits") {
+    state.mapMode = "traitIcons";
+    state.mapSubject = "";
     return;
   }
   if (state.view === "region" && state.regionMapView === "terrain") {

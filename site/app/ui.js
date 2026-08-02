@@ -288,6 +288,11 @@ function bindEvents() {
     state.mapSubject = "";
     render();
   });
+  els.stateTraitMapViewButton?.addEventListener("click", () => {
+    state.regionMapView = state.regionMapView === "traits" ? "default" : "traits";
+    state.mapSubject = "";
+    render();
+  });
   els.mapFitWidthButton?.addEventListener("click", () => {
     if (state.view === "region") {
       resetRegionMapFocus();
