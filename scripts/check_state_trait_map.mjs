@@ -5,6 +5,7 @@ import path from "node:path";
 const root = process.cwd();
 const indexSource = readText("site/index.html");
 const runtimeSource = readText("site/app/runtime.js");
+const dataSource = readText("site/app/data.js");
 const uiSource = readText("site/app/ui.js");
 const mapSource = readText("site/app/map.js");
 const dataRoot = process.env.VICDATA_DATA_ROOT || root;
@@ -23,6 +24,12 @@ for (const trait of uniqueTraits) {
 }
 assert.ok(/traits: stateRegion\.traits \|\| \[\]/.test(functionSource(mapSource, "buildTraitIconMapFeatures")), "trait icon features should retain every trait in each region");
 assert.ok(/replace\(\/\\\.dds\$\/i, "\.png"\)/.test(functionSource(mapSource, "stateTraitIconFileName")), "icon names should derive from DDS icon paths");
+assert.ok(/stateTraitIconImages: new Map\(\)/.test(runtimeSource), "map runtime should cache trait icon images");
+assert.ok(/Promise\.all/.test(functionSource(mapSource, "loadStateTraitIconImages")), "trait icon images should preload before paint");
+assert.ok(/const iconSize = 22;/.test(functionSource(mapSource, "drawStateTraitMapIcons")), "trait icons should preserve the agreed 22 pixel screen size");
+assert.ok(/for \(const trait of feature\.traits \|\| \[\]\)/.test(functionSource(mapSource, "drawStateTraitMapIcons")), "icon layer should draw every trait without truncation");
+assert.ok(/drawStateTraitMapIcons\(context, copyRange, transform\)/.test(functionSource(mapSource, "paintMapCanvasTarget")), "icon layer should draw after the transformed map layer");
+assert.ok(/mapRuntime\.stateTraitIconImages = new Map\(\)/.test(functionSource(dataSource, "resetMapRuntime")), "dataset resets should clear trait icon images");
 
 console.log(JSON.stringify({ state_trait_map: "ok", unique_traits: uniqueTraits.length }, null, 2));
 

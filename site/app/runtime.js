@@ -84,6 +84,8 @@ const mapRuntime = {
   paperMapImage: null,
   provinceMapImage: null,
   provinceSampleContext: null,
+  stateTraitIconImages: new Map(),
+  stateTraitIconLoading: null,
   sourcePixels: null,
   width: 4096,
   height: 1808,

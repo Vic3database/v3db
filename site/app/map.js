@@ -289,6 +289,7 @@ function ensureMapLoaded() {
       ? decodeMapRuns(mapData.terrainRuns, mapRuntime.width * mapRuntime.height)
       : null;
     mapRuntime.stateCenters = computeMapStateCenters(mapRuntime.pixelStateIndexes, mapRuntime.width, mapRuntime.height, mapRuntime.stateKeysByIndex);
+    await loadStateTraitIconImages();
     mapRuntime.ready = true;
     mapRuntime.loading = false;
     resetMapTransform();
@@ -370,6 +371,18 @@ function buildMapFeatures() {
   if (state.mapMode === "culture") return buildCultureMapFeatures();
   if (state.mapMode === "trait") return buildTraitMapFeatures();
   return buildResourceMapFeatures();
+}
+
+function loadStateTraitIconImages() {
+  if (mapRuntime.stateTraitIconLoading) return mapRuntime.stateTraitIconLoading;
+  const fileNames = [...new Set(stateRegions
+    .flatMap((stateRegion) => (stateRegion.traits || []).map(stateTraitIconFileName))
+    .filter(Boolean))];
+  mapRuntime.stateTraitIconLoading = Promise.all(fileNames.map(async (fileName) => {
+    const image = await loadImage(`assets/state-traits/${encodeURIComponent(fileName)}`).catch(() => null);
+    if (image) mapRuntime.stateTraitIconImages.set(fileName, image);
+  }));
+  return mapRuntime.stateTraitIconLoading;
 }
 
 function stateTraitIconFileName(trait) {
@@ -1288,6 +1301,7 @@ function paintMapCanvasTarget(canvas, viewport, transform, drawLabels = false) {
     context.drawImage(mapRuntime.layerCanvas, copy * mapRuntime.width, 0);
   }
   if (drawLabels) drawMapLabels(context, copyRange, transform);
+  drawStateTraitMapIcons(context, copyRange, transform);
 }
 
 function resetMapTransform() {
@@ -1465,6 +1479,40 @@ function drawMapLabels(context, copyRange = { start: 0, end: 0 }, transform = ma
     context.strokeText(item.text, item.x, item.y);
     context.fillStyle = "#18231f";
     context.fillText(item.text, item.x, item.y);
+  }
+  context.restore();
+}
+
+function drawStateTraitMapIcons(context, copyRange = { start: 0, end: 0 }, transform = mapRuntime.transform) {
+  if (state.mapMode !== "traitIcons" || !mapRuntime.featureByStateKey) return;
+  const iconSize = 22;
+  const inverseScale = 1 / Math.max(transform.scale, 0.001);
+  const mapIconSize = iconSize * inverseScale;
+  context.save();
+  for (const [stateKey, feature] of mapRuntime.featureByStateKey) {
+    const center = mapRuntime.stateCenters.get(stateKey);
+    if (!center || !feature?.traits?.length) continue;
+    const rows = Math.ceil(feature.traits.length / Math.ceil(Math.sqrt(feature.traits.length)));
+    const columns = Math.ceil(feature.traits.length / rows);
+    for (const trait of feature.traits || []) {
+      const image = mapRuntime.stateTraitIconImages.get(stateTraitIconFileName(trait));
+      if (!image) continue;
+      const index = feature.traits.indexOf(trait);
+      const column = index % columns;
+      const row = Math.floor(index / columns);
+      const offsetX = (column - (columns - 1) / 2) * mapIconSize;
+      const offsetY = (row - (rows - 1) / 2) * mapIconSize;
+      context.globalAlpha = mapRuntime.visibleStateKeys.has(stateKey) ? 1 : 0.36;
+      for (let copy = copyRange.start; copy <= copyRange.end; copy += 1) {
+        context.drawImage(
+          image,
+          center.x + copy * mapRuntime.width + offsetX - mapIconSize / 2,
+          center.y + offsetY - mapIconSize / 2,
+          mapIconSize,
+          mapIconSize,
+        );
+      }
+    }
   }
   context.restore();
 }

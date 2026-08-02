@@ -316,6 +316,8 @@ function resetMapRuntime() {
   mapRuntime.sourcePixels = null;
   mapRuntime.provinceMapImage = null;
   mapRuntime.provinceSampleContext = null;
+  mapRuntime.stateTraitIconImages = new Map();
+  mapRuntime.stateTraitIconLoading = null;
   mapRuntime.stateKeysByIndex = [""];
   mapRuntime.ownerKeysByIndex = [""];
   mapRuntime.terrainKeysByIndex = [""];
