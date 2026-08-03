@@ -24,7 +24,7 @@ function renderBuildingBoard() {
   const query = state.economySearch;
   const grouped = new Map();
   for (const building of buildings.filter((item) => economyMatches(item, query))) {
-    const group = building.building_group || { key: "other", name_zh: "其他", category_key: "other", order: 999 };
+    const group = building.board_group || { key: "other", name_zh: "其他", order: 999, cluster_order: 999, item_order: 999 };
     if (!grouped.has(group.key)) grouped.set(group.key, { ...group, buildings: [] });
     grouped.get(group.key).buildings.push(building);
   }
@@ -32,6 +32,13 @@ function renderBuildingBoard() {
     Number(left.order || 999) - Number(right.order || 999)
     || economyDisplayName(left).localeCompare(economyDisplayName(right), "zh-Hans-CN")
   ));
+  for (const group of groups) {
+    group.buildings.sort((left, right) => (
+      Number(left.board_group?.cluster_order || 999) - Number(right.board_group?.cluster_order || 999)
+      || Number(left.board_group?.item_order || 999) - Number(right.board_group?.item_order || 999)
+      || economyDisplayName(left).localeCompare(economyDisplayName(right), "zh-Hans-CN")
+    ));
+  }
   const count = groups.reduce((total, group) => total + group.buildings.length, 0);
   renderEconomyShell({
     kind: "building",
@@ -76,7 +83,7 @@ function renderEconomyShell({ kind, label, count, groups, card }) {
       <strong class="economy-count">${count} 项${label}</strong>
     </header>
     <div class="economy-groups">${groups.map((group) => `
-      <section class="economy-group economy-group--${escapeHtml(group.key)}">
+      <section class="economy-group economy-group--${escapeHtml(group.key)}" data-board-group="${escapeHtml(group.key)}">
         <h2>${escapeHtml(economyDisplayName(group))}<small>${group.buildings.length}</small></h2>
         <div class="economy-wall-grid">${group.buildings.map(card).join("")}</div>
       </section>

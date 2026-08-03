@@ -1899,6 +1899,7 @@ function loadBuildings(dirs, buildingGroups, resourceBuildingKinds, loc) {
       if (!iconSource) throw new Error(`building icon is missing: ${key}`);
       const buildingGroup = groupByKey.get(buildingGroupKey);
       if (!buildingGroup) throw new Error(`building group is missing: ${key} -> ${buildingGroupKey}`);
+      const boardGroup = economyBoardGroup(buildingGroupKey, key);
       const rawName = locCleanName(loc, key);
       const fallbackName = key === "building_machu_picchu" ? "马丘比丘" : "";
       const displayName = rawName.includes("dummy building") ? "" : rawName;
@@ -1915,6 +1916,7 @@ function loadBuildings(dirs, buildingGroups, resourceBuildingKinds, loc) {
           category_name_zh: buildingGroup.category_name_zh,
           order: buildingGroup.order,
         },
+        board_group: boardGroup,
         city_type: firstScalar(node, "city_type"),
         required_construction: firstScalar(node, "required_construction"),
         unlocking_technologies: referenceList(asNode(firstValue(node, "unlocking_technologies")), loc, "technology"),
@@ -1930,6 +1932,94 @@ function loadBuildings(dirs, buildingGroups, resourceBuildingKinds, loc) {
     buildings: buildings.sort((left, right) => economyDisplayName(left).localeCompare(economyDisplayName(right), "zh-Hans-CN")),
     excludedGraphicalBuildings: excludedGraphicalBuildings.sort((left, right) => left.key.localeCompare(right.key, "en")),
   };
+}
+
+function economyBoardGroup(buildingGroupKey, buildingKey) {
+  const definitions = [
+    ["agriculture", "农业", [
+      ["staple_crops", ["bg_staple_crops"]],
+      ["ranching", ["bg_ranching"]],
+      ["vineyard", ["bg_agriculture"]],
+      ["plantations", ["bg_plantations"]],
+      ["subsistence", ["bg_subsistence_agriculture", "bg_subsistence_ranching"]],
+    ]],
+    ["resources", "资源", [
+      ["mining", ["bg_mining"]],
+      ["gold_fields", ["bg_gold_fields"]],
+      ["logging", ["bg_logging"]],
+      ["rubber", ["bg_rubber"]],
+      ["oil", ["bg_oil_extraction"]],
+      ["fishing", ["bg_fishing"]],
+      ["whaling", ["bg_whaling"]],
+    ]],
+    ["industry", "工业", [
+      ["light_industry", ["bg_light_industry", "bg_ship_construction"]],
+      ["heavy_industry", ["bg_heavy_industry"]],
+      ["military_industry", ["bg_military_industry"]],
+    ]],
+    ["military", "军事", [
+      ["army", ["bg_army"]],
+      ["conscription", ["bg_conscription"]],
+      ["logistics", ["bg_army_logistics_center", "bg_naval_logistics_center"]],
+      ["naval", ["bg_naval_administration", "bg_naval_fortification"]],
+    ]],
+    ["infrastructure", "基建", [
+      ["construction", ["bg_construction"]],
+      ["transport", ["bg_private_infrastructure", "bg_canals"]],
+      ["power", ["bg_power"]],
+      ["urban", ["bg_service", "bg_trade"]],
+      ["government", ["bg_bureaucracy", "bg_technology", "bg_arts", "bg_skyscraper"]],
+    ]],
+    ["ownership", "所有权建筑", [
+      ["ownership", ["bg_manor_houses", "bg_financial_districts", "bg_company_headquarter", "bg_company_regional_headquarter"]],
+    ]],
+    ["wonders", "奇观", [
+      ["wonders", ["bg_monuments", "bg_monuments_hidden"]],
+    ]],
+  ];
+  for (let groupIndex = 0; groupIndex < definitions.length; groupIndex += 1) {
+    const [key, name_zh, clusters] = definitions[groupIndex];
+    for (let clusterIndex = 0; clusterIndex < clusters.length; clusterIndex += 1) {
+      const [cluster_key, sourceGroups] = clusters[clusterIndex];
+      if (sourceGroups.includes(buildingGroupKey)) {
+        return { key, name_zh, order: groupIndex + 1, cluster_key, cluster_order: clusterIndex + 1, item_order: economyBoardItemOrder(cluster_key, buildingKey) };
+      }
+    }
+  }
+  throw new Error(`building board group is missing: ${buildingKey} -> ${buildingGroupKey}`);
+}
+
+function economyBoardItemOrder(clusterKey, buildingKey) {
+  const orders = {
+    staple_crops: ["building_rye_farm", "building_rice_farm", "building_wheat_farm", "building_maize_farm", "building_millet_farm"],
+    ranching: ["building_livestock_ranch"],
+    vineyard: ["building_vineyard"],
+    plantations: ["building_tea_plantation", "building_coffee_plantation", "building_cotton_plantation", "building_dye_plantation", "building_silk_plantation", "building_sugar_plantation", "building_banana_plantation", "building_opium_plantation", "building_tobacco_plantation"],
+    subsistence: ["building_subsistence_rice_farm", "building_subsistence_orchard", "building_subsistence_farm", "building_subsistence_fishing_village", "building_subsistence_pasture"],
+    mining: ["building_gold_mine", "building_sulfur_mine", "building_coal_mine", "building_lead_mine", "building_iron_mine"],
+    gold_fields: ["building_gold_field"],
+    logging: ["building_logging_camp"],
+    rubber: ["building_rubber_plantation"],
+    oil: ["building_oil_rig"],
+    fishing: ["building_fishing_wharf"],
+    whaling: ["building_whaling_station"],
+    light_industry: ["building_glassworks", "building_textile_mill", "building_tooling_workshop", "building_furniture_manufactory", "building_food_industry", "building_paper_mill", "building_shipyard"],
+    heavy_industry: ["building_electrics_industry", "building_motor_industry", "building_chemical_plant", "building_synthetics_plant", "building_steel_mill", "building_automotive_industry", "building_explosives_factory"],
+    military_industry: ["building_arms_industry", "building_munition_plant", "building_artillery_foundry"],
+    army: ["building_barrack"],
+    conscription: ["building_conscription_center"],
+    logistics: ["building_army_logistics_center", "building_naval_logistics_center"],
+    naval: ["building_naval_administration", "building_naval_fortification"],
+    construction: ["building_construction_sector"],
+    transport: ["building_port", "building_railway", "building_panama_canal", "building_kiel_canal", "building_suez_canal"],
+    power: ["building_power_plant"],
+    urban: ["building_urban_center", "building_trade_center"],
+    government: ["building_government_administration", "building_university", "building_art_academy", "building_skyscraper"],
+    ownership: ["building_manor_house", "building_financial_district", "building_company_headquarter", "building_company_regional_headquarter"],
+    wonders: ["building_estacion_de_madrid_atocha", "building_eiffel_tower", "building_white_house", "building_big_ben", "building_vatican_city", "building_power_bloc_statue", "building_gran_teatro_de_la_habana", "building_kaiserforum_1", "building_kaiserforum_2", "building_kaiserforum_3", "building_kaiserforum_4", "building_mosque_of_djenne", "building_cristo_redentor", "building_manila_cathedral_original", "building_manila_cathedral_monument", "building_manila_cathedral_ruins", "building_pena_convent", "building_pena_palace", "building_sagrada_familia_cathedral_1", "building_sagrada_familia_cathedral_2", "building_sagrada_familia_cathedral_3", "building_hagia_sophia", "building_saint_basils_cathedral", "building_taj_mahal", "building_victoria_terminus", "building_angkor_wat", "building_forbidden_city", "building_statue_of_liberty", "building_machu_picchu"],
+  };
+  const order = orders[clusterKey]?.indexOf(buildingKey) ?? -1;
+  return order >= 0 ? order + 1 : 100;
 }
 
 function productionMethodAvailabilityConditions(node, loc) {

@@ -13,12 +13,23 @@ try {
   const buildingWall = await page.evaluate(() => ({
     cards: document.querySelectorAll("[data-building-key]").length,
     groups: document.querySelectorAll(".economy-group").length,
+    groupKeys: Array.from(document.querySelectorAll("[data-board-group]"), (group) => group.dataset.boardGroup),
+    groupNames: Array.from(document.querySelectorAll("[data-board-group] > h2"), (heading) => heading.childNodes[0]?.textContent?.trim()),
+    agricultureClusters: Array.from(document.querySelectorAll("[data-board-group='agriculture'] [data-building-key]"), (card) => card.dataset.buildingKey),
     map: getComputedStyle(document.querySelector("#mapPanel")).display,
     filters: getComputedStyle(document.querySelector(".filters")).display,
     lazy: document.querySelector("[data-building-key] img")?.getAttribute("loading"),
   }));
   assert.equal(buildingWall.cards, 101, "building wall must show every icon-bearing building");
-  assert(buildingWall.groups > 1, "building wall must retain group sections");
+  assert.equal(buildingWall.groups, 7, "building wall must show the seven confirmed display groups");
+  assert.deepEqual(buildingWall.groupKeys, ["agriculture", "resources", "industry", "military", "infrastructure", "ownership", "wonders"], "building wall must preserve the confirmed group order");
+  assert.deepEqual(buildingWall.groupNames, ["农业", "资源", "工业", "军事", "基建", "所有权建筑", "奇观"], "building wall must expose only the seven group headings");
+  assert.deepEqual(buildingWall.agricultureClusters, [
+    "building_rye_farm", "building_rice_farm", "building_wheat_farm", "building_maize_farm", "building_millet_farm",
+    "building_livestock_ranch", "building_vineyard",
+    "building_tea_plantation", "building_coffee_plantation", "building_cotton_plantation", "building_dye_plantation", "building_silk_plantation", "building_sugar_plantation", "building_banana_plantation", "building_opium_plantation", "building_tobacco_plantation",
+    "building_subsistence_rice_farm", "building_subsistence_orchard", "building_subsistence_farm", "building_subsistence_fishing_village", "building_subsistence_pasture",
+  ], "agriculture must keep the confirmed cluster order without subgroup headings");
   assert.equal(buildingWall.map, "none", "building wall must hide the map");
   assert.equal(buildingWall.filters, "none", "building wall must hide filters");
   assert.equal(buildingWall.lazy, "lazy", "building cards must defer icon loading");

@@ -38,6 +38,41 @@ assert(productionMethods.length > 0, "production methods must be published");
 const buildingByKey = new Map(buildings.map((item) => [item.key, item]));
 const groupByKey = new Map(productionMethodGroups.map((item) => [item.key, item]));
 const methodByKey = new Map(productionMethods.map((item) => [item.key, item]));
+const boardOrderedBuildings = [...buildings].sort((left, right) => (
+  Number(left.board_group?.order || 999) - Number(right.board_group?.order || 999)
+  || Number(left.board_group?.cluster_order || 999) - Number(right.board_group?.cluster_order || 999)
+  || Number(left.board_group?.item_order || 999) - Number(right.board_group?.item_order || 999)
+));
+assert.deepEqual(
+  [...new Set(boardOrderedBuildings.map((building) => building.board_group?.key))],
+  ["agriculture", "resources", "industry", "military", "infrastructure", "ownership", "wonders"],
+  "building board must publish the seven confirmed display groups in order",
+);
+assert.deepEqual(
+  [...new Set(boardOrderedBuildings.filter((building) => building.board_group?.key === "agriculture").map((building) => building.board_group?.cluster_key))],
+  ["staple_crops", "ranching", "vineyard", "plantations", "subsistence"],
+  "agriculture must place staple farms, ranches, vineyards, plantations, then subsistence buildings",
+);
+assert.deepEqual(
+  [...new Set(boardOrderedBuildings.filter((building) => building.board_group?.key === "resources").map((building) => building.board_group?.cluster_key))],
+  ["mining", "gold_fields", "logging", "rubber", "oil", "fishing", "whaling"],
+  "resources must keep mines, gold fields, logging, rubber, oil, fishing, then whaling together",
+);
+assert.deepEqual(
+  boardOrderedBuildings.filter((building) => building.board_group?.key === "resources").map((building) => building.key),
+  ["building_gold_mine", "building_sulfur_mine", "building_coal_mine", "building_lead_mine", "building_iron_mine", "building_gold_field", "building_logging_camp", "building_rubber_plantation", "building_oil_rig", "building_fishing_wharf", "building_whaling_station"],
+  "resource buildings must preserve the confirmed display order",
+);
+assert.deepEqual(
+  ["agriculture", "resources", "industry", "military", "infrastructure", "ownership", "wonders"].map((key) => boardOrderedBuildings.filter((building) => building.board_group?.key === key).length),
+  [21, 11, 17, 6, 13, 4, 29],
+  "all 101 buildings must be assigned to exactly one confirmed display group",
+);
+assert.equal(required(buildingByKey, "building_shipyard", "shipyard").board_group?.key, "industry", "shipyard must be an industrial building");
+assert.equal(required(buildingByKey, "building_shipyard", "shipyard").board_group?.cluster_key, "light_industry", "shipyard must sit with light industry");
+for (const key of ["building_arms_industry", "building_munition_plant", "building_artillery_foundry"]) {
+  assert.equal(required(buildingByKey, key, "military industry building").board_group?.key, "industry", `${key} must remain in industry`);
+}
 assert.equal(required(groupByKey, "pmg_dummy", "dummy production-method group").icon, null, "the iconless dummy group must remain explicit");
 assert.equal(required(methodByKey, "pm_dummy", "dummy production method").icon, null, "the iconless dummy method must remain explicit");
 assert(typeof required(methodByKey, "pm_combustion_derricks", "combustion derricks").description_zh === "string", "production methods must expose a localized description field");

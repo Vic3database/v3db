@@ -9,6 +9,8 @@ const buildScript = read("scripts/build_wiki.mjs");
 const appSource = readSiteAppSource(root);
 const styleSource = readSiteStyleSource(root);
 
+assert.match(indexHtml, /app\/economy\.js\?v=20260803-economy-board-groups1/, "economy script must use the grouped-building cache version");
+
 for (const view of ["building", "goods"]) {
   assert(indexHtml.includes(`data-nav-view="${view}"`), `top navigation must include ${view}`);
   assert(indexHtml.includes(`<option value="${view}">`), `mobile view selector must include ${view}`);
@@ -35,6 +37,8 @@ for (const text of [
   "economyAsset(\"goods\"",
   "economyAsset(\"prestige-goods\"",
   "/region/resource/",
+  "board_group",
+  "data-board-group",
 ]) {
   assert(appSource.includes(text), `economy interaction must contain ${text}`);
 }
