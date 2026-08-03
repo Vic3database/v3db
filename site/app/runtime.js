@@ -137,6 +137,7 @@ const state = {
   languageGroups: new Set(),
   languages: new Set(),
   resourceFilters: new Set(),
+  stateTraitFilters: new Set(),
   companyKinds: new Set(),
   includeIndustryCharter: false,
   companyPrestigeGoods: new Set(),
@@ -408,6 +409,15 @@ const heritageGroupOrder = [
 ];
 
 const heritageGroupOrderByKey = new Map(heritageGroupOrder.map((key, index) => [key, index]));
+
+const stateTraitFilterOptions = [
+  { key: "all", label: "所有" },
+  { key: "waterways", label: "河流海港" },
+  { key: "land", label: "土壤地貌" },
+  { key: "resources", label: "自然资源" },
+  { key: "colonial_environment", label: "殖民环境" },
+  { key: "mapi", label: "MAPI" },
+];
 
 const resourceFilterGroups = [
   {
@@ -722,6 +732,7 @@ const els = {
   resourceFilterTitle: document.querySelector("#resourceFilterTitle"),
   industryCharterFilters: document.querySelector("#industryCharterFilters"),
   resourceFilters: document.querySelector("#resourceFilters"),
+  stateTraitFilters: document.querySelector("#stateTraitFilters"),
   companyKindFilters: document.querySelector("#companyKindFilters"),
   companyPrestigeFilters: document.querySelector("#companyPrestigeFilters"),
   companyDlcFilters: document.querySelector("#companyDlcFilters"),

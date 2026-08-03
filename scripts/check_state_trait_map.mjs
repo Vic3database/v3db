@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
+import vm from "node:vm";
 
 const root = process.cwd();
 const indexSource = readText("site/index.html");
@@ -8,6 +9,7 @@ const runtimeSource = readText("site/app/runtime.js");
 const dataSource = readText("site/app/data.js");
 const uiSource = readText("site/app/ui.js");
 const mapSource = readText("site/app/map.js");
+const filtersSource = readText("site/app/filters.js");
 const extractorSource = readText("scripts/extract_vic3_countries.mjs");
 const dataRoot = process.env.VICDATA_DATA_ROOT || root;
 const victorianCenturyDataRoot = process.env.VICDATA_VC_DATA_ROOT || dataRoot;
@@ -16,6 +18,60 @@ const victorianCenturyStateFile = path.join(victorianCenturyDataRoot, "database/
 const victorianCenturyStates = fs.existsSync(victorianCenturyStateFile) ? JSON.parse(readText(victorianCenturyStateFile)) : null;
 const assignments = states.flatMap((stateRegion) => stateRegion.traits || []);
 const uniqueTraits = [...new Map(assignments.map((trait) => [trait.key, trait])).values()];
+const ishikariWetlands = uniqueTraits.find((trait) => trait.key === "state_trait_ishikari_wetlands_1");
+const nileRiver = uniqueTraits.find((trait) => trait.key === "state_trait_nile_river");
+const malaria = uniqueTraits.find((trait) => trait.key === "state_trait_malaria");
+const severeMalaria = uniqueTraits.find((trait) => trait.key === "state_trait_severe_malaria");
+
+for (const [label, trait] of Object.entries({ ishikariWetlands, nileRiver, malaria, severeMalaria })) {
+  assert.ok(trait, `main data should contain ${label}`);
+}
+
+const traitFilterContext = {
+  state: { stateTraitFilters: new Set() },
+  Set,
+};
+vm.runInNewContext(`
+  ${functionSource(filtersSource, "stateTraitFilterKeys")}
+  ${functionSource(filtersSource, "stateTraitMatchesSelectedFilters")}
+  this.stateTraitFilterKeys = stateTraitFilterKeys;
+  this.stateTraitMatchesSelectedFilters = stateTraitMatchesSelectedFilters;
+`, traitFilterContext);
+
+assert.deepEqual(
+  [...traitFilterContext.stateTraitFilterKeys(ishikariWetlands)].sort(),
+  ["land", "resources", "waterways"],
+  "Ishikari wetlands should retain all three overlapping categories",
+);
+assert.deepEqual(
+  [...traitFilterContext.stateTraitFilterKeys(nileRiver)].sort(),
+  ["land", "mapi", "waterways"],
+  "Nile should combine water, land and MAPI",
+);
+assert.deepEqual(
+  [...traitFilterContext.stateTraitFilterKeys(malaria)],
+  ["colonial_environment"],
+  "malaria should use its disabling technology as colonial environment evidence",
+);
+assert.deepEqual(
+  [...traitFilterContext.stateTraitFilterKeys(severeMalaria)],
+  ["colonial_environment"],
+  "severe malaria should use its colonization and disabling technologies",
+);
+assert.deepEqual([...traitFilterContext.stateTraitFilterKeys({})], [], "missing optional fields should produce no specific categories");
+
+traitFilterContext.state.stateTraitFilters = new Set(["waterways", "resources"]);
+assert.equal(traitFilterContext.stateTraitMatchesSelectedFilters(ishikariWetlands), true, "specific categories should use OR matching");
+assert.equal(traitFilterContext.stateTraitMatchesSelectedFilters(malaria), false, "unselected categories should not match");
+traitFilterContext.state.stateTraitFilters = new Set(["all"]);
+assert.equal(traitFilterContext.stateTraitMatchesSelectedFilters(malaria), true, "all should match every trait");
+
+for (const [label, rows] of [["main", states], ["Victorian Century", victorianCenturyStates]]) {
+  if (!rows) continue;
+  const traits = [...new Map(rows.flatMap((region) => region.traits || []).map((trait) => [trait.key, trait])).values()];
+  const uncovered = traits.filter((trait) => traitFilterContext.stateTraitFilterKeys(trait).size === 0);
+  assert.deepEqual(uncovered.map((trait) => trait.key), [], `${label} traits should all reach at least one specific filter`);
+}
 
 assert.ok(/id="stateTraitMapViewButton"/.test(indexSource), "region filters should expose the state-trait view button");
 assert.ok(/styles\.css\?v=20260803-state-trait-map2/.test(indexSource), "trait map styles should refresh the main stylesheet URL");
