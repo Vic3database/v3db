@@ -51,6 +51,11 @@ try {
   assert(mixedAlphas.includes(0.18), "nonmatching icons in a matching region should use 0.18 opacity");
   const mutedAlphas = await traitIconAlphas(main, "muted");
   assert(mutedAlphas.length > 0 && mutedAlphas.every((alpha) => alpha === 0.36), "filtered-out regions should retain the existing muted icon opacity");
+  const mixedTarget = await mixedTraitTarget(main);
+  assert(mixedTarget && mixedTarget.traitCount > mixedTarget.matchingTraitCount, "main fixture should contain matching and nonmatching traits");
+  await main.locator("#mapCanvas").dispatchEvent("pointermove", mixedTarget.pointer);
+  await main.waitForFunction(() => document.querySelector("#mapTooltip")?.hidden === false, { timeout: 10000 });
+  assert.equal(await main.locator("#mapTooltip .map-tooltip-trait-icon").count(), mixedTarget.traitCount, "tooltip should retain the complete trait set");
   await main.locator("[data-state-trait-filter='all']").click();
 
   const target = await multiTraitTarget(main);
@@ -102,6 +107,44 @@ try {
   assert(filtered.visible > 0 && filtered.visible < filtered.total, "resource filter must gray out part of the trait map");
   assert.deepEqual(mainErrors, [], `main page errors: ${mainErrors.join(" | ")}`);
 
+  const interaction = await context.newPage();
+  await interaction.goto(`${baseUrl}/main/index.html#/region`, { waitUntil: "networkidle", timeout: 45000 });
+  const interactionTraitSection = interaction.locator(".filter-section:has(#stateTraitFilters)");
+  await interactionTraitSection.locator("summary").click();
+  await interaction.locator("[data-state-trait-filter='all']").click();
+  assert.deepEqual(await selectedTraitFilters(interaction), ["all"], "all should select only itself");
+  await interaction.locator("[data-state-trait-filter='waterways']").click();
+  assert.deepEqual(await selectedTraitFilters(interaction), ["waterways"], "a specific category should replace all");
+  await interaction.locator("[data-state-trait-filter='all']").click();
+  assert.deepEqual(await selectedTraitFilters(interaction), ["all"], "all should replace specific categories");
+  assert.equal(await interaction.evaluate(() => window.eval("state.mapMode")), "traitIcons", "all should retain trait icon mode");
+
+  await interaction.locator("[data-state-trait-filter='waterways']").click();
+  await interaction.locator("[data-state-trait-filter='waterways']").click();
+  const cleared = await interaction.evaluate(() => ({
+    selected: [...window.eval("state.stateTraitFilters")],
+    mode: window.eval("state.mapMode"),
+  }));
+  assert.deepEqual(cleared.selected, [], "clearing the last trait filter should empty the selection");
+  assert.equal(cleared.mode, "strategicRegion", "clearing the last trait filter should restore the normal region map");
+
+  await interaction.locator("[data-state-trait-filter='mapi']").click();
+  await interaction.locator("#terrainMapViewButton").click();
+  assert.deepEqual(await selectedTraitFilters(interaction), [], "terrain view should clear trait filters");
+  assert.equal(await interaction.evaluate(() => window.eval("state.mapMode")), "terrain", "terrain control should select terrain mode");
+  await interaction.locator("[data-state-trait-filter='mapi']").click();
+  assert.equal(await interaction.locator("#terrainMapViewButton").getAttribute("aria-pressed"), "false", "trait filters should leave terrain mode");
+  assert.equal(await interaction.evaluate(() => window.eval("state.mapMode")), "traitIcons", "MAPI should select trait icon mode");
+  await interaction.locator("[data-nav-view='country']").click();
+  assert.deepEqual(await selectedTraitFilters(interaction), ["mapi"], "leaving the region board should preserve trait filters");
+  await interaction.locator("[data-nav-view='region']").click();
+  assert.deepEqual(await selectedTraitFilters(interaction), ["mapi"], "returning to the region board should preserve trait filters");
+  assert.equal(await interaction.evaluate(() => window.eval("state.mapMode")), "traitIcons", "returning to the region board should restore trait icon mode");
+  await interaction.locator("#resetButton").click();
+  assert.deepEqual(await selectedTraitFilters(interaction), [], "global reset should clear trait filters");
+  assert.equal(await interaction.evaluate(() => window.eval("state.mapMode")), "strategicRegion", "global reset should restore the normal region map");
+  await interaction.close();
+
   const victorianCentury = await context.newPage();
   const vcErrors = [];
   victorianCentury.on("response", (response) => {
@@ -121,7 +164,42 @@ try {
   const vcTooltipText = await victorianCentury.locator("#mapTooltip").innerText();
   assert.match(vcTooltipText, new RegExp(escapeRegExp(vcTarget.label)), "Victorian Century tooltip must localize a trait name");
   assert.match(vcTooltipText, new RegExp(escapeRegExp(vcTarget.effect)), "Victorian Century tooltip must localize a trait effect");
+  await victorianCentury.locator("[data-state-trait-filter='mapi']").click();
+  assert.deepEqual(await selectedTraitFilters(victorianCentury), ["mapi"], "Victorian Century MAPI should replace all");
+  await victorianCentury.locator("[data-state-trait-filter='land']").click();
+  await victorianCentury.locator("[data-state-trait-filter='mapi']").click();
+  await victorianCentury.locator("[data-state-trait-filter='resources']").click();
+  assert.deepEqual(await selectedTraitFilters(victorianCentury), ["land", "resources"], "Victorian Century categories should combine by OR");
+  assert.equal(await victorianCentury.evaluate(() => window.eval("mapRuntime.featureByStateKey.size")), 781, "Victorian Century filtering should retain all map features");
+  assert.equal(await victorianCentury.evaluate(() => window.eval("mapRuntime.stateTraitIconImages.size")), 23, "Victorian Century filtering should retain preloaded icons");
+  const vcMixedTarget = await mixedTraitTarget(victorianCentury);
+  assert(vcMixedTarget, "Victorian Century should expose an on-canvas mixed trait region");
+  await victorianCentury.locator("#mapCanvas").dispatchEvent("pointermove", vcMixedTarget.pointer);
+  await victorianCentury.waitForFunction(() => document.querySelector("#mapTooltip")?.hidden === false, { timeout: 10000 });
+  const vcTooltipIconBox = await victorianCentury.locator("#mapTooltip .map-tooltip-trait-icon").first().boundingBox();
+  assert.deepEqual({ width: vcTooltipIconBox?.width, height: vcTooltipIconBox?.height }, { width: 38, height: 38 }, "Victorian Century tooltip icons must render at 38 pixels");
   assert.deepEqual(vcErrors, [], `Victorian Century page errors: ${vcErrors.join(" | ")}`);
+
+  const combined = await context.newPage();
+  await combined.goto(`${baseUrl}/main/index.html#/region`, { waitUntil: "networkidle", timeout: 45000 });
+  const combinedTraitSection = combined.locator(".filter-section:has(#stateTraitFilters)");
+  if ((await combinedTraitSection.getAttribute("open")) === null) await combinedTraitSection.locator("summary").click();
+  await combined.locator("[data-state-trait-filter='all']").click();
+  await combined.locator("[data-resource-filter='building_wheat_farm']").click();
+  const combinedState = await combined.evaluate(() => ({
+    mode: window.eval("state.mapMode"),
+    listed: document.querySelectorAll("#countryList [data-state-region]").length,
+    expected: window.eval("landStateRegions").filter(window.eval("matchesStateRegionFilters")).length,
+    visible: window.eval("mapRuntime.visibleStateKeys.size"),
+  }));
+  assert.equal(combinedState.mode, "traitIcons", "resource filters should retain trait icon mode");
+  assert.equal(combinedState.listed, combinedState.expected, "resource and trait filters should intersect in the list");
+  assert(combinedState.visible > 0 && combinedState.visible < 781, "resource and trait filters should gray part of the map");
+  await combined.locator("#searchInput").fill("__no_state_trait_result__");
+  await combined.waitForFunction(() => document.querySelectorAll("#countryList [data-state-region]").length === 0);
+  assert.match(await combined.locator("#countryList").innerText(), /没有匹配结果/, "empty trait results should retain the empty-state message");
+  assert.equal(await combined.evaluate(() => window.eval("mapRuntime.visibleStateKeys.size")), 0, "empty results should mute every region");
+  await combined.close();
 
   const narrow = await context.newPage();
   await narrow.setViewportSize({ width: 390, height: 844 });
@@ -130,14 +208,16 @@ try {
     scrollWidth: document.documentElement.scrollWidth,
     viewportWidth: window.innerWidth,
     mode: window.eval("state.mapMode"),
-    images: window.eval("mapRuntime.stateTraitIconImages.size"),
+    selected: [...window.eval("state.stateTraitFilters")],
   }));
   assert.equal(narrowMetrics.scrollWidth, narrowMetrics.viewportWidth, "narrow trait map must not overflow horizontally");
   assert.equal(narrowMetrics.mode, "traitIcons", "narrow trait map must retain trait icon mode");
-  assert.equal(narrowMetrics.images, 23, "narrow trait map must retain preloaded icons");
+  assert.deepEqual(narrowMetrics.selected, ["all"], "narrow trait map must retain the all filter");
+  const narrowLayout = await traitIconLayout(narrow);
+  assert(narrowLayout.screenWidths.every((width) => Math.abs(width - 38) < 0.01), "narrow map trait icons must render at 38 screen pixels");
   await narrow.close();
 
-  console.log(JSON.stringify({ state_trait_map_browser: "ok", initial, mainLayout, target, filtered, vcInitial, vcTarget, narrow: narrowMetrics, baseUrl }, null, 2));
+  console.log(JSON.stringify({ state_trait_map_browser: "ok", initial, mainLayout, unionState, mixedTarget, target, filtered, cleared, vcInitial, vcTarget, vcMixedTarget, combinedState, narrow: narrowMetrics, baseUrl }, null, 2));
 } finally {
   await context.close();
   await browser.close();
@@ -264,6 +344,39 @@ async function traitIconAlphas(page, featureKind) {
     }
     return calls.map((call) => call.alpha);
   }, featureKind);
+}
+
+async function mixedTraitTarget(page) {
+  return page.evaluate(() => {
+    const runtime = window.eval("mapRuntime");
+    const stateRegionFromPointerEvent = window.eval("stateRegionFromPointerEvent");
+    const rect = document.querySelector("#mapCanvas").getBoundingClientRect();
+    const eligible = new Map([...runtime.featureByStateKey].filter(([, feature]) => (
+      feature.matchingTraits.length > 0 && feature.matchingTraits.length < feature.traits.length
+    )));
+    for (let y = 0; y < runtime.height; y += 8) {
+      for (let x = 0; x < runtime.width; x += 8) {
+        const stateKey = runtime.stateKeysByIndex[runtime.pixelStateIndexes[y * runtime.width + x] || 0];
+        const feature = eligible.get(stateKey);
+        if (!feature) continue;
+        const clientX = rect.left + runtime.transform.x + (x + 0.5) * runtime.transform.scale;
+        const clientY = rect.top + runtime.transform.y + (y + 0.5) * runtime.transform.scale;
+        if (clientX < rect.left || clientX > rect.right || clientY < rect.top || clientY > rect.bottom) continue;
+        if (stateRegionFromPointerEvent({ clientX, clientY })?.key !== stateKey) continue;
+        return {
+          stateKey,
+          traitCount: feature.traits.length,
+          matchingTraitCount: feature.matchingTraits.length,
+          pointer: { clientX, clientY, pointerId: 1, pointerType: "mouse" },
+        };
+      }
+    }
+    return null;
+  });
+}
+
+function selectedTraitFilters(page) {
+  return page.evaluate(() => [...window.eval("state.stateTraitFilters")].sort());
 }
 
 async function traitTargetDiagnostics(page) {
