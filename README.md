@@ -47,6 +47,21 @@ node scripts/build_wiki.mjs --database database\vic3_1.13.9 --out site\versions\
 
 随后运行 `node scripts/check_achievement_database.mjs`、`node scripts/check_achievement_board_contract.mjs` 与 `node scripts/check_publish_bundle.mjs`。`database/` 和 `output/` 为本地生成资料，不纳入提交；站点实际使用的 WebP 图标位于 `site/assets/achievements/`。
 
+## 建筑与商品资料
+
+建筑、商品、名贵商品和生产方式从同一份 1.13.9 数据库提取。图标转换需要本机 Python 的 Pillow。运行顺序如下：
+
+```powershell
+node scripts/extract_vic3_countries.mjs --game "D:\SteamLibrary\steamapps\common\Victoria 3\game" --out database\vic3_1.13.9
+node scripts/build_wiki.mjs --source database\vic3_1.13.9\index.json --out site\versions\1.13.9
+node scripts/build_economy_assets.mjs --database database\vic3_1.13.9 --site site
+node scripts/check_economy_database.mjs
+node scripts/check_economy_assets.mjs
+node scripts/check_economy_board_contract.mjs
+```
+
+经济图标使用按键命名的 WebP 文件，分别位于 `site/assets/buildings/`、`site/assets/goods/`、`site/assets/prestige-goods/` 和 `site/assets/production-methods/`。发布前还需运行 `node scripts/check_publish_bundle.mjs`。
+
 ## 检查
 
 发布前可以运行：

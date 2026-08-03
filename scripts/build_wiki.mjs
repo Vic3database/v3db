@@ -74,6 +74,12 @@ const wikiData = {
   technologies: data.technologies,
   technologyEras: data.technologyEras,
   achievements: data.achievements,
+  buildings: data.buildings,
+  buildingGroups: data.buildingGroups,
+  productionMethodGroups: data.productionMethodGroups,
+  productionMethods: data.productionMethods,
+  goods: data.goods,
+  prestigeGoods: data.prestigeGoods,
   dynamicCountryNameVariants: data.dynamicCountryNameVariants,
   dynamicCountryMapColorRules: data.dynamicCountryMapColorRules,
   formables: data.formables,
@@ -89,6 +95,8 @@ const dataChunks = {
   law: ["laws", "lawGroups"],
   technology: ["technologies", "technologyEras"],
   achievement: ["achievements"],
+  building: ["buildings", "buildingGroups", "productionMethodGroups", "productionMethods"],
+  goods: ["goods", "prestigeGoods"],
 };
 
 const dataChunkFileNames = {
@@ -100,6 +108,8 @@ const dataChunkFileNames = {
   law: "data-laws.js",
   technology: "data-technologies.js",
   achievement: "data-achievements.js",
+  building: "data-buildings.js",
+  goods: "data-goods.js",
 };
 
 for (const [key, keys] of Object.entries(dataChunks)) {
@@ -177,6 +187,9 @@ console.log(JSON.stringify({
   laws: wikiData.laws.length,
   lawGroups: wikiData.lawGroups.length,
   achievements: wikiData.achievements.length,
+  buildings: wikiData.buildings.length,
+  goods: wikiData.goods.length,
+  prestigeGoods: wikiData.prestigeGoods.length,
   dynamicCountryNameVariants: wikiData.dynamicCountryNameVariants.length,
   dynamicCountryMapColorRules: wikiData.dynamicCountryMapColorRules.length,
   formables: wikiData.formables.length,
@@ -204,6 +217,12 @@ function loadSiteData(sourceFile) {
     const technologies = sourceData.files.technologies ? readJson(path.join(baseDir, sourceData.files.technologies)) : [];
     const technologyEras = sourceData.files.technology_eras ? readJson(path.join(baseDir, sourceData.files.technology_eras)) : [];
     const achievements = sourceData.files.achievements ? readJson(path.join(baseDir, sourceData.files.achievements)) : [];
+    const buildings = sourceData.files.buildings ? readJson(path.join(baseDir, sourceData.files.buildings)) : [];
+    const buildingGroups = sourceData.files.building_groups ? readJson(path.join(baseDir, sourceData.files.building_groups)) : [];
+    const productionMethodGroups = sourceData.files.production_method_groups ? readJson(path.join(baseDir, sourceData.files.production_method_groups)) : [];
+    const productionMethods = sourceData.files.production_methods ? readJson(path.join(baseDir, sourceData.files.production_methods)) : [];
+    const goods = sourceData.files.goods ? readJson(path.join(baseDir, sourceData.files.goods)) : [];
+    const prestigeGoods = sourceData.files.prestige_goods ? readJson(path.join(baseDir, sourceData.files.prestige_goods)) : [];
     const lawGroups = sourceData.files.law_groups ? readJson(path.join(baseDir, sourceData.files.law_groups)) : [];
     const dynamicCountryNameVariants = readJson(path.join(baseDir, sourceData.files.dynamic_country_name_variants));
     const dynamicCountryMapColorRules = readJson(path.join(baseDir, sourceData.files.dynamic_country_map_color_rules));
@@ -239,6 +258,12 @@ function loadSiteData(sourceFile) {
       technologies,
       technologyEras,
       achievements,
+      buildings,
+      buildingGroups,
+      productionMethodGroups,
+      productionMethods,
+      goods,
+      prestigeGoods,
       dynamicCountryNameVariants,
       dynamicCountryMapColorRules,
       formables,
@@ -265,6 +290,12 @@ function deriveSiteData(siteData) {
     technologies: siteData.technologies || [],
     technologyEras: siteData.technologyEras || [],
     achievements: siteData.achievements || [],
+    buildings: siteData.buildings || [],
+    buildingGroups: siteData.buildingGroups || [],
+    productionMethodGroups: siteData.productionMethodGroups || [],
+    productionMethods: siteData.productionMethods || [],
+    goods: siteData.goods || [],
+    prestigeGoods: siteData.prestigeGoods || [],
   };
 }
 

@@ -200,6 +200,11 @@ function dataAssetReferences(data, helpers) {
   for (const achievement of data.achievements || []) {
     if (achievement?.key) out.push(`assets/achievements/${achievement.key}.webp`);
   }
+  for (const [field, category] of [["buildings", "buildings"], ["goods", "goods"], ["prestigeGoods", "prestige-goods"], ["productionMethods", "production-methods"]]) {
+    for (const item of data[field] || []) {
+      if (item?.key && item.icon?.source) out.push(`assets/${category}/${item.key}.webp`);
+    }
+  }
 
   return [...new Set(out)];
 }

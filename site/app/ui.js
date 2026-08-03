@@ -1134,6 +1134,14 @@ async function applyHash() {
     changeBoard("home", "home");
     return;
   }
+  if (parts[0] === "building" && !economyBoardAvailable("building")) {
+    changeBoard("home", "home");
+    return;
+  }
+  if (parts[0] === "goods" && !economyBoardAvailable("goods")) {
+    changeBoard("home", "home");
+    return;
+  }
   if (!parts.length || parts[0] === "home") {
     changeBoard("home", "home");
     return;
@@ -1175,6 +1183,10 @@ async function applyHash() {
   }
   if (parts[0] === "region") {
     changeBoard("region", "stateRegion");
+    if (parts[1] === "resource" && parts[2] && resourceFilterByKey.has(decodeURIComponent(parts[2]))) {
+      state.resourceFilters = new Set([decodeURIComponent(parts[2])]);
+      state.regionMapView = "default";
+    }
     return;
   }
   if (parts[0] === "state-region" && parts[1] && byStateRegion.has(decodeURIComponent(parts[1]))) {
@@ -1242,6 +1254,26 @@ async function applyHash() {
     state.selectedAchievement = decodeURIComponent(parts[1]);
     return;
   }
+  if (parts[0] === "building" && economyBoardAvailable("building") && !parts[1]) {
+    changeBoard("building", "building");
+    state.selectedBuilding = "";
+    return;
+  }
+  if (parts[0] === "building" && parts[1] && buildingRecordByKey.has(decodeURIComponent(parts[1]))) {
+    changeBoard("building", "building");
+    state.selectedBuilding = decodeURIComponent(parts[1]);
+    return;
+  }
+  if (parts[0] === "goods" && economyBoardAvailable("goods") && !parts[1]) {
+    changeBoard("goods", "goods");
+    state.selectedGood = "";
+    return;
+  }
+  if (parts[0] === "goods" && parts[1] && goodByKey.has(decodeURIComponent(parts[1]))) {
+    changeBoard("goods", "goods");
+    state.selectedGood = decodeURIComponent(parts[1]);
+    return;
+  }
   if (parts[0] === "religion" && parts[1]) {
     state.search = decodeURIComponent(parts[1]).toLowerCase();
     els.searchInput.value = state.search;
@@ -1291,8 +1323,14 @@ function updatePageChrome() {
   setOptionalText(els.pageTitle, title);
   document.title = title;
   const achievementAvailable = achievementBoardAvailable();
+  const buildingAvailable = economyBoardAvailable("building");
+  const goodsAvailable = economyBoardAvailable("goods");
   document.querySelectorAll('[data-nav-view="achievement"]').forEach((button) => { button.hidden = !achievementAvailable; });
   document.querySelector('#viewSelect option[value="achievement"]')?.toggleAttribute("hidden", !achievementAvailable);
+  document.querySelectorAll('[data-nav-view="building"]').forEach((button) => { button.hidden = !buildingAvailable; });
+  document.querySelectorAll('[data-nav-view="goods"]').forEach((button) => { button.hidden = !goodsAvailable; });
+  document.querySelector('#viewSelect option[value="building"]')?.toggleAttribute("hidden", !buildingAvailable);
+  document.querySelector('#viewSelect option[value="goods"]')?.toggleAttribute("hidden", !goodsAvailable);
   if (els.viewSelect) {
     els.viewSelect.value = state.view;
   }
@@ -1390,10 +1428,14 @@ function render() {
     renderTechnologyBoard();
   } else if (state.view === "achievement") {
     renderAchievementBoard();
+  } else if (state.view === "building") {
+    renderBuildingBoard();
+  } else if (state.view === "goods") {
+    renderGoodsBoard();
   } else {
     renderCountryBoard();
   }
-  const boardManagesDetail = state.view === "home" || state.view === "technology" || state.view === "achievement" || state.view === "news";
+  const boardManagesDetail = state.view === "home" || state.view === "technology" || state.view === "achievement" || state.view === "building" || state.view === "goods" || state.view === "news";
   if (!boardManagesDetail && state.view !== "changelog" && isDetailPageRoute()) {
     renderDetailForState();
   } else if (!boardManagesDetail) {
@@ -1408,7 +1450,7 @@ function isDetailPageRoute() {
 function detailRouteKey() {
   const [route, key] = location.hash.replace(/^#\/?/, "").split("/").filter(Boolean);
   if (!route || !key) return "";
-  return ["country", "culture", "state-region", "strategic-region", "geographic-region", "company", "ideology", "law", "technology", "achievement"].includes(route) ? key : "";
+  return ["country", "culture", "state-region", "strategic-region", "geographic-region", "company", "ideology", "law", "technology", "achievement", "building", "goods"].includes(route) ? key : "";
 }
 
 function syncFilterSectionOpenStates() {

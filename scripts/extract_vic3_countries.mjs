@@ -176,6 +176,16 @@ function main() {
     technologyEras,
     loc,
   );
+  const economy = loadEconomyData({
+    buildingDirs: contentPath("common", "buildings"),
+    buildingGroupDirs: contentPath("common", "building_groups"),
+    productionMethodGroupDirs: contentPath("common", "production_method_groups"),
+    productionMethodDirs: contentPath("common", "production_methods"),
+    goodsDirs: contentPath("common", "goods"),
+    prestigeGoodsDirs: contentPath("common", "prestige_goods"),
+    stateRegionRows,
+    loc,
+  });
   const achievements = loadAchievements(
     contentPath("common", "achievements"),
     contentPath("common", "achievement_groups.txt"),
@@ -412,6 +422,7 @@ function main() {
     formableRules: formables,
     formables: formationRows,
     releasables: releaseRows,
+    economy,
   });
 
   writeNotes(path.join(outDir, `${prefix}_说明.md`), {
@@ -1655,6 +1666,348 @@ function loadAchievements(definitionDirs, groupFiles, iconDirs, loc, locEn) {
   return [...achievementsByKey.values()].sort((left, right) => (
     left.group_key.localeCompare(right.group_key, "en") || left.group_order - right.group_order
   ));
+}
+
+function loadEconomyData({
+  buildingDirs,
+  buildingGroupDirs,
+  productionMethodGroupDirs,
+  productionMethodDirs,
+  goodsDirs,
+  prestigeGoodsDirs,
+  stateRegionRows,
+  loc,
+}) {
+  const buildingGroups = loadBuildingGroups(buildingGroupDirs, loc);
+  const productionMethodGroups = loadProductionMethodGroups(productionMethodGroupDirs, loc);
+  const productionMethods = loadProductionMethods(productionMethodDirs, loc);
+  const goods = loadGoods(goodsDirs, loc);
+  const prestigeGoods = loadPrestigeGoods(prestigeGoodsDirs, loc);
+  const resourceBuildingKinds = new Map();
+  for (const stateRegion of stateRegionRows) {
+    for (const resource of stateRegion.arable_resources || []) resourceBuildingKinds.set(resource?.key, "arable");
+    for (const resource of [...(stateRegion.capped_resources || []), ...(stateRegion.discoverable_resources || [])]) {
+      if (resource?.key && !resourceBuildingKinds.has(resource.key)) resourceBuildingKinds.set(resource.key, "resource");
+    }
+  }
+  const { buildings, excludedGraphicalBuildings } = loadBuildings(buildingDirs, buildingGroups, resourceBuildingKinds, loc);
+  const buildingByKey = new Map(buildings.map((building) => [building.key, building]));
+  const productionMethodByKey = new Map(productionMethods.map((method) => [method.key, method]));
+
+  for (const group of productionMethodGroups) {
+    group.production_method_keys = group.production_method_keys.filter((key) => productionMethodByKey.has(key));
+  }
+  for (const building of buildings) {
+    building.production_method_group_keys = building.production_method_group_keys
+      .filter((key) => productionMethodGroups.some((group) => group.key === key));
+    building.combination_count = building.production_method_group_keys.reduce((total, key) => {
+      const count = productionMethodGroups.find((group) => group.key === key)?.production_method_keys.length || 0;
+      return total * count;
+    }, 1);
+  }
+
+  const producersByGoodKey = new Map(goods.map((good) => [good.key, new Set()]));
+  for (const building of buildings) {
+    const methodKeys = building.production_method_group_keys.flatMap((groupKey) => (
+      productionMethodGroups.find((group) => group.key === groupKey)?.production_method_keys || []
+    ));
+    for (const methodKey of methodKeys) {
+      for (const effect of productionMethodByKey.get(methodKey)?.effects || []) {
+        const match = effect.key.match(/^goods_output_([a-z0-9_]+)_add$/);
+        if (match && effect.value > 0 && producersByGoodKey.has(match[1])) producersByGoodKey.get(match[1]).add(building.key);
+      }
+    }
+  }
+  const prestigeByBaseGood = new Map();
+  for (const prestigeGood of prestigeGoods) {
+    if (!prestigeByBaseGood.has(prestigeGood.base_good_key)) prestigeByBaseGood.set(prestigeGood.base_good_key, []);
+    prestigeByBaseGood.get(prestigeGood.base_good_key).push(prestigeGood.key);
+  }
+  for (const good of goods) {
+    good.prestige_good_keys = (prestigeByBaseGood.get(good.key) || []).sort();
+    good.producing_buildings = [...(producersByGoodKey.get(good.key) || [])]
+      .map((key) => buildingByKey.get(key))
+      .filter(Boolean)
+      .sort((left, right) => economyDisplayName(left).localeCompare(economyDisplayName(right), "zh-Hans-CN"))
+      .map((building) => ({
+        key: building.key,
+        name_zh: economyDisplayName(building),
+        icon_path: building.icon.site_path,
+      }));
+  }
+
+  return {
+    buildings,
+    buildingGroups,
+    productionMethodGroups,
+    productionMethods,
+    goods,
+    prestigeGoods,
+    excludedGraphicalBuildings,
+  };
+}
+
+function loadBuildingGroups(dirs, loc) {
+  const groupMap = new Map();
+  let order = 0;
+  for (const file of listFiles(dirs)) {
+    const root = parseScript(readText(file), file);
+    for (const assignment of root.assignments) {
+      const key = scriptEntryKey(assignment.key);
+      const node = asNode(assignment.value);
+      if (!node || !key.startsWith("bg_")) continue;
+      groupMap.set(key, {
+        key,
+        name_zh: locCleanName(loc, key),
+        parent_group_key: firstScalar(node, "parent_group"),
+        category_key: firstScalar(node, "category"),
+        order: order += 1,
+        source_file: normalizePath(file),
+      });
+    }
+  }
+  for (const group of groupMap.values()) {
+    let categoryKey = group.category_key;
+    let parentKey = group.parent_group_key;
+    const seen = new Set([group.key]);
+    while (!categoryKey && parentKey && !seen.has(parentKey)) {
+      seen.add(parentKey);
+      const parent = groupMap.get(parentKey);
+      categoryKey = parent?.category_key || "";
+      parentKey = parent?.parent_group_key || "";
+    }
+    group.category_key = categoryKey || "other";
+    group.category_name_zh = economyGroupCategoryName(group.category_key);
+  }
+  return [...groupMap.values()].sort((left, right) => left.order - right.order);
+}
+
+function loadProductionMethodGroups(dirs, loc) {
+  const groups = new Map();
+  for (const file of listFiles(dirs)) {
+    const root = parseScript(readText(file), file);
+    for (const assignment of root.assignments) {
+      const key = scriptEntryKey(assignment.key);
+      const node = asNode(assignment.value);
+      if (!node || !key.startsWith("pmg_")) continue;
+      const texture = firstScalar(node, "texture");
+      groups.set(key, {
+        key,
+        name_zh: locCleanName(loc, key),
+        icon: texture ? economyIcon(texture, "production-methods", key, "production method group") : null,
+        production_method_keys: nodeItems(asNode(firstValue(node, "production_methods")) || { items: [] }).map(scriptEntryKey).filter(Boolean),
+        source_file: normalizePath(file),
+      });
+    }
+  }
+  return [...groups.values()].sort((left, right) => left.key.localeCompare(right.key, "en"));
+}
+
+function loadProductionMethods(dirs, loc) {
+  const methods = new Map();
+  for (const file of listFiles(dirs)) {
+    const root = parseScript(readText(file), file);
+    for (const assignment of root.assignments) {
+      const key = scriptEntryKey(assignment.key);
+      const node = asNode(assignment.value);
+      if (!node || !key.startsWith("pm_")) continue;
+      const texture = firstScalar(node, "texture");
+      methods.set(key, {
+        key,
+        name_zh: locCleanName(loc, key),
+        description_zh: loc.has(`${key}_desc`) ? locCleanName(loc, `${key}_desc`) : "",
+        icon: texture ? economyIcon(texture, "production-methods", key, "production method") : null,
+        unlocking_technologies: referenceList(asNode(firstValue(node, "unlocking_technologies")), loc, "technology"),
+        availability_conditions: productionMethodAvailabilityConditions(node, loc),
+        effects: productionMethodEffects(node, loc),
+        source_file: normalizePath(file),
+      });
+    }
+  }
+  return [...methods.values()].sort((left, right) => left.key.localeCompare(right.key, "en"));
+}
+
+function loadGoods(dirs, loc) {
+  const goods = new Map();
+  for (const file of listFiles(dirs)) {
+    const root = parseScript(readText(file), file);
+    for (const assignment of root.assignments) {
+      const key = scriptEntryKey(assignment.key);
+      const node = asNode(assignment.value);
+      if (!node || key.startsWith("goods_")) continue;
+      const texture = firstScalar(node, "texture");
+      if (!texture.includes("goods_icons/")) continue;
+      goods.set(key, {
+        key,
+        name_zh: locCleanName(loc, key),
+        description_zh: loc.has(`${key}_desc`) ? locCleanName(loc, `${key}_desc`) : "",
+        category: firstScalar(node, "category") || "other",
+        price: toNumberOrNull(firstScalar(node, "cost")),
+        is_local: boolFromYesNo(firstScalar(node, "local")),
+        icon: economyIcon(texture, "goods", key, "good"),
+        prestige_good_keys: [],
+        producing_buildings: [],
+        source_file: normalizePath(file),
+      });
+    }
+  }
+  return [...goods.values()].sort((left, right) => left.key.localeCompare(right.key, "en"));
+}
+
+function loadPrestigeGoods(dirs, loc) {
+  const goods = new Map();
+  for (const file of listFiles(dirs)) {
+    const root = parseScript(readText(file), file);
+    for (const assignment of root.assignments) {
+      const key = scriptEntryKey(assignment.key);
+      const node = asNode(assignment.value);
+      if (!node || !key.startsWith("prestige_good_")) continue;
+      goods.set(key, {
+        key,
+        name_zh: locCleanName(loc, key),
+        description_zh: loc.has(`${key}_desc`) ? locCleanName(loc, `${key}_desc`) : "",
+        base_good_key: firstScalar(node, "base_good"),
+        icon: economyIcon(firstScalar(node, "texture"), "prestige-goods", key, "prestige good"),
+        source_file: normalizePath(file),
+      });
+    }
+  }
+  return [...goods.values()].sort((left, right) => left.key.localeCompare(right.key, "en"));
+}
+
+function loadBuildings(dirs, buildingGroups, resourceBuildingKinds, loc) {
+  const groupByKey = new Map(buildingGroups.map((group) => [group.key, group]));
+  const buildings = [];
+  const excludedGraphicalBuildings = [];
+  for (const file of listFiles(dirs)) {
+    const root = parseScript(readText(file), file);
+    for (const assignment of root.assignments) {
+      const key = scriptEntryKey(assignment.key);
+      const node = asNode(assignment.value);
+      if (!node || !key.startsWith("building_")) continue;
+      const buildingGroupKey = firstScalar(node, "building_group");
+      const iconSource = firstScalar(node, "icon");
+      if (buildingGroupKey === "bg_monuments_hidden" && !iconSource) {
+        excludedGraphicalBuildings.push({
+          key,
+          building_group: buildingGroupKey,
+          source_file: normalizePath(file),
+          reason: "missing_icon",
+        });
+        continue;
+      }
+      if (!iconSource) throw new Error(`building icon is missing: ${key}`);
+      const buildingGroup = groupByKey.get(buildingGroupKey);
+      if (!buildingGroup) throw new Error(`building group is missing: ${key} -> ${buildingGroupKey}`);
+      const rawName = locCleanName(loc, key);
+      const fallbackName = key === "building_machu_picchu" ? "马丘比丘" : "";
+      const displayName = rawName.includes("dummy building") ? "" : rawName;
+      buildings.push({
+        key,
+        name_zh: displayName,
+        name_fallback_zh: fallbackName,
+        description_zh: loc.has(`${key}_desc`) ? locCleanName(loc, `${key}_desc`) : "",
+        icon: economyIcon(iconSource, "buildings", key, "building"),
+        building_group: {
+          key: buildingGroup.key,
+          name_zh: buildingGroup.name_zh,
+          category_key: buildingGroup.category_key,
+          category_name_zh: buildingGroup.category_name_zh,
+          order: buildingGroup.order,
+        },
+        city_type: firstScalar(node, "city_type"),
+        required_construction: firstScalar(node, "required_construction"),
+        unlocking_technologies: referenceList(asNode(firstValue(node, "unlocking_technologies")), loc, "technology"),
+        resource_map_available: resourceBuildingKinds.has(key),
+        resource_map_kind: resourceBuildingKinds.get(key) || "",
+        production_method_group_keys: nodeItems(asNode(firstValue(node, "production_method_groups")) || { items: [] }).map(scriptEntryKey).filter(Boolean),
+        combination_count: 0,
+        source_file: normalizePath(file),
+      });
+    }
+  }
+  return {
+    buildings: buildings.sort((left, right) => economyDisplayName(left).localeCompare(economyDisplayName(right), "zh-Hans-CN")),
+    excludedGraphicalBuildings: excludedGraphicalBuildings.sort((left, right) => left.key.localeCompare(right.key, "en")),
+  };
+}
+
+function productionMethodAvailabilityConditions(node, loc) {
+  const fields = [
+    ["unlocking_technologies", "technology"],
+    ["disallowing_laws", "law"],
+    ["required_input_goods", "good"],
+    ["replacement_if_valid", "script"],
+  ];
+  return fields.flatMap(([field, kind]) => {
+    const value = firstValue(node, field);
+    if (!value) return [];
+    if (kind === "script") return [{ kind, summary_zh: summarizeScriptCondition(value, loc), raw: stringifyScriptValue(value), references: [] }];
+    const keys = asNode(value) ? nodeItems(asNode(value)).map(stripPrefix) : [stripPrefix(scalarFromValue(value))];
+    return keys.filter(Boolean).map((key) => ({
+      kind,
+      summary_zh: locCleanName(loc, key),
+      raw: key,
+      references: [{ key, name_zh: locCleanName(loc, key) }],
+    }));
+  });
+}
+
+function productionMethodEffects(node, loc) {
+  return ["building_modifiers", "state_modifiers", "country_modifiers"].flatMap((scope) => (
+    collectProductionMethodEffects(firstValue(node, scope), scope.replace("_modifiers", ""), "", null, loc)
+  ));
+}
+
+function collectProductionMethodEffects(value, scope, scaling, conditionValue, loc) {
+  const node = asNode(value);
+  if (!node) return [];
+  const effects = [];
+  for (const assignment of node.assignments) {
+    if (assignment.key === "workforce_scaled" || assignment.key === "level_scaled") {
+      effects.push(...collectProductionMethodEffects(assignment.value, scope, assignment.key, conditionValue, loc));
+      continue;
+    }
+    if (assignment.key === "if" || assignment.key === "else_if") {
+      const branch = asNode(assignment.value);
+      effects.push(...collectProductionMethodEffects(assignment.value, scope, scaling, branch ? firstValue(branch, "limit") : conditionValue, loc));
+      continue;
+    }
+    const numeric = toNumberOrNull(scalarFromValue(assignment.value));
+    if (numeric === null) continue;
+    effects.push({
+      scope,
+      scaling,
+      key: assignment.key,
+      name_zh: cleanLocalizationText(locName(loc, assignment.key), loc),
+      value: numeric,
+      value_zh: formatModifierValue(assignment.key, numeric, String(numeric)),
+      condition: conditionValue ? conditionSummaryObject(conditionValue, loc) : null,
+    });
+  }
+  return effects;
+}
+
+function economyIcon(source, category, key, label) {
+  if (!source || !source.endsWith(".dds")) throw new Error(`${label} icon is missing: ${key}`);
+  const fileName = path.basename(source).replace(/\.dds$/i, ".png");
+  return { source, site_path: `assets/${category}/${fileName}` };
+}
+
+function referenceList(node, loc, idPrefix) {
+  return nodeItems(node || { items: [] }).map(stripPrefix).filter(Boolean).map((key) => ({
+    id: `${idPrefix}:${key}`,
+    key,
+    name_zh: locCleanName(loc, key),
+  }));
+}
+
+function economyGroupCategoryName(key) {
+  return ({ rural: "乡村", urban: "城市", development: "发展", military: "军事", other: "其他" })[key] || key;
+}
+
+function economyDisplayName(item) {
+  return item?.name_zh || item?.name_fallback_zh || item?.key || "";
 }
 
 function attachAchievementCountryReferences(achievements, countryRows) {
@@ -3650,6 +4003,7 @@ function writeDatabase(dir, data) {
     formableRules,
     formables,
     releasables,
+    economy,
   } = data;
   const stateRegionByKey = new Map(stateRegionRows.map((stateRegion) => [stateRegion.key, stateRegion]));
   const strategicRegionByKey = new Map(strategicRegionRows.map((strategicRegion) => [strategicRegion.key, strategicRegion]));
@@ -3806,6 +4160,16 @@ function writeDatabase(dir, data) {
     };
   });
 
+  const economyData = economy || {
+    buildings: [],
+    buildingGroups: [],
+    productionMethodGroups: [],
+    productionMethods: [],
+    goods: [],
+    prestigeGoods: [],
+    excludedGraphicalBuildings: [],
+  };
+
   const index = {
     schema_version: 1,
     dataset_name: datasetName,
@@ -3839,6 +4203,13 @@ function writeDatabase(dir, data) {
       dynamic_country_map_color_rules: "dynamic_country_map_color_rules.json",
       formable_countries: "formable_countries.json",
       releasable_countries: "releasable_countries.json",
+      buildings: "buildings.json",
+      building_groups: "building_groups.json",
+      production_method_groups: "production_method_groups.json",
+      production_methods: "production_methods.json",
+      goods: "goods.json",
+      prestige_goods: "prestige_goods.json",
+      excluded_graphical_buildings: "excluded_graphical_buildings.json",
     },
     counts: {
       countries: countries.length,
@@ -3862,6 +4233,13 @@ function writeDatabase(dir, data) {
       dynamic_country_map_color_rules: dynamicMapColorRules.length,
       formable_countries: formables.length,
       releasable_countries: releasables.length,
+      buildings: economyData.buildings.length,
+      building_groups: economyData.buildingGroups.length,
+      production_method_groups: economyData.productionMethodGroups.length,
+      production_methods: economyData.productionMethods.length,
+      goods: economyData.goods.length,
+      prestige_goods: economyData.prestigeGoods.length,
+      excluded_graphical_buildings: economyData.excludedGraphicalBuildings.length,
     },
   };
 
@@ -3894,6 +4272,13 @@ function writeDatabase(dir, data) {
   writeJson(path.join(dir, "dynamic_country_map_color_rules.json"), dynamicMapColorRules);
   writeJson(path.join(dir, "formable_countries.json"), formables);
   writeJson(path.join(dir, "releasable_countries.json"), releasables);
+  writeJson(path.join(dir, "buildings.json"), economyData.buildings);
+  writeJson(path.join(dir, "building_groups.json"), economyData.buildingGroups);
+  writeJson(path.join(dir, "production_method_groups.json"), economyData.productionMethodGroups);
+  writeJson(path.join(dir, "production_methods.json"), economyData.productionMethods);
+  writeJson(path.join(dir, "goods.json"), economyData.goods);
+  writeJson(path.join(dir, "prestige_goods.json"), economyData.prestigeGoods);
+  writeJson(path.join(dir, "excluded_graphical_buildings.json"), economyData.excludedGraphicalBuildings);
   writeDatabaseReadme(path.join(dir, "README.md"), index);
 }
 
@@ -3949,10 +4334,28 @@ function writeDatabaseReadme(file, index) {
   ];
   const fileListStart = notes.findIndex((note) => note.startsWith("- index.json"));
   const countHeading = notes.findIndex((note, index) => index > fileListStart && note.startsWith("## "));
-  notes.splice(countHeading - 1, 0, "- achievements.json：成就主数据，包含难度、中文说明、提示条件、图标引用和原始达成脚本。");
+  notes.splice(countHeading - 1, 0,
+    "- achievements.json：成就主数据，包含难度、中文说明、提示条件、图标引用和原始达成脚本。",
+    "- buildings.json：建筑图片墙和详情资料，包含建筑组、图标、资源地图资格与生产方式组引用。",
+    "- building_groups.json：建筑组、上级组和默认分区资料。",
+    "- production_method_groups.json：生产方式组和可选生产方式键。",
+    "- production_methods.json：生产方式图标、科技、可用条件和分作用域修正。",
+    "- goods.json：基础商品、图标、价格、本地商品属性、生产建筑和名贵商品引用。",
+    "- prestige_goods.json：名贵商品与对应基础商品。",
+    "- excluded_graphical_buildings.json：没有界面图标的装饰定位建筑审计清单。",
+  );
   const updatedCountHeading = notes.findIndex((note, index) => index > fileListStart && note.startsWith("## "));
   const explanationHeading = notes.findIndex((note, index) => index > updatedCountHeading && note.startsWith("## "));
-  notes.splice(explanationHeading - 1, 0, `成就：${index.counts.achievements}`);
+  notes.splice(explanationHeading - 1, 0,
+    `成就：${index.counts.achievements}`,
+    `建筑：${index.counts.buildings}`,
+    `建筑组：${index.counts.building_groups}`,
+    `生产方式组：${index.counts.production_method_groups}`,
+    `生产方式：${index.counts.production_methods}`,
+    `商品：${index.counts.goods}`,
+    `名贵商品：${index.counts.prestige_goods}`,
+    `图形占位建筑：${index.counts.excluded_graphical_buildings}`,
+  );
   fs.writeFileSync(file, `\uFEFF${notes.join("\r\n")}\r\n`, "utf8");
 }
 

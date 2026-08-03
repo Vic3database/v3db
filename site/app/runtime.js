@@ -25,6 +25,12 @@ let lawGroups = [];
 let technologies = [];
 let technologyEras = [];
 let achievements = [];
+let buildings = [];
+let buildingGroups = [];
+let productionMethodGroups = [];
+let productionMethods = [];
+let goods = [];
+let prestigeGoods = [];
 let mapData = null;
 let siteTitle = "Vicdata";
 
@@ -41,6 +47,12 @@ let lawByKey = new Map();
 let lawGroupByKey = new Map();
 let technologyByKey = new Map();
 let achievementByKey = new Map();
+let buildingRecordByKey = new Map();
+let buildingGroupByKey = new Map();
+let productionMethodGroupByKey = new Map();
+let productionMethodByKey = new Map();
+let goodByKey = new Map();
+let prestigeGoodByKey = new Map();
 let stateTraitByKey = new Map();
 let stateTraitRegionsByKey = new Map();
 let buildingByKey = new Map();
@@ -183,6 +195,10 @@ const state = {
   selectedLaw: "",
   selectedTechnology: "",
   selectedAchievement: "",
+  selectedBuilding: "",
+  selectedGood: "",
+  economySearch: "",
+  selectedProductionMethods: new Map(),
   achievementSearch: "",
   achievementWallScrollTop: 0,
   technologyCategory: "production",
@@ -428,6 +444,7 @@ const resourceFilterGroups = [
       { key: "building_lead_mine", label: "铅矿", resources: ["building_lead_mine"] },
       { key: "building_sulfur_mine", label: "硫矿", resources: ["building_sulfur_mine"] },
       { key: "building_gold_mine", label: "金矿", resources: ["building_gold_mine"] },
+      { key: "building_gold_field", label: "金矿区", resources: ["building_gold_field"] },
     ],
   },
   {
@@ -561,6 +578,8 @@ const viewLabels = {
   law: "法律",
   technology: "科技",
   achievement: "成就",
+  building: "建筑",
+  goods: "商品",
   changelog: "更新日志",
   news: "游戏资讯",
 };

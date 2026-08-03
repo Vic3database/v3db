@@ -20,15 +20,31 @@ site/versions/*
 !site/versions/1.13.9/
 !site/versions/1.13.9/data.js
 !site/versions/1.13.9/map-data.js
+!site/versions/1.13.9/data-buildings.js
+!site/versions/1.13.9/data-goods.js
 
 # Game-derived site assets
 site/assets/buildings/
+!site/assets/buildings/
+site/assets/buildings/*
+!site/assets/buildings/*.webp
+site/assets/goods/
+!site/assets/goods/
+site/assets/goods/*
+!site/assets/goods/*.webp
+site/assets/production-methods/
+!site/assets/production-methods/
+site/assets/production-methods/*
+!site/assets/production-methods/*.webp
 site/assets/companies/
 site/assets/dlc/
 site/assets/ideologies/
 site/assets/interest-groups/
 site/assets/map/
 site/assets/prestige-goods/
+!site/assets/prestige-goods/
+site/assets/prestige-goods/*
+!site/assets/prestige-goods/*.webp
 
 # Local logs and browser/debug captures
 logs/
