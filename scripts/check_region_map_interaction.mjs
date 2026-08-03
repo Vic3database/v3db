@@ -13,6 +13,7 @@ checkRegionRowDetailButtonContracts();
 checkRegionMapListSyncContracts();
 checkRegionMapFocusColorContracts();
 checkRegionMapFocusResetContracts();
+checkTerrainViewContracts();
 checkRegionMapCacheVersionContracts();
 checkPrimaryListEventContracts();
 
@@ -45,7 +46,7 @@ function checkRegionRowDetailButtonContracts() {
 
   assert(/rowDetailButton\("data-state-region-detail"/.test(stateRegionRowHtml), "region rows should expose a dedicated state-region detail button");
   assert(/assets\/lucide\/icons\/arrow-right\.svg/.test(rowDetailButton), "row detail button should use the right-arrow icon");
-  assert(/aria-label="进入详情"/.test(rowDetailButton), "row detail button should have an accessible label");
+  assert(/t\("ui\.openDetail"\)[\s\S]*aria-label="\$\{escapeHtml\(label\)\}"/.test(rowDetailButton), "row detail button should have a localized accessible label");
   assert(/\.row-detail-button/.test(stylesSource), "row detail button should have shared styles");
 }
 
@@ -87,10 +88,20 @@ function checkRegionMapFocusResetContracts() {
   assert(/state\.view === "region" \? t\("map\.resetRegionFocus", "重置地域焦点和地图位置"\) : t\("map\.resetPosition", "重置地图位置"\)/.test(renderMapControls), "region map reset button should expose its localized region-specific label");
 }
 
+function checkTerrainViewContracts() {
+  const bindMapEvents = functionSource("bindMapEvents");
+  const syncMapModeForView = functionSource("syncMapModeForView");
+
+  assert(/state\.regionMapView === "terrain"[\s\S]*state\.mapMode = "terrain"/.test(syncMapModeForView), "terrain view should keep its own map mode ahead of resource selection");
+  assert(/state\.mapMode === "terrain" && !terrainLandKeys\.has\(terrainKeyFromPointerEvent\(event\)\)\) return;/.test(bindMapEvents), "terrain view should ignore water clicks and double-clicks");
+  assert(/selectStateRegionFromMap\(stateRegion\.key\)/.test(bindMapEvents), "terrain view should retain single-click state-region selection");
+  assert(/openStateRegionDetail\(stateRegion\.key\)/.test(bindMapEvents), "terrain view should retain double-click state-region detail navigation");
+}
+
 function checkRegionMapCacheVersionContracts() {
-  assert(/app\/ui\.js\?v=20260730-culture-mobile1/.test(indexSource), "region map UI script should use the current release cache version");
-  assert(/app\/map\.js\?v=20260731-map-center-wrap1/.test(indexSource), "region map script should use the current release cache version");
-  assert(/app\/presentation\.js\?v=20260730-culture-mobile2/.test(indexSource), "fast region selection should use the current presentation cache version");
+  assert(/app\/ui\.js\?v=20260803-multilingual-map1/.test(indexSource), "region map UI script should use the current release cache version");
+  assert(/app\/map\.js\?v=20260803-multilingual-map1/.test(indexSource), "region map script should use the current release cache version");
+  assert(/app\/presentation\.js\?v=20260803-multilingual-map1/.test(indexSource), "fast region selection should use the current presentation cache version");
 }
 
 function checkPrimaryListEventContracts() {

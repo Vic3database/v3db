@@ -328,6 +328,7 @@ function resetDatasetState() {
   state.lawGroups.clear();
   state.victorianCenturyOnly = false;
   state.dimUnfilteredCountries = false;
+  state.regionMapView = "default";
     state.tradition = "";
     state.mapSubject = "";
     state.countryMobileFiltersOpen = false;
@@ -356,10 +357,16 @@ function resetMapRuntime() {
   mapRuntime.loading = false;
   mapRuntime.error = "";
   mapRuntime.sourcePixels = null;
+  mapRuntime.provinceMapImage = null;
+  mapRuntime.provinceSampleContext = null;
+  mapRuntime.stateTraitIconImages = new Map();
+  mapRuntime.stateTraitIconLoading = null;
   mapRuntime.stateKeysByIndex = [""];
   mapRuntime.ownerKeysByIndex = [""];
+  mapRuntime.terrainKeysByIndex = [""];
   mapRuntime.pixelStateIndexes = null;
   mapRuntime.pixelOwnerIndexes = null;
+  mapRuntime.pixelTerrainIndexes = null;
   mapRuntime.filteredCountryTags = new Set();
   mapRuntime.countrySearchMatchedTags = new Set();
   mapRuntime.layerCache = new Map();

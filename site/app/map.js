@@ -2,16 +2,19 @@ function renderMapControls() {
   const mapResetLabel = state.view === "region" ? t("map.resetRegionFocus", "重置地域焦点和地图位置") : t("map.resetPosition", "重置地图位置");
   els.mapFitWidthButton?.setAttribute("aria-label", mapResetLabel);
   els.mapFitWidthButton?.setAttribute("title", mapResetLabel);
+  syncMapModeForView();
+  const terrainViewEnabled = state.view === "region" && state.regionMapView === "terrain";
+  els.terrainMapViewButton?.setAttribute("aria-pressed", String(terrainViewEnabled));
   if (state.view === "ideology" || state.view === "law") {
-    syncMapModeForView();
     renderMapResourceContext();
+    renderTerrainMapLegend();
     return;
   }
   if (!els.mapModeSelect || !els.mapSubjectSelect) {
     renderMapResourceContext();
+    renderTerrainMapLegend();
     return;
   }
-  syncMapModeForView();
   els.mapModeSelect.value = state.mapMode;
   const options = mapSubjectOptions(state.mapMode);
   if (!options.some((option) => option.value === state.mapSubject)) {
@@ -21,6 +24,17 @@ function renderMapControls() {
     `<option value="${escapeHtml(option.value)}"${state.mapSubject === option.value ? " selected" : ""}>${escapeHtml(option.label)}</option>`
   )).join("");
   renderMapResourceContext();
+  renderTerrainMapLegend();
+}
+
+function renderTerrainMapLegend() {
+  if (!els.terrainMapLegend) return;
+  const enabled = state.view === "region" && state.regionMapView === "terrain";
+  els.terrainMapLegend.hidden = !enabled;
+  if (!enabled) return;
+  els.terrainMapLegend.innerHTML = terrainLegendEntries.map((entry) => (
+    `<span class="terrain-map-legend-item"><span class="terrain-map-legend-swatch" style="--terrain-map-color: ${escapeHtml(entry.color)}" aria-hidden="true"></span>${escapeHtml(t(entry.labelKey))}</span>`
+  )).join("");
 }
 
 function mapResourceContextResourceKey() {
@@ -74,6 +88,16 @@ function syncMapModeForView() {
     }
     return;
   }
+  if (state.view === "region" && state.stateTraitFilters.size > 0) {
+    state.mapMode = "traitIcons";
+    state.mapSubject = "";
+    return;
+  }
+  if (state.view === "region" && state.regionMapView === "terrain") {
+    state.mapMode = "terrain";
+    state.mapSubject = "";
+    return;
+  }
   if (state.view === "region" && state.resourceFilters.size > 0) {
     state.mapMode = "resourceSelection";
     state.mapSubject = [...state.resourceFilters][0] || "";
@@ -89,7 +113,7 @@ function syncMapModeForView() {
 }
 
 function mapSubjectOptions(mode) {
-  if (mode === "country" || mode === "company" || mode === "cultureFilter" || mode === "resourceSelection" || mode === "strategicRegion") {
+  if (mode === "country" || mode === "company" || mode === "cultureFilter" || mode === "resourceSelection" || mode === "strategicRegion" || mode === "terrain") {
     return [{ value: state.mapSubject || "", label: automaticMapSubjectLabel(mode) }];
   }
   if (mode === "culture") {
@@ -187,6 +211,7 @@ function mapLayerSignature() {
     state.mapMode,
     state.mapSubject || "",
     `visible:${setSignature(mapRuntime.visibleStateKeys)}`,
+    `stateTraits:${setSignature(state.stateTraitFilters)}`,
   ];
   if (state.mapMode === "country") {
     parts.push(`selected:${selectedCountryMapSignature()}`);
@@ -249,15 +274,21 @@ function ensureMapLoaded() {
   }
   window.setTimeout(async () => {
     mapRuntime.paperMapImage = await loadImage(mapRuntime.paperMapUrl).catch(() => null);
+    mapRuntime.provinceMapImage = await loadImage(mapRuntime.imageUrl).catch(() => null);
     mapRuntime.width = mapData.width || mapRuntime.width;
     mapRuntime.height = mapData.height || mapRuntime.height;
     mapRuntime.stateKeysByIndex = mapData.stateKeys || [""];
     mapRuntime.ownerKeysByIndex = mapData.ownerKeys || [""];
+    mapRuntime.terrainKeysByIndex = mapData.terrainKeys || [""];
     mapRuntime.pixelStateIndexes = decodeMapRuns(mapData.runs, mapRuntime.width * mapRuntime.height);
     mapRuntime.pixelOwnerIndexes = mapData.ownerRuns
       ? decodeMapRuns(mapData.ownerRuns, mapRuntime.width * mapRuntime.height)
       : null;
+    mapRuntime.pixelTerrainIndexes = mapData.terrainRuns
+      ? decodeMapRuns(mapData.terrainRuns, mapRuntime.width * mapRuntime.height)
+      : null;
     mapRuntime.stateCenters = computeMapStateCenters(mapRuntime.pixelStateIndexes, mapRuntime.width, mapRuntime.height, mapRuntime.stateKeysByIndex);
+    await loadStateTraitIconImages();
     mapRuntime.ready = true;
     mapRuntime.loading = false;
     resetMapTransform();
@@ -331,12 +362,50 @@ function computeMapStateCenters(indexes, width, height, stateKeysByIndex) {
 function buildMapFeatures() {
   if (state.mapMode === "country") return buildCountryMapFeatures();
   if (state.mapMode === "strategicRegion") return buildStrategicRegionMapFeatures();
+  if (state.mapMode === "traitIcons") return buildTraitIconMapFeatures();
+  if (state.mapMode === "terrain") return buildTerrainMapFeatures();
   if (state.mapMode === "company") return buildCompanyMapFeatures();
   if (state.mapMode === "resourceSelection") return buildSelectedResourceMapFeatures();
   if (state.mapMode === "cultureFilter") return buildCultureFilterMapFeatures();
   if (state.mapMode === "culture") return buildCultureMapFeatures();
   if (state.mapMode === "trait") return buildTraitMapFeatures();
   return buildResourceMapFeatures();
+}
+
+function loadStateTraitIconImages() {
+  if (mapRuntime.stateTraitIconLoading) return mapRuntime.stateTraitIconLoading;
+  const fileNames = [...new Set(stateRegions
+    .flatMap((stateRegion) => (stateRegion.traits || []).map(stateTraitIconFileName))
+    .filter(Boolean))];
+  mapRuntime.stateTraitIconLoading = Promise.all(fileNames.map(async (fileName) => {
+    const image = await loadImage(`assets/state-traits/${encodeURIComponent(fileName)}`).catch(() => null);
+    if (image) mapRuntime.stateTraitIconImages.set(fileName, image);
+  }));
+  return mapRuntime.stateTraitIconLoading;
+}
+
+function stateTraitIconFileName(trait) {
+  const iconPath = String(trait?.icon || "");
+  return iconPath
+    ? iconPath.split(/[\\/]/).at(-1).replace(/\.dds$/i, ".png")
+    : `${String(trait?.key || "").replace(/^state_trait_/, "")}.png`;
+}
+
+function buildTraitIconMapFeatures() {
+  const features = new Map();
+  for (const stateRegion of stateRegions) {
+    const traits = stateRegion.traits || [];
+    const matchingTraits = matchingStateTraits(stateRegion);
+    const isSea = isSeaStateRegion(stateRegion);
+    features.set(stateRegion.key, {
+      color: mapFeatureColor(stateRegion, isSea ? MAP_SEA_COLOR : "#eee9df"),
+      active: matchingTraits.length > 0,
+      value: matchingTraits.length,
+      traits: traits,
+      matchingTraits,
+    });
+  }
+  return features;
 }
 
 function mapFeatureColor(stateRegion, color) {
@@ -347,6 +416,34 @@ function mapFeatureColor(stateRegion, color) {
 const REGION_MAP_FOCUS_COLOR = "#00cc66";
 const COMPANY_LOCATION_MAP_COLOR = "#00cc66";
 const COMPANY_LOCATION_BORDER_COLOR = "#c8a45b";
+const terrainLegendEntries = [
+  { key: "plains", labelKey: "enum.terrain.plains", color: "#d9c989", rgb: [217, 201, 137] },
+  { key: "forest", labelKey: "enum.terrain.forest", color: "#4f8756", rgb: [79, 135, 86] },
+  { key: "hills", labelKey: "enum.terrain.hills", color: "#a98262", rgb: [169, 130, 98] },
+  { key: "mountain", labelKey: "enum.terrain.mountain", color: "#887f78", rgb: [136, 127, 120] },
+  { key: "jungle", labelKey: "enum.terrain.jungle", color: "#23745f", rgb: [35, 116, 95] },
+  { key: "wetland", labelKey: "enum.terrain.wetland", color: "#78a69a", rgb: [120, 166, 154] },
+  { key: "desert", labelKey: "enum.terrain.desert", color: "#d69d56", rgb: [214, 157, 86] },
+  { key: "tundra", labelKey: "enum.terrain.tundra", color: "#9eb1a6", rgb: [158, 177, 166] },
+  { key: "savanna", labelKey: "enum.terrain.savanna", color: "#b4a95a", rgb: [180, 169, 90] },
+  { key: "snow", labelKey: "enum.terrain.snow", color: "#dce5ea", rgb: [220, 229, 234] },
+];
+const terrainLegendByKey = new Map(terrainLegendEntries.map((entry) => [entry.key, entry]));
+const terrainLandKeys = new Set(terrainLegendEntries.map((entry) => entry.key));
+
+function buildTerrainMapFeatures() {
+  const features = new Map();
+  for (const stateRegion of stateRegions) {
+    const isSea = isSeaStateRegion(stateRegion);
+    features.set(stateRegion.key, {
+      color: mapFeatureColor(stateRegion, isSea ? MAP_SEA_COLOR : "#e9edeb"),
+      active: !isSea,
+      value: 0,
+      title: isSea ? t("board.region.sea", "海域") : t("map.provinceTerrain", "省份地形"),
+    });
+  }
+  return features;
+}
 
 function buildCompanyMapFeatures() {
   const selectedCompanies = mapRuntime.companyMapCompanies || companies;
@@ -574,11 +671,13 @@ function companyMapStateRegions(selectedCompanies) {
 }
 
 function regionMapStateRegions(filteredStateRegions, filteredSeaStateRegions, filteredGeographicRegions) {
+  if (state.stateTraitFilters.size > 0) return filteredStateRegions;
   const selectedStateRegion = byStateRegion.get(state.selectedStateRegion);
   if (selectedStateRegion && !isSeaStateRegion(selectedStateRegion)) return [selectedStateRegion];
   if (state.selectedGeographicRegion) {
     const selectedRegion = byGeographicRegion.get(state.selectedGeographicRegion) || filteredGeographicRegions[0];
-    const states = selectedRegion ? geographicRegionStateRegions(selectedRegion) : [];
+    const geographicStateKeys = new Set((selectedRegion ? geographicRegionStateRegions(selectedRegion) : []).map((stateRegion) => stateRegion.key));
+    const states = filteredStateRegions.filter((stateRegion) => geographicStateKeys.has(stateRegion.key));
     return states.length ? states : filteredStateRegions;
   }
   if (state.resourceFilters.size > 0 || state.strategicRegions.size > 0) {
@@ -974,13 +1073,17 @@ function drawMapLayer(features) {
     : null;
   for (let pixel = 0, offset = 0; pixel < stateIndexes.length; pixel += 1, offset += 4) {
     const stateIndex = stateIndexes[pixel] || 0;
-    const rgb = ownerLayerColors && stateIndex
+    const terrainKey = terrainKeyForPixel(pixel);
+    const terrainRgb = state.mapMode === "terrain" && stateIndex
+      ? terrainPixelRgb(stateIndex, terrainKey, stateLayer)
+      : null;
+    const rgb = terrainRgb || (ownerLayerColors && stateIndex
       ? countryPixelRgb(stateIndex, mapRuntime.pixelOwnerIndexes[pixel] || 0, stateLayer, ownerLayerColors)
-      : stateLayer.colors[stateIndex] || stateLayer.colors[0];
+      : stateLayer.colors[stateIndex] || stateLayer.colors[0]);
     data[offset] = rgb[0];
     data[offset + 1] = rgb[1];
     data[offset + 2] = rgb[2];
-    data[offset + 3] = stateIndex
+    data[offset + 3] = stateIndex && !(state.mapMode === "terrain" && !terrainLandKeys.has(terrainKey))
       ? mapPixelAlpha(stateIndex, stateLayer)
       : 0;
   }
@@ -994,6 +1097,7 @@ function drawMapLayer(features) {
 }
 
 function mapPixelAlpha(stateIndex, stateLayer) {
+  if (state.mapMode === "terrain") return stateLayer.visible[stateIndex] ? MAP_LAND_ALPHA : MAP_MUTED_ALPHA;
   if (["resource", "resourceSelection"].includes(state.mapMode)) {
     return stateLayer.sea[stateIndex] ? MAP_SEA_ALPHA : MAP_RESOURCE_LAND_ALPHA;
   }
@@ -1042,6 +1146,17 @@ function countryPixelRgb(stateIndex, ownerIndex, stateLayer, ownerLayerColors) {
   return ownerLayerColors[ownerIndex] || ownerLayerColors[0];
 }
 
+function terrainKeyForPixel(pixel) {
+  const index = mapRuntime.pixelTerrainIndexes?.[pixel] || 0;
+  return mapRuntime.terrainKeysByIndex?.[index] || "";
+}
+
+function terrainPixelRgb(stateIndex, terrainKey, stateLayer) {
+  if (!terrainLandKeys.has(terrainKey)) return null;
+  if (!stateLayer.visible[stateIndex]) return stateLayer.muted;
+  return terrainLegendByKey.get(terrainKey).rgb;
+}
+
 function mapPixelColor(stateRegion, feature, pixel) {
   if (!stateRegion) return "#ebeae6";
   if (isSeaStateRegion(stateRegion)) return MAP_SEA_COLOR;
@@ -1059,6 +1174,7 @@ function mapPixelColor(stateRegion, feature, pixel) {
 function addStateBorders(data, stateIndexes, width, height) {
   const stateBorderColor = [82, 93, 87];
   const seaBorder = hexToRgb(MAP_SEA_BORDER_COLOR);
+  const terrainMode = state.mapMode === "terrain";
   for (let y = 0; y < height; y += 1) {
     const rowStart = y * width;
     const hasDown = y < height - 1;
@@ -1066,6 +1182,7 @@ function addStateBorders(data, stateIndexes, width, height) {
       const pixel = rowStart + x;
       const index = stateIndexes[pixel];
       if (!index) continue;
+      if (terrainMode && !terrainLandKeys.has(terrainKeyForPixel(pixel))) continue;
       const rightPixel = x === width - 1 ? rowStart : pixel + 1;
       const downPixel = hasDown ? pixel + width : -1;
       const rightIndex = stateIndexes[rightPixel];
@@ -1075,8 +1192,8 @@ function addStateBorders(data, stateIndexes, width, height) {
         ? seaBorder
         : stateBorderColor;
       paintBorderPixel(data, pixel, color);
-      if (index !== rightIndex && rightIndex) paintBorderPixel(data, rightPixel, color);
-      if (hasDown && index !== downIndex && downIndex) paintBorderPixel(data, downPixel, color);
+      if (index !== rightIndex && rightIndex && (!terrainMode || terrainLandKeys.has(terrainKeyForPixel(rightPixel)))) paintBorderPixel(data, rightPixel, color);
+      if (hasDown && index !== downIndex && downIndex && (!terrainMode || terrainLandKeys.has(terrainKeyForPixel(downPixel)))) paintBorderPixel(data, downPixel, color);
     }
   }
 }
@@ -1187,6 +1304,7 @@ function paintMapCanvasTarget(canvas, viewport, transform, drawLabels = false) {
     context.drawImage(mapRuntime.layerCanvas, copy * mapRuntime.width, 0);
   }
   if (drawLabels) drawMapLabels(context, copyRange, transform);
+  drawStateTraitMapIcons(context, copyRange, transform);
 }
 
 function resetMapTransform() {
@@ -1368,6 +1486,37 @@ function drawMapLabels(context, copyRange = { start: 0, end: 0 }, transform = ma
   context.restore();
 }
 
+function drawStateTraitMapIcons(context, copyRange = { start: 0, end: 0 }, transform = mapRuntime.transform) {
+  if (state.mapMode !== "traitIcons" || !mapRuntime.featureByStateKey) return;
+  const iconSize = 32;
+  const inverseScale = 1 / Math.max(transform.scale, 0.001);
+  const mapIconSize = iconSize * inverseScale;
+  const specificFiltersActive = state.stateTraitFilters.size > 0 && !state.stateTraitFilters.has("all");
+  context.save();
+  for (const [stateKey, feature] of mapRuntime.featureByStateKey) {
+    const center = mapRuntime.stateCenters.get(stateKey);
+    if (!center || !feature?.traits?.length) continue;
+    for (const [index, trait] of feature.traits.entries()) {
+      const image = mapRuntime.stateTraitIconImages.get(stateTraitIconFileName(trait));
+      if (!image) continue;
+      const offsetX = (index - (feature.traits.length - 1) / 2) * mapIconSize;
+      const visible = mapRuntime.visibleStateKeys.has(stateKey);
+      const matching = feature.matchingTraits?.includes(trait);
+      context.globalAlpha = visible ? (specificFiltersActive && !matching ? 0.18 : 1) : 0.36;
+      for (let copy = copyRange.start; copy <= copyRange.end; copy += 1) {
+        context.drawImage(
+          image,
+          center.x + copy * mapRuntime.width + offsetX - mapIconSize / 2,
+          center.y - mapIconSize / 2,
+          mapIconSize,
+          mapIconSize,
+        );
+      }
+    }
+  }
+  context.restore();
+}
+
 function bindMapEvents() {
   if (!els.mapCanvas || !els.mapViewport) return;
   els.mapCanvas.addEventListener("wheel", (event) => {
@@ -1420,6 +1569,7 @@ function bindMapEvents() {
         if (countryTag) selectCountryFromMap(countryTag);
         return;
       }
+      if (state.mapMode === "terrain" && !terrainLandKeys.has(terrainKeyFromPointerEvent(event))) return;
       const stateRegion = stateRegionFromPointerEvent(event);
       if (stateRegion) {
         selectStateRegionFromMap(stateRegion.key);
@@ -1428,6 +1578,7 @@ function bindMapEvents() {
   });
   els.mapCanvas.addEventListener("dblclick", (event) => {
     if (state.view !== "region") return;
+    if (state.mapMode === "terrain" && !terrainLandKeys.has(terrainKeyFromPointerEvent(event))) return;
     const stateRegion = stateRegionFromPointerEvent(event);
     if (stateRegion) openStateRegionDetail(stateRegion.key);
   });
@@ -1446,14 +1597,16 @@ function bindMapEvents() {
 
 function updateMapTooltip(event) {
   const stateRegion = stateRegionFromPointerEvent(event);
-  if (!stateRegion) {
+  if (!stateRegion || (state.mapMode === "terrain" && !terrainLandKeys.has(terrainKeyFromPointerEvent(event)))) {
     hideMapTooltip();
     return;
   }
   const feature = mapRuntime.featureByStateKey?.get(stateRegion.key);
   const ownerTag = countryOwnerTagFromPointerEvent(event);
+  const terrainKey = terrainKeyFromPointerEvent(event);
+  const provinceCode = terrainProvinceCodeFromPointerEvent(event);
   els.mapTooltip.hidden = false;
-  els.mapTooltip.innerHTML = mapTooltipHtml(stateRegion, feature, ownerTag);
+  els.mapTooltip.innerHTML = mapTooltipHtml(stateRegion, feature, ownerTag, terrainKey, provinceCode);
   const viewportRect = els.mapViewport.getBoundingClientRect();
   const x = event.clientX - viewportRect.left + 12;
   const y = event.clientY - viewportRect.top + 12;
@@ -1483,6 +1636,35 @@ function countryOwnerTagFromPointerEvent(event) {
   return mapRuntime.ownerKeysByIndex?.[index] || "";
 }
 
+function terrainKeyFromPointerEvent(event) {
+  const pixel = mapPixelIndexFromPointerEvent(event);
+  return pixel < 0 ? "" : terrainKeyForPixel(pixel);
+}
+
+function terrainProvinceCodeFromPointerEvent(event) {
+  return provinceColorFromPointerEvent(event);
+}
+
+function provinceColorFromPointerEvent(event) {
+  const pixel = mapPixelIndexFromPointerEvent(event);
+  if (pixel < 0 || !mapRuntime.provinceMapImage) return "";
+  if (!mapRuntime.provinceSampleContext) {
+    const canvas = document.createElement("canvas");
+    canvas.width = 1;
+    canvas.height = 1;
+    mapRuntime.provinceSampleContext = canvas.getContext("2d", { willReadFrequently: true });
+  }
+  const context = mapRuntime.provinceSampleContext;
+  const x = pixel % mapRuntime.width;
+  const y = Math.floor(pixel / mapRuntime.width);
+  context.drawImage(mapRuntime.provinceMapImage, x, y, 1, 1, 0, 0, 1, 1);
+  const [red, green, blue] = context.getImageData(0, 0, 1, 1).data;
+  const hex = [red, green, blue]
+    .map((value) => value.toString(16).padStart(2, "0").toUpperCase())
+    .join("");
+  return `x${hex}`;
+}
+
 function mapPixelIndexFromPointerEvent(event) {
   const rect = els.mapCanvas.getBoundingClientRect();
   const point = screenToMapPoint(event.clientX - rect.left, event.clientY - rect.top);
@@ -1504,7 +1686,7 @@ function wrapMapX(x) {
   return ((x % width) + width) % width;
 }
 
-function mapTooltipHtml(stateRegion, feature, ownerTag = "") {
+function mapTooltipHtml(stateRegion, feature, ownerTag = "", terrainKey = "", provinceCode = "") {
   const isSea = isSeaStateRegion(stateRegion);
   const kind = isSea ? t("board.region.sea", "海域") : t("board.region.stateRegion", "地域");
   const variants = stateRegionVariantNames(stateRegion);
@@ -1515,7 +1697,7 @@ function mapTooltipHtml(stateRegion, feature, ownerTag = "") {
       <div class="map-tooltip-sub">${escapeHtml(kind)} · ${escapeHtml(stateRegion.key)}</div>
     `;
   }
-  const rows = mapTooltipRowsForView(stateRegion, feature, ownerTag);
+  const rows = mapTooltipRowsForView(stateRegion, feature, ownerTag, terrainKey, provinceCode);
   return `
     <div class="map-tooltip-title">${escapeHtml(entityText(stateRegion) || stateRegion.key)}${variantText}</div>
     <div class="map-tooltip-sub">${escapeHtml(kind)} · ${escapeHtml(stateRegion.key)}</div>
@@ -1525,7 +1707,22 @@ function mapTooltipHtml(stateRegion, feature, ownerTag = "") {
   `;
 }
 
-function mapTooltipRowsForView(stateRegion, feature, ownerTag = "") {
+function mapTooltipRowsForView(stateRegion, feature, ownerTag = "", terrainKey = "", provinceCode = "") {
+  if (state.mapMode === "terrain") {
+    if (!terrainLandKeys.has(terrainKey)) return [];
+    return compactTooltipRows([
+      [t("map.provinceCode", "省份代码"), provinceCode],
+      [t("map.terrain", "地形"), terrainLabel(terrainKey)],
+      [t("map.stateRegion", "所属地域"), entityText(stateRegion) || stateRegion.key],
+      [t("board.region.strategicRegion", "战略区域"), refNames(stateRegion.strategic_regions)],
+    ]);
+  }
+  if (state.mapMode === "traitIcons") {
+    return compactTooltipRows([
+      [t("board.region.strategicRegion", "战略区域"), refNames(stateRegion.strategic_regions)],
+      [t("board.region.traits", "地区特质"), tooltipHtml(mapTooltipStateTraitHtml(feature?.traits || stateRegion.traits || []))],
+    ]);
+  }
   if (state.view === "country" || state.mapMode === "country") {
     return compactTooltipRows([
       [t("board.region.startingOwners", "开局归属"), refNames(stateRegion.starting_owners)],
@@ -1548,15 +1745,20 @@ function mapTooltipRowsForView(stateRegion, feature, ownerTag = "") {
       [t("board.region.startingOwners", "开局归属"), countryRefNames(stateRegion.starting_owners)],
       [t("board.region.strategicRegion", "战略区域"), refNames(stateRegion.strategic_regions)],
       ...mapTooltipResourceRows(stateRegion),
-      [t("board.region.traits", "地区特质"), mapTooltipTraitSummary(stateRegion)],
+      [t("board.region.traits", "地区特质"), tooltipHtml(mapTooltipStateTraitHtml(stateRegion.traits || []))],
     ]);
   }
   return compactTooltipRows([
     [t("board.region.strategicRegion", "战略区域"), refNames(stateRegion.strategic_regions)],
     ...mapTooltipResourceRows(stateRegion),
     [t("board.region.arableLand", "耕地"), stateRegion.arable_land === null ? "" : String(stateRegion.arable_land)],
-    [t("board.region.traits", "地区特质"), mapTooltipTraitSummary(stateRegion)],
+    [t("board.region.traits", "地区特质"), tooltipHtml(mapTooltipStateTraitHtml(stateRegion.traits || []))],
   ]);
+}
+
+function terrainLabel(key) {
+  const entry = terrainLegendByKey.get(key);
+  return entry ? t(entry.labelKey) : key;
 }
 
 function compactTooltipRows(rows) {
@@ -1580,9 +1782,13 @@ function resourceSummaryText(stateRegion) {
   return summarizeTextItems(resources, 5);
 }
 
-function mapTooltipTraitSummary(stateRegion) {
-  const traits = (stateRegion?.traits || []).map((trait) => entityText(trait) || trait.key).filter(Boolean);
-  return summarizeTextItems(traits, 4);
+function mapTooltipStateTraitHtml(traits) {
+  return (traits || []).map((trait) => {
+    const fileName = stateTraitIconFileName(trait);
+    const label = entityText(trait) || trait.key;
+    const effect = (trait?.modifiers || []).map(modifierSummaryLabel).filter(Boolean).join(t("ui.listSeparator"));
+    return `<span class="map-tooltip-trait"><img class="map-tooltip-trait-icon" src="assets/state-traits/${encodeURIComponent(fileName)}" alt=""><span>${escapeHtml(label)}${effect ? `${escapeHtml(t("ui.colon"))}${escapeHtml(effect)}` : ""}</span></span>`;
+  }).join("");
 }
 
 function compactResourceLabel(item, amount = "") {

@@ -60,7 +60,7 @@ for (const modulePath of expectedModules) {
 const config = readGlobal(configFile, "VICTORIAN_CENTURY_SITE_CONFIG");
 assert.equal(config?.siteTitle, "Victorian Century Database", "standalone configuration must set the site title");
 assert.equal(config?.dataIndex, "data-index.js", "standalone configuration must use the local data index");
-assert.equal(config?.mapData, "map-data.js", "standalone configuration must use the local map index");
+assert.match(config?.mapData || "", /^map-data\.js(?:\?v=[a-z0-9-]+)?$/, "standalone configuration must use the versioned local map index");
 assert.equal(config?.dataRoot, ".", "standalone configuration must load chunks from the local directory");
 assert.equal(config?.localeRoot, "locales", "standalone configuration must load UI locale files from its local locale directory");
 assert.equal(config?.webpAssetPaths?.length, 18, "standalone configuration must enumerate every VC display WebP");

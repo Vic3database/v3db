@@ -250,6 +250,7 @@ function bindEvents() {
     render();
   });
   bindResourceFilterTokens();
+  bindStateTraitFilterTokens();
   bindTokenChoice(els.industryCharterFilters, "industryCharter", () => {
     state.includeIndustryCharter = !state.includeIndustryCharter;
     renderCompanyFilterOptions();
@@ -302,6 +303,13 @@ function bindEvents() {
     state.mapSubject = els.mapSubjectSelect.value;
     render();
   });
+  els.terrainMapViewButton?.addEventListener("click", () => {
+    const enableTerrain = state.regionMapView !== "terrain";
+    state.regionMapView = enableTerrain ? "terrain" : "default";
+    if (enableTerrain) state.stateTraitFilters.clear();
+    state.mapSubject = "";
+    render();
+  });
   els.mapFitWidthButton?.addEventListener("click", () => {
     if (state.view === "region") {
       resetRegionMapFocus();
@@ -332,6 +340,7 @@ function bindEvents() {
     state.languageGroups.clear();
     state.languages.clear();
     state.resourceFilters.clear();
+    state.stateTraitFilters.clear();
     state.companyKinds.clear();
     state.includeIndustryCharter = false;
     state.companyPrestigeGoods.clear();
@@ -344,6 +353,7 @@ function bindEvents() {
     state.commonLawIdeologyOnly = false;
     state.victorianCenturyChangeKinds.clear();
     state.dimUnfilteredCountries = false;
+    state.regionMapView = "default";
     state.tradition = "";
     state.mapSubject = "";
     state.countryMobileFiltersOpen = false;
@@ -500,6 +510,25 @@ function bindResourceFilterTokens() {
     }
     setTokenPressed(button, !pressed);
     toggleSet(state.resourceFilters, value, !pressed);
+    render();
+  });
+}
+
+function bindStateTraitFilterTokens() {
+  els.stateTraitFilters?.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-state-trait-filter]");
+    if (!button || !els.stateTraitFilters.contains(button)) return;
+    const value = button.dataset.stateTraitFilter;
+    const pressed = button.getAttribute("aria-pressed") === "true";
+    if (value === "all") {
+      state.stateTraitFilters.clear();
+      if (!pressed) state.stateTraitFilters.add("all");
+    } else {
+      state.stateTraitFilters.delete("all");
+      toggleSet(state.stateTraitFilters, value, !pressed);
+    }
+    if (state.stateTraitFilters.size > 0) state.regionMapView = "default";
+    state.mapSubject = "";
     render();
   });
 }
@@ -1231,6 +1260,7 @@ async function setView(view) {
 
 function changeBoard(view, detailKind) {
   if (state.view !== view) resetBoardView();
+  if (view !== "region") state.regionMapView = "default";
   state.view = view;
   state.detailKind = detailKind;
 }
@@ -1338,6 +1368,7 @@ function render() {
   renderStrategicRegionFilterOptions();
   renderGeographicRegionFilterOptions();
   renderResourceFilterOptions();
+  renderStateTraitFilterOptions();
   renderCompanyFilterOptions();
   renderIdeologyFilterOptions();
   renderLawFilterOptions();
@@ -1396,6 +1427,7 @@ function syncFilterSectionOpenStates() {
 
   if (!hasInitializedFilterSections) initializeDefaultFilterSectionOpenStates();
   setSection(".filter-section:has(#resourceFilters)", state.resourceFilters.size > 0 || state.includeIndustryCharter);
+  setSection(".filter-section:has(#stateTraitFilters)", state.stateTraitFilters.size > 0);
   setSection(".filter-section:has(#countryTypeFilters)", state.view === "country" || state.types.size > 0 || state.flags.size > 0);
   setSection(".filter-section:has(#tierFilters)", state.view === "country" || state.tiers.size > 0);
   setSection(".filter-section:has(#strategicRegionFilters)", state.view === "country" || state.strategicRegions.size > 0);
@@ -1441,6 +1473,7 @@ function syncVictorianCenturyChangeFilter() {
 function initializeDefaultFilterSectionOpenStates() {
   const defaultOpenFilterIds = new Set([
     "resourceFilters",
+    "terrainMapViewButton",
     "companyKindFilters",
     "companyPrestigeFilters",
     "companyDlcFilters",

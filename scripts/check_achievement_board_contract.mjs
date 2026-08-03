@@ -25,7 +25,7 @@ for (const achievement of achievements) {
   assert(fs.existsSync(path.join(root, "site", "assets", "achievements", `${achievement.key}.webp`)), `${achievement.key} must have a published WebP icon`);
 }
 
-assert.match(index, /data-nav-view="achievement"[^>]*>[\s\S]*?<span>成就<\/span>/, "top navigation must expose achievements");
+assert.match(index, /data-nav-view="achievement"[^>]*>[\s\S]*?<span[^>]*data-i18n="nav\.achievement"[^>]*>成就<\/span>/, "top navigation must expose a localized achievements entry");
 assert.match(index, /data-nav-view="achievement"[^>]*>[\s\S]*?trophy\.svg/, "achievement navigation must use the trophy icon");
 for (const file of ["runtime", "data", "ui", "achievements"]) {
   assert.match(index, new RegExp(`app/${file}\\.js\\?v=[^"']+`), `${file} must use a cache version`);

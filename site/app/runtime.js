@@ -82,6 +82,10 @@ const mapRuntime = {
   image: null,
   paperMapUrl: "assets/map/flatmap_votp.png",
   paperMapImage: null,
+  provinceMapImage: null,
+  provinceSampleContext: null,
+  stateTraitIconImages: new Map(),
+  stateTraitIconLoading: null,
   sourcePixels: null,
   width: 4096,
   height: 1808,
@@ -97,8 +101,10 @@ const mapRuntime = {
   visibleStateKeys: new Set(),
   stateKeysByIndex: [""],
   ownerKeysByIndex: [""],
+  terrainKeysByIndex: [""],
   pixelStateIndexes: null,
   pixelOwnerIndexes: null,
+  pixelTerrainIndexes: null,
   filteredCountryTags: new Set(),
   countrySearchMatchedTags: new Set(),
   layerCache: new Map(),
@@ -129,6 +135,7 @@ const state = {
   languageGroups: new Set(),
   languages: new Set(),
   resourceFilters: new Set(),
+  stateTraitFilters: new Set(),
   companyKinds: new Set(),
   includeIndustryCharter: false,
   companyPrestigeGoods: new Set(),
@@ -183,6 +190,7 @@ const state = {
   globalSearchColorRestoreTag: "",
   detailKind: "country",
   regionListMode: "state",
+  regionMapView: "default",
   mapMode: "resource",
   mapSubject: "",
   theme: "votp",
@@ -399,6 +407,15 @@ const heritageGroupOrder = [
 ];
 
 const heritageGroupOrderByKey = new Map(heritageGroupOrder.map((key, index) => [key, index]));
+
+const stateTraitFilterOptions = [
+  { key: "all", labelKey: "filter.stateTrait.all" },
+  { key: "waterways", labelKey: "filter.stateTrait.waterways" },
+  { key: "land", labelKey: "filter.stateTrait.land" },
+  { key: "resources", labelKey: "filter.stateTrait.resources" },
+  { key: "colonial_environment", labelKey: "filter.stateTrait.colonialEnvironment" },
+  { key: "mapi", labelKey: "filter.stateTrait.mapi" },
+];
 
 const resourceFilterGroups = [
   {
@@ -719,6 +736,7 @@ const els = {
   resourceFilterTitle: document.querySelector("#resourceFilterTitle"),
   industryCharterFilters: document.querySelector("#industryCharterFilters"),
   resourceFilters: document.querySelector("#resourceFilters"),
+  stateTraitFilters: document.querySelector("#stateTraitFilters"),
   companyKindFilters: document.querySelector("#companyKindFilters"),
   companyPrestigeFilters: document.querySelector("#companyPrestigeFilters"),
   companyDlcFilters: document.querySelector("#companyDlcFilters"),
@@ -747,6 +765,8 @@ const els = {
   mapSubjectSelect: document.querySelector("#mapSubjectSelect"),
   mapFitWidthButton: document.querySelector("#mapFitWidthButton"),
   mapResourceContext: document.querySelector("#mapResourceContext"),
+  terrainMapViewButton: document.querySelector("#terrainMapViewButton"),
+  terrainMapLegend: document.querySelector("#terrainMapLegend"),
   mapViewport: document.querySelector("#mapViewport"),
   mapCanvas: document.querySelector("#mapCanvas"),
   mapTooltip: document.querySelector("#mapTooltip"),

@@ -2346,6 +2346,7 @@ function cultureRelationColor(rank, isSea) {
 function mapModeLabel(mode) {
   if (mode === "country") return "开局归属";
   if (mode === "strategicRegion") return "战略区域";
+  if (mode === "terrain") return t("map.terrainView", "地形视图");
   if (mode === "company") return "公司关联";
   if (mode === "cultureFilter") return "文化筛选";
   if (mode === "resourceSelection") return "资源潜力";
@@ -2771,6 +2772,10 @@ function buildActiveHint(count) {
   if (["country", "culture"].includes(state.view)) addCount("filter.active.language", state.languages.size);
   if ((state.view === "region" || state.view === "company") && state.resourceFilters.size) {
     addCount(state.view === "company" ? "filter.active.buildings" : "filter.resources", state.resourceFilters.size);
+  }
+  if (state.view === "region" && state.stateTraitFilters.size) {
+    const count = state.stateTraitFilters.has("all") ? t("filter.active.all") : localizedNumber(state.stateTraitFilters.size);
+    parts.push(t("filter.active.stateTraits", { count }));
   }
   if (state.view === "company") addCount("filter.active.companyType", state.companyKinds.size);
   if (state.view === "company" && state.includeIndustryCharter) parts.push(t("filter.active.industryCharter"));

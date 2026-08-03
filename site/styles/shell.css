@@ -164,6 +164,15 @@ body {
   transition: left 0.16s ease;
 }
 
+.terrain-map-legend {
+  position: absolute;
+  z-index: 4;
+  right: calc(12px + var(--results-panel-width) + 12px);
+  bottom: 18px;
+  left: calc(12px + var(--left-panel-width) + 12px);
+  transition: left 0.16s ease;
+}
+
 .panel-toggle {
   border-color: rgba(200, 164, 91, 0.24);
   background: var(--accent-blue);
@@ -351,6 +360,10 @@ body.filters-collapsed .layout::before {
 }
 
 body.filters-collapsed .map-toolbar {
+  left: 12px;
+}
+
+body.filters-collapsed .terrain-map-legend {
   left: 12px;
 }
 
@@ -1601,6 +1614,12 @@ body[data-view="law"][data-results-panel="collapsed"] .detail {
   }
 
   .map-toolbar {
+    left: 10px;
+  }
+
+  .terrain-map-legend {
+    right: 10px;
+    bottom: 10px;
     left: 10px;
   }
 

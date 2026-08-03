@@ -48,6 +48,7 @@ function matchesStateRegionFilters(stateRegion) {
     }
   }
   if (!matchesResourceFilters(stateRegion)) return false;
+  if (!matchesStateTraitFilters(stateRegion)) return false;
   return matchesSearchBlob(stateRegionSearchBlob(stateRegion));
 }
 
@@ -172,6 +173,35 @@ function matchesCultureSelection(culture) {
   if (!matchesRefSet(state.languages, compactRefs([culture.language]))) return false;
   if (state.tradition && !(culture.traditions || []).some((trait) => trait.key === state.tradition)) return false;
   return true;
+}
+
+function stateTraitFilterKeys(trait) {
+  const categories = new Set((trait?.categories || []).map((category) => category?.key).filter(Boolean));
+  const keys = new Set();
+  if (categories.has("river") || categories.has("port")) keys.add("waterways");
+  if (categories.has("agriculture") || categories.has("terrain_climate")) keys.add("land");
+  if (categories.has("resource")) keys.add("resources");
+  if ((trait?.required_techs_for_colonization || []).length || (trait?.disabling_technologies || []).length) {
+    keys.add("colonial_environment");
+  }
+  if (trait?.has_mapi) keys.add("mapi");
+  return keys;
+}
+
+function stateTraitMatchesSelectedFilters(trait) {
+  if (state.stateTraitFilters.has("all")) return true;
+  const keys = stateTraitFilterKeys(trait);
+  return [...state.stateTraitFilters].some((key) => keys.has(key));
+}
+
+function matchingStateTraits(stateRegion) {
+  if (state.stateTraitFilters.size === 0) return [];
+  return (stateRegion?.traits || []).filter(stateTraitMatchesSelectedFilters);
+}
+
+function matchesStateTraitFilters(stateRegion) {
+  if (state.stateTraitFilters.size === 0) return true;
+  return matchingStateTraits(stateRegion).length > 0;
 }
 
 function matchesResourceFilters(stateRegion) {
@@ -529,6 +559,14 @@ function renderResourceFilterOptions() {
       </span>
     </div>
   `).join("");
+}
+
+function renderStateTraitFilterOptions() {
+  if (!els.stateTraitFilters) return;
+  syncSetWithOptions(state.stateTraitFilters, stateTraitFilterOptions);
+  els.stateTraitFilters.innerHTML = stateTraitFilterOptions.map((option) => (
+    optionToken("state-trait-filter", option.key, t(option.labelKey), state.stateTraitFilters.has(option.key))
+  )).join("");
 }
 
 function renderCompanyFilterOptions() {
