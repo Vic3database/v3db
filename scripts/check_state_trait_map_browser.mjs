@@ -34,8 +34,8 @@ try {
   const mainLayout = await traitIconLayout(main);
   assert.equal(mainLayout.iconCount, mainLayout.traitCount, "overlapping category membership must not duplicate icons");
   assert.equal(new Set(mainLayout.screenY).size, 1, "every trait icon in a region must stay on one row");
-  assert(mainLayout.screenWidths.every((width) => Math.abs(width - 38) < 0.01), "map trait icons must render at 38 screen pixels");
-  assert(mainLayout.screenGaps.every((gap) => Math.abs(gap - 38) < 0.01), "map trait icons must use one 38 pixel horizontal sequence");
+  assert(mainLayout.screenWidths.every((width) => Math.abs(width - 32) < 0.01), "map trait icons must render at 32 screen pixels");
+  assert(mainLayout.screenGaps.every((gap) => Math.abs(gap - 32) < 0.01), "map trait icons must use one 32 pixel horizontal sequence");
 
   await main.locator("[data-state-trait-filter='waterways']").click();
   await main.locator("[data-state-trait-filter='resources']").click();
@@ -65,10 +65,19 @@ try {
   const tooltip = await main.locator("#mapTooltip");
   assert.equal(await tooltip.locator(".map-tooltip-trait-icon").count(), target.traitCount, "tooltip must list every trait icon in the selected region");
   const tooltipIconBox = await tooltip.locator(".map-tooltip-trait-icon").first().boundingBox();
-  assert.deepEqual({ width: tooltipIconBox?.width, height: tooltipIconBox?.height }, { width: 38, height: 38 }, "tooltip trait icons must render at 38 pixels");
+  assert.deepEqual({ width: tooltipIconBox?.width, height: tooltipIconBox?.height }, { width: 30, height: 30 }, "tooltip trait icons must render at 30 pixels");
   const tooltipText = await tooltip.innerText();
   assert.match(tooltipText, new RegExp(escapeRegExp(target.label)), "tooltip must show a trait name");
   assert.match(tooltipText, new RegExp(escapeRegExp(target.effect)), "tooltip must show a trait effect");
+
+  await main.locator("[data-state-trait-filter='all']").click();
+  await main.waitForFunction(() => window.eval("state.mapMode") !== "traitIcons", { timeout: 10000 });
+  await main.locator("#mapCanvas").dispatchEvent("pointermove", target.pointer);
+  await main.waitForFunction(() => document.querySelector("#mapTooltip")?.hidden === false, { timeout: 10000 });
+  assert.equal(await main.locator("#mapTooltip .map-tooltip-trait").count(), target.traitCount, "ordinary region tooltip must list every trait");
+  assert.match(await main.locator("#mapTooltip").innerText(), new RegExp(escapeRegExp(target.effect)), "ordinary region tooltip must retain complete trait effects");
+  await main.locator("[data-state-trait-filter='all']").click();
+  await main.waitForFunction(() => window.eval("state.mapMode") === "traitIcons", { timeout: 10000 });
 
   await main.locator("#mapCanvas").dispatchEvent("pointerdown", target.pointer);
   await main.locator("#mapCanvas").dispatchEvent("pointerup", target.pointer);
@@ -177,8 +186,21 @@ try {
   await victorianCentury.locator("#mapCanvas").dispatchEvent("pointermove", vcMixedTarget.pointer);
   await victorianCentury.waitForFunction(() => document.querySelector("#mapTooltip")?.hidden === false, { timeout: 10000 });
   const vcTooltipIconBox = await victorianCentury.locator("#mapTooltip .map-tooltip-trait-icon").first().boundingBox();
-  assert.deepEqual({ width: vcTooltipIconBox?.width, height: vcTooltipIconBox?.height }, { width: 38, height: 38 }, "Victorian Century tooltip icons must render at 38 pixels");
+  assert.deepEqual({ width: vcTooltipIconBox?.width, height: vcTooltipIconBox?.height }, { width: 30, height: 30 }, "Victorian Century tooltip icons must render at 30 pixels");
   assert.deepEqual(vcErrors, [], `Victorian Century page errors: ${vcErrors.join(" | ")}`);
+
+  const vcOrdinary = await context.newPage();
+  await vcOrdinary.goto(`${baseUrl}/vc/index.html#/region`, { waitUntil: "networkidle", timeout: 45000 });
+  await vcOrdinary.waitForFunction(() => window.eval("mapRuntime.ready") && window.eval("mapRuntime.stateTraitLocaleMessages.size") > 0, { timeout: 30000 });
+  const vcOrdinaryTarget = await onCanvasMultiTraitTarget(vcOrdinary);
+  assert(vcOrdinaryTarget, "Victorian Century ordinary region map needs an on-canvas multi-trait region");
+  await vcOrdinary.locator("#mapCanvas").dispatchEvent("pointermove", vcOrdinaryTarget.pointer);
+  await vcOrdinary.waitForFunction(() => document.querySelector("#mapTooltip")?.hidden === false, { timeout: 10000 });
+  assert.equal(await vcOrdinary.locator("#mapTooltip .map-tooltip-trait").count(), vcOrdinaryTarget.traitCount, "Victorian Century ordinary region tooltip must list every trait");
+  const vcOrdinaryText = await vcOrdinary.locator("#mapTooltip").innerText();
+  assert.match(vcOrdinaryText, new RegExp(escapeRegExp(vcOrdinaryTarget.label)), "Victorian Century ordinary region tooltip must localize trait names before filtering");
+  assert.match(vcOrdinaryText, new RegExp(escapeRegExp(vcOrdinaryTarget.effect)), "Victorian Century ordinary region tooltip must localize complete effects before filtering");
+  await vcOrdinary.close();
 
   const combined = await context.newPage();
   await combined.goto(`${baseUrl}/main/index.html#/region`, { waitUntil: "networkidle", timeout: 45000 });
@@ -214,7 +236,7 @@ try {
   assert.equal(narrowMetrics.mode, "traitIcons", "narrow trait map must retain trait icon mode");
   assert.deepEqual(narrowMetrics.selected, ["all"], "narrow trait map must retain the all filter");
   const narrowLayout = await traitIconLayout(narrow);
-  assert(narrowLayout.screenWidths.every((width) => Math.abs(width - 38) < 0.01), "narrow map trait icons must render at 38 screen pixels");
+  assert(narrowLayout.screenWidths.every((width) => Math.abs(width - 32) < 0.01), "narrow map trait icons must render at 32 screen pixels");
   await narrow.close();
 
   console.log(JSON.stringify({ state_trait_map_browser: "ok", initial, mainLayout, unionState, mixedTarget, target, filtered, cleared, vcInitial, vcTarget, vcMixedTarget, combinedState, narrow: narrowMetrics, baseUrl }, null, 2));
@@ -272,6 +294,42 @@ async function multiTraitTarget(page) {
           stateKey,
           traitCount: feature.traits.length,
           label: stateTraitLocalizedText(trait, "name") || trait.key,
+          effect: stateTraitEffectText(trait),
+          pointer: { clientX, clientY, pointerId: 1, pointerType: "mouse" },
+        };
+      }
+    }
+    return null;
+  });
+}
+
+async function onCanvasMultiTraitTarget(page) {
+  return page.evaluate(() => {
+    const runtime = window.eval("mapRuntime");
+    const stateRegionFromPointerEvent = window.eval("stateRegionFromPointerEvent");
+    const stateTraitLocalizedText = window.eval("stateTraitLocalizedText");
+    const stateTraitEffectText = window.eval("stateTraitEffectText");
+    const landStateRegions = window.eval("landStateRegions");
+    const rect = document.querySelector("#mapCanvas").getBoundingClientRect();
+    const eligible = new Map(landStateRegions
+      .filter((stateRegion) => (stateRegion.traits || []).length > 1)
+      .map((stateRegion) => [stateRegion.key, stateRegion]));
+    for (let y = 0; y < runtime.height; y += 8) {
+      const rowStart = y * runtime.width;
+      for (let x = 0; x < runtime.width; x += 8) {
+        const stateKey = runtime.stateKeysByIndex[runtime.pixelStateIndexes[rowStart + x] || 0];
+        const stateRegion = eligible.get(stateKey);
+        if (!stateRegion) continue;
+        const clientX = rect.left + runtime.transform.x + (x + 0.5) * runtime.transform.scale;
+        const clientY = rect.top + runtime.transform.y + (y + 0.5) * runtime.transform.scale;
+        if (clientX < rect.left || clientX > rect.right || clientY < rect.top || clientY > rect.bottom) continue;
+        if (stateRegionFromPointerEvent({ clientX, clientY })?.key !== stateKey) continue;
+        const trait = stateRegion.traits.find((item) => stateTraitEffectText(item));
+        if (!trait) continue;
+        return {
+          stateKey,
+          traitCount: stateRegion.traits.length,
+          label: stateTraitLocalizedText(trait, "name"),
           effect: stateTraitEffectText(trait),
           pointer: { clientX, clientY, pointerId: 1, pointerType: "mouse" },
         };

@@ -100,7 +100,7 @@ function checkTerrainViewContracts() {
 
 function checkRegionMapCacheVersionContracts() {
   assert(/app\/ui\.js\?v=20260803-state-trait-filter1/.test(indexSource), "region map UI script should use the current release cache version");
-  assert(/app\/map\.js\?v=20260803-state-trait-filter1/.test(indexSource), "region map script should use the current release cache version");
+  assert(/app\/map\.js\?v=20260803-state-trait-tooltip1/.test(indexSource), "region map script should use the current release cache version");
   assert(/app\/presentation\.js\?v=20260803-state-trait-filter1/.test(indexSource), "fast region selection should use the current presentation cache version");
 }
 

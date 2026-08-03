@@ -168,14 +168,18 @@ function collectStateTraitRefs() {
   return [...byKey.values()].sort(sortRefByName);
 }
 
+function mapTooltipNeedsStateTraitLocales() {
+  return state.view === "region" || state.view === "company" || state.mapMode === "traitIcons";
+}
+
 function renderMap(mapStateRegions) {
   if (!els.mapCanvas) return;
   syncMapModeForView();
   mapRuntime.visibleStateKeys = new Set((mapStateRegions || []).map((stateRegion) => stateRegion.key));
   mapRuntime.lastMapStateRegions = mapStateRegions || [];
-  if (state.mapMode === "traitIcons") {
+  if (mapTooltipNeedsStateTraitLocales()) {
     loadStateTraitLocaleMessages().then(() => {
-      if (state.mapMode === "traitIcons" && mapRuntime.ready) paintMapCanvas();
+      if (mapTooltipNeedsStateTraitLocales() && mapRuntime.ready) paintMapCanvas();
     });
   }
   if (!mapRuntime.ready) {
@@ -294,7 +298,7 @@ function ensureMapLoaded() {
       : null;
     mapRuntime.stateCenters = computeMapStateCenters(mapRuntime.pixelStateIndexes, mapRuntime.width, mapRuntime.height, mapRuntime.stateKeysByIndex);
     await Promise.all([
-      state.mapMode === "traitIcons" ? loadStateTraitLocaleMessages() : Promise.resolve(),
+      mapTooltipNeedsStateTraitLocales() ? loadStateTraitLocaleMessages() : Promise.resolve(),
       loadStateTraitIconImages(),
     ]);
     mapRuntime.ready = true;
@@ -1510,7 +1514,7 @@ function drawMapLabels(context, copyRange = { start: 0, end: 0 }, transform = ma
 
 function drawStateTraitMapIcons(context, copyRange = { start: 0, end: 0 }, transform = mapRuntime.transform) {
   if (state.mapMode !== "traitIcons" || !mapRuntime.featureByStateKey) return;
-  const iconSize = 38;
+  const iconSize = 32;
   const inverseScale = 1 / Math.max(transform.scale, 0.001);
   const mapIconSize = iconSize * inverseScale;
   const specificFiltersActive = state.stateTraitFilters.size > 0 && !state.stateTraitFilters.has("all");
@@ -1767,14 +1771,14 @@ function mapTooltipRowsForView(stateRegion, feature, ownerTag = "", terrainKey =
       ["开局归属", countryRefNames(stateRegion.starting_owners)],
       ["战略区域", refNames(stateRegion.strategic_regions)],
       ...mapTooltipResourceRows(stateRegion),
-      ["地区特质", mapTooltipTraitSummary(stateRegion)],
+      ["地区特质", tooltipHtml(mapTooltipStateTraitHtml(stateRegion.traits || []))],
     ]);
   }
   return compactTooltipRows([
     ["战略区域", refNames(stateRegion.strategic_regions)],
     ...mapTooltipResourceRows(stateRegion),
     ["耕地", stateRegion.arable_land === null ? "" : String(stateRegion.arable_land)],
-    ["地区特质", mapTooltipTraitSummary(stateRegion)],
+    ["地区特质", tooltipHtml(mapTooltipStateTraitHtml(stateRegion.traits || []))],
   ]);
 }
 
@@ -1801,11 +1805,6 @@ function resourceSummaryText(stateRegion) {
     ...(stateRegion?.arable_resources || []).map((item) => compactResourceLabel(item, "")),
   ].filter(Boolean);
   return summarizeTextItems(resources, 5);
-}
-
-function mapTooltipTraitSummary(stateRegion) {
-  const traits = (stateRegion?.traits || []).map((trait) => trait.name_zh || trait.key).filter(Boolean);
-  return summarizeTextItems(traits, 4);
 }
 
 function mapTooltipStateTraitHtml(traits) {
