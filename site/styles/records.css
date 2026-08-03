@@ -1372,6 +1372,32 @@ body.results-collapsed .concept-tooltip {
   overflow-wrap: anywhere;
 }
 
+@media (max-width: 760px) {
+  .detail-title {
+    display: grid;
+    grid-template-columns: var(--control-height) minmax(0, 1fr);
+    gap: 8px 12px;
+  }
+
+  .detail-title > .detail-back-button {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .detail-title > .detail-title-main {
+    grid-column: 2;
+    grid-row: 1;
+    width: 100%;
+  }
+
+  .detail-title > .tag {
+    grid-column: 2;
+    margin-left: 0;
+    justify-self: start;
+    max-width: 100%;
+  }
+}
+
 .company-icon-box {
   display: inline-flex;
   flex: 0 0 auto;

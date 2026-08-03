@@ -54,6 +54,21 @@ async function verifyEnglishStructuredDetails() {
 
     await page.goto(urlFor("state-region/STATE_BRANDENBURG", "en"), { waitUntil: "networkidle", timeout: 45000 });
     await waitForEnglishBoardDetail(page, "region");
+    if (viewport.width <= 390) {
+      const mobileTitleLayout = await page.evaluate(() => {
+        const main = document.querySelector(".detail-title-main");
+        const key = document.querySelector('.detail-title > [data-concept-kind="stateRegion"]');
+        const mainRect = main?.getBoundingClientRect();
+        const keyRect = key?.getBoundingClientRect();
+        return {
+          mainWidth: mainRect?.width || 0,
+          mainBottom: mainRect?.bottom || 0,
+          keyTop: keyRect?.top || 0,
+        };
+      });
+      assert.ok(mobileTitleLayout.mainWidth >= 200, "Mobile region title must retain readable width");
+      assert.ok(mobileTitleLayout.keyTop >= mobileTitleLayout.mainBottom - 1, "Mobile region key must wrap below the title");
+    }
     const mapiSummaryLabels = (await page.locator('[data-concept-key="mapi-summary"]').allInnerTexts()).map((item) => item.trim());
     assert.ok(mapiSummaryLabels.length > 0, `English region list must expose MAPI summary tags at ${viewport.width}px`);
     assert.deepEqual(
