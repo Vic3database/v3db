@@ -10,6 +10,7 @@ const dataSource = readText("site/app/data.js");
 const uiSource = readText("site/app/ui.js");
 const mapSource = readText("site/app/map.js");
 const filtersSource = readText("site/app/filters.js");
+const componentsSource = readText("site/app/components.js");
 const extractorSource = readText("scripts/extract_vic3_countries.mjs");
 const dataRoot = process.env.VICDATA_DATA_ROOT || root;
 const victorianCenturyDataRoot = process.env.VICDATA_VC_DATA_ROOT || dataRoot;
@@ -73,15 +74,24 @@ for (const [label, rows] of [["main", states], ["Victorian Century", victorianCe
   assert.deepEqual(uncovered.map((trait) => trait.key), [], `${label} traits should all reach at least one specific filter`);
 }
 
-assert.ok(/id="stateTraitMapViewButton"/.test(indexSource), "region filters should expose the state-trait view button");
-assert.ok(/styles\.css\?v=20260803-state-trait-map2/.test(indexSource), "trait map styles should refresh the main stylesheet URL");
-for (const script of ["runtime", "data", "ui"]) {
-  assert.ok(new RegExp(`app/${script}\\.js\\?v=20260803-state-trait-map1`).test(indexSource), `${script} should retain its current cache URL`);
+assert.ok(/<summary>地区特质<\/summary>[\s\S]*id="stateTraitFilters"/.test(indexSource), "region filters should expose a state-trait filter section");
+assert.doesNotMatch(indexSource, /id="stateTraitMapViewButton"/, "the standalone trait-view button should be removed");
+assert.ok(/styles\.css\?v=20260803-state-trait-filter1/.test(indexSource), "trait filter styles should refresh the main stylesheet URL");
+for (const script of ["runtime", "ui", "filters", "map", "components"]) {
+  assert.ok(new RegExp(`app/${script}\\.js\\?v=20260803-state-trait-filter1`).test(indexSource), `${script} should use the state-trait filter cache URL`);
 }
-assert.ok(/app\/map\.js\?v=20260803-state-trait-map2/.test(indexSource), "map should refresh its cache URL");
-assert.ok(/stateTraitMapViewButton: document\.querySelector\("#stateTraitMapViewButton"\)/.test(runtimeSource), "runtime should expose the state-trait button");
-assert.ok(/state\.regionMapView = state\.regionMapView === "traits" \? "default" : "traits"/.test(functionSource(uiSource, "bindEvents")), "trait button should toggle the trait view");
-assert.ok(/state\.regionMapView === "traits"[\s\S]*state\.mapMode = "traitIcons"/.test(functionSource(mapSource, "syncMapModeForView")), "trait view should take precedence over region resource mode");
+assert.ok(/app\/data\.js\?v=20260803-state-trait-map1/.test(indexSource), "unchanged data code should retain its cache URL");
+assert.ok(/stateTraitFilters:\s*new Set\(\)/.test(runtimeSource), "runtime should store selected state-trait filters");
+assert.ok(/stateTraitFilters:\s*document\.querySelector\("#stateTraitFilters"\)/.test(runtimeSource), "runtime should expose the filter container");
+for (const label of ["所有", "河流海港", "土壤地貌", "自然资源", "殖民环境", "MAPI"]) {
+  assert.ok(runtimeSource.includes(`label: "${label}"`), `state-trait filters should expose ${label}`);
+}
+assert.ok(/value === "all"[\s\S]*state\.stateTraitFilters\.clear\(\)/.test(functionSource(uiSource, "bindStateTraitFilterTokens")), "all should be mutually exclusive");
+assert.ok(/state\.stateTraitFilters\.delete\("all"\)/.test(functionSource(uiSource, "bindStateTraitFilterTokens")), "specific categories should clear all");
+const bindEventsSource = functionSource(uiSource, "bindEvents");
+assert.ok((bindEventsSource.match(/state\.stateTraitFilters\.clear\(\)/g) || []).length >= 2, "reset and terrain view should both clear trait filters");
+assert.ok(/state\.view === "region" && state\.stateTraitFilters\.size > 0[\s\S]*state\.mapMode = "traitIcons"/.test(functionSource(mapSource, "syncMapModeForView")), "selected trait filters should drive trait icon mode");
+assert.ok(/state\.view === "region" && state\.stateTraitFilters\.size/.test(functionSource(componentsSource, "buildActiveHint")), "active filter summary should include state-trait filters");
 assert.equal(uniqueTraits.length, 221, "current main dataset should retain 221 unique state traits");
 assert.equal(states.filter((stateRegion) => (stateRegion.traits || []).length > 0).length, 507, "every trait-bearing region must be considered");
 for (const trait of uniqueTraits) {

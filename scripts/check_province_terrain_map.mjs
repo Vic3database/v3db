@@ -58,7 +58,7 @@ assert.match(indexSource, /id="terrainMapLegend"/, "map panel should include the
 assert.match(runtimeSource, /regionMapView: "default"/, "region state should retain the selected map view");
 assert.match(runtimeSource, /terrainMapViewButton: document\.querySelector\("#terrainMapViewButton"\)/, "runtime elements should expose the terrain button");
 assert.match(runtimeSource, /terrainMapLegend: document\.querySelector\("#terrainMapLegend"\)/, "runtime elements should expose the terrain legend");
-assert.match(functionSource(uiSource, "bindEvents"), /state\.regionMapView = state\.regionMapView === "terrain" \? "default" : "terrain"/, "terrain button should toggle the regional terrain mode");
+assert.match(functionSource(uiSource, "bindEvents"), /const enableTerrain = state\.regionMapView !== "terrain";[\s\S]*state\.regionMapView = enableTerrain \? "terrain" : "default";[\s\S]*if \(enableTerrain\) state\.stateTraitFilters\.clear\(\)/, "terrain button should toggle the regional terrain mode and clear trait filters when enabled");
 assert.match(functionSource(uiSource, "changeBoard"), /view !== "region"\) state\.regionMapView = "default"/, "leaving the region board should reset the terrain mode");
 assert.match(functionSource(uiSource, "initializeDefaultFilterSectionOpenStates"), /"terrainMapViewButton"/, "terrain view control should be visible when the filter sidebar opens");
 assert.match(functionSource(mapSource, "syncMapModeForView"), /state\.view === "region" && state\.regionMapView === "terrain"[\s\S]*state\.mapMode = "terrain"/, "terrain mode should take precedence over region resource mode");
@@ -70,7 +70,7 @@ assert.match(functionSource(mapSource, "terrainPixelRgb"), /terrainLegendByKey\.
 assert.match(mapStylesSource, /\.terrain-map-legend\s*\{[\s\S]*flex-wrap:\s*wrap/, "terrain legend should wrap items");
 assert.match(shellStylesSource, /\.terrain-map-legend\s*\{[\s\S]*position:\s*absolute/, "terrain legend should overlay the lower map area");
 assert.equal((mapSource.match(/key: "(plains|forest|hills|mountain|jungle|wetland|desert|tundra|savanna|snow)"/g) || []).length, 10, "terrain legend should expose ten land types");
-assert.match(indexSource, /app\/map\.js\?v=20260803-state-trait-map2/, "terrain map script should have a fresh cache version");
+assert.match(indexSource, /app\/map\.js\?v=20260803-state-trait-filter1/, "terrain map script should have a fresh cache version");
 
 console.log(JSON.stringify({ province_terrain_map: "ok", terrain_types: terrainKeys.length }, null, 2));
 

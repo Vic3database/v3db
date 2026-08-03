@@ -94,10 +94,10 @@ assert.match(functionSource(mapSource, "mapPixelAlpha"), /\["resource", "resourc
 assert.match(functionSource(mapSource, "paintMapCanvasTarget"), /context\.fillStyle = "#d7c2a4";/, "resource maps must retain the paper-toned canvas base");
 assert.match(functionSource(mapSource, "paintMapCanvasTarget"), /if \(mapRuntime\.paperMapImage\) \{/, "resource maps must draw the paper background for sea areas");
 assert.doesNotMatch(mapSource, /function resourceMapUsesSolidBase\(/, "resource maps must not suppress the paper background");
-assert.match(indexSource, /styles\.css\?v=20260803-state-trait-map2/, "main entry must invalidate changed map styles");
+assert.match(indexSource, /styles\.css\?v=20260803-state-trait-filter1/, "main entry must invalidate changed map styles");
 assert.match(stylesEntrySource, /@import url\("styles\/map\.css\?v=20260803-state-trait-map2"\);/, "style entry must invalidate the changed map stylesheet");
-assert.match(indexSource, /app\/runtime\.js\?v=20260803-state-trait-map1/, "main entry must invalidate the changed map runtime");
-assert.match(indexSource, /app\/map\.js\?v=20260803-state-trait-map2/, "main entry must invalidate the changed map script");
+assert.match(indexSource, /app\/runtime\.js\?v=20260803-state-trait-filter1/, "main entry must invalidate the changed map runtime");
+assert.match(indexSource, /app\/map\.js\?v=20260803-state-trait-filter1/, "main entry must invalidate the changed map script");
 
 console.log(JSON.stringify({ resource_map_colors: "ok", resources: resourceKeys.size }, null, 2));
 

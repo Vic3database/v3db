@@ -762,7 +762,6 @@ const els = {
   mapFitWidthButton: document.querySelector("#mapFitWidthButton"),
   mapResourceContext: document.querySelector("#mapResourceContext"),
   terrainMapViewButton: document.querySelector("#terrainMapViewButton"),
-  stateTraitMapViewButton: document.querySelector("#stateTraitMapViewButton"),
   terrainMapLegend: document.querySelector("#terrainMapLegend"),
   mapViewport: document.querySelector("#mapViewport"),
   mapCanvas: document.querySelector("#mapCanvas"),

@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Vicdata</title>
-    <link rel="stylesheet" href="styles.css?v=20260803-state-trait-map2">
+    <link rel="stylesheet" href="styles.css?v=20260803-state-trait-filter1">
     <link rel="icon" type="image/png" sizes="16x16" href="assets/brand/favicon-16.png?v=20260720-v">
     <link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png?v=20260720-v">
     <link rel="apple-touch-icon" sizes="180x180" href="assets/brand/apple-touch-icon.png">
@@ -107,10 +107,14 @@
         </details>
 
         <details class="filter-section region-only">
+          <summary>地区特质</summary>
+          <div id="stateTraitFilters" class="option-list"></div>
+        </details>
+
+        <details class="filter-section region-only">
           <summary>地图</summary>
           <div class="option-list">
             <button id="terrainMapViewButton" class="filter-token" type="button" aria-pressed="false">地形视图</button>
-            <button id="stateTraitMapViewButton" class="filter-token" type="button" aria-pressed="false">地区特质视图</button>
           </div>
         </details>
 
@@ -304,16 +308,16 @@
     <script src="news-data.js?v=20260718-news3"></script>
     <script src="assets/flags/country-flags.js?v=20260712-all-flags2"></script>
     <script src="assets/victorian-century-flags.js?v=20260729-country-flags1"></script>
-    <script src="app/runtime.js?v=20260803-state-trait-map1"></script>
+    <script src="app/runtime.js?v=20260803-state-trait-filter1"></script>
     <script src="app/data.js?v=20260803-state-trait-map1"></script>
-    <script src="app/ui.js?v=20260803-state-trait-map1"></script>
+    <script src="app/ui.js?v=20260803-state-trait-filter1"></script>
     <script src="app/company-location-rules.js?v=20260718-company-location2"></script>
     <script src="app/boards.js?v=20260730-culture-mobile1"></script>
-    <script src="app/filters.js?v=20260730-culture-mobile1"></script>
+    <script src="app/filters.js?v=20260803-state-trait-filter1"></script>
     <script src="app/presentation.js?v=20260730-culture-mobile2"></script>
-    <script src="app/map.js?v=20260803-state-trait-map2"></script>
+    <script src="app/map.js?v=20260803-state-trait-filter1"></script>
     <script src="app/tag-tooltip-definitions.js?v=20260725-tooltip-layout1"></script>
-    <script src="app/components.js?v=20260802-province-terrain1"></script>
+    <script src="app/components.js?v=20260803-state-trait-filter1"></script>
     <script src="app/achievements.js?v=20260730-achievement-cache1"></script>
     <script src="app/bootstrap.js?v=20260718-file-split1"></script>
   </body>

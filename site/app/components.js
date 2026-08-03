@@ -2686,6 +2686,9 @@ function buildActiveHint(count) {
   if ((state.view === "region" || state.view === "company") && state.resourceFilters.size) {
     parts.push(`${state.view === "company" ? "建筑" : "资源"} ${state.resourceFilters.size}`);
   }
+  if (state.view === "region" && state.stateTraitFilters.size) {
+    parts.push(`地区特质 ${state.stateTraitFilters.has("all") ? "所有" : state.stateTraitFilters.size}`);
+  }
   if (state.view === "company" && state.companyKinds.size) parts.push(`公司类型 ${state.companyKinds.size}`);
   if (state.view === "company" && state.includeIndustryCharter) parts.push("包含产业特许");
   if (state.view === "company" && state.companyPrestigeGoods.size) parts.push(`名贵商品 ${state.companyPrestigeGoods.size}`);
