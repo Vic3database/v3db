@@ -86,6 +86,8 @@ const mapRuntime = {
   provinceSampleContext: null,
   stateTraitIconImages: new Map(),
   stateTraitIconLoading: null,
+  stateTraitLocaleMessages: new Map(),
+  stateTraitLocaleLoading: null,
   sourcePixels: null,
   width: 4096,
   height: 1808,

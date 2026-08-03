@@ -835,10 +835,10 @@ function loadStateTraits(dir, loc) {
     const root = parseScript(readText(file), file);
     for (const assignment of root.assignments) {
       const key = scriptEntryKey(assignment.key);
-      if (!key.startsWith("state_trait_")) continue;
       const node = asNode(assignment.value);
       if (!node) continue;
       const icon = stripQuotes(firstScalar(node, "icon"));
+      if (!key.startsWith("state_trait_") && !icon.includes("/state_trait_icons/")) continue;
       const modifierNodes = allValues(node, "modifier").map(asNode).filter(Boolean);
       const modifiers = modifierNodes
         .flatMap((modifierNode) => modifierNode.assignments.map((item) => modifierRef(item.key, item.value, loc)))

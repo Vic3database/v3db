@@ -318,6 +318,8 @@ function resetMapRuntime() {
   mapRuntime.provinceSampleContext = null;
   mapRuntime.stateTraitIconImages = new Map();
   mapRuntime.stateTraitIconLoading = null;
+  mapRuntime.stateTraitLocaleMessages = new Map();
+  mapRuntime.stateTraitLocaleLoading = null;
   mapRuntime.stateKeysByIndex = [""];
   mapRuntime.ownerKeysByIndex = [""];
   mapRuntime.terrainKeysByIndex = [""];

@@ -70,7 +70,7 @@ assert.match(functionSource(mapSource, "terrainPixelRgb"), /terrainLegendByKey\.
 assert.match(mapStylesSource, /\.terrain-map-legend\s*\{[\s\S]*flex-wrap:\s*wrap/, "terrain legend should wrap items");
 assert.match(shellStylesSource, /\.terrain-map-legend\s*\{[\s\S]*position:\s*absolute/, "terrain legend should overlay the lower map area");
 assert.equal((mapSource.match(/key: "(plains|forest|hills|mountain|jungle|wetland|desert|tundra|savanna|snow)"/g) || []).length, 10, "terrain legend should expose ten land types");
-assert.match(indexSource, /app\/map\.js\?v=20260802-province-terrain1/, "terrain map script should have a fresh cache version");
+assert.match(indexSource, /app\/map\.js\?v=20260803-state-trait-map1/, "terrain map script should have a fresh cache version");
 
 console.log(JSON.stringify({ province_terrain_map: "ok", terrain_types: terrainKeys.length }, null, 2));
 

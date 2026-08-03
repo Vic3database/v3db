@@ -175,6 +175,11 @@ function renderMap(mapStateRegions) {
   syncMapModeForView();
   mapRuntime.visibleStateKeys = new Set((mapStateRegions || []).map((stateRegion) => stateRegion.key));
   mapRuntime.lastMapStateRegions = mapStateRegions || [];
+  if (state.mapMode === "traitIcons") {
+    loadStateTraitLocaleMessages().then(() => {
+      if (state.mapMode === "traitIcons" && mapRuntime.ready) paintMapCanvas();
+    });
+  }
   if (!mapRuntime.ready) {
     ensureMapLoaded();
     return;
@@ -289,7 +294,10 @@ function ensureMapLoaded() {
       ? decodeMapRuns(mapData.terrainRuns, mapRuntime.width * mapRuntime.height)
       : null;
     mapRuntime.stateCenters = computeMapStateCenters(mapRuntime.pixelStateIndexes, mapRuntime.width, mapRuntime.height, mapRuntime.stateKeysByIndex);
-    await loadStateTraitIconImages();
+    await Promise.all([
+      state.mapMode === "traitIcons" ? loadStateTraitLocaleMessages() : Promise.resolve(),
+      loadStateTraitIconImages(),
+    ]);
     mapRuntime.ready = true;
     mapRuntime.loading = false;
     resetMapTransform();
@@ -390,6 +398,21 @@ function stateTraitIconFileName(trait) {
   return iconPath
     ? iconPath.split(/[\\/]/).at(-1).replace(/\.dds$/i, ".png")
     : `${String(trait?.key || "").replace(/^state_trait_/, "")}.png`;
+}
+
+function loadStateTraitLocaleMessages() {
+  if (mapRuntime.stateTraitLocaleLoading) return mapRuntime.stateTraitLocaleLoading;
+  const files = dataIndex?.locales?.chunks?.["zh-Hans"]?.region?.files || [];
+  mapRuntime.stateTraitLocaleLoading = (async () => {
+    for (const file of files) {
+      const chunks = await loadScriptValue(dataChunkPath(file.path), "VIC3_LOCALE_CHUNKS").catch(() => null);
+      const messages = chunks?.[file.id]?.messages || {};
+      for (const [key, value] of Object.entries(messages)) {
+        mapRuntime.stateTraitLocaleMessages.set(key, value);
+      }
+    }
+  })();
+  return mapRuntime.stateTraitLocaleLoading;
 }
 
 function buildTraitIconMapFeatures() {
@@ -1789,10 +1812,24 @@ function mapTooltipTraitSummary(stateRegion) {
 function mapTooltipStateTraitHtml(traits) {
   return (traits || []).map((trait) => {
     const fileName = stateTraitIconFileName(trait);
-    const label = trait.name_zh || trait.key;
-    const effect = trait.modifier_summary_zh || "";
+    const label = stateTraitLocalizedText(trait, "name") || trait.key;
+    const effect = stateTraitEffectText(trait);
     return `<span class="map-tooltip-trait"><img class="map-tooltip-trait-icon" src="assets/state-traits/${encodeURIComponent(fileName)}" alt=""><span>${escapeHtml(label)}${effect ? `：${escapeHtml(effect)}` : ""}</span></span>`;
   }).join("");
+}
+
+function stateTraitLocalizedText(trait, field) {
+  const directField = field === "name" ? "name_zh" : "modifier_summary_zh";
+  return trait?.[directField] || mapRuntime.stateTraitLocaleMessages.get(trait?.loc?.[field]) || "";
+}
+
+function stateTraitEffectText(trait) {
+  const summary = stateTraitLocalizedText(trait, "modifierSummary");
+  if (summary) return summary;
+  return (trait?.modifiers || [])
+    .map((modifier) => modifier.summary_zh || mapRuntime.stateTraitLocaleMessages.get(modifier?.loc?.summary) || "")
+    .filter(Boolean)
+    .join("；");
 }
 
 function compactResourceLabel(item, amount = "") {
