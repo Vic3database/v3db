@@ -360,7 +360,7 @@ function renderRegionList(filteredStrategicRegions, filteredStateRegions, filter
   const selectedStateRegionFromMap = byStateRegion.get(state.mapSelectedStateRegion);
   const mapSelectionIsFilteredOut = selectedStateRegionFromMap && !visibleStateRegions.some((stateRegion) => stateRegion.key === selectedStateRegionFromMap.key);
   els.countryList.className = "country-list region-list";
-  const selectedFromMapHtml = mapSelectionIsFilteredOut
+  const selectedFromMapHtml = mapSelectionIsFilteredOut && state.stateTraitFilters.size === 0
     ? stateRegionRowHtml(selectedStateRegionFromMap, { mapSelected: true })
     : "";
   const stateRegionHtml = visibleStateRegions.length ? `
@@ -391,7 +391,8 @@ function syncMapSelectedStateRegionCard() {
   els.countryList.querySelector(".region-map-selected")?.remove();
   const selected = byStateRegion.get(state.mapSelectedStateRegion);
   const visible = rowsForSelection("data-state-region", state.mapSelectedStateRegion).length > 0;
-  if (!selected || visible) return;
+  const filteredOutByTraitView = state.stateTraitFilters.size > 0 && !matchesStateRegionFilters(selected);
+  if (!selected || visible || filteredOutByTraitView) return;
   els.countryList.insertAdjacentHTML("afterbegin", stateRegionRowHtml(selected, { mapSelected: true }));
 }
 

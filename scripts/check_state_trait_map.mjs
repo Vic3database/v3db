@@ -11,6 +11,7 @@ const uiSource = readText("site/app/ui.js");
 const mapSource = readText("site/app/map.js");
 const filtersSource = readText("site/app/filters.js");
 const componentsSource = readText("site/app/components.js");
+const presentationSource = readText("site/app/presentation.js");
 const extractorSource = readText("scripts/extract_vic3_countries.mjs");
 const dataRoot = process.env.VICDATA_DATA_ROOT || root;
 const victorianCenturyDataRoot = process.env.VICDATA_VC_DATA_ROOT || dataRoot;
@@ -97,7 +98,12 @@ assert.equal(states.filter((stateRegion) => (stateRegion.traits || []).length > 
 for (const trait of uniqueTraits) {
   assert.ok(fs.existsSync(path.join(root, "site/assets/state-traits", stateTraitIconFileName(trait))), `${trait.key} should resolve to a shipped icon`);
 }
-assert.ok(/traits: stateRegion\.traits \|\| \[\]/.test(functionSource(mapSource, "buildTraitIconMapFeatures")), "trait icon features should retain every trait in each region");
+assert.ok(/traits:\s*traits/.test(functionSource(mapSource, "buildTraitIconMapFeatures")), "trait features should retain every trait for drawing and tooltips");
+assert.ok(/matchingTraits/.test(functionSource(mapSource, "buildTraitIconMapFeatures")), "trait features should retain the selected subset");
+assert.ok(/stateTraitFilters/.test(functionSource(mapSource, "mapLayerSignature")), "trait filters should invalidate cached map layers");
+assert.ok(/state\.stateTraitFilters\.size > 0/.test(functionSource(mapSource, "regionMapStateRegions")), "trait filters should constrain visible map regions");
+assert.ok(/state\.stateTraitFilters\.size === 0/.test(functionSource(presentationSource, "renderRegionList")), "filtered map selections should not be reinserted into a trait-filtered list");
+assert.ok(/app\/presentation\.js\?v=20260803-state-trait-filter1/.test(indexSource), "changed presentation code should use the state-trait filter cache key");
 assert.ok(/replace\(\/\\\.dds\$\/i, "\.png"\)/.test(functionSource(mapSource, "stateTraitIconFileName")), "icon names should derive from DDS icon paths");
 assert.ok(/stateTraitIconImages: new Map\(\)/.test(runtimeSource), "map runtime should cache trait icon images");
 assert.ok(/stateTraitLocaleMessages: new Map\(\)/.test(runtimeSource), "map runtime should cache trait locale messages");
@@ -105,10 +111,13 @@ assert.ok(/Promise\.all/.test(functionSource(mapSource, "loadStateTraitIconImage
 assert.ok(/dataIndex\?\.locales\?\.chunks/.test(functionSource(mapSource, "loadStateTraitLocaleMessages")), "trait locale loader should support localized standalone datasets");
 assert.ok(/if \(state\.mapMode === "traitIcons"\) \{\s*loadStateTraitLocaleMessages\(\)/.test(functionSource(mapSource, "renderMap", true)), "trait locale messages should load when an already-ready map switches to trait mode");
 const drawStateTraitMapIconsSource = functionSource(mapSource, "drawStateTraitMapIcons");
-assert.ok(/const iconSize = 30;/.test(drawStateTraitMapIconsSource), "trait icons should use the agreed 30 pixel screen size");
+assert.ok(/const iconSize = 38;/.test(drawStateTraitMapIconsSource), "map trait icons should use 38 pixels");
+assert.ok(/0\.18/.test(drawStateTraitMapIconsSource), "nonmatching icons in a matching region should use 0.18 opacity");
 assert.doesNotMatch(drawStateTraitMapIconsSource, /const rows =|const columns =|const row =/, "trait icons should stay on one row");
 assert.ok(/\(index - \(feature\.traits\.length - 1\) \/ 2\) \* mapIconSize/.test(drawStateTraitMapIconsSource), "trait icons should center one horizontal row on the region");
-assert.ok(/for \(const trait of feature\.traits \|\| \[\]\)/.test(functionSource(mapSource, "drawStateTraitMapIcons")), "icon layer should draw every trait without truncation");
+assert.ok(/for \(const \[index, trait\] of feature\.traits\.entries\(\)\)/.test(functionSource(mapSource, "drawStateTraitMapIcons")), "icon layer should draw every trait without truncation");
+assert.ok(/loadImage\([\s\S]*\.catch\(\(\) => null\)/.test(functionSource(mapSource, "loadStateTraitIconImages")), "a missing icon should not abort other icon loads");
+assert.ok(/if \(!image\) continue;/.test(drawStateTraitMapIconsSource), "a missing icon should skip only its own draw call");
 assert.ok(/drawStateTraitMapIcons\(context, copyRange, transform\)/.test(functionSource(mapSource, "paintMapCanvasTarget")), "icon layer should draw after the transformed map layer");
 assert.ok(/mapRuntime\.stateTraitIconImages = new Map\(\)/.test(functionSource(dataSource, "resetMapRuntime")), "dataset resets should clear trait icon images");
 assert.ok(/state\.mapMode === "traitIcons"/.test(functionSource(mapSource, "mapTooltipRowsForView")), "trait icon mode should use a dedicated tooltip branch");
@@ -116,7 +125,7 @@ assert.ok(/stateTraitIconFileName/.test(functionSource(mapSource, "mapTooltipSta
 assert.ok(/stateTraitEffectText/.test(functionSource(mapSource, "mapTooltipStateTraitHtml")), "trait tooltip should include effects");
 assert.ok(/modifier_summary_zh/.test(functionSource(mapSource, "stateTraitLocalizedText")), "trait tooltip should retain directly localized effects");
 assert.ok(/modifierSummary/.test(functionSource(mapSource, "stateTraitEffectText")), "trait tooltip should resolve delayed localized effects");
-assert.ok(/\.map-tooltip-trait-icon\s*\{[\s\S]*width:\s*30px;[\s\S]*height:\s*30px;/.test(readText("site/styles/map.css")), "trait tooltip icons should use the agreed 30 pixel size");
+assert.ok(/\.map-tooltip-trait-icon\s*\{[\s\S]*width:\s*38px;[\s\S]*height:\s*38px;/.test(readText("site/styles/map.css")), "tooltip icons should use 38 pixels");
 assert.ok(/!key\.startsWith\("state_trait_"\) && !icon\.includes\("\/state_trait_icons\/"\)/.test(functionSource(extractorSource, "loadStateTraits")), "extractor should retain mod traits whose declared keys omit the conventional prefix");
 if (victorianCenturyStates) {
   for (const key of ["sacramento_river", "sao_francisco_river"]) {

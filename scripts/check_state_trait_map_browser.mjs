@@ -24,15 +24,34 @@ try {
   });
   main.on("pageerror", (error) => mainErrors.push(error.message));
   const initial = await openTraitView(main, `${baseUrl}/main/index.html`);
-  assert.equal(initial.pressed, "true", "trait button must be pressed");
-  assert.equal(initial.mode, "traitIcons", "trait button must select trait icon mode");
-  assert.equal(initial.view, "traits", "trait button must retain trait region view state");
+  assert.deepEqual(initial.selectedFilters, ["all"], "all should be the only selected state-trait filter");
+  assert.equal(initial.mode, "traitIcons", "state-trait filters should select trait icon mode");
   assert.equal(initial.featureCount, 781, "main map must retain every state region feature");
   assert.equal(initial.iconImageCount, 23, "main map must preload every used trait icon image");
+  const expectedAllCount = await main.evaluate(() => window.eval("landStateRegions").filter((region) => (region.traits || []).length > 0).length);
+  assert.equal(initial.listCount, expectedAllCount, "all should list every trait-bearing land region");
+  assert.equal(initial.visibleStateCount, initial.listCount, "all should gray every region without traits or excluded by other filters");
   const mainLayout = await traitIconLayout(main);
+  assert.equal(mainLayout.iconCount, mainLayout.traitCount, "overlapping category membership must not duplicate icons");
   assert.equal(new Set(mainLayout.screenY).size, 1, "every trait icon in a region must stay on one row");
-  assert(mainLayout.screenWidths.every((width) => Math.abs(width - 30) < 0.01), "map trait icons must render at 30 screen pixels");
-  assert(mainLayout.screenGaps.every((gap) => Math.abs(gap - 30) < 0.01), "map trait icons must use one 30 pixel horizontal sequence");
+  assert(mainLayout.screenWidths.every((width) => Math.abs(width - 38) < 0.01), "map trait icons must render at 38 screen pixels");
+  assert(mainLayout.screenGaps.every((gap) => Math.abs(gap - 38) < 0.01), "map trait icons must use one 38 pixel horizontal sequence");
+
+  await main.locator("[data-state-trait-filter='waterways']").click();
+  await main.locator("[data-state-trait-filter='resources']").click();
+  const unionState = await main.evaluate(() => ({
+    selected: [...window.eval("state.stateTraitFilters")].sort(),
+    listed: document.querySelectorAll("#countryList [data-state-region]").length,
+    expected: window.eval("landStateRegions").filter(window.eval("matchesStateTraitFilters")).length,
+  }));
+  assert.deepEqual(unionState.selected, ["resources", "waterways"], "specific filters should replace all and combine by OR");
+  assert.equal(unionState.listed, unionState.expected, "list results should use the same trait predicate");
+  const mixedAlphas = await traitIconAlphas(main, "mixed");
+  assert(mixedAlphas.includes(1), "matching icons should remain fully opaque");
+  assert(mixedAlphas.includes(0.18), "nonmatching icons in a matching region should use 0.18 opacity");
+  const mutedAlphas = await traitIconAlphas(main, "muted");
+  assert(mutedAlphas.length > 0 && mutedAlphas.every((alpha) => alpha === 0.36), "filtered-out regions should retain the existing muted icon opacity");
+  await main.locator("[data-state-trait-filter='all']").click();
 
   const target = await multiTraitTarget(main);
   assert(target, "main map needs an on-canvas region with multiple traits");
@@ -41,7 +60,7 @@ try {
   const tooltip = await main.locator("#mapTooltip");
   assert.equal(await tooltip.locator(".map-tooltip-trait-icon").count(), target.traitCount, "tooltip must list every trait icon in the selected region");
   const tooltipIconBox = await tooltip.locator(".map-tooltip-trait-icon").first().boundingBox();
-  assert.deepEqual({ width: tooltipIconBox?.width, height: tooltipIconBox?.height }, { width: 30, height: 30 }, "tooltip trait icons must render at 30 pixels");
+  assert.deepEqual({ width: tooltipIconBox?.width, height: tooltipIconBox?.height }, { width: 38, height: 38 }, "tooltip trait icons must render at 38 pixels");
   const tooltipText = await tooltip.innerText();
   assert.match(tooltipText, new RegExp(escapeRegExp(target.label)), "tooltip must show a trait name");
   assert.match(tooltipText, new RegExp(escapeRegExp(target.effect)), "tooltip must show a trait effect");
@@ -65,7 +84,9 @@ try {
     const render = window.eval("render");
     const state = window.eval("state");
     changeBoard("region", "stateRegion");
-    state.regionMapView = "traits";
+    state.regionMapView = "default";
+    state.stateTraitFilters.clear();
+    state.stateTraitFilters.add("all");
     state.selectedStateRegion = "";
     state.resourceFilters.clear();
     render();
@@ -125,15 +146,20 @@ try {
 
 async function openTraitView(page, url) {
   await page.goto(`${url}#/region`, { waitUntil: "networkidle", timeout: 45000 });
-  await page.locator("#stateTraitMapViewButton").click();
+  const traitFilterSection = page.locator(".filter-section:has(#stateTraitFilters)");
+  if ((await traitFilterSection.getAttribute("open")) === null) {
+    await traitFilterSection.locator("summary").click();
+  }
+  await page.locator("[data-state-trait-filter='all']").click();
   await page.waitForFunction(() => window.eval("state.mapMode") === "traitIcons" && window.eval("mapRuntime.ready"), { timeout: 30000 });
   await page.waitForFunction(() => window.eval("mapRuntime.stateTraitIconImages.size") === 23, { timeout: 30000 });
   return page.evaluate(() => ({
-    pressed: document.querySelector("#stateTraitMapViewButton")?.getAttribute("aria-pressed"),
+    selectedFilters: [...window.eval("state.stateTraitFilters")],
     mode: window.eval("state.mapMode"),
-    view: window.eval("state.regionMapView"),
     featureCount: window.eval("mapRuntime.featureByStateKey.size"),
     iconImageCount: window.eval("mapRuntime.stateTraitIconImages.size"),
+    listCount: document.querySelectorAll("#countryList [data-state-region]").length,
+    visibleStateCount: window.eval("mapRuntime.visibleStateKeys.size"),
   }));
 }
 
@@ -183,13 +209,15 @@ async function traitIconLayout(page) {
     if (!entry) throw new Error("No region with at least three traits");
     const originalFeatures = runtime.featureByStateKey;
     const calls = [];
+    let alpha = 1;
     runtime.featureByStateKey = new Map([entry]);
     try {
       drawStateTraitMapIcons({
         save() {},
         restore() {},
-        drawImage(image, x, y, width, height) { calls.push({ x, y, width, height }); },
-        set globalAlpha(value) {},
+        drawImage(image, x, y, width, height) { calls.push({ x, y, width, height, alpha }); },
+        set globalAlpha(value) { alpha = value; },
+        get globalAlpha() { return alpha; },
       }, { start: 0, end: 0 }, runtime.transform);
     } finally {
       runtime.featureByStateKey = originalFeatures;
@@ -199,11 +227,43 @@ async function traitIconLayout(page) {
     return {
       stateKey: entry[0],
       iconCount: ordered.length,
+      traitCount: entry[1].traits.length,
       screenY: ordered.map((call) => call.y * scale),
       screenWidths: ordered.map((call) => call.width * scale),
       screenGaps: ordered.slice(1).map((call, index) => (call.x - ordered[index].x) * scale),
     };
   });
+}
+
+async function traitIconAlphas(page, featureKind) {
+  return page.evaluate((kind) => {
+    const runtime = window.eval("mapRuntime");
+    const drawStateTraitMapIcons = window.eval("drawStateTraitMapIcons");
+    const entry = [...runtime.featureByStateKey].find(([stateKey, feature]) => {
+      if (!(feature.traits || []).length) return false;
+      if (kind === "mixed") return runtime.visibleStateKeys.has(stateKey)
+        && feature.matchingTraits.length > 0
+        && feature.matchingTraits.length < feature.traits.length;
+      return !runtime.visibleStateKeys.has(stateKey);
+    });
+    if (!entry) return [];
+    const originalFeatures = runtime.featureByStateKey;
+    const calls = [];
+    let alpha = 1;
+    runtime.featureByStateKey = new Map([entry]);
+    try {
+      drawStateTraitMapIcons({
+        save() {},
+        restore() {},
+        drawImage(image, x, y, width, height) { calls.push({ alpha, width, height }); },
+        set globalAlpha(value) { alpha = value; },
+        get globalAlpha() { return alpha; },
+      }, { start: 0, end: 0 }, runtime.transform);
+    } finally {
+      runtime.featureByStateKey = originalFeatures;
+    }
+    return calls.map((call) => call.alpha);
+  }, featureKind);
 }
 
 async function traitTargetDiagnostics(page) {

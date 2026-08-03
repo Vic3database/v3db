@@ -216,6 +216,7 @@ function mapLayerSignature() {
     state.mapMode,
     state.mapSubject || "",
     `visible:${setSignature(mapRuntime.visibleStateKeys)}`,
+    `stateTraits:${setSignature(state.stateTraitFilters)}`,
   ];
   if (state.mapMode === "country") {
     parts.push(`selected:${selectedCountryMapSignature()}`);
@@ -417,12 +418,14 @@ function buildTraitIconMapFeatures() {
   const features = new Map();
   for (const stateRegion of stateRegions) {
     const traits = stateRegion.traits || [];
+    const matchingTraits = matchingStateTraits(stateRegion);
     const isSea = isSeaStateRegion(stateRegion);
     features.set(stateRegion.key, {
       color: mapFeatureColor(stateRegion, isSea ? MAP_SEA_COLOR : "#eee9df"),
-      active: traits.length > 0,
-      value: traits.length,
-      traits: stateRegion.traits || [],
+      active: matchingTraits.length > 0,
+      value: matchingTraits.length,
+      traits: traits,
+      matchingTraits,
     });
   }
   return features;
@@ -690,6 +693,7 @@ function companyMapStateRegions(selectedCompanies) {
 }
 
 function regionMapStateRegions(filteredStateRegions, filteredSeaStateRegions, filteredGeographicRegions) {
+  if (state.stateTraitFilters.size > 0) return filteredStateRegions;
   const selectedStateRegion = byStateRegion.get(state.selectedStateRegion);
   if (selectedStateRegion && !isSeaStateRegion(selectedStateRegion)) return [selectedStateRegion];
   if (state.selectedGeographicRegion) {
@@ -1506,19 +1510,21 @@ function drawMapLabels(context, copyRange = { start: 0, end: 0 }, transform = ma
 
 function drawStateTraitMapIcons(context, copyRange = { start: 0, end: 0 }, transform = mapRuntime.transform) {
   if (state.mapMode !== "traitIcons" || !mapRuntime.featureByStateKey) return;
-  const iconSize = 30;
+  const iconSize = 38;
   const inverseScale = 1 / Math.max(transform.scale, 0.001);
   const mapIconSize = iconSize * inverseScale;
+  const specificFiltersActive = state.stateTraitFilters.size > 0 && !state.stateTraitFilters.has("all");
   context.save();
   for (const [stateKey, feature] of mapRuntime.featureByStateKey) {
     const center = mapRuntime.stateCenters.get(stateKey);
     if (!center || !feature?.traits?.length) continue;
-    for (const trait of feature.traits || []) {
+    for (const [index, trait] of feature.traits.entries()) {
       const image = mapRuntime.stateTraitIconImages.get(stateTraitIconFileName(trait));
       if (!image) continue;
-      const index = feature.traits.indexOf(trait);
       const offsetX = (index - (feature.traits.length - 1) / 2) * mapIconSize;
-      context.globalAlpha = mapRuntime.visibleStateKeys.has(stateKey) ? 1 : 0.36;
+      const visible = mapRuntime.visibleStateKeys.has(stateKey);
+      const matching = feature.matchingTraits?.includes(trait);
+      context.globalAlpha = visible ? (specificFiltersActive && !matching ? 0.18 : 1) : 0.36;
       for (let copy = copyRange.start; copy <= copyRange.end; copy += 1) {
         context.drawImage(
           image,
