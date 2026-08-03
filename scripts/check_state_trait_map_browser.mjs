@@ -29,6 +29,10 @@ try {
   assert.equal(initial.view, "traits", "trait button must retain trait region view state");
   assert.equal(initial.featureCount, 781, "main map must retain every state region feature");
   assert.equal(initial.iconImageCount, 23, "main map must preload every used trait icon image");
+  const mainLayout = await traitIconLayout(main);
+  assert.equal(new Set(mainLayout.screenY).size, 1, "every trait icon in a region must stay on one row");
+  assert(mainLayout.screenWidths.every((width) => Math.abs(width - 30) < 0.01), "map trait icons must render at 30 screen pixels");
+  assert(mainLayout.screenGaps.every((gap) => Math.abs(gap - 30) < 0.01), "map trait icons must use one 30 pixel horizontal sequence");
 
   const target = await multiTraitTarget(main);
   assert(target, "main map needs an on-canvas region with multiple traits");
@@ -36,6 +40,8 @@ try {
   await main.waitForFunction(() => document.querySelector("#mapTooltip")?.hidden === false, { timeout: 10000 });
   const tooltip = await main.locator("#mapTooltip");
   assert.equal(await tooltip.locator(".map-tooltip-trait-icon").count(), target.traitCount, "tooltip must list every trait icon in the selected region");
+  const tooltipIconBox = await tooltip.locator(".map-tooltip-trait-icon").first().boundingBox();
+  assert.deepEqual({ width: tooltipIconBox?.width, height: tooltipIconBox?.height }, { width: 30, height: 30 }, "tooltip trait icons must render at 30 pixels");
   const tooltipText = await tooltip.innerText();
   assert.match(tooltipText, new RegExp(escapeRegExp(target.label)), "tooltip must show a trait name");
   assert.match(tooltipText, new RegExp(escapeRegExp(target.effect)), "tooltip must show a trait effect");
@@ -110,7 +116,7 @@ try {
   assert.equal(narrowMetrics.images, 23, "narrow trait map must retain preloaded icons");
   await narrow.close();
 
-  console.log(JSON.stringify({ state_trait_map_browser: "ok", initial, target, filtered, vcInitial, vcTarget, narrow: narrowMetrics, baseUrl }, null, 2));
+  console.log(JSON.stringify({ state_trait_map_browser: "ok", initial, mainLayout, target, filtered, vcInitial, vcTarget, narrow: narrowMetrics, baseUrl }, null, 2));
 } finally {
   await context.close();
   await browser.close();
@@ -166,6 +172,37 @@ async function multiTraitTarget(page) {
       }
     }
     return null;
+  });
+}
+
+async function traitIconLayout(page) {
+  return page.evaluate(() => {
+    const runtime = window.eval("mapRuntime");
+    const drawStateTraitMapIcons = window.eval("drawStateTraitMapIcons");
+    const entry = [...runtime.featureByStateKey].find(([, feature]) => (feature.traits || []).length >= 3);
+    if (!entry) throw new Error("No region with at least three traits");
+    const originalFeatures = runtime.featureByStateKey;
+    const calls = [];
+    runtime.featureByStateKey = new Map([entry]);
+    try {
+      drawStateTraitMapIcons({
+        save() {},
+        restore() {},
+        drawImage(image, x, y, width, height) { calls.push({ x, y, width, height }); },
+        set globalAlpha(value) {},
+      }, { start: 0, end: 0 }, runtime.transform);
+    } finally {
+      runtime.featureByStateKey = originalFeatures;
+    }
+    const scale = runtime.transform.scale;
+    const ordered = calls.sort((a, b) => a.x - b.x);
+    return {
+      stateKey: entry[0],
+      iconCount: ordered.length,
+      screenY: ordered.map((call) => call.y * scale),
+      screenWidths: ordered.map((call) => call.width * scale),
+      screenGaps: ordered.slice(1).map((call, index) => (call.x - ordered[index].x) * scale),
+    };
   });
 }
 

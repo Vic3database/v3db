@@ -1508,29 +1508,24 @@ function drawMapLabels(context, copyRange = { start: 0, end: 0 }, transform = ma
 
 function drawStateTraitMapIcons(context, copyRange = { start: 0, end: 0 }, transform = mapRuntime.transform) {
   if (state.mapMode !== "traitIcons" || !mapRuntime.featureByStateKey) return;
-  const iconSize = 22;
+  const iconSize = 30;
   const inverseScale = 1 / Math.max(transform.scale, 0.001);
   const mapIconSize = iconSize * inverseScale;
   context.save();
   for (const [stateKey, feature] of mapRuntime.featureByStateKey) {
     const center = mapRuntime.stateCenters.get(stateKey);
     if (!center || !feature?.traits?.length) continue;
-    const rows = Math.ceil(feature.traits.length / Math.ceil(Math.sqrt(feature.traits.length)));
-    const columns = Math.ceil(feature.traits.length / rows);
     for (const trait of feature.traits || []) {
       const image = mapRuntime.stateTraitIconImages.get(stateTraitIconFileName(trait));
       if (!image) continue;
       const index = feature.traits.indexOf(trait);
-      const column = index % columns;
-      const row = Math.floor(index / columns);
-      const offsetX = (column - (columns - 1) / 2) * mapIconSize;
-      const offsetY = (row - (rows - 1) / 2) * mapIconSize;
+      const offsetX = (index - (feature.traits.length - 1) / 2) * mapIconSize;
       context.globalAlpha = mapRuntime.visibleStateKeys.has(stateKey) ? 1 : 0.36;
       for (let copy = copyRange.start; copy <= copyRange.end; copy += 1) {
         context.drawImage(
           image,
           center.x + copy * mapRuntime.width + offsetX - mapIconSize / 2,
-          center.y + offsetY - mapIconSize / 2,
+          center.y - mapIconSize / 2,
           mapIconSize,
           mapIconSize,
         );
