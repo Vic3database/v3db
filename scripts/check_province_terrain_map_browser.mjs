@@ -4,6 +4,20 @@ import { createRequire } from "node:module";
 const require = createRequire(import.meta.url);
 const { chromium } = require("playwright");
 const baseUrl = process.argv[2] || "http://127.0.0.1:8877/index.html";
+const locale = new URL(baseUrl).searchParams.get("lang") === "en" ? "en" : "zh-Hans";
+const expected = locale === "en" ? {
+  legend: /Plains.*Forest.*Hills.*Mountain.*Jungle.*Wetland.*Desert.*Tundra.*Savanna.*Snow and Arctic/,
+  provinceCode: /Province code\s*x[0-9A-F]{6}/,
+  terrain: /Terrain/,
+  stateRegion: /State region/,
+  strategicRegion: /Strategic region/,
+} : {
+  legend: /平原.*森林.*丘陵.*山地.*丛林.*湿地.*沙漠.*苔原.*稀树草原.*极地/,
+  provinceCode: /省份代码\s*x[0-9A-F]{6}/,
+  terrain: /地形/,
+  stateRegion: /所属地域/,
+  strategicRegion: /战略区域/,
+};
 const chromePath = process.env.VC_CHROME_PATH || "";
 const browser = await chromium.launch({
   headless: true,
@@ -16,6 +30,9 @@ try {
   const errors = [];
   page.on("console", (message) => {
     if (message.type() === "error") errors.push(`console: ${message.text()}`);
+  });
+  page.on("response", (response) => {
+    if (response.status() >= 400) errors.push(`${response.status()} ${response.url()}`);
   });
   page.on("pageerror", (error) => errors.push(`pageerror: ${error.message}`));
   await page.goto(`${baseUrl}#/region`, { waitUntil: "networkidle", timeout: 45000 });
@@ -31,7 +48,7 @@ try {
   }));
   assert.equal(initial.buttonPressed, "true", "terrain button must be pressed");
   assert.equal(initial.legendItems, 10, "terrain legend must render ten land entries");
-  assert.match(initial.legendText, /平原.*森林.*丘陵.*山地.*丛林.*湿地.*沙漠.*苔原.*稀树草原.*极地/, "terrain legend must retain its agreed order");
+  assert.match(initial.legendText, expected.legend, `terrain legend must retain its agreed ${locale} order`);
   assert.equal(initial.mapMode, "terrain", "terrain button must select terrain map mode");
   assert.equal(initial.view, "terrain", "terrain button must retain terrain region view state");
 
@@ -72,10 +89,10 @@ try {
   });
   await page.waitForFunction(() => document.querySelector("#mapTooltip")?.hidden === false, { timeout: 10000 });
   const tooltip = await page.locator("#mapTooltip").innerText();
-  assert.match(tooltip, /省份代码\s*x[0-9A-F]{6}/, "land hover must show x plus six uppercase hexadecimal digits");
-  assert.match(tooltip, /地形/, "land hover must show terrain");
-  assert.match(tooltip, /所属地域/, "land hover must show parent state region");
-  assert.match(tooltip, /战略区域/, "land hover must show strategic region");
+  assert.match(tooltip, expected.provinceCode, "land hover must show x plus six uppercase hexadecimal digits");
+  assert.match(tooltip, expected.terrain, `land hover must show ${locale} terrain`);
+  assert.match(tooltip, expected.stateRegion, `land hover must show the ${locale} parent state region`);
+  assert.match(tooltip, expected.strategicRegion, `land hover must show the ${locale} strategic region`);
 
   const waterPoint = await page.evaluate(() => {
     const runtime = window.eval("mapRuntime");
@@ -204,6 +221,9 @@ try {
   assert(filtered.listCount > 0, "region list must remain rendered while terrain mode is active");
 
   const narrowPage = await context.newPage();
+  narrowPage.on("response", (response) => {
+    if (response.status() >= 400) errors.push(`${response.status()} ${response.url()}`);
+  });
   await narrowPage.setViewportSize({ width: 390, height: 844 });
   await narrowPage.goto(`${baseUrl}#/region`, { waitUntil: "networkidle", timeout: 45000 });
   await narrowPage.locator("#terrainMapViewButton").click();
@@ -217,13 +237,15 @@ try {
     left: element.getBoundingClientRect().left,
     right: element.getBoundingClientRect().right,
     viewportWidth: window.innerWidth,
+    documentScrollWidth: document.documentElement.scrollWidth,
   }));
   assert(narrow.clientWidth > 0, "narrow terrain legend must remain visible");
   assert.equal(narrow.scrollWidth, narrow.clientWidth, "narrow terrain legend must not scroll horizontally");
   assert(narrow.left >= 0 && narrow.right <= narrow.viewportWidth, "narrow terrain legend must remain within the viewport");
+  assert.equal(narrow.documentScrollWidth, narrow.viewportWidth, "narrow terrain page must not overflow horizontally");
   assert.deepEqual(errors, [], `page errors: ${errors.join(" | ")}`);
   await narrowPage.close();
-  console.log(JSON.stringify({ province_terrain_map_browser: "ok", initial, sampled, tooltip, waterPoint, selection, detailRoute, filtered, narrow, baseUrl }, null, 2));
+  console.log(JSON.stringify({ province_terrain_map_browser: "ok", locale, initial, sampled, tooltip, waterPoint, selection, detailRoute, filtered, narrow, baseUrl }, null, 2));
 } finally {
   await context.close();
   await browser.close();
