@@ -38,17 +38,28 @@ try {
   await page.waitFor(() => location.hash === "#/building/building_oil_rig", "oil rig route");
   const oilRig = await page.evaluate(() => ({
     groupCount: document.querySelectorAll(".production-method-group").length,
-    optionCounts: Array.from(document.querySelectorAll(".production-method-group"), (group) => group.querySelectorAll("[data-production-method-key]").length),
-    combinations: document.querySelector(".production-method-section h3")?.textContent || "",
-    selected: document.querySelectorAll("[data-production-method-key][aria-pressed='true']").length,
+    pickers: document.querySelectorAll("[data-production-method-picker]").length,
+    visibleChoices: document.querySelectorAll("[data-production-method-key]:not([data-production-method-picker])").length,
+    combinationLabels: Array.from(document.querySelectorAll("[data-production-summary] dt"), (label) => label.textContent.trim()),
+    combinationText: document.querySelector("[data-production-summary]")?.textContent || "",
+    methodDetailsClosed: document.querySelector(".selected-production-method-detail")?.open === false,
+    allCombinationList: document.querySelector(".production-combination-list"),
     resourceButton: Boolean(document.querySelector("[data-resource-map-building='building_oil_rig']")),
   }));
-  assert.deepEqual(oilRig.optionCounts, [2, 3], "oil rig must expose two base and three automation options");
-  assert.match(oilRig.combinations, /6 种组合/, "oil rig must state six combinations");
-  assert.equal(oilRig.selected, 2, "one production method in each group must be selected");
+  assert.equal(oilRig.groupCount, 2, "oil rig must retain its two production-method groups");
+  assert.equal(oilRig.pickers, 2, "oil rig must initially show one selected icon per group");
+  assert.equal(oilRig.visibleChoices, 0, "other production methods must remain hidden until their selected icon is clicked");
+  assert.deepEqual(oilRig.combinationLabels, ["雇用人群", "投入商品", "产出商品", "标准产值", "修正"], "current combination must expose the five requested result categories");
+  assert.equal(await page.evaluate(() => document.querySelector("[data-production-standard-output]")?.textContent?.trim()), "待接入", "standard output must remain a reserved interface");
+  assert.equal(oilRig.methodDetailsClosed, true, "production method details must be closed by default");
+  assert.equal(oilRig.allCombinationList, null, "building detail must not render a full combination list");
   assert.equal(oilRig.resourceButton, true, "oil rig must offer the resource map route");
+  const initialCombinationText = oilRig.combinationText;
+  await page.evaluate(() => document.querySelector("[data-production-method-picker='pmg_base_building_oil_rig']").click());
+  await page.waitFor(() => document.querySelectorAll("[data-production-method-group='pmg_base_building_oil_rig'][data-production-method-key]").length === 1, "other base drilling option");
   await page.evaluate(() => document.querySelector("[data-production-method-group='pmg_base_building_oil_rig'][data-production-method-key='pm_combustion_derricks']").click());
-  await page.waitFor(() => document.querySelector("[data-production-method-key='pm_combustion_derricks']")?.getAttribute("aria-pressed") === "true", "changed oil rig method");
+  await page.waitFor(() => document.querySelector("[data-production-method-picker='pmg_base_building_oil_rig']")?.dataset.productionMethodKey === "pm_combustion_derricks", "changed oil rig method");
+  assert.notEqual(await page.evaluate(() => document.querySelector("[data-production-summary]")?.textContent || ""), initialCombinationText, "current combination must recalculate after a production-method selection changes");
   assert.equal(await page.evaluate(() => document.querySelector(".selected-production-method-detail")?.textContent?.includes("内燃机")), true, "selected method detail must show its prerequisite technology");
   assert.equal(await page.evaluate(() => document.querySelector(".selected-production-method-detail h5")?.textContent?.trim()), "\u5177\u4f53\u5185\u5bb9\u4e0e\u4fee\u6b63", "selected method detail must label its effects");
   await page.evaluate(() => document.querySelector("[data-resource-map-building='building_oil_rig']").click());

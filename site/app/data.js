@@ -325,6 +325,7 @@ function resetDatasetState() {
   state.selectedGood = "";
   state.economySearch = "";
   state.selectedProductionMethods.clear();
+  state.openProductionMethodGroup = "";
   state.selectedGlobalResult = "";
   if (els.searchInput) els.searchInput.value = "";
   if (els.globalSearchDialogInput) els.globalSearchDialogInput.value = "";

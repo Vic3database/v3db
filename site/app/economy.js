@@ -139,7 +139,6 @@ function renderBuildingDetail(building) {
   const methodGroups = building.production_method_group_keys
     .map((key) => productionMethodGroupByKey.get(key))
     .filter(Boolean);
-  const combinations = productionMethodCombinations(methodGroups);
   const selectedMethods = selectedProductionMethodsForGroups(methodGroups);
   els.detail.innerHTML = `<article class="economy-detail">
     ${economyDetailHead(building, "buildings", "building")}
@@ -147,11 +146,11 @@ function renderBuildingDetail(building) {
     ${building.unlocking_technologies?.length ? `<section><h3>解锁科技</h3><p>${referenceNames(building.unlocking_technologies)}</p></section>` : ""}
     ${building.resource_map_available ? `<button class="economy-resource-map" type="button" data-resource-map-building="${escapeHtml(building.key)}">打开资源地图</button>` : ""}
     <section class="production-method-section">
-      <h3>生产方式 <small>${combinations.length} 种组合</small></h3>
+      <h3>生产方式</h3>
       ${methodGroups.map((group) => productionMethodGroupHtml(group, selectedMethods.get(group.key)?.key || "")).join("") || "<p>该建筑没有可选生产方式。</p>"}
     </section>
+    ${productionCombinationSummaryHtml(selectedMethods)}
     ${renderSelectedProductionMethodDetail(selectedMethods)}
-    <details><summary>所有可能组合（${combinations.length}）</summary><ol class="production-combination-list">${combinations.map(productionCombinationHtml).join("")}</ol></details>
   </article>`;
   bindBuildingDetailEvents(building, methodGroups);
 }
@@ -166,15 +165,26 @@ function economyDetailHead(item, category, kind) {
 
 function productionMethodGroupHtml(group, selectedKey) {
   const methods = group.production_method_keys.map((key) => productionMethodByKey.get(key)).filter(Boolean);
+  const selected = methods.find((method) => method.key === selectedKey) || methods[0] || null;
+  const open = state.openProductionMethodGroup === group.key;
+  const alternatives = methods.filter((method) => method.key !== selected?.key);
   return `<section class="production-method-group">
     <h4>${escapeHtml(economyDisplayName(group))}</h4>
-    <div class="production-method-options">${methods.map((method) => `
-      <button type="button" data-production-method-key="${escapeHtml(method.key)}" data-production-method-group="${escapeHtml(group.key)}" aria-pressed="${String(method.key === selectedKey)}" title="${escapeHtml(economyDisplayName(method))}">
-        ${method.icon ? `<img src="${economyAsset("production-methods", method.key)}" alt="">` : "<span class=\"production-method-no-icon\">无图标</span>"}
-        <span>${escapeHtml(economyDisplayName(method))}</span>
-      </button>
-    `).join("")}</div>
+    <div class="production-method-options">
+      ${selected ? `<button class="production-method-current" type="button" data-production-method-picker="${escapeHtml(group.key)}" data-production-method-key="${escapeHtml(selected.key)}" aria-expanded="${String(open)}" aria-label="${escapeHtml(`${economyDisplayName(group)}：${economyDisplayName(selected)}`)}" title="${escapeHtml(economyDisplayName(selected))}">${productionMethodIconHtml(selected)}</button>` : ""}
+      ${open && alternatives.length ? `<div class="production-method-picker" role="group" aria-label="${escapeHtml(`${economyDisplayName(group)}的其他选项`)}">${alternatives.map((method) => `
+        <button type="button" data-production-method-key="${escapeHtml(method.key)}" data-production-method-group="${escapeHtml(group.key)}" aria-label="${escapeHtml(economyDisplayName(method))}" title="${escapeHtml(economyDisplayName(method))}">
+          ${productionMethodIconHtml(method)}
+        </button>
+      `).join("")}</div>` : ""}
+    </div>
   </section>`;
+}
+
+function productionMethodIconHtml(method) {
+  return method.icon
+    ? `<img src="${economyAsset("production-methods", method.key)}" alt="" aria-hidden="true">`
+    : "<span class=\"production-method-no-icon\" aria-hidden=\"true\"></span>";
 }
 
 function selectedProductionMethodsForGroups(groups) {
@@ -190,7 +200,7 @@ function selectedProductionMethodsForGroups(groups) {
 function renderSelectedProductionMethodDetail(selected) {
   const methods = [...selected.values()].filter(Boolean);
   if (!methods.length) return "";
-  return `<section class="selected-production-method-detail"><h3>当前选择</h3>${methods.map((method) => `
+  return `<details class="selected-production-method-detail"><summary>生产方式详情</summary><div class="selected-production-method-detail-content">${methods.map((method) => `
     <article>
       <h4>${escapeHtml(economyDisplayName(method))}</h4>
       ${method.description_zh ? `<p><strong>具体内容：</strong>${escapeHtml(method.description_zh)}</p>` : ""}
@@ -199,11 +209,58 @@ function renderSelectedProductionMethodDetail(selected) {
       <h5>具体内容与修正</h5>
       ${method.effects?.length ? `<ul>${method.effects.map((effect) => `<li>${escapeHtml(productionEffectText(effect))}</li>`).join("")}</ul>` : "<p>没有数值修正。</p>"}
     </article>
-  `).join("")}</section>`;
+  `).join("")}</div></details>`;
+}
+
+function productionCombinationSummaryHtml(selected) {
+  const methods = [...selected.values()].filter(Boolean);
+  const { totals, conditional } = combinedProductionEffects(methods);
+  const effects = [...totals.values()];
+  const employees = effects.filter((effect) => /^building_employment_.+_add$/.test(effect.key));
+  const inputs = effects.filter((effect) => /^goods_input_[a-z0-9_]+_add$/.test(effect.key));
+  const outputs = effects.filter((effect) => /^goods_output_[a-z0-9_]+_add$/.test(effect.key));
+  const classified = new Set([...employees, ...inputs, ...outputs]);
+  const modifiers = effects.filter((effect) => !classified.has(effect));
+  if (conditional.length) modifiers.push(...conditional);
+  const rows = [
+    ["雇用人群", employees],
+    ["投入商品", inputs],
+    ["产出商品", outputs],
+    ["标准产值", "待接入"],
+    ["修正", modifiers],
+  ];
+  return `<section class="production-combination-summary" data-production-summary><h3>当前生产方式组合</h3><dl>${rows.map(([label, value]) => `
+    <div><dt>${label}</dt><dd${label === "标准产值" ? " data-production-standard-output" : ""}>${typeof value === "string" ? escapeHtml(value) : productionEffectListHtml(value)}</dd></div>
+  `).join("")}</dl></section>`;
+}
+
+function combinedProductionEffects(methods) {
+  const totals = new Map();
+  const conditional = [];
+  for (const effect of methods.flatMap((method) => method.effects || [])) {
+    if (effect.condition) {
+      conditional.push(effect);
+      continue;
+    }
+    const key = [effect.scope, effect.scaling, effect.key].join("|");
+    const prior = totals.get(key) || { ...effect, value: 0, combined: true };
+    prior.value += Number(effect.value || 0);
+    totals.set(key, prior);
+  }
+  return { totals, conditional };
+}
+
+function productionEffectListHtml(effects) {
+  if (!effects.length) return "无";
+  return `<ul>${effects.map((effect) => `<li>${escapeHtml(productionEffectText(effect))}</li>`).join("")}</ul>`;
+}
+
+function productionScalingText(scaling) {
+  return scaling === "workforce_scaled" ? "按劳动力" : scaling === "level_scaled" ? "按等级" : "固定";
 }
 
 function productionEffectText(effect) {
-  const scale = effect.scaling === "workforce_scaled" ? "按劳动力" : effect.scaling === "level_scaled" ? "按等级" : "";
+  const scale = effect.scaling ? productionScalingText(effect.scaling) : "";
   const condition = effect.condition?.summary_zh ? `；条件：${effect.condition.summary_zh}` : "";
   const value = effect.combined ? combinedProductionValue(effect) : (effect.value_zh || `${effect.value > 0 ? "+" : ""}${effect.value}`);
   return `${effect.scope}：${effect.name_zh || effect.key} ${value}${scale ? `（${scale}）` : ""}${condition}`;
@@ -217,36 +274,19 @@ function combinedProductionValue(effect) {
   return `${effect.value > 0 ? "+" : ""}${effect.value}`;
 }
 
-function productionMethodCombinations(groups) {
-  return groups.reduce((rows, group) => {
-    const methods = group.production_method_keys.map((key) => productionMethodByKey.get(key)).filter(Boolean);
-    return methods.length ? rows.flatMap((row) => methods.map((method) => [...row, method])) : rows;
-  }, [[]]);
-}
-
-function productionCombinationHtml(methods) {
-  const totals = new Map();
-  const conditional = [];
-  for (const effect of methods.flatMap((method) => method.effects || [])) {
-    const label = productionEffectText(effect);
-    if (effect.condition) {
-      conditional.push(label);
-      continue;
-    }
-    const key = [effect.scope, effect.scaling, effect.key].join("|");
-    const prior = totals.get(key) || { ...effect, value: 0, combined: true };
-    prior.value += Number(effect.value || 0);
-    totals.set(key, prior);
-  }
-  const totalText = [...totals.values()].map((effect) => productionEffectText(effect)).join("；");
-  const conditionalText = conditional.length ? `；条件修正：${conditional.join("；")}` : "";
-  return `<li><strong>${escapeHtml(methods.map(economyDisplayName).join(" × "))}</strong>${totalText ? `<span>${escapeHtml(totalText)}${escapeHtml(conditionalText)}</span>` : ""}</li>`;
-}
-
 function bindBuildingDetailEvents(building, groups) {
+  els.detail.querySelectorAll("[data-production-method-picker]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const groupKey = button.dataset.productionMethodPicker;
+      state.openProductionMethodGroup = state.openProductionMethodGroup === groupKey ? "" : groupKey;
+      renderBuildingDetail(building);
+    });
+  });
   els.detail.querySelectorAll("[data-production-method-key]").forEach((button) => {
+    if (button.dataset.productionMethodPicker) return;
     button.addEventListener("click", () => {
       state.selectedProductionMethods.set(button.dataset.productionMethodGroup, button.dataset.productionMethodKey);
+      state.openProductionMethodGroup = "";
       renderBuildingDetail(building);
     });
   });

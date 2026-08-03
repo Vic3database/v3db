@@ -199,6 +199,7 @@ const state = {
   selectedGood: "",
   economySearch: "",
   selectedProductionMethods: new Map(),
+  openProductionMethodGroup: "",
   achievementSearch: "",
   achievementWallScrollTop: 0,
   technologyCategory: "production",

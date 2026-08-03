@@ -38,19 +38,25 @@ body.detail-page[data-view="building"] .economy-wall-grid, body.detail-page[data
 .economy-detail-head > div > p { margin-top: 4px; color: var(--muted); font-size: var(--text-xs); overflow-wrap: anywhere; }
 .economy-detail-head button { width: 32px; min-height: 32px; border: 1px solid rgba(200, 164, 91, .45); background: rgba(0, 0, 0, .18); color: var(--ink); font-size: 24px; line-height: 1; }
 .production-method-section { display: grid; gap: 14px; }
-.production-method-section h3 small { color: var(--muted); font-size: var(--text-sm); font-weight: normal; }
 .production-method-group { display: grid; gap: 6px; }
 .production-method-group h4 { color: var(--muted); font-size: var(--text-sm); font-weight: normal; }
-.production-method-options { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
-.production-method-options > button { display: grid; grid-template-columns: 40px minmax(5.5rem, auto); align-items: center; gap: 6px; flex: none; min-height: 50px; padding: 5px 8px 5px 5px; border: 1px solid rgba(238, 232, 221, .17); border-radius: 4px; background: rgba(0, 0, 0, .18); color: var(--ink); cursor: pointer; text-align: left; font: inherit; font-size: var(--text-xs); }
-.production-method-options > button[aria-pressed="true"], .production-method-options > button:hover, .production-method-options > button:focus-visible { border-color: var(--accent); background: rgba(200, 164, 91, .13); outline: 0; }
+.production-method-options, .production-method-picker { display: flex; flex-wrap: wrap; gap: 8px; }
+.production-method-picker { padding-left: 8px; border-left: 1px solid rgba(200, 164, 91, .3); }
+.production-method-options button { display: grid; place-items: center; flex: 0 0 50px; width: 50px; height: 50px; padding: 5px; border: 1px solid rgba(238, 232, 221, .17); border-radius: 4px; background: rgba(0, 0, 0, .18); cursor: pointer; }
+.production-method-options button:hover, .production-method-options button:focus-visible, .production-method-current[aria-expanded="true"] { border-color: var(--accent); background: rgba(200, 164, 91, .13); outline: 0; }
 .production-method-options img { width: 40px; height: 40px; object-fit: contain; }
 .production-method-no-icon { display: grid; place-items: center; width: 40px; height: 40px; background: rgba(255, 255, 255, .08); color: var(--muted); font-size: 10px; text-align: center; }
+.production-combination-summary { display: grid; gap: 10px; padding: 12px; border: 1px solid rgba(200, 164, 91, .3); background: rgba(0, 0, 0, .12); }
+.production-combination-summary h3 { color: var(--accent); }
+.production-combination-summary dl { display: grid; gap: 10px; margin: 0; }
+.production-combination-summary dl > div { display: grid; gap: 4px; }
+.production-combination-summary dt { color: var(--muted); font-size: var(--text-sm); }
+.production-combination-summary dd { margin: 0; font-size: var(--text-sm); }
+.production-combination-summary ul { display: grid; gap: 4px; margin: 0; padding-left: 20px; }
 .selected-production-method-detail { display: grid; gap: 10px; }
+.selected-production-method-detail-content { display: grid; gap: 10px; margin-top: 10px; }
 .selected-production-method-detail article { display: grid; gap: 6px; padding: 10px; border: 1px solid rgba(238, 232, 221, .12); background: rgba(0, 0, 0, .12); }
-.selected-production-method-detail ul, .production-combination-list { display: grid; gap: 6px; margin: 0; padding-left: 20px; font-size: var(--text-sm); }
-.production-combination-list li { display: grid; gap: 3px; }
-.production-combination-list span { color: var(--muted); }
+.selected-production-method-detail ul { display: grid; gap: 6px; margin: 0; padding-left: 20px; font-size: var(--text-sm); }
 .economy-detail details { border-top: 1px solid rgba(200, 164, 91, .3); padding-top: 10px; }
 .economy-detail summary { cursor: pointer; color: var(--accent); }
 .economy-related-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }

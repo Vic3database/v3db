@@ -9,7 +9,7 @@ const buildScript = read("scripts/build_wiki.mjs");
 const appSource = readSiteAppSource(root);
 const styleSource = readSiteStyleSource(root);
 
-assert.match(indexHtml, /app\/economy\.js\?v=20260803-economy-board-groups1/, "economy script must use the grouped-building cache version");
+assert.match(indexHtml, /app\/economy\.js\?v=20260803-economy-production-summary1/, "economy script must use the production-summary cache version");
 
 for (const view of ["building", "goods"]) {
   assert(indexHtml.includes(`data-nav-view="${view}"`), `top navigation must include ${view}`);
@@ -26,9 +26,11 @@ for (const field of ["buildings", "buildingGroups", "productionMethodGroups", "p
   assert(appSource.includes(field), `runtime must retain ${field}`);
 }
 for (const text of [
-  "productionMethodCombinations",
-  "productionCombinationHtml",
-  "条件修正",
+  "productionCombinationSummaryHtml",
+  "data-production-method-picker",
+  "data-production-summary",
+  "标准产值",
+  "data-production-standard-output",
   "method.description_zh",
   "combined: true",
   "data-production-method-key",
@@ -42,8 +44,11 @@ for (const text of [
 ]) {
   assert(appSource.includes(text), `economy interaction must contain ${text}`);
 }
+assert(!appSource.includes("所有可能组合"), "building detail must not enumerate every production-method combination");
+assert(!appSource.includes("goodByKey.get(goodKey)?.price"), "standard output must remain an unconnected interface until its calculation rule is defined");
 assert(styleSource.includes(".economy-wall-grid"), "economy wall needs responsive card layout");
 assert(styleSource.includes(".production-method-options"), "production-method options need horizontal layout");
+assert(styleSource.includes(".production-combination-summary"), "current production combination needs a dedicated summary layout");
 
 console.log(JSON.stringify({ economy_board_contract: "ok" }, null, 2));
 
