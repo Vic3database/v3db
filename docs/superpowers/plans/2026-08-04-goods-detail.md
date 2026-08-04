@@ -176,6 +176,7 @@ git commit -m "feat: add complete goods relationships"
 **Files:**
 - Modify: `scripts/check_economy_board_contract.mjs`
 - Modify: `scripts/build_wiki.mjs`
+- Generated: `site/versions/1.13.9/data-buildings.js`
 - Generated: `site/versions/1.13.9/data-goods.js`
 
 - [ ] **Step 1: 写入失败的商品块契约检查**
@@ -199,11 +200,11 @@ Expected: FAIL，报告商品详情尚未使用新增字段。
 
 Run: `node scripts/build_wiki.mjs --source database/vic3_1.13.9/index.json --out tmp/goods-detail-site`
 
-Expected: `tmp/goods-detail-site/versions/1.13.9/data-goods.js` 包含扩展后的普通商品与名贵商品，不要求加载文化、公司或建筑块。
+Expected: `tmp/goods-detail-site/data-goods.js` 包含扩展后的普通商品与名贵商品，不要求加载文化、公司或建筑块；`tmp/goods-detail-site/data-buildings.js` 包含恢复后的 436 种生产方式。
 
 - [ ] **Step 4: 更新正式商品数据块**
 
-只用 `Copy-Item -LiteralPath 'tmp/goods-detail-site/versions/1.13.9/data-goods.js' -Destination 'site/versions/1.13.9/data-goods.js' -Force` 更新正式商品数据块；比较其他临时输出仅用于确认构建成功，不覆盖工作区中现有的站点数据文件。
+只用 `Copy-Item -LiteralPath 'tmp/goods-detail-site/data-goods.js' -Destination 'site/versions/1.13.9/data-goods.js' -Force` 和 `Copy-Item -LiteralPath 'tmp/goods-detail-site/data-buildings.js' -Destination 'site/versions/1.13.9/data-buildings.js' -Force` 更新正式商品与建筑数据块；比较其他临时输出仅用于确认构建成功，不覆盖工作区中现有的站点数据文件。
 
 - [ ] **Step 5: 暂缓提交**
 
@@ -217,6 +218,7 @@ Expected: `tmp/goods-detail-site/versions/1.13.9/data-goods.js` 包含扩展后�
 - Modify: `site/app/economy.js`
 - Modify: `site/styles/economy.css`
 - Modify: `site/index.html`
+- Generated: `site/versions/1.13.9/data-buildings.js`
 - Generated: `site/versions/1.13.9/data-goods.js`
 
 - [ ] **Step 1: 写入失败的浏览器检查**
@@ -273,7 +275,7 @@ Expected: PASS，橡胶、需求、禁忌、消费建筑、名贵商品公司和
 - [ ] **Step 7: 提交商品详情界面**
 
 ```powershell
-git add -- scripts/check_economy_board_contract.mjs scripts/check_economy_board_browser.mjs site/app/economy.js site/styles/economy.css site/index.html site/versions/1.13.9/data-goods.js
+git add -- docs/superpowers/plans/2026-08-04-goods-detail.md scripts/check_economy_board_contract.mjs scripts/check_economy_board_browser.mjs site/app/economy.js site/styles/economy.css site/index.html site/versions/1.13.9/data-buildings.js site/versions/1.13.9/data-goods.js
 git commit -m "feat: expand goods detail records"
 ```
 

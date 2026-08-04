@@ -377,18 +377,124 @@ function renderGoodsDetail(good) {
   const variants = (good.prestige_good_keys || []).map((key) => prestigeGoodByKey.get(key)).filter(Boolean);
   els.detail.innerHTML = `<article class="economy-detail">
     ${economyDetailHead(good, "goods", "goods")}
-    <section><h3>${escapeHtml(goodCategoryName(good.category))}</h3>${good.description_zh ? `<p>${escapeHtml(good.description_zh)}</p>` : ""}</section>
-    <section><h3>可生产建筑</h3><div class="economy-related-grid">${(good.producing_buildings || []).map((building) => `
-      <button type="button" data-good-building="${escapeHtml(building.key)}"><img src="${economyAsset("buildings", building.key)}" alt=""><span>${escapeHtml(economyDisplayName(building))}</span></button>
-    `).join("") || "<p>没有建筑生产此商品。</p>"}</div></section>
-    ${variants.length ? `<section><h3>名贵商品</h3><div class="economy-related-grid">${variants.map((variant) => `
-      <div><img src="${economyAsset("prestige-goods", variant.key)}" alt=""><span>${escapeHtml(economyDisplayName(variant))}</span></div>
-    `).join("")}</div></section>` : ""}
+    ${good.description_zh ? `<p>${escapeHtml(good.description_zh)}</p>` : ""}
+    ${goodDefinitionHtml(good)}
+    ${goodBuildingRelationsHtml("生产建筑", good.producing_buildings, "producer")}
+    ${goodBuildingRelationsHtml("消费建筑", good.consuming_buildings, "consumer")}
+    ${goodPopNeedsHtml(good.pop_needs)}
+    ${goodPopulationRelationsHtml(good)}
+    ${goodPrestigeVariantsHtml(variants)}
+    <details class="goods-source-details"><summary>原始资料</summary><dl class="goods-facts"><div><dt>内部标识</dt><dd>${escapeHtml(good.key)}</dd></div><div><dt>来源文件</dt><dd>${escapeHtml(good.source_file || "无")}</dd></div></dl></details>
   </article>`;
   els.detail.querySelectorAll("[data-good-building]").forEach((button) => {
     button.addEventListener("click", () => openEconomyDetail("building", button.dataset.goodBuilding));
   });
+  els.detail.querySelectorAll("[data-good-culture]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      replaceHash(`/culture/${encodeURIComponent(button.dataset.goodCulture)}`);
+      await applyHash();
+      render();
+    });
+  });
+  els.detail.querySelectorAll("[data-prestige-company]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      replaceHash(`/company/${encodeURIComponent(button.dataset.prestigeCompany)}`);
+      await applyHash();
+      render();
+    });
+  });
   bindEconomyDetailBack("goods");
+}
+
+function goodDefinitionHtml(good) {
+  const rows = [
+    ["标准价格", `£${formatProductionNumber(good.price)}`, "data-good-standard-price"],
+    ["商品类别", goodCategoryName(good.category), ""],
+    ["可以贸易", yesNo(good.tradeable), ""],
+    ["本地商品", yesNo(good.is_local), ""],
+    ["固定价格", yesNo(good.fixed_price), ""],
+    ["声望系数", formatProductionNumber(good.prestige_factor), ""],
+    ["每次贸易数量", formatProductionNumber(good.traded_quantity), ""],
+    ["运输成本系数", formatProductionNumber(good.convoy_cost_multiplier), ""],
+    ["形成痴迷的概率权重", formatProductionNumber(good.obsession_chance), ""],
+    ["消费税权威花费", Number.isFinite(good.consumption_tax_cost) ? `${formatProductionNumber(good.consumption_tax_cost)}权威` : "不可征收消费税", ""],
+    ["人口消费增加基础设施", yesNo(good.pop_consumption_can_add_infrastructure), ""],
+  ];
+  return `<section class="goods-facts-section"><h3>基础属性</h3><dl class="goods-facts">${rows.map(([label, value, attribute]) => `<div><dt>${label}</dt><dd${attribute ? ` ${attribute}` : ""}>${escapeHtml(value)}</dd></div>`).join("")}</dl></section>`;
+}
+
+function yesNo(value) {
+  return value ? "是" : "否";
+}
+
+function goodBuildingRelationsHtml(title, buildings, relation) {
+  return `<section><h3>${title}</h3>${(buildings || []).length ? `<div class="economy-related-grid">${buildings.map((building) => `
+    <button type="button" data-good-building="${escapeHtml(building.key)}" data-good-building-relation="${relation}"><img src="${economyAsset("buildings", building.key)}" alt=""><span>${escapeHtml(economyDisplayName(building))}</span></button>
+  `).join("")}</div>` : `<p class="goods-empty">无</p>`}</section>`;
+}
+
+function goodPopNeedsHtml(needs) {
+  return `<section><h3>满足人口需求</h3>${(needs || []).length ? `<div class="goods-needs">${needs.map((need) => `
+    <article data-good-need="${escapeHtml(need.key)}">
+      <h4>${escapeHtml(economyDisplayName(need))}${need.is_default ? " <small>默认商品</small>" : ""}</h4>
+      <dl>${[
+        ["权重", optionalGoodsNumber(need.weight)],
+        ["最低供应占比", optionalGoodsShare(need.min_supply_share)],
+        ["最高供应占比", optionalGoodsShare(need.max_supply_share)],
+        ["财富等级", wealthLevelRanges(need.wealth_levels)],
+        ["痴迷需求下限", optionalGoodsNumber(need.obsession_demand_min)],
+        ["痴迷需求倍率", optionalGoodsNumber(need.obsession_demand_mult)],
+        ["名贵商品需求增量", optionalGoodsShare(need.prestige_goods_demand_increase)],
+      ].map(([label, value]) => `<div><dt>${label}</dt><dd>${escapeHtml(value)}</dd></div>`).join("")}</dl>
+    </article>
+  `).join("")}</div>` : `<p class="goods-empty">无</p>`}</section>`;
+}
+
+function optionalGoodsNumber(value) {
+  return Number.isFinite(value) ? formatProductionNumber(value) : "未单独设置";
+}
+
+function optionalGoodsShare(value) {
+  return Number.isFinite(value) ? `${formatProductionNumber(value * 100)}%` : "未单独设置";
+}
+
+function wealthLevelRanges(levels) {
+  const values = [...new Set((levels || []).map(Number).filter(Number.isFinite))].sort((left, right) => left - right);
+  if (!values.length) return "无";
+  const ranges = [];
+  let start = values[0];
+  let end = start;
+  for (const value of values.slice(1)) {
+    if (value === end + 1) {
+      end = value;
+      continue;
+    }
+    ranges.push(start === end ? `${start}` : `${start}–${end}`);
+    start = value;
+    end = value;
+  }
+  ranges.push(start === end ? `${start}` : `${start}–${end}`);
+  return ranges.join("、");
+}
+
+function goodPopulationRelationsHtml(good) {
+  const cultures = (title, rows, relation) => `<section><h3>${title}</h3>${rows.length ? `<div class="goods-relation-tags">${rows.map((item) => `<button type="button" data-good-culture="${escapeHtml(item.key)}" data-good-culture-relation="${relation}">${escapeHtml(economyDisplayName(item))}</button>`).join("")}</div>` : `<p class="goods-empty">无</p>`}</section>`;
+  const religions = good.taboo_religions || [];
+  return `<div class="goods-population-relations">
+    ${cultures("痴迷该商品的文化", good.obsessed_cultures || [], "obsession")}
+    ${cultures("禁忌该商品的文化", good.taboo_cultures || [], "taboo")}
+    <section><h3>禁忌该商品的宗教</h3>${religions.length ? `<div class="goods-relation-tags">${religions.map((item) => `<span data-good-taboo-religion="${escapeHtml(item.key)}">${conceptPill({ label: economyDisplayName(item), className: "tag-religion", kind: "religion", key: item.key })}</span>`).join("")}</div>` : `<p class="goods-empty">无</p>`}</section>
+  </div>`;
+}
+
+function goodPrestigeVariantsHtml(variants) {
+  return `<section><h3>名贵商品</h3>${variants.length ? `<div class="goods-prestige-list">${variants.map((variant) => `
+    <article class="goods-prestige-card" data-prestige-good="${escapeHtml(variant.key)}">
+      <header><img src="${economyAsset("prestige-goods", variant.key)}" alt=""><div><h4>${escapeHtml(economyDisplayName(variant))}</h4><p>${escapeHtml(variant.key)}</p></div></header>
+      <h5>可生产公司</h5>
+      ${(variant.companies || []).length ? `<div class="goods-company-list">${variant.companies.map((company) => `<button type="button" data-prestige-company="${escapeHtml(company.key)}">${companyIconHtml(company)}<span>${escapeHtml(economyDisplayName(company))}</span></button>`).join("")}</div>` : `<p class="goods-empty">无</p>`}
+    </article>
+  `).join("")}</div>` : `<p class="goods-empty">无</p>`}</section>`;
 }
 
 function bindEconomyDetailBack(kind) {

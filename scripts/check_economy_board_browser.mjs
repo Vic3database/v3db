@@ -102,16 +102,55 @@ try {
   await page.goto(`${baseUrl}#/goods`);
   await page.waitFor(() => document.querySelectorAll("[data-good-key]").length === 53, "goods wall");
   assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector("#mapPanel")).display), "none", "goods wall must hide the map");
-  await page.evaluate(() => document.querySelector("[data-good-key='oil']").click());
+  await page.evaluate(() => document.querySelector("[data-good-key='rubber']").click());
+  await page.waitFor(() => location.hash === "#/goods/rubber", "rubber good route");
+  const rubber = await page.evaluate(() => ({
+    producers: Array.from(document.querySelectorAll("[data-good-building-relation='producer']"), (item) => item.dataset.goodBuilding),
+    standardPrice: document.querySelector("[data-good-standard-price]")?.textContent?.trim() || "",
+  }));
+  assert(rubber.producers.includes("building_rubber_plantation"), "rubber must link to rubber plantation");
+  assert.equal(rubber.standardPrice, "£40", "rubber must show its standard price");
+
+  await page.goto(`${baseUrl}#/goods/grain`);
+  await page.waitFor(() => location.hash === "#/goods/grain", "grain good route");
+  const grain = await page.evaluate(() => ({
+    needs: Array.from(document.querySelectorAll("[data-good-need]"), (item) => item.textContent || ""),
+  }));
+  assert(grain.needs.some((text) => text.includes("基础食品") && text.includes("1–29")), "grain must show basic food and its wealth range");
+
+  await page.goto(`${baseUrl}#/goods/meat`);
+  await page.waitFor(() => location.hash === "#/goods/meat", "meat good route");
+  const meat = await page.evaluate(() => ({
+    tabooReligions: Array.from(document.querySelectorAll("[data-good-taboo-religion]"), (item) => item.textContent?.trim() || ""),
+    prestigeCompanies: Array.from(document.querySelectorAll("[data-prestige-company]"), (item) => item.dataset.prestigeCompany),
+  }));
+  assert(meat.tabooReligions.includes("印度教"), "meat must show its Hindu taboo");
+  assert(meat.prestigeCompanies.length > 0, "meat prestige variants must list possible companies");
+
+  await page.goto(`${baseUrl}#/goods/oil`);
   await page.waitFor(() => location.hash === "#/goods/oil", "oil good route");
   const oil = await page.evaluate(() => ({
-    producers: Array.from(document.querySelectorAll("[data-good-building]"), (item) => item.dataset.goodBuilding),
-    variants: document.querySelectorAll(".economy-related-grid img[src*='prestige-goods']").length,
+    producers: Array.from(document.querySelectorAll("[data-good-building-relation='producer']"), (item) => item.dataset.goodBuilding),
+    consumers: Array.from(document.querySelectorAll("[data-good-building-relation='consumer']"), (item) => item.dataset.goodBuilding),
+    variants: document.querySelectorAll("[data-prestige-good]").length,
     methods: document.querySelectorAll("[data-production-method-key]").length,
   }));
   assert(oil.producers.includes("building_oil_rig"), "oil must link to oil rig");
+  assert(oil.consumers.length > 0, "oil must list consuming buildings");
   assert.equal(oil.variants, 1, "oil must show its Baku prestige variant");
   assert.equal(oil.methods, 0, "goods details must not show production methods");
+
+  const narrowPage = await openPage({ width: 390, height: 844 });
+  await narrowPage.goto(`${baseUrl}#/goods/meat`);
+  await narrowPage.waitFor(() => location.hash === "#/goods/meat" && document.querySelector(".economy-detail"), "narrow meat detail");
+  const narrow = await narrowPage.evaluate(() => ({
+    scrollWidth: document.documentElement.scrollWidth,
+    clientWidth: document.documentElement.clientWidth,
+    detailRight: document.querySelector(".economy-detail")?.getBoundingClientRect().right || 0,
+  }));
+  assert(narrow.scrollWidth <= narrow.clientWidth, "goods detail must not overflow the narrow viewport");
+  assert(narrow.detailRight <= narrow.clientWidth, "goods detail content must remain inside the narrow viewport");
+  await narrowPage.close();
   await page.close();
   console.log(JSON.stringify({ economy_board_browser: "ok", base_url: baseUrl }, null, 2));
 } finally {
