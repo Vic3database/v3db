@@ -6,6 +6,6 @@
 
 商品详情按基础属性、生产建筑、消费建筑、人口需求、痴迷该商品的文化、禁忌该商品的文化、禁忌该商品的宗教、名贵商品及公司、原始资料排列。建筑、文化和公司可点击进入现有详情路由，宗教显示为资料标签。桌面端保留左侧图片墙并将详情固定在右侧；宽度不超过 1100 像素时隐藏图片墙，详情独占内容区。基础属性表中没有配对的最后一项会跨越两列。
 
-验证依次执行 `node scripts/check_economy_database.mjs`、`node scripts/check_economy_assets.mjs`、`node scripts/check_economy_board_contract.mjs` 和 `node scripts/check_economy_board_browser.mjs http://127.0.0.1:4173/index.html`，均通过。浏览器检查覆盖橡胶种植园、40 英镑标准价格、谷物基础食品需求及财富等级、肉类的印度教禁忌和名贵商品公司、石油的生产及消费建筑、商品详情不显示生产方式、桌面左右栏互不叠压以及 390 像素视口无横向溢出。隔离工作树缺少本机未纳入 Git 的 `site/vc` 输出，因而无法单独通过完整发布包检查；同一提交基线的主工作树执行 `node scripts/check_publish_bundle.mjs` 通过，共核对 1,321 个文件。
+验证依次执行 `node scripts/check_economy_database.mjs`、`node scripts/check_economy_assets.mjs`、`node scripts/check_economy_board_contract.mjs` 和 `node scripts/check_economy_board_browser.mjs http://127.0.0.1:4173/index.html`，均通过。浏览器检查覆盖橡胶种植园、40 英镑标准价格、谷物基础食品需求及财富等级、肉类的印度教禁忌和名贵商品公司、石油的生产及消费建筑、商品详情不显示生产方式、桌面左右栏互不叠压以及 390 像素视口无横向溢出。合并后的主工作树执行 `node scripts/check_publish_bundle.mjs` 通过，共核对 1,378 个文件。
 
-界面截图保存在 `screenshots/goods-detail/rubber-desktop-cdp.png`、`screenshots/goods-detail/meat-desktop-cdp.png` 和 `screenshots/goods-detail/meat-mobile-cdp.png`，用于核对桌面详情栏、文化宗教关系与窄屏排列。功能分支为 `codex/goods-detail`，尚未合并或发布。
+界面截图保存在 `screenshots/goods-detail/rubber-desktop-cdp.png`、`screenshots/goods-detail/meat-desktop-cdp.png` 和 `screenshots/goods-detail/meat-mobile-cdp.png`，用于核对桌面详情栏、文化宗教关系与窄屏排列。功能于 2026-08-04 快进合并到 `main`，尚未发布。
