@@ -16,6 +16,10 @@ const productionMethodGroups = rows("production_method_groups");
 const productionMethods = rows("production_methods");
 const goods = rows("goods");
 const prestigeGoods = rows("prestige_goods");
+const locales = Object.fromEntries(["zh-Hans", "en"].map((locale) => [
+  locale,
+  read(index.locales.files[locale].file),
+]));
 const byKey = (items) => new Map(items.map((item) => [item.key, item]));
 const buildingByKey = byKey(buildings);
 const groupByKey = byKey(productionMethodGroups);
@@ -68,6 +72,17 @@ assert(
 assert(
   goodByKey.get("automobiles").prestige_good_keys.includes("prestige_good_benz_car"),
 );
+const localizedName = (item, locale) => locales[locale][item.loc.name];
+assert.equal(
+  localizedName(byKey(prestigeGoods).get("prestige_good_basmati_rise"), "en"),
+  "Basmati Rice",
+);
+assert.equal(
+  localizedName(byKey(prestigeGoods).get("prestige_good_irontill_series"), "en"),
+  "Ironclad Tools",
+);
+assert.equal(localizedName(buildingByKey.get("building_machu_picchu"), "en"), "Machu Picchu");
+assert.equal(localizedName(buildingByKey.get("building_machu_picchu"), "zh-Hans"), "马丘比丘");
 
 for (const group of productionMethodGroups) {
   for (const key of group.production_method_keys) {

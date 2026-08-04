@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import extractorEn from "./locales/extractor.en.mjs";
 import extractorZhHans from "./locales/extractor.zh-Hans.mjs";
+import economyLocalizationAliases from "./locales/victorian-century-aliases.mjs";
 import { sha256Text, splitLocalizedTrees } from "./lib/localization-schema.mjs";
 import {
   applyDefinitionAssignment,
@@ -141,6 +142,20 @@ function main() {
 
   const loc = loadLocalization(contentPath("localization", "simp_chinese"));
   const locEn = loadLocalization(contentPath("localization", "english"));
+  applyLocalizationAliases(loc, economyLocalizationAliases.common["zh-Hans"], "zh-Hans");
+  applyLocalizationAliases(locEn, economyLocalizationAliases.common.en, "en");
+  if (modContentRoot) {
+    applyLocalizationAliases(
+      loc,
+      economyLocalizationAliases.victorianCentury["zh-Hans"],
+      "zh-Hans",
+    );
+    applyLocalizationAliases(
+      locEn,
+      economyLocalizationAliases.victorianCentury.en,
+      "en",
+    );
+  }
   const cultures = loadCultures(contentPath("common", "cultures"));
   const cultureTraits = loadCultureTraits(contentPath("common", "discrimination_traits"), loc);
   const cultureTraitGroups = loadCultureTraitGroups(contentPath("common", "discrimination_trait_groups"), loc);
@@ -572,6 +587,15 @@ function listFilesFromPath(target, suffix = ".txt") {
     if (entry.isFile() && entry.name.endsWith(suffix)) out.push(full);
   }
   return out.sort();
+}
+
+function applyLocalizationAliases(catalog, aliases, locale) {
+  for (const [objectKey, targetKey] of Object.entries(aliases || {})) {
+    if (!catalog.has(targetKey)) {
+      throw new Error(`localization alias target is missing: ${locale} ${objectKey} -> ${targetKey}`);
+    }
+    catalog.set(objectKey, catalog.get(targetKey));
+  }
 }
 
 function loadPatchedDefinitions(dirs, accept) {
@@ -1932,6 +1956,7 @@ function loadBuildingGroups(dirs, loc) {
     }
     group.category_key = categoryKey || "other";
     group.category_name_zh = economyGroupCategoryName(group.category_key);
+    group.category_name_en = economyGroupCategoryNameEn(group.category_key);
   }
   return [...groupMap.values()].sort((left, right) => left.order - right.order);
 }
@@ -2104,14 +2129,14 @@ function loadBuildings(dirs, buildingGroups, resourceBuildingKinds, loc) {
 
 function economyBoardGroup(buildingGroupKey, buildingKey) {
   const definitions = [
-    ["agriculture", "农业", [
+    ["agriculture", "农业", "Agriculture", [
       ["staple_crops", ["bg_staple_crops"]],
       ["ranching", ["bg_ranching"]],
       ["vineyard", ["bg_agriculture"]],
       ["plantations", ["bg_plantations"]],
       ["subsistence", ["bg_subsistence_agriculture", "bg_subsistence_ranching"]],
     ]],
-    ["resources", "资源", [
+    ["resources", "资源", "Resources", [
       ["mining", ["bg_mining"]],
       ["gold_fields", ["bg_gold_fields"]],
       ["logging", ["bg_logging"]],
@@ -2120,37 +2145,37 @@ function economyBoardGroup(buildingGroupKey, buildingKey) {
       ["fishing", ["bg_fishing"]],
       ["whaling", ["bg_whaling"]],
     ]],
-    ["industry", "工业", [
+    ["industry", "工业", "Industrial", [
       ["light_industry", ["bg_light_industry", "bg_ship_construction"]],
       ["heavy_industry", ["bg_heavy_industry"]],
       ["military_industry", ["bg_military_industry"]],
     ]],
-    ["military", "军事", [
+    ["military", "军事", "Military", [
       ["army", ["bg_army"]],
       ["conscription", ["bg_conscription"]],
       ["logistics", ["bg_army_logistics_center", "bg_naval_logistics_center"]],
       ["naval", ["bg_naval_administration", "bg_naval_fortification"]],
     ]],
-    ["infrastructure", "基建", [
+    ["infrastructure", "基建", "Infrastructure", [
       ["construction", ["bg_construction"]],
       ["transport", ["bg_private_infrastructure", "bg_canals"]],
       ["power", ["bg_power"]],
       ["urban", ["bg_service", "bg_trade"]],
       ["government", ["bg_bureaucracy", "bg_technology", "bg_arts", "bg_skyscraper"]],
     ]],
-    ["ownership", "所有权建筑", [
+    ["ownership", "所有权建筑", "Ownership Buildings", [
       ["ownership", ["bg_manor_houses", "bg_financial_districts", "bg_company_headquarter", "bg_company_regional_headquarter"]],
     ]],
-    ["wonders", "奇观", [
+    ["wonders", "奇观", "Monuments", [
       ["wonders", ["bg_monuments", "bg_monuments_hidden"]],
     ]],
   ];
   for (let groupIndex = 0; groupIndex < definitions.length; groupIndex += 1) {
-    const [key, name_zh, clusters] = definitions[groupIndex];
+    const [key, name_zh, name_en, clusters] = definitions[groupIndex];
     for (let clusterIndex = 0; clusterIndex < clusters.length; clusterIndex += 1) {
       const [cluster_key, sourceGroups] = clusters[clusterIndex];
       if (sourceGroups.includes(buildingGroupKey)) {
-        return { key, name_zh, order: groupIndex + 1, cluster_key, cluster_order: clusterIndex + 1, item_order: economyBoardItemOrder(cluster_key, buildingKey) };
+        return { key, name_zh, name_en, order: groupIndex + 1, cluster_key, cluster_order: clusterIndex + 1, item_order: economyBoardItemOrder(cluster_key, buildingKey) };
       }
     }
   }
@@ -2261,6 +2286,10 @@ function referenceList(node, loc, idPrefix) {
 
 function economyGroupCategoryName(key) {
   return ({ rural: "乡村", urban: "城市", development: "发展", military: "军事", other: "其他" })[key] || key;
+}
+
+function economyGroupCategoryNameEn(key) {
+  return ({ rural: "Rural", urban: "Urban", development: "Development", military: "Military", other: "Other" })[key] || key;
 }
 
 function economyDisplayName(item) {
@@ -3968,6 +3997,7 @@ function cleanLocalizationText(text, loc, depth = 0) {
   if (!text) return "";
   let result = String(text);
   if (depth > 6) return result;
+  result = result.replace(/\[Nbsp\]/g, " ");
   result = result.replace(/\[Concept\('([^']+)'\s*,\s*'([^']+)'\)\]/g, (_match, conceptKey, display) => {
     const displayKey = display.startsWith("$") && display.endsWith("$") ? display.slice(1, -1) : display;
     return cleanLocalizationText(loc.get(displayKey) || loc.get(conceptKey) || displayKey || conceptKey, loc, depth + 1);
@@ -4558,13 +4588,20 @@ function writeDatabase(dir, data) {
 
 function localizeProjection(value, sourceCatalog, targetCatalog, locale) {
   const keysBySourceText = new Map();
+  const targetLoc = new Map(Object.entries(targetCatalog || {}));
   for (const [key, text] of Object.entries(sourceCatalog || {})) {
     if (text && !keysBySourceText.has(text)) keysBySourceText.set(text, key);
   }
 
+  function resolvedLocalizationText(key) {
+    if (!key || targetCatalog[key] === undefined) return "";
+    return cleanLocalizationText(targetCatalog[key], targetLoc);
+  }
+
   function translate(text, item, field, hasEnglishSource) {
-    if (locale === "zh-Hans") return text;
-    if (hasEnglishSource) return text;
+    if (locale === "zh-Hans" || hasEnglishSource) {
+      return cleanLocalizationText(text, targetLoc);
+    }
     const key = item?.key || item?.tag || String(item?.id || "").split(":").pop();
     const directKey = field === "desc" || field === "description" ? `${key}_desc` : key;
     const directKeys = [
@@ -4575,10 +4612,11 @@ function localizeProjection(value, sourceCatalog, targetCatalog, locale) {
       directKey,
     ].filter(Boolean);
     for (const directKey of directKeys) {
-      if (targetCatalog[directKey] !== undefined) return targetCatalog[directKey];
+      const translated = resolvedLocalizationText(directKey);
+      if (translated) return translated;
     }
     const sourceKey = keysBySourceText.get(text);
-    return sourceKey ? (targetCatalog[sourceKey] || "") : "";
+    return sourceKey ? resolvedLocalizationText(sourceKey) : "";
   }
 
   function project(item) {
