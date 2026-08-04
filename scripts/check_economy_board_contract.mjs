@@ -9,8 +9,8 @@ const buildScript = read("scripts/build_wiki.mjs");
 const appSource = readSiteAppSource(root);
 const styleSource = readSiteStyleSource(root);
 
-assert.match(indexHtml, /app\/economy\.js\?v=20260804-multilingual-economy1/, "economy script must use the multilingual economy cache version");
-assert.match(indexHtml, /styles\.css\?v=20260804-multilingual-economy1/, "site styles must use the multilingual economy cache version");
+assert.match(indexHtml, /app\/economy\.js\?v=20260804-vc-english-economy1/, "economy script must use the VC English economy cache version");
+assert.match(indexHtml, /styles\.css\?v=20260804-vc-english-economy1/, "site styles must use the VC English economy cache version");
 
 for (const view of ["building", "goods"]) {
   assert(indexHtml.includes(`data-nav-view="${view}"`), `top navigation must include ${view}`);
@@ -49,6 +49,11 @@ for (const text of [
   "/region/resource/",
   "board_group",
   "data-board-group",
+  "economyChangeFiltersHtml",
+  "data-economy-vc-change",
+  "toggleVictorianCenturyChangeKind",
+  "matchesVictorianCenturyChange",
+  "victorianCenturyBadge",
 ]) {
   assert(appSource.includes(text), `economy interaction must contain ${text}`);
 }
@@ -57,6 +62,8 @@ assert(appSource.includes("* 52"), "annual profit per worker must convert weekly
 assert(styleSource.includes(".economy-wall-grid"), "economy wall needs responsive card layout");
 assert(styleSource.includes(".production-method-options"), "production-method options need horizontal layout");
 assert(styleSource.includes(".production-combination-summary"), "current production combination needs a dedicated summary layout");
+assert(styleSource.includes(".economy-change-filters"), "economy boards need Victorian Century change filters");
+assert(styleSource.includes(".economy-card-change"), "economy cards need a dedicated change-badge slot");
 
 console.log(JSON.stringify({ economy_board_contract: "ok" }, null, 2));
 

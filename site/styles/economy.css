@@ -11,20 +11,25 @@ body[data-view="building"]:not(.detail-page) .detail,
 body[data-view="goods"]:not(.detail-page) .detail { display: none; }
 
 .economy-shell { min-height: 100%; padding: 22px clamp(18px, 3vw, 54px) 48px; }
-.economy-toolbar { position: sticky; top: 0; z-index: 2; display: flex; align-items: end; justify-content: space-between; gap: 16px; padding: 0 0 18px; background: linear-gradient(180deg, var(--surface) 76%, rgba(41, 40, 37, 0)); }
+.economy-toolbar { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 16px; padding: 0 0 18px; background: linear-gradient(180deg, var(--surface) 76%, rgba(41, 40, 37, 0)); }
 .economy-search { display: grid; gap: 4px; min-width: min(100%, 680px); color: var(--muted); font-size: var(--text-sm); }
 .economy-search-controls { display: flex; gap: 8px; width: min(680px, 70vw); }
 .economy-search input { min-width: 0; width: 100%; min-height: 42px; padding: 8px 12px; border: 1px solid rgba(200, 164, 91, .38); background: rgba(24, 23, 21, .72); color: var(--ink); font: inherit; }
 .economy-search button, .economy-resource-map { min-height: 42px; padding: 8px 14px; border: 1px solid rgba(200, 164, 91, .55); border-radius: 4px; background: rgba(47, 78, 96, .86); color: var(--ink); cursor: pointer; font: inherit; }
+.economy-change-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; color: var(--muted); font-size: var(--text-xs); }
+.economy-change-filters button { min-height: 30px; padding: 4px 8px; border: 1px solid rgba(200, 164, 91, .38); border-radius: 3px; background: rgba(0, 0, 0, .18); color: var(--ink); cursor: pointer; font: inherit; font-size: var(--text-xs); }
+.economy-change-filters button[aria-pressed="true"] { border-color: var(--accent); background: rgba(167, 112, 34, .3); color: #ffe3a8; }
 .economy-count { color: var(--muted); white-space: nowrap; }
 .economy-groups { display: grid; gap: 28px; }
 .economy-group { display: grid; gap: 10px; }
 .economy-group h2 { display: flex; align-items: baseline; gap: 10px; margin: 0; color: var(--ink); font-size: var(--text-lg); }
 .economy-group h2 small { color: var(--muted); font-size: var(--text-sm); font-weight: normal; }
 .economy-wall-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 10px; }
-.economy-card { display: grid; grid-template-rows: auto auto; min-width: 0; padding: 0; overflow: hidden; border: 1px solid rgba(238, 232, 221, .14); border-radius: 4px; background: rgba(33, 43, 44, .72); color: var(--ink); cursor: pointer; transition: transform .14s ease, border-color .14s ease, box-shadow .14s ease; }
+.economy-card { display: grid; grid-template-rows: auto auto; align-content: start; min-width: 0; padding: 0; overflow: hidden; border: 1px solid rgba(238, 232, 221, .14); border-radius: 4px; background: rgba(33, 43, 44, .72); color: var(--ink); cursor: pointer; transition: transform .14s ease, border-color .14s ease, box-shadow .14s ease; }
 .economy-card img { display: block; width: calc(100% - 20px); aspect-ratio: 1; margin: 10px 10px 0; object-fit: contain; background: rgba(0, 0, 0, .2); }
-.economy-card span { display: block; min-width: 0; overflow: hidden; padding: 7px 8px; font-size: var(--text-xs); line-height: 1.2; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
+.economy-card-name { display: block; min-width: 0; overflow: hidden; padding: 7px 8px; font-size: var(--text-xs); line-height: 1.2; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
+.economy-card-change { display: flex; justify-content: center; min-width: 0; padding: 0 5px 7px; }
+.economy-card-change .tag-vc { min-height: 20px; max-width: 100%; font-size: 10px; }
 .economy-card:hover, .economy-card:focus-visible, .economy-card[aria-pressed="true"] { z-index: 1; transform: scale(1.045); border-color: var(--accent); box-shadow: 0 0 0 1px rgba(200, 164, 91, .42), 0 12px 24px rgba(0, 0, 0, .34); outline: 0; }
 .economy-empty { color: var(--muted); }
 
@@ -36,6 +41,7 @@ body.detail-page[data-view="building"] .economy-wall-grid, body.detail-page[data
 .economy-detail-head { display: grid; grid-template-columns: 76px minmax(0, 1fr) auto; gap: 12px; align-items: start; }
 .economy-detail-head > img { width: 76px; height: 76px; object-fit: contain; background: rgba(0, 0, 0, .24); }
 .economy-detail-head > div > p { margin-top: 4px; color: var(--muted); font-size: var(--text-xs); overflow-wrap: anywhere; }
+.economy-detail-head h2, .production-method-group h4, .selected-production-method-detail h4, .goods-prestige-card h4 { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .economy-detail-head button { width: 32px; min-height: 32px; border: 1px solid rgba(200, 164, 91, .45); background: rgba(0, 0, 0, .18); color: var(--ink); font-size: 24px; line-height: 1; }
 .production-method-section { display: grid; gap: 14px; }
 .production-method-group { display: grid; gap: 6px; }
@@ -88,4 +94,4 @@ body.detail-page[data-view="building"] .economy-wall-grid, body.detail-page[data
 .goods-source-details .goods-facts { grid-template-columns: 1fr; }
 
 @media (max-width: 1100px) { .economy-wall-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); } body.detail-page[data-view="building"] .results, body.detail-page[data-view="goods"] .results { display: none; } body.detail-page[data-view="building"] .detail, body.detail-page[data-view="goods"] .detail { position: relative; inset: auto; width: auto; } }
-@media (max-width: 640px) { .economy-shell { padding: 14px 12px 32px; } .economy-toolbar { align-items: stretch; flex-direction: column; gap: 8px; } .economy-search, .economy-search-controls, .economy-search input { width: 100%; min-width: 0; } .economy-wall-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; } .economy-card span { padding: 5px 4px; font-size: 11px; } .goods-facts, .goods-needs dl { grid-template-columns: 1fr; } .economy-related-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .economy-detail-head { grid-template-columns: 64px minmax(0, 1fr) auto; } .economy-detail-head > img { width: 64px; height: 64px; } }
+@media (max-width: 640px) { .economy-shell { padding: 14px 12px 32px; } .economy-toolbar { align-items: stretch; flex-direction: column; gap: 8px; } .economy-search, .economy-search-controls, .economy-search input { width: 100%; min-width: 0; } .economy-wall-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; } .economy-card-name { padding: 5px 4px; font-size: 11px; } .goods-facts, .goods-needs dl { grid-template-columns: 1fr; } .economy-related-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .economy-detail-head { grid-template-columns: 64px minmax(0, 1fr) auto; } .economy-detail-head > img { width: 64px; height: 64px; } }

@@ -23,7 +23,7 @@ function economyMatches(item, query) {
 function renderBuildingBoard() {
   const query = state.economySearch;
   const grouped = new Map();
-  for (const building of buildings.filter((item) => economyMatches(item, query))) {
+  for (const building of buildings.filter((item) => matchesVictorianCenturyChange(item) && economyMatches(item, query))) {
     const group = building.board_group || { key: "other", display_name: t("board.economy.group.other"), order: 999, cluster_order: 999, item_order: 999 };
     if (!grouped.has(group.key)) grouped.set(group.key, { ...group, buildings: [] });
     grouped.get(group.key).buildings.push(building);
@@ -44,6 +44,7 @@ function renderBuildingBoard() {
     kind: "building",
     label: t("nav.building"),
     count,
+    items: buildings,
     groups,
     card: (building) => buildingCardHtml(building),
   });
@@ -53,7 +54,7 @@ function renderBuildingBoard() {
 function renderGoodsBoard() {
   const query = state.economySearch;
   const grouped = new Map();
-  for (const good of goods.filter((item) => economyMatches(item, query))) {
+  for (const good of goods.filter((item) => matchesVictorianCenturyChange(item) && economyMatches(item, query))) {
     const key = good.category || "other";
     if (!grouped.has(key)) grouped.set(key, { key, display_name: goodCategoryName(key), buildings: [] });
     grouped.get(key).buildings.push(good);
@@ -64,13 +65,14 @@ function renderGoodsBoard() {
     kind: "goods",
     label: t("nav.goods"),
     count,
+    items: goods,
     groups,
     card: (good) => goodCardHtml(good),
   });
   renderGoodsDetail(goodByKey.get(state.selectedGood) || null);
 }
 
-function renderEconomyShell({ kind, label, count, groups, card }) {
+function renderEconomyShell({ kind, label, count, items, groups, card }) {
   els.countryList.innerHTML = `<section class="economy-shell" aria-label="${escapeHtml(t("board.economy.overview", { label }))}">
     <header class="economy-toolbar">
       <form class="economy-search" data-economy-search-form>
@@ -80,6 +82,7 @@ function renderEconomyShell({ kind, label, count, groups, card }) {
           <button type="submit">${escapeHtml(t("board.economy.searchSubmit"))}</button>
         </div>
       </form>
+      ${economyChangeFiltersHtml(items)}
       <strong class="economy-count">${escapeHtml(tc(`board.economy.${kind}.count`, count, { count }))}</strong>
     </header>
     <div class="economy-groups">${groups.map((group) => `
@@ -94,11 +97,25 @@ function renderEconomyShell({ kind, label, count, groups, card }) {
   bindEconomyBoardEvents(kind);
 }
 
+function economyChangeFiltersHtml(items) {
+  if (!(items || []).some(hasVictorianCenturyChange)) return "";
+  return `<div class="economy-change-filters" role="group" aria-label="${escapeHtml(t("filter.dataTags"))}">
+    <span>${escapeHtml(t("filter.dataTags"))}</span>
+    ${["added", "adjusted"].map((kind) => `<button type="button" data-economy-vc-change="${kind}" aria-pressed="${String(state.victorianCenturyChangeKinds.has(kind))}">${escapeHtml(t(kind === "added" ? "filter.vcAdded" : "filter.vcAdjusted"))}</button>`).join("")}
+  </div>`;
+}
+
+function economyChangeBadgeHtml(item) {
+  const badge = victorianCenturyBadge(item);
+  return badge ? `<span class="economy-card-change">${badge}</span>` : "";
+}
+
 function buildingCardHtml(building) {
   const selected = building.key === state.selectedBuilding;
   return `<button class="economy-card" type="button" data-building-key="${escapeHtml(building.key)}" aria-pressed="${selected}">
     <img src="${economyAsset("buildings", building.key)}" alt="" aria-hidden="true" loading="lazy" decoding="async">
-    <span>${escapeHtml(economyDisplayName(building))}</span>
+    <span class="economy-card-name">${escapeHtml(economyDisplayName(building))}</span>
+    ${economyChangeBadgeHtml(building)}
   </button>`;
 }
 
@@ -106,7 +123,8 @@ function goodCardHtml(good) {
   const selected = good.key === state.selectedGood;
   return `<button class="economy-card" type="button" data-good-key="${escapeHtml(good.key)}" aria-pressed="${selected}">
     <img src="${economyAsset("goods", good.key)}" alt="" aria-hidden="true" loading="lazy" decoding="async">
-    <span>${escapeHtml(economyDisplayName(good))}</span>
+    <span class="economy-card-name">${escapeHtml(economyDisplayName(good))}</span>
+    ${economyChangeBadgeHtml(good)}
   </button>`;
 }
 
@@ -116,6 +134,12 @@ function bindEconomyBoardEvents(kind) {
     event.preventDefault();
     state.economySearch = search?.value || "";
     kind === "building" ? renderBuildingBoard() : renderGoodsBoard();
+  });
+  els.countryList.querySelectorAll("[data-economy-vc-change]").forEach((button) => {
+    button.addEventListener("click", () => {
+      toggleVictorianCenturyChangeKind(button.dataset.economyVcChange);
+      kind === "building" ? renderBuildingBoard() : renderGoodsBoard();
+    });
   });
   els.countryList.querySelectorAll("[data-building-key]").forEach((card) => {
     card.addEventListener("click", () => openEconomyDetail("building", card.dataset.buildingKey));
@@ -158,7 +182,7 @@ function renderBuildingDetail(building) {
 function economyDetailHead(item, category, kind) {
   return `<header class="economy-detail-head">
     <img src="${economyAsset(category, item.key)}" alt="">
-    <div><h2>${escapeHtml(economyDisplayName(item))}</h2><p>${escapeHtml(item.key)}</p></div>
+    <div><h2>${escapeHtml(economyDisplayName(item))}${victorianCenturyBadge(item)}</h2><p>${escapeHtml(item.key)}</p></div>
     <button type="button" data-economy-back="${kind}" aria-label="${escapeHtml(t("board.economy.closeDetail"))}">×</button>
   </header>`;
 }
@@ -169,7 +193,7 @@ function productionMethodGroupHtml(group, selectedKey) {
   const open = state.openProductionMethodGroup === group.key;
   const alternatives = methods.filter((method) => method.key !== selected?.key);
   return `<section class="production-method-group">
-    <h4>${escapeHtml(economyDisplayName(group))}</h4>
+    <h4>${escapeHtml(economyDisplayName(group))}${victorianCenturyBadge(group)}</h4>
     <div class="production-method-options">
       ${selected ? `<button class="production-method-current" type="button" data-production-method-picker="${escapeHtml(group.key)}" data-production-method-key="${escapeHtml(selected.key)}" aria-expanded="${String(open)}" aria-label="${escapeHtml(`${economyDisplayName(group)}：${economyDisplayName(selected)}`)}" title="${escapeHtml(economyDisplayName(selected))}">${productionMethodIconHtml(selected)}</button>` : ""}
       ${open && alternatives.length ? `<div class="production-method-picker" role="group" aria-label="${escapeHtml(t("board.economy.otherMethodOptions", { group: economyDisplayName(group) }))}">${alternatives.map((method) => `
@@ -202,7 +226,7 @@ function renderSelectedProductionMethodDetail(selected) {
   if (!methods.length) return "";
   return `<details class="selected-production-method-detail"><summary>${escapeHtml(t("board.economy.productionMethodDetails"))}</summary><div class="selected-production-method-detail-content">${methods.map((method) => `
     <article>
-      <h4>${escapeHtml(economyDisplayName(method))}</h4>
+      <h4>${escapeHtml(economyDisplayName(method))}${victorianCenturyBadge(method)}</h4>
       ${entityText(method, "description", "") ? `<p><strong>${escapeHtml(t("board.economy.descriptionLabel"))}</strong>${escapeHtml(entityText(method, "description", ""))}</p>` : ""}
       ${method.unlocking_technologies?.length ? `<p><strong>${escapeHtml(t("board.economy.prerequisiteTechnologiesLabel"))}</strong>${referenceNames(method.unlocking_technologies)}</p>` : ""}
       ${method.availability_conditions?.length ? `<p><strong>${escapeHtml(t("board.economy.availabilityLabel"))}</strong>${method.availability_conditions.map((condition) => escapeHtml(entityText(condition, "summary", condition.raw))).join(t("ui.semicolon"))}</p>` : ""}
@@ -497,7 +521,7 @@ function goodPopulationRelationsHtml(good) {
 function goodPrestigeVariantsHtml(variants) {
   return `<section><h3>${escapeHtml(t("board.economy.prestigeGoods"))}</h3>${variants.length ? `<div class="goods-prestige-list">${variants.map((variant) => `
     <article class="goods-prestige-card" data-prestige-good="${escapeHtml(variant.key)}">
-      <header><img src="${economyAsset("prestige-goods", variant.key)}" alt=""><div><h4>${escapeHtml(economyDisplayName(variant))}</h4><p>${escapeHtml(variant.key)}</p></div></header>
+      <header><img src="${economyAsset("prestige-goods", variant.key)}" alt=""><div><h4>${escapeHtml(economyDisplayName(variant))}${victorianCenturyBadge(variant)}</h4><p>${escapeHtml(variant.key)}</p></div></header>
       <h5>${escapeHtml(t("board.economy.producingCompanies"))}</h5>
       ${(variant.companies || []).length ? `<div class="goods-company-list">${variant.companies.map((company) => `<button type="button" data-prestige-company="${escapeHtml(company.key)}">${companyIconHtml(company)}<span>${escapeHtml(economyDisplayName(company))}</span></button>`).join("")}</div>` : `<p class="goods-empty">${escapeHtml(t("ui.none"))}</p>`}
     </article>

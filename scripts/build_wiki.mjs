@@ -19,12 +19,19 @@ const victorianCenturyChangeCollections = [
   ["lawGroups", "key"],
   ["technologies", "key"],
   ["technologyEras", "key"],
+  ["buildings", "key"],
+  ["buildingGroups", "key"],
+  ["productionMethodGroups", "key"],
+  ["productionMethods", "key"],
+  ["goods", "key"],
+  ["prestigeGoods", "key"],
 ];
 
 const victorianCenturyChangeIgnoredFields = new Set([
   "id",
   "source",
   "source_file",
+  "source_files",
   "sourceFile",
   "definition_file",
   "definitionFile",

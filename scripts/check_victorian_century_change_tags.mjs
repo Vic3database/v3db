@@ -22,6 +22,12 @@ const changeFields = Object.freeze({
   ideologies: "key",
   laws: "key",
   technologies: "key",
+  buildings: "key",
+  buildingGroups: "key",
+  productionMethodGroups: "key",
+  productionMethods: "key",
+  goods: "key",
+  prestigeGoods: "key",
 });
 
 try {
@@ -46,6 +52,7 @@ try {
     components: readText("site/app/components.js"),
     map: readText("site/app/map.js"),
     boards: readText("site/app/boards.js"),
+    economy: readText("site/app/economy.js"),
   };
   assert.match(sourceFiles.index, /id="victorianCenturyChangeFilterSection"/, "missing VC change filter section");
   assert.match(sourceFiles.index, /id="victorianCenturyAddedFilter"/, "missing VC added filter token");
@@ -61,6 +68,11 @@ try {
   assert.match(sourceFiles.boards, /united_fruit_banana_tech: \{ column: 8, row: 1 \}/, "VC added technology needs an explicit position two columns left of sericulture");
   assert.doesNotMatch(sourceFiles.boards, /data-technology-victorian-added-filter/, "technology board must not show a VC added filter token");
   assert.doesNotMatch(sourceFiles.boards, /data-technology-victorian-adjusted-filter/, "technology board must not show a VC adjusted filter token");
+  assert.match(sourceFiles.economy, /matchesVictorianCenturyChange/, "economy boards must apply the VC change filter");
+  assert.match(sourceFiles.economy, /victorianCenturyBadge/, "economy boards must render VC change badges");
+  assert.match(sourceFiles.economy, /data-economy-vc-change/, "economy boards must expose local VC filter buttons");
+  assert(actual.buildings.adjusted >= 43, "VC must mark every patched building as adjusted");
+  assert.equal(actual.prestigeGoods.added, 26, "VC must mark the 26 new prestige goods as added");
 
   console.log(JSON.stringify({
     victorian_century_change_tags: "ok",
@@ -139,7 +151,7 @@ function normalizeForComparison(value, ignoreTechnologyReferences = false) {
   if (Array.isArray(value)) return value.map((item) => normalizeForComparison(item, ignoreTechnologyReferences));
   if (!value || typeof value !== "object") return value;
   return Object.fromEntries(Object.entries(value)
-    .filter(([key]) => !["id", "source", "source_file", "sourceFile", "definition_file", "definitionFile", "vc_change_kind"].includes(key) && !(ignoreTechnologyReferences && key === "references"))
+    .filter(([key]) => !["id", "source", "source_file", "source_files", "sourceFile", "definition_file", "definitionFile", "vc_change_kind"].includes(key) && !(ignoreTechnologyReferences && key === "references"))
     .sort(([left], [right]) => left.localeCompare(right))
     .map(([key, item]) => [key, normalizeForComparison(item, ignoreTechnologyReferences)]));
 }
