@@ -10,7 +10,7 @@ const appSource = readSiteAppSource(root);
 const styleSource = readSiteStyleSource(root);
 
 assert.match(indexHtml, /app\/economy\.js\?v=20260804-goods-detail1/, "economy script must use the expanded goods-detail cache version");
-assert.match(indexHtml, /styles\.css\?v=20260804-goods-detail1/, "site styles must use the expanded goods-detail cache version");
+assert.match(indexHtml, /styles\.css\?v=20260804-goods-detail2/, "site styles must use the current goods-detail cache version");
 
 for (const view of ["building", "goods"]) {
   assert(indexHtml.includes(`data-nav-view="${view}"`), `top navigation must include ${view}`);
