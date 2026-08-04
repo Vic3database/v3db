@@ -87,10 +87,35 @@ assert.equal(oilRig.resource_map_available, true, "oil rig must open the resourc
 assert.equal(oilRig.resource_map_kind, "resource", "oil rig must select capped-resource distribution");
 assert.equal(required(buildingByKey, "building_wheat_farm", "wheat farm").resource_map_kind, "arable", "wheat farm must select arable-land distribution");
 
-const oil = required(new Map(goods.map((item) => [item.key, item])), "oil", "oil good");
+const goodsByKey = new Map(goods.map((item) => [item.key, item]));
+const oil = required(goodsByKey, "oil", "oil good");
 assert(oil.producing_buildings.some((building) => building.key === "building_oil_rig"), "oil must link to oil rig");
+const rubber = required(goodsByKey, "rubber", "rubber good");
+const rubberPlantation = required(buildingByKey, "building_rubber_plantation", "rubber plantation");
+assert.deepEqual(
+  rubberPlantation.production_method_group_keys.map((key) => [key, required(groupByKey, key, key).production_method_keys.length]),
+  [["pmg_base_building_rubber_plantation", 2], ["pmg_rubber_exploitation", 3], ["pmg_train_automation_building_rubber_plantation", 2]],
+  "rubber plantation must retain all seven production-method choices",
+);
+assert.equal(
+  required(methodByKey, "default_building_rubber_plantation", "default rubber production").effects.find((effect) => effect.key === "goods_output_rubber_add")?.value,
+  20,
+  "default rubber production must output twenty rubber",
+);
+assert.equal(
+  required(methodByKey, "automatic_irrigation_building_rubber_plantation", "automatic rubber production").effects.find((effect) => effect.key === "goods_output_rubber_add")?.value,
+  40,
+  "automatic irrigation must output forty rubber",
+);
+assert.equal(rubber.price, 40, "rubber must retain its standard price");
+assert.equal(rubber.tradeable, true, "rubber must be tradeable by default");
+assert.equal(rubber.is_local, false, "rubber must not be a local good");
+assert.equal(rubber.fixed_price, false, "rubber must use a market price");
+assert.equal(rubber.traded_quantity, 5, "rubber must retain its defined traded quantity");
+assert.equal(rubber.convoy_cost_multiplier, 1, "rubber must use the default merchant-marine multiplier");
+assert.equal(required(goodsByKey, "electricity", "electricity good").traded_quantity, 10, "goods without a traded quantity must use the default value");
 for (const key of ["services", "transportation", "electricity", "gold"]) {
-  assert(required(new Map(goods.map((item) => [item.key, item])), key, `${key} good`), `${key} must remain a good`);
+  assert(required(goodsByKey, key, `${key} good`), `${key} must remain a good`);
 }
 
 for (const building of buildings) {

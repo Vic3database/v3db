@@ -1680,7 +1680,8 @@ function loadEconomyData({
 }) {
   const buildingGroups = loadBuildingGroups(buildingGroupDirs, loc);
   const productionMethodGroups = loadProductionMethodGroups(productionMethodGroupDirs, loc);
-  const productionMethods = loadProductionMethods(productionMethodDirs, loc);
+  const referencedProductionMethodKeys = new Set(productionMethodGroups.flatMap((group) => group.production_method_keys));
+  const productionMethods = loadProductionMethods(productionMethodDirs, loc, referencedProductionMethodKeys);
   const goods = loadGoods(goodsDirs, loc);
   const prestigeGoods = loadPrestigeGoods(prestigeGoodsDirs, loc);
   const resourceBuildingKinds = new Map();
@@ -1695,7 +1696,10 @@ function loadEconomyData({
   const productionMethodByKey = new Map(productionMethods.map((method) => [method.key, method]));
 
   for (const group of productionMethodGroups) {
-    group.production_method_keys = group.production_method_keys.filter((key) => productionMethodByKey.has(key));
+    const missingKeys = group.production_method_keys.filter((key) => !productionMethodByKey.has(key));
+    if (missingKeys.length) {
+      throw new Error(`production method group ${group.key} references missing methods: ${missingKeys.join(", ")}`);
+    }
   }
   for (const building of buildings) {
     building.production_method_group_keys = building.production_method_group_keys
@@ -1803,14 +1807,14 @@ function loadProductionMethodGroups(dirs, loc) {
   return [...groups.values()].sort((left, right) => left.key.localeCompare(right.key, "en"));
 }
 
-function loadProductionMethods(dirs, loc) {
+function loadProductionMethods(dirs, loc, referencedKeys = new Set()) {
   const methods = new Map();
   for (const file of listFiles(dirs)) {
     const root = parseScript(readText(file), file);
     for (const assignment of root.assignments) {
       const key = scriptEntryKey(assignment.key);
       const node = asNode(assignment.value);
-      if (!node || !key.startsWith("pm_")) continue;
+      if (!node || (!key.startsWith("pm_") && !referencedKeys.has(key))) continue;
       const texture = firstScalar(node, "texture");
       methods.set(key, {
         key,
@@ -1843,7 +1847,15 @@ function loadGoods(dirs, loc) {
         description_zh: loc.has(`${key}_desc`) ? locCleanName(loc, `${key}_desc`) : "",
         category: firstScalar(node, "category") || "other",
         price: toNumberOrNull(firstScalar(node, "cost")),
+        tradeable: firstScalar(node, "tradeable") !== "no",
         is_local: boolFromYesNo(firstScalar(node, "local")),
+        fixed_price: boolFromYesNo(firstScalar(node, "fixed_price")),
+        prestige_factor: toNumberOrNull(firstScalar(node, "prestige_factor")) ?? 0,
+        traded_quantity: toNumberOrNull(firstScalar(node, "traded_quantity")) ?? 10,
+        convoy_cost_multiplier: toNumberOrNull(firstScalar(node, "convoy_cost_multiplier")) ?? 1,
+        obsession_chance: toNumberOrNull(firstScalar(node, "obsession_chance")) ?? 0,
+        consumption_tax_cost: toNumberOrNull(firstScalar(node, "consumption_tax_cost")),
+        pop_consumption_can_add_infrastructure: boolFromYesNo(firstScalar(node, "pop_consumption_can_add_infrastructure")),
         icon: economyIcon(texture, "goods", key, "good"),
         prestige_good_keys: [],
         producing_buildings: [],
