@@ -31,6 +31,8 @@ assert(fs.existsSync(htmlFile), "missing Victorian Century index.html");
 assert(fs.existsSync(configFile), "missing Victorian Century standalone configuration");
 assert(fs.existsSync(dataIndexFile), "missing Victorian Century data index");
 assert(fs.existsSync(mapFile), "missing Victorian Century map index");
+assert(fs.existsSync(path.join(siteRoot, "assets", "production-methods", "united_fruit_banana.webp")), "missing VC production-method asset");
+assert(fs.existsSync(path.join(siteRoot, "assets", "prestige-goods", "prestige_good_benz_car.webp")), "missing VC prestige-good asset");
 assert(!fs.existsSync(path.join(siteRoot, "data.js")), "VC site must not retain the removed compatibility data bundle");
 for (const relative of ["index.html", "data-index.js", "map-data.js", "victorian-century-config.js", "assets/map/provinces.png"]) {
   const standaloneFile = path.join(siteRoot, relative);

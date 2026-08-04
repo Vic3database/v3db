@@ -9,9 +9,12 @@ const databaseDir = path.resolve(args.database || path.join(root, "database", "v
 const siteRoot = path.resolve(args.site || path.join(root, "site"));
 const python = args.python || process.env.PYTHON || "python";
 const index = readJson(path.join(databaseDir, "index.json"));
-const gameData = path.resolve(index.source_paths?.game_data || "");
-if (!gameData || !fs.statSync(gameData, { throwIfNoEntry: false })?.isDirectory()) {
-  throw new Error("Economy database does not declare an accessible source_paths.game_data directory");
+const sourceRoots = [
+  { kind: "mod", root: index.source_paths?.mod_data },
+  { kind: "game", root: index.source_paths?.game_data },
+].filter((item) => item.root).map((item) => ({ ...item, root: path.resolve(item.root) }));
+if (!sourceRoots.length || !sourceRoots.some((item) => fs.statSync(item.root, { throwIfNoEntry: false })?.isDirectory())) {
+  throw new Error("Economy database does not declare an accessible game or mod source directory");
 }
 
 const collections = [
@@ -25,11 +28,19 @@ for (const [fileKey, category] of collections) {
   const rows = readJson(path.join(databaseDir, index.files?.[fileKey] || ""));
   for (const row of rows) {
     if (!row?.icon?.source) continue;
+    const resolved = resolveIconSource(row.icon.source);
     entries.push({
       key: row.key,
-      source: path.join(gameData, ...row.icon.source.split("/")),
+      source: resolved.source,
       destination: path.join(siteRoot, "assets", category, `${row.key}.webp`),
       category,
+      public: {
+        category,
+        key: row.key,
+        source_kind: resolved.source_kind,
+        source: normalizeRelative(row.icon.source),
+        target: `assets/${category}/${row.key}.webp`,
+      },
     });
   }
 }
@@ -37,7 +48,6 @@ for (const [fileKey, category] of collections) {
 const uniqueDestinations = new Set();
 for (const entry of entries) {
   if (uniqueDestinations.has(entry.destination)) throw new Error(`Duplicate economy asset destination: ${entry.destination}`);
-  if (!fs.statSync(entry.source, { throwIfNoEntry: false })?.isFile()) throw new Error(`Missing economy icon source: ${entry.source}`);
   uniqueDestinations.add(entry.destination);
 }
 
@@ -52,6 +62,7 @@ try {
   fs.writeFileSync(manifestFile, JSON.stringify(selectedEntries), "utf8");
   convertIcons(manifestFile, python);
   assertOutputs(selectedEntries);
+  writePublicManifest(entries);
   const counts = selectedEntries.reduce((out, entry) => {
     out[entry.category] = (out[entry.category] || 0) + 1;
     return out;
@@ -60,6 +71,26 @@ try {
   console.log(JSON.stringify({ economy_assets: "ok", counts, bytes }, null, 2));
 } finally {
   fs.rmSync(temporaryDirectory, { recursive: true, force: true });
+}
+
+function resolveIconSource(relative) {
+  const parts = normalizeRelative(relative).split("/");
+  for (const item of sourceRoots) {
+    const source = path.join(item.root, ...parts);
+    if (fs.statSync(source, { throwIfNoEntry: false })?.isFile()) return { source, source_kind: item.kind };
+  }
+  throw new Error(`Missing economy icon source: ${relative}`);
+}
+
+function normalizeRelative(value) {
+  return String(value || "").replaceAll("\\", "/").replace(/^\/+/, "");
+}
+
+function writePublicManifest(rows) {
+  const assets = rows.map((row) => row.public).sort((left, right) => left.category.localeCompare(right.category) || left.key.localeCompare(right.key));
+  const file = path.join(siteRoot, "assets", "economy-assets.json");
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, `${JSON.stringify({ schema_version: 1, assets }, null, 2)}\n`, "utf8");
 }
 
 function parseArgs(values) {

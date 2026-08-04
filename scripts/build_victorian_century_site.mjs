@@ -22,6 +22,7 @@ copyDirectory(path.join(sourceSite, "styles"), path.join(targetSite, "styles"), 
 copyDirectory(path.join(sourceSite, "locales"), path.join(targetSite, "locales"), copied);
 copyFile(path.join(sourceSite, "styles.css"), path.join(targetSite, "styles.css"), copied);
 copyAssets(path.join(sourceSite, "assets"), path.join(targetSite, "assets"), copied);
+runEconomyAssetBuild(args.python, args.vcDatabase);
 if (!args.skipVcAssets) runVcAssetSync(args.python, args.vcDatabase);
 writeStandaloneFiles(copied);
 publishStandaloneSite(copied);
@@ -33,6 +34,7 @@ console.log(JSON.stringify({
   target: toProjectPath(targetSite),
   publish_target: publishTarget ? toProjectPath(publishTarget) : "",
   vc_asset_sync: args.skipVcAssets ? "skipped" : "ok",
+  economy_asset_build: "ok",
 }, null, 2));
 
 function parseArgs(values) {
@@ -158,6 +160,16 @@ function runVcAssetSync(explicitPython, explicitDatabase) {
   }
   if (result.status !== 0) {
     throw new Error(`VC asset sync failed using ${python}:\n${result.stdout}\n${result.stderr}`.trim());
+  }
+}
+
+function runEconomyAssetBuild(explicitPython, explicitDatabase) {
+  const database = path.resolve(explicitDatabase || path.join(root, "database", "victorian_century"));
+  const buildArgs = [path.join(root, "scripts", "build_economy_assets.mjs"), "--database", database, "--site", targetSite];
+  if (explicitPython) buildArgs.push("--python", explicitPython);
+  const result = spawnSync(process.execPath, buildArgs, { cwd: root, encoding: "utf8", shell: false });
+  if (result.error || result.status !== 0) {
+    throw new Error(`VC economy asset build failed:\n${result.error?.message || ""}\n${result.stdout}\n${result.stderr}`.trim());
   }
 }
 
