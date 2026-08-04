@@ -114,6 +114,18 @@ assert.equal(rubber.fixed_price, false, "rubber must use a market price");
 assert.equal(rubber.traded_quantity, 5, "rubber must retain its defined traded quantity");
 assert.equal(rubber.convoy_cost_multiplier, 1, "rubber must use the default merchant-marine multiplier");
 assert.equal(required(goodsByKey, "electricity", "electricity good").traded_quantity, 10, "goods without a traded quantity must use the default value");
+assert(rubber.producing_buildings.some((item) => item.key === "building_rubber_plantation"), "rubber plantation must produce rubber");
+assert(required(goodsByKey, "tools", "tools good").consuming_buildings.length > 0, "tools must list consuming buildings");
+const grainNeed = required(goodsByKey, "grain", "grain good").pop_needs.find((need) => need.key === "popneed_basic_food");
+assert(grainNeed, "grain must satisfy basic food");
+assert.equal(grainNeed.is_default, true, "grain must be the default basic food");
+assert.deepEqual(grainNeed.wealth_levels.slice(0, 4), [1, 2, 3, 4], "basic food must be purchased from wealth level one");
+assert.equal(required(goodsByKey, "oil", "oil good").pop_needs.find((need) => need.key === "popneed_heating")?.weight, 3, "oil must have heating weight three");
+assert(required(goodsByKey, "coffee", "coffee good").obsessed_cultures.some((item) => item.key === "afro_brazilian"), "Afro-Brazilian culture must be obsessed with coffee");
+assert(required(goodsByKey, "meat", "meat good").taboo_cultures.some((item) => item.key === "japanese"), "Japanese culture must treat meat as taboo");
+assert(required(goodsByKey, "meat", "meat good").taboo_religions.some((item) => item.key === "hindu"), "Hinduism must treat meat as taboo");
+assert(required(goodsByKey, "liquor", "liquor good").taboo_religions.some((item) => item.key === "sunni"), "Sunni Islam must treat liquor as taboo");
+assert(prestigeGoods.some((item) => item.companies?.length), "at least one prestige good must list possible companies");
 for (const key of ["services", "transportation", "electricity", "gold"]) {
   assert(required(goodsByKey, key, `${key} good`), `${key} must remain a good`);
 }

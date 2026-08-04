@@ -137,7 +137,9 @@ function main() {
   const cultures = loadCultures(contentPath("common", "cultures"));
   const cultureTraits = loadCultureTraits(contentPath("common", "discrimination_traits"), loc);
   const cultureTraitGroups = loadCultureTraitGroups(contentPath("common", "discrimination_trait_groups"), loc);
-  const religions = loadReligions(contentPath("common", "religions"));
+  const religions = loadReligions(contentPath("common", "religions"), loc);
+  const popNeeds = loadPopNeeds(contentPath("common", "pop_needs"), loc);
+  const buyPackages = loadBuyPackages(contentPath("common", "buy_packages"));
   const definitions = loadCountryDefinitions(contentPath("common", "country_definitions"));
   const stateHistory = loadStateHistory(contentPath("common", "history", "states", "00_states.txt"));
   const startingOwners = stateHistory.startingOwnersByCountry;
@@ -184,6 +186,11 @@ function main() {
     goodsDirs: contentPath("common", "goods"),
     prestigeGoodsDirs: contentPath("common", "prestige_goods"),
     stateRegionRows,
+    cultures,
+    religions,
+    companies,
+    popNeeds,
+    buyPackages,
     loc,
   });
   const achievements = loadAchievements(
@@ -661,17 +668,76 @@ function loadCultureTraitGroups(dir, loc) {
   return groups;
 }
 
-function loadReligions(dir) {
-  const religions = new Set();
+function loadReligions(dir, loc) {
+  const religions = new Map();
   for (const file of listFiles(dir)) {
     const root = parseScript(readText(file), file);
     for (const assignment of root.assignments) {
       const key = scriptEntryKey(assignment.key);
       if (!isPlainTagLike(key)) continue;
-      religions.add(key);
+      const node = asNode(assignment.value);
+      if (!node) continue;
+      const texture = firstScalar(node, "icon");
+      religions.set(key, {
+        key,
+        name_zh: locCleanName(loc, key),
+        icon_source: texture,
+        taboos: nodeItems(asNode(firstValue(node, "taboos")) || { items: [] }).map(stripPrefix).sort(),
+        source_file: normalizePath(file),
+      });
     }
   }
   return religions;
+}
+
+function loadPopNeeds(dirs, loc) {
+  const needs = new Map();
+  for (const file of listFiles(dirs)) {
+    const root = parseScript(readText(file), file);
+    for (const assignment of root.assignments) {
+      const key = scriptEntryKey(assignment.key);
+      const node = asNode(assignment.value);
+      if (!node || !key.startsWith("popneed_")) continue;
+      needs.set(key, {
+        key,
+        name_zh: locCleanName(loc, key),
+        default_good_key: stripPrefix(firstScalar(node, "default")),
+        obsession_demand_min: toNumberOrNull(firstScalar(node, "obsession_demand_min")),
+        obsession_demand_mult: toNumberOrNull(firstScalar(node, "obsession_demand_mult")),
+        prestige_goods_demand_increase: toNumberOrNull(firstScalar(node, "prestige_goods_demand_increase")),
+        entries: allValues(node, "entry").map(asNode).filter(Boolean).map((entry) => ({
+          goods_key: stripPrefix(firstScalar(entry, "goods")),
+          weight: toNumberOrNull(firstScalar(entry, "weight")),
+          max_supply_share: toNumberOrNull(firstScalar(entry, "max_supply_share")),
+          min_supply_share: toNumberOrNull(firstScalar(entry, "min_supply_share")),
+        })),
+        wealth_levels: [],
+        source_file: normalizePath(file),
+      });
+    }
+  }
+  return needs;
+}
+
+function loadBuyPackages(dirs) {
+  const levelsByNeedKey = new Map();
+  for (const file of listFiles(dirs)) {
+    const root = parseScript(readText(file), file);
+    for (const assignment of root.assignments) {
+      const key = scriptEntryKey(assignment.key);
+      const match = key.match(/^wealth_(\d+)$/);
+      const node = asNode(assignment.value);
+      if (!match || !node) continue;
+      const level = Number(match[1]);
+      const goodsNode = asNode(firstValue(node, "goods"));
+      for (const item of goodsNode?.assignments || []) {
+        const needKey = scriptEntryKey(item.key);
+        if (!levelsByNeedKey.has(needKey)) levelsByNeedKey.set(needKey, []);
+        levelsByNeedKey.get(needKey).push(level);
+      }
+    }
+  }
+  return levelsByNeedKey;
 }
 
 function loadCountryDefinitions(dir) {
@@ -1676,6 +1742,11 @@ function loadEconomyData({
   goodsDirs,
   prestigeGoodsDirs,
   stateRegionRows,
+  cultures,
+  religions,
+  companies,
+  popNeeds,
+  buyPackages,
   loc,
 }) {
   const buildingGroups = loadBuildingGroups(buildingGroupDirs, loc);
@@ -1711,33 +1782,77 @@ function loadEconomyData({
   }
 
   const producersByGoodKey = new Map(goods.map((good) => [good.key, new Set()]));
+  const consumersByGoodKey = new Map(goods.map((good) => [good.key, new Set()]));
   for (const building of buildings) {
     const methodKeys = building.production_method_group_keys.flatMap((groupKey) => (
       productionMethodGroups.find((group) => group.key === groupKey)?.production_method_keys || []
     ));
     for (const methodKey of methodKeys) {
       for (const effect of productionMethodByKey.get(methodKey)?.effects || []) {
-        const match = effect.key.match(/^goods_output_([a-z0-9_]+)_add$/);
-        if (match && effect.value > 0 && producersByGoodKey.has(match[1])) producersByGoodKey.get(match[1]).add(building.key);
+        const outputMatch = effect.key.match(/^goods_output_([a-z0-9_]+)_add$/);
+        const inputMatch = effect.key.match(/^goods_input_([a-z0-9_]+)_add$/);
+        if (outputMatch && effect.value > 0 && producersByGoodKey.has(outputMatch[1])) producersByGoodKey.get(outputMatch[1]).add(building.key);
+        if (inputMatch && effect.value > 0 && consumersByGoodKey.has(inputMatch[1])) consumersByGoodKey.get(inputMatch[1]).add(building.key);
       }
+    }
+  }
+  const buildingRefs = (keys) => [...keys]
+    .map((key) => buildingByKey.get(key))
+    .filter(Boolean)
+    .sort((left, right) => economyDisplayName(left).localeCompare(economyDisplayName(right), "zh-Hans-CN") || left.key.localeCompare(right.key, "en"))
+    .map((building) => ({
+      key: building.key,
+      name_zh: economyDisplayName(building),
+      icon_path: building.icon.site_path,
+    }));
+  const prestigeCompaniesByKey = new Map(prestigeGoods.map((item) => [item.key, []]));
+  for (const company of companies) {
+    for (const prestigeGood of company.possible_prestige_goods || []) {
+      if (!prestigeCompaniesByKey.has(prestigeGood.key)) throw new Error(`company ${company.key} references missing prestige good: ${prestigeGood.key}`);
+      prestigeCompaniesByKey.get(prestigeGood.key).push({
+        key: company.key,
+        name_zh: company.name_zh,
+        icon: company.icon,
+      });
     }
   }
   const prestigeByBaseGood = new Map();
   for (const prestigeGood of prestigeGoods) {
+    prestigeGood.companies = prestigeCompaniesByKey.get(prestigeGood.key).sort(sortByNameZh);
     if (!prestigeByBaseGood.has(prestigeGood.base_good_key)) prestigeByBaseGood.set(prestigeGood.base_good_key, []);
     prestigeByBaseGood.get(prestigeGood.base_good_key).push(prestigeGood.key);
   }
   for (const good of goods) {
     good.prestige_good_keys = (prestigeByBaseGood.get(good.key) || []).sort();
-    good.producing_buildings = [...(producersByGoodKey.get(good.key) || [])]
-      .map((key) => buildingByKey.get(key))
-      .filter(Boolean)
-      .sort((left, right) => economyDisplayName(left).localeCompare(economyDisplayName(right), "zh-Hans-CN"))
-      .map((building) => ({
-        key: building.key,
-        name_zh: economyDisplayName(building),
-        icon_path: building.icon.site_path,
-      }));
+    good.producing_buildings = buildingRefs(producersByGoodKey.get(good.key) || []);
+    good.consuming_buildings = buildingRefs(consumersByGoodKey.get(good.key) || []);
+    good.pop_needs = [...popNeeds.values()].flatMap((need) => need.entries
+      .filter((entry) => entry.goods_key === good.key)
+      .map((entry) => ({
+        key: need.key,
+        name_zh: need.name_zh,
+        is_default: need.default_good_key === good.key,
+        weight: entry.weight,
+        max_supply_share: entry.max_supply_share,
+        min_supply_share: entry.min_supply_share,
+        obsession_demand_min: need.obsession_demand_min,
+        obsession_demand_mult: need.obsession_demand_mult,
+        prestige_goods_demand_increase: need.prestige_goods_demand_increase,
+        wealth_levels: [...(buyPackages.get(need.key) || [])].sort((left, right) => left - right),
+      })))
+      .sort(sortByNameZh);
+    good.obsessed_cultures = [...cultures.values()]
+      .filter((culture) => culture.obsessions.includes(good.key))
+      .map((culture) => ({ key: culture.key, name_zh: locCleanName(loc, culture.key) }))
+      .sort(sortByNameZh);
+    good.taboo_cultures = [...cultures.values()]
+      .filter((culture) => culture.taboos.includes(good.key))
+      .map((culture) => ({ key: culture.key, name_zh: locCleanName(loc, culture.key) }))
+      .sort(sortByNameZh);
+    good.taboo_religions = [...religions.values()]
+      .filter((religion) => religion.taboos.includes(good.key))
+      .map((religion) => ({ key: religion.key, name_zh: religion.name_zh }))
+      .sort(sortByNameZh);
   }
 
   return {
