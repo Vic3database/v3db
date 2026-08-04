@@ -7,7 +7,7 @@ import vm from "node:vm";
 
 const root = process.cwd();
 const baselineDatabase = path.join(root, "database", "vic3_1.13.9");
-const victorianCenturyDatabase = path.join(root, "database", "victorian_century");
+const victorianCenturyDatabase = process.env.VICTORIAN_CENTURY_DATABASE || path.join(root, "database", "victorian_century");
 const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "vicdata-vc-change-tags-"));
 const baselineOut = path.join(tempRoot, "baseline");
 const victorianCenturyOut = path.join(tempRoot, "victorian-century");
@@ -28,8 +28,8 @@ try {
   buildDataset(baselineDatabase, baselineOut);
   buildDataset(victorianCenturyDatabase, victorianCenturyOut, baselineDatabase);
 
-  const baseline = readGlobal(path.join(baselineOut, "data.js"), "VIC3_DATA");
-  const victorianCentury = readGlobal(path.join(victorianCenturyOut, "data.js"), "VIC3_DATA");
+  const baseline = readChunkedDataset(baselineOut);
+  const victorianCentury = readChunkedDataset(victorianCenturyOut);
   const expected = changeSummary(baseline, victorianCentury);
   const actual = taggedSummary(victorianCentury);
 
@@ -75,7 +75,6 @@ function buildDataset(database, out, baseline = "") {
     path.join(root, "scripts", "build_wiki.mjs"),
     "--database", database,
     "--out", out,
-    "--legacy-data",
   ];
   if (baseline) args.push("--baseline-database", baseline);
   const result = spawnSync(process.execPath, args, { cwd: root, encoding: "utf8" });
@@ -153,6 +152,20 @@ function readGlobal(file, name) {
   const sandbox = { window: {} };
   vm.runInNewContext(fs.readFileSync(file, "utf8"), sandbox, { filename: file });
   return sandbox.window[name];
+}
+
+function readChunkedDataset(directory) {
+  const index = readGlobal(path.join(directory, "data-index.js"), "VIC3_DATA_INDEX");
+  const dataset = { meta: index.meta || {} };
+  for (const entry of Object.values(index.chunks || {})) {
+    for (const file of entry.files || []) {
+      const chunk = readGlobal(path.join(directory, file), "VIC3_DATA_CHUNK");
+      for (const [field, value] of Object.entries(chunk || {})) {
+        dataset[field] = field === "countries" ? [...(dataset[field] || []), ...(value || [])] : value;
+      }
+    }
+  }
+  return dataset;
 }
 
 function readText(relative) {

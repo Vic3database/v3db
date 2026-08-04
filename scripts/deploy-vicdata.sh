@@ -27,12 +27,23 @@ PREVIOUS="$ROOT/site.previous-$STAMP"
 
 test -d "$STAGE"
 test -f "$STAGE/index.html"
+test -f "$STAGE/app/i18n.js"
+test -f "$STAGE/locales/ui.en.js"
 test -f "$STAGE/versions/1.13.9/data-technologies.js"
+test -f "$STAGE/versions/1.13.9/locale-regions.en.js"
+grep -Fq 'data-locale="en"' "$STAGE/index.html"
+grep -Fq '"terrainRuns":' "$STAGE/versions/1.13.9/map-data.js"
+grep -Fq 'stateTraitFilters' "$STAGE/index.html"
 test -f "$STAGE/vc/index.html"
+test -f "$STAGE/vc/app/i18n.js"
+test -f "$STAGE/vc/locales/ui.en.js"
 test -f "$STAGE/vc/data-index.js"
 test -f "$STAGE/vc/map-data.js"
 test -f "$STAGE/vc/victorian-century-config.js"
 test -f "$STAGE/vc/assets/map/provinces.png"
+grep -Fq 'data-locale="en"' "$STAGE/vc/index.html"
+grep -Fq '"terrainRuns":' "$STAGE/vc/map-data.js"
+grep -Fq 'stateTraitFilters' "$STAGE/vc/index.html"
 
 for expected_file in "$@"; do
   case "$expected_file" in

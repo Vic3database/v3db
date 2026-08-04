@@ -18,6 +18,15 @@ const generatorSources = [
   "scripts/extract_vic3_countries.mjs",
 ].map((relativePath) => [relativePath, read(relativePath)]);
 
+const databaseDir = path.join(root, "database", "vic3_1.13.9");
+if (fs.existsSync(path.join(databaseDir, "index.json"))) {
+  const index = JSON.parse(readBinary(path.join(databaseDir, "index.json")));
+  const zh = JSON.parse(readBinary(path.join(databaseDir, index.locales?.files?.["zh-Hans"]?.file || "locales/zh-Hans.json")));
+  const countries = JSON.parse(readBinary(path.join(databaseDir, index.files.countries)));
+  const pru = countries.find((country) => country.id === "country:PRU");
+  assert.equal(zh[pru?.loc?.name], "普鲁士", "terminology checks must resolve names through the simplified Chinese catalog");
+}
+
 for (const [relativePath, source] of [...uiSources, ...generatorSources]) {
   assert.equal(/州地区|本土州|日志：|事件\/日志(?!条目)/.test(source), false, `${relativePath} still contains outdated localized terminology`);
 }
@@ -40,6 +49,10 @@ console.log(JSON.stringify({ localized_terminology: "ok" }));
 
 function read(relativePath) {
   return fs.readFileSync(path.join(root, relativePath), "utf8");
+}
+
+function readBinary(file) {
+  return fs.readFileSync(file, "utf8").replace(/^\uFEFF/, "");
 }
 
 function functionSource(source, name) {

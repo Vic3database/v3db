@@ -2,13 +2,16 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 
 const baseUrl = process.argv[2] || "http://127.0.0.1:4173/index.html";
+const localizedBaseUrl = (locale) => `${baseUrl}${baseUrl.includes("?") ? "&" : "?"}lang=${encodeURIComponent(locale)}`;
+const zhBaseUrl = localizedBaseUrl("zh-Hans");
+const enBaseUrl = localizedBaseUrl("en");
 const chromePath = process.env.VC_CHROME_PATH || "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
 const debugPort = 9230;
 const chrome = spawn(chromePath, [`--remote-debugging-port=${debugPort}`, "--headless=new", "--disable-gpu", "--no-first-run", "--no-default-browser-check", "about:blank"], { stdio: "ignore", windowsHide: true });
 
 try {
   const page = await openPage({ width: 1440, height: 1000 });
-  await page.goto(`${baseUrl}#/building`);
+  await page.goto(`${zhBaseUrl}#/building`);
   await page.waitFor(() => document.querySelectorAll("[data-building-key]").length === 101, "building wall");
   const buildingWall = await page.evaluate(() => ({
     cards: document.querySelectorAll("[data-building-key]").length,
@@ -66,7 +69,7 @@ try {
   assert.equal(await page.evaluate(() => document.querySelector(".selected-production-method-detail")?.textContent?.includes("内燃机")), true, "selected method detail must show its prerequisite technology");
   assert.equal(await page.evaluate(() => document.querySelector(".selected-production-method-detail h5")?.textContent?.trim()), "\u5177\u4f53\u5185\u5bb9\u4e0e\u4fee\u6b63", "selected method detail must label its effects");
 
-  await page.goto(`${baseUrl}#/building/building_rye_farm`);
+  await page.goto(`${zhBaseUrl}#/building/building_rye_farm`);
   await page.waitFor(() => location.hash === "#/building/building_rye_farm", "rye farm route");
   const ryeFarm = await page.evaluate(() => ({
     summary: document.querySelector("[data-production-summary]")?.textContent || "",
@@ -88,7 +91,7 @@ try {
   assert.match(automatedRyeFarm.summary, /投入商品：2工具/, "automation must add level-one tool inputs");
   assert.equal(automatedRyeFarm.standardOutput, "£4.16/人/年", "automation must recalculate annual profit with its reduced workforce");
 
-  await page.goto(`${baseUrl}#/building/building_oil_rig`);
+  await page.goto(`${zhBaseUrl}#/building/building_oil_rig`);
   await page.waitFor(() => location.hash === "#/building/building_oil_rig", "oil rig route before resource map");
   await page.evaluate(() => document.querySelector("[data-resource-map-building='building_oil_rig']").click());
   await page.waitFor(() => location.hash === "#/region/resource/building_oil_rig", "resource map route");
@@ -99,7 +102,7 @@ try {
   }));
   assert.equal(documentedResourceSelection(resourceMap.selected), "building_oil_rig", "resource route must select oil rig");
 
-  await page.goto(`${baseUrl}#/goods`);
+  await page.goto(`${zhBaseUrl}#/goods`);
   await page.waitFor(() => document.querySelectorAll("[data-good-key]").length === 53, "goods wall");
   assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector("#mapPanel")).display), "none", "goods wall must hide the map");
   await page.evaluate(() => document.querySelector("[data-good-key='rubber']").click());
@@ -124,14 +127,14 @@ try {
   assert(rubber.detailRight > 1300, "desktop goods detail must occupy the right side of the layout");
   assert(rubber.lastFactWidth >= rubber.factsWidth - 2, "an unpaired final goods fact must span the table width");
 
-  await page.goto(`${baseUrl}#/goods/grain`);
+  await page.goto(`${zhBaseUrl}#/goods/grain`);
   await page.waitFor(() => location.hash === "#/goods/grain", "grain good route");
   const grain = await page.evaluate(() => ({
     needs: Array.from(document.querySelectorAll("[data-good-need]"), (item) => item.textContent || ""),
   }));
   assert(grain.needs.some((text) => text.includes("基础食品") && text.includes("1–29")), "grain must show basic food and its wealth range");
 
-  await page.goto(`${baseUrl}#/goods/meat`);
+  await page.goto(`${zhBaseUrl}#/goods/meat`);
   await page.waitFor(() => location.hash === "#/goods/meat", "meat good route");
   const meat = await page.evaluate(() => ({
     tabooReligions: Array.from(document.querySelectorAll("[data-good-taboo-religion]"), (item) => item.textContent?.trim() || ""),
@@ -140,7 +143,7 @@ try {
   assert(meat.tabooReligions.includes("印度教"), "meat must show its Hindu taboo");
   assert(meat.prestigeCompanies.length > 0, "meat prestige variants must list possible companies");
 
-  await page.goto(`${baseUrl}#/goods/oil`);
+  await page.goto(`${zhBaseUrl}#/goods/oil`);
   await page.waitFor(() => location.hash === "#/goods/oil", "oil good route");
   const oil = await page.evaluate(() => ({
     producers: Array.from(document.querySelectorAll("[data-good-building-relation='producer']"), (item) => item.dataset.goodBuilding),
@@ -153,8 +156,35 @@ try {
   assert.equal(oil.variants, 1, "oil must show its Baku prestige variant");
   assert.equal(oil.methods, 0, "goods details must not show production methods");
 
+  await page.goto(`${enBaseUrl}#/building/building_rubber_plantation`);
+  await page.waitFor(() => document.documentElement.lang === "en" && document.querySelector(".economy-detail"), "English rubber plantation detail");
+  const englishBuilding = await page.evaluate(() => ({
+    title: document.querySelector(".economy-detail h2")?.textContent?.trim() || "",
+    methodHeading: document.querySelector(".production-method-section h3")?.textContent?.trim() || "",
+    combinationLabels: Array.from(document.querySelectorAll("[data-production-summary] dt"), (label) => label.textContent.trim()),
+    navLabel: document.querySelector("[data-nav-view='building']")?.textContent?.trim() || "",
+  }));
+  assert.equal(englishBuilding.title, "Rubber Plantations", "English building route must resolve the localized building name");
+  assert.equal(englishBuilding.methodHeading, "Production Methods", "English building detail must localize its production-method heading");
+  assert.deepEqual(englishBuilding.combinationLabels, ["Workforce:", "Input goods:", "Output goods:", "Standard output:", "Modifiers:"], "English building detail must localize the current-combination labels");
+  assert.equal(englishBuilding.navLabel, "Buildings", "English navigation must label the building board");
+
+  await page.goto(`${enBaseUrl}#/goods/rubber`);
+  await page.waitFor(() => document.documentElement.lang === "en" && document.querySelector("[data-good-standard-price]"), "English rubber detail");
+  const englishGood = await page.evaluate(() => ({
+    title: document.querySelector(".economy-detail h2")?.textContent?.trim() || "",
+    headings: Array.from(document.querySelectorAll(".economy-detail h3"), (heading) => heading.textContent.trim()),
+    producer: document.querySelector("[data-good-building-relation='producer'] span")?.textContent?.trim() || "",
+    navLabel: document.querySelector("[data-nav-view='goods']")?.textContent?.trim() || "",
+  }));
+  assert.equal(englishGood.title, "Rubber", "English goods route must resolve the localized goods name");
+  assert(englishGood.headings.includes("Basic properties"), "English goods detail must localize basic properties");
+  assert(englishGood.headings.includes("Producing buildings"), "English goods detail must localize producer relations");
+  assert.equal(englishGood.producer, "Rubber Plantations", "English goods detail must localize related buildings");
+  assert.equal(englishGood.navLabel, "Goods", "English navigation must label the goods board");
+
   const narrowPage = await openPage({ width: 390, height: 844 });
-  await narrowPage.goto(`${baseUrl}#/goods/meat`);
+  await narrowPage.goto(`${zhBaseUrl}#/goods/meat`);
   await narrowPage.waitFor(() => location.hash === "#/goods/meat" && document.querySelector(".economy-detail"), "narrow meat detail");
   const narrow = await narrowPage.evaluate(() => ({
     scrollWidth: document.documentElement.scrollWidth,

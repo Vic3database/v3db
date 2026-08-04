@@ -24,6 +24,10 @@ try {
   });
   main.on("pageerror", (error) => mainErrors.push(error.message));
   const initial = await openTraitView(main, `${baseUrl}/main/index.html`);
+  assert.equal(initial.locale, "en", "main trait map must use English");
+  assert.deepEqual(initial.filterLabels, ["All", "Rivers and harbors", "Soils and landforms", "Natural resources", "Colonial environment", "MAPI"], "main trait filters must render in English");
+  assert.equal(initial.filterTitle, "State traits", "main trait filter heading must render in English");
+  assert.equal(initial.terrainButton, "Terrain view", "main terrain control must render in English");
   assert.deepEqual(initial.selectedFilters, ["all"], "all should be the only selected state-trait filter");
   assert.equal(initial.mode, "traitIcons", "state-trait filters should select trait icon mode");
   assert.equal(initial.featureCount, 781, "main map must retain every state region feature");
@@ -67,6 +71,7 @@ try {
   const tooltipIconBox = await tooltip.locator(".map-tooltip-trait-icon").first().boundingBox();
   assert.deepEqual({ width: tooltipIconBox?.width, height: tooltipIconBox?.height }, { width: 30, height: 30 }, "tooltip trait icons must render at 30 pixels");
   const tooltipText = await tooltip.innerText();
+  assert.doesNotMatch(tooltipText, /[\u3400-\u9fff]/u, "main English trait tooltip must not contain Chinese text");
   assert.match(tooltipText, new RegExp(escapeRegExp(target.label)), "tooltip must show a trait name");
   assert.match(tooltipText, new RegExp(escapeRegExp(target.effect)), "tooltip must show a trait effect");
 
@@ -117,7 +122,7 @@ try {
   assert.deepEqual(mainErrors, [], `main page errors: ${mainErrors.join(" | ")}`);
 
   const interaction = await context.newPage();
-  await interaction.goto(`${baseUrl}/main/index.html#/region`, { waitUntil: "networkidle", timeout: 45000 });
+  await interaction.goto(`${baseUrl}/main/index.html?lang=en#/region`, { waitUntil: "networkidle", timeout: 45000 });
   const interactionTraitSection = interaction.locator(".filter-section:has(#stateTraitFilters)");
   await interactionTraitSection.locator("summary").click();
   await interaction.locator("[data-state-trait-filter='all']").click();
@@ -161,6 +166,8 @@ try {
   });
   victorianCentury.on("pageerror", (error) => vcErrors.push(error.message));
   const vcInitial = await openTraitView(victorianCentury, `${baseUrl}/vc/index.html`);
+  assert.equal(vcInitial.locale, "en", "Victorian Century trait map must use English");
+  assert.deepEqual(vcInitial.filterLabels, initial.filterLabels, "Victorian Century trait filters must use the same English labels");
   assert.equal(vcInitial.mode, "traitIcons", "Victorian Century must select trait icon mode");
   assert.equal(vcInitial.featureCount, 781, "Victorian Century map must retain every state region feature");
   assert.equal(vcInitial.iconImageCount, 23, "Victorian Century must preload every used trait icon image");
@@ -171,6 +178,7 @@ try {
   await victorianCentury.waitForFunction(() => document.querySelector("#mapTooltip")?.hidden === false, { timeout: 10000 });
   assert.equal(await victorianCentury.locator("#mapTooltip .map-tooltip-trait-icon").count(), vcTarget.traitCount, "Victorian Century tooltip must list every trait icon");
   const vcTooltipText = await victorianCentury.locator("#mapTooltip").innerText();
+  assert.doesNotMatch(vcTooltipText, /[\u3400-\u9fff]/u, "Victorian Century English trait tooltip must not contain Chinese text");
   assert.match(vcTooltipText, new RegExp(escapeRegExp(vcTarget.label)), "Victorian Century tooltip must localize a trait name");
   assert.match(vcTooltipText, new RegExp(escapeRegExp(vcTarget.effect)), "Victorian Century tooltip must localize a trait effect");
   await victorianCentury.locator("[data-state-trait-filter='mapi']").click();
@@ -190,8 +198,8 @@ try {
   assert.deepEqual(vcErrors, [], `Victorian Century page errors: ${vcErrors.join(" | ")}`);
 
   const vcOrdinary = await context.newPage();
-  await vcOrdinary.goto(`${baseUrl}/vc/index.html#/region`, { waitUntil: "networkidle", timeout: 45000 });
-  await vcOrdinary.waitForFunction(() => window.eval("mapRuntime.ready") && window.eval("mapRuntime.stateTraitLocaleMessages.size") > 0, { timeout: 30000 });
+  await vcOrdinary.goto(`${baseUrl}/vc/index.html?lang=en#/region`, { waitUntil: "networkidle", timeout: 45000 });
+  await vcOrdinary.waitForFunction(() => document.documentElement.lang === "en" && window.eval("mapRuntime.ready"), { timeout: 30000 });
   const vcOrdinaryTarget = await onCanvasMultiTraitTarget(vcOrdinary);
   assert(vcOrdinaryTarget, "Victorian Century ordinary region map needs an on-canvas multi-trait region");
   await vcOrdinary.locator("#mapCanvas").dispatchEvent("pointermove", vcOrdinaryTarget.pointer);
@@ -203,7 +211,7 @@ try {
   await vcOrdinary.close();
 
   const combined = await context.newPage();
-  await combined.goto(`${baseUrl}/main/index.html#/region`, { waitUntil: "networkidle", timeout: 45000 });
+  await combined.goto(`${baseUrl}/main/index.html?lang=en#/region`, { waitUntil: "networkidle", timeout: 45000 });
   const combinedTraitSection = combined.locator(".filter-section:has(#stateTraitFilters)");
   if ((await combinedTraitSection.getAttribute("open")) === null) await combinedTraitSection.locator("summary").click();
   await combined.locator("[data-state-trait-filter='all']").click();
@@ -219,7 +227,7 @@ try {
   assert(combinedState.visible > 0 && combinedState.visible < 781, "resource and trait filters should gray part of the map");
   await combined.locator("#searchInput").fill("__no_state_trait_result__");
   await combined.waitForFunction(() => document.querySelectorAll("#countryList [data-state-region]").length === 0);
-  assert.match(await combined.locator("#countryList").innerText(), /没有匹配结果/, "empty trait results should retain the empty-state message");
+  assert.match(await combined.locator("#countryList").innerText(), /No matching results/, "empty trait results should retain the localized empty-state message");
   assert.equal(await combined.evaluate(() => window.eval("mapRuntime.visibleStateKeys.size")), 0, "empty results should mute every region");
   await combined.close();
 
@@ -247,7 +255,7 @@ try {
 }
 
 async function openTraitView(page, url) {
-  await page.goto(`${url}#/region`, { waitUntil: "networkidle", timeout: 45000 });
+  await page.goto(`${url}?lang=en#/region`, { waitUntil: "networkidle", timeout: 45000 });
   const traitFilterSection = page.locator(".filter-section:has(#stateTraitFilters)");
   if ((await traitFilterSection.getAttribute("open")) === null) {
     await traitFilterSection.locator("summary").click();
@@ -256,6 +264,10 @@ async function openTraitView(page, url) {
   await page.waitForFunction(() => window.eval("state.mapMode") === "traitIcons" && window.eval("mapRuntime.ready"), { timeout: 30000 });
   await page.waitForFunction(() => window.eval("mapRuntime.stateTraitIconImages.size") === 23, { timeout: 30000 });
   return page.evaluate(() => ({
+    locale: document.documentElement.lang,
+    filterLabels: [...document.querySelectorAll("#stateTraitFilters [data-state-trait-filter]")].map((element) => element.textContent.trim()),
+    filterTitle: document.querySelector(".filter-section:has(#stateTraitFilters) summary")?.textContent?.trim() || "",
+    terrainButton: document.querySelector("#terrainMapViewButton")?.textContent?.trim() || "",
     selectedFilters: [...window.eval("state.stateTraitFilters")],
     mode: window.eval("state.mapMode"),
     featureCount: window.eval("mapRuntime.featureByStateKey.size"),
@@ -268,14 +280,16 @@ async function openTraitView(page, url) {
 async function multiTraitTarget(page) {
   await page.waitForFunction(() => {
     const runtime = window.eval("mapRuntime");
-    const stateTraitEffectText = window.eval("stateTraitEffectText");
+    const modifierSummaryLabel = window.eval("modifierSummaryLabel");
+    const stateTraitEffectText = (trait) => (trait?.modifiers || []).map(modifierSummaryLabel).filter(Boolean).join(window.eval("t")("ui.listSeparator"));
     return [...runtime.featureByStateKey.values()].some((feature) => (feature.traits || []).some((trait) => stateTraitEffectText(trait)));
   }, { timeout: 30000 });
   return page.evaluate(() => {
     const runtime = window.eval("mapRuntime");
     const stateRegionFromPointerEvent = window.eval("stateRegionFromPointerEvent");
-    const stateTraitLocalizedText = window.eval("stateTraitLocalizedText");
-    const stateTraitEffectText = window.eval("stateTraitEffectText");
+    const entityText = window.eval("entityText");
+    const modifierSummaryLabel = window.eval("modifierSummaryLabel");
+    const stateTraitEffectText = (trait) => (trait?.modifiers || []).map(modifierSummaryLabel).filter(Boolean).join(window.eval("t")("ui.listSeparator"));
     const rect = document.querySelector("#mapCanvas").getBoundingClientRect();
     const eligible = new Map([...runtime.featureByStateKey]
       .filter(([, feature]) => (feature.traits || []).length > 1 && feature.traits.some((trait) => stateTraitEffectText(trait))));
@@ -293,7 +307,7 @@ async function multiTraitTarget(page) {
         return {
           stateKey,
           traitCount: feature.traits.length,
-          label: stateTraitLocalizedText(trait, "name") || trait.key,
+          label: entityText(trait) || trait.key,
           effect: stateTraitEffectText(trait),
           pointer: { clientX, clientY, pointerId: 1, pointerType: "mouse" },
         };
@@ -307,8 +321,9 @@ async function onCanvasMultiTraitTarget(page) {
   return page.evaluate(() => {
     const runtime = window.eval("mapRuntime");
     const stateRegionFromPointerEvent = window.eval("stateRegionFromPointerEvent");
-    const stateTraitLocalizedText = window.eval("stateTraitLocalizedText");
-    const stateTraitEffectText = window.eval("stateTraitEffectText");
+    const entityText = window.eval("entityText");
+    const modifierSummaryLabel = window.eval("modifierSummaryLabel");
+    const stateTraitEffectText = (trait) => (trait?.modifiers || []).map(modifierSummaryLabel).filter(Boolean).join(window.eval("t")("ui.listSeparator"));
     const landStateRegions = window.eval("landStateRegions");
     const rect = document.querySelector("#mapCanvas").getBoundingClientRect();
     const eligible = new Map(landStateRegions
@@ -329,7 +344,7 @@ async function onCanvasMultiTraitTarget(page) {
         return {
           stateKey,
           traitCount: stateRegion.traits.length,
-          label: stateTraitLocalizedText(trait, "name"),
+          label: entityText(trait),
           effect: stateTraitEffectText(trait),
           pointer: { clientX, clientY, pointerId: 1, pointerType: "mouse" },
         };
@@ -440,7 +455,8 @@ function selectedTraitFilters(page) {
 async function traitTargetDiagnostics(page) {
   return page.evaluate(() => {
     const runtime = window.eval("mapRuntime");
-    const stateTraitEffectText = window.eval("stateTraitEffectText");
+    const modifierSummaryLabel = window.eval("modifierSummaryLabel");
+    const stateTraitEffectText = (trait) => (trait?.modifiers || []).map(modifierSummaryLabel).filter(Boolean).join(window.eval("t")("ui.listSeparator"));
     const rect = document.querySelector("#mapCanvas").getBoundingClientRect();
     const eligible = new Set([...runtime.featureByStateKey]
       .filter(([, feature]) => (feature.traits || []).length > 1 && feature.traits.some((trait) => stateTraitEffectText(trait)))

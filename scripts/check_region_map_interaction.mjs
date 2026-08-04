@@ -46,7 +46,7 @@ function checkRegionRowDetailButtonContracts() {
 
   assert(/rowDetailButton\("data-state-region-detail"/.test(stateRegionRowHtml), "region rows should expose a dedicated state-region detail button");
   assert(/assets\/lucide\/icons\/arrow-right\.svg/.test(rowDetailButton), "row detail button should use the right-arrow icon");
-  assert(/aria-label="进入详情"/.test(rowDetailButton), "row detail button should have an accessible label");
+  assert(/t\("ui\.openDetail"\)[\s\S]*aria-label="\$\{escapeHtml\(label\)\}"/.test(rowDetailButton), "row detail button should have a localized accessible label");
   assert(/\.row-detail-button/.test(stylesSource), "row detail button should have shared styles");
 }
 
@@ -85,7 +85,7 @@ function checkRegionMapFocusResetContracts() {
   assert(/state\.selectedStateRegion = ""/.test(resetRegionMapFocus), "region focus reset should clear the selected state region");
   assert(/state\.mapSelectedStateRegion = ""/.test(resetRegionMapFocus), "region focus reset should clear the temporary map-selected card");
   assert(/render\(\)[\s\S]*fitMapToWidth\(\)/.test(resetRegionMapFocus), "region focus reset should re-render before fitting the map");
-  assert(/state\.view === "region" \? "重置地域焦点和地图位置" : "重置地图位置"/.test(renderMapControls), "region map reset button should expose its region-specific label");
+  assert(/state\.view === "region" \? t\("map\.resetRegionFocus", "重置地域焦点和地图位置"\) : t\("map\.resetPosition", "重置地图位置"\)/.test(renderMapControls), "region map reset button should expose its localized region-specific label");
 }
 
 function checkTerrainViewContracts() {
@@ -99,9 +99,9 @@ function checkTerrainViewContracts() {
 }
 
 function checkRegionMapCacheVersionContracts() {
-  assert(/app\/ui\.js\?v=20260803-state-trait-filter1/.test(indexSource), "region map UI script should use the current release cache version");
-  assert(/app\/map\.js\?v=20260803-state-trait-tooltip1/.test(indexSource), "region map script should use the current release cache version");
-  assert(/app\/presentation\.js\?v=20260803-state-trait-filter1/.test(indexSource), "fast region selection should use the current presentation cache version");
+  assert(/app\/ui\.js\?v=20260803-multilingual-map1/.test(indexSource), "region map UI script should use the current release cache version");
+  assert(/app\/map\.js\?v=20260803-multilingual-map1/.test(indexSource), "region map script should use the current release cache version");
+  assert(/app\/presentation\.js\?v=20260803-multilingual-map1/.test(indexSource), "fast region selection should use the current presentation cache version");
 }
 
 function checkPrimaryListEventContracts() {

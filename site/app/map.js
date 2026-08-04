@@ -1,5 +1,5 @@
 function renderMapControls() {
-  const mapResetLabel = state.view === "region" ? "重置地域焦点和地图位置" : "重置地图位置";
+  const mapResetLabel = state.view === "region" ? t("map.resetRegionFocus", "重置地域焦点和地图位置") : t("map.resetPosition", "重置地图位置");
   els.mapFitWidthButton?.setAttribute("aria-label", mapResetLabel);
   els.mapFitWidthButton?.setAttribute("title", mapResetLabel);
   syncMapModeForView();
@@ -33,7 +33,7 @@ function renderTerrainMapLegend() {
   els.terrainMapLegend.hidden = !enabled;
   if (!enabled) return;
   els.terrainMapLegend.innerHTML = terrainLegendEntries.map((entry) => (
-    `<span class="terrain-map-legend-item"><span class="terrain-map-legend-swatch" style="--terrain-map-color: ${escapeHtml(entry.color)}" aria-hidden="true"></span>${escapeHtml(entry.label)}</span>`
+    `<span class="terrain-map-legend-item"><span class="terrain-map-legend-swatch" style="--terrain-map-color: ${escapeHtml(entry.color)}" aria-hidden="true"></span>${escapeHtml(t(entry.labelKey))}</span>`
   )).join("");
 }
 
@@ -55,7 +55,7 @@ function renderMapResourceContext() {
     ? `<img class="map-resource-context-icon" src="assets/buildings/${encodeURIComponent(fileName)}" alt="">`
     : `<span class="map-resource-context-swatch" style="--map-resource-context-color: ${escapeHtml(resourceMapColor(resourceKey))}" aria-hidden="true"></span>`;
   const label = mapSubjectLabel();
-  const version = standaloneSiteConfig ? "Victorian Century/真实资源储量&耕地" : (data.meta?.victoria3_version || "未知");
+  const version = standaloneSiteConfig ? t("map.vcResourceContext", "Victorian Century/真实资源储量与耕地") : (data.meta?.victoria3_version || t("ui.unknown", "未知"));
   els.mapResourceContext.hidden = false;
   els.mapResourceContext.innerHTML = `${icon}<span class="map-resource-context-name">${escapeHtml(label)}</span><span class="map-resource-context-version">· ${escapeHtml(version)}</span>`;
 }
@@ -120,16 +120,16 @@ function mapSubjectOptions(mode) {
     return cultures
       .slice()
       .sort(sortCultures)
-      .map((culture) => ({ value: culture.key, label: culture.name_zh || culture.key }));
+      .map((culture) => ({ value: culture.key, label: entityText(culture) || culture.key }));
   }
   if (mode === "trait") {
     const traits = collectStateTraitRefs();
     return [
-      { value: "__any_trait", label: "全部地区特质" },
-      ...traits.map((trait) => ({ value: trait.key, label: trait.name_zh || trait.key })),
+      { value: "__any_trait", label: t("map.allStateTraits", "全部地区特质") },
+      ...traits.map((trait) => ({ value: trait.key, label: entityText(trait) || trait.key })),
     ];
   }
-  return collectMapResourceRefs().map((resource) => ({ value: resource.key, label: resource.name_zh || resource.key }));
+  return collectMapResourceRefs().map((resource) => ({ value: resource.key, label: entityText(resource) || resource.key }));
 }
 
 function defaultMapSubject(mode, options) {
@@ -140,10 +140,10 @@ function defaultMapSubject(mode, options) {
 }
 
 function collectMapResourceRefs() {
-  const ordered = resourceFilterGroups.flatMap((group) => group.filters || []).map((filter) => ({
-    key: filter.key,
-    name_zh: filter.label,
-  }));
+  const ordered = resourceFilterGroups.flatMap((group) => group.filters || []).map((filter) => {
+    const source = buildingByKey.get((filter.resources || filter.arableResources || filter.companyBuildings || [])[0] || filter.key);
+    return { key: filter.key, loc: source?.loc };
+  });
   const byKey = new Map(ordered.map((item) => [item.key, item]));
   for (const stateRegion of stateRegions) {
     for (const item of [
@@ -151,7 +151,7 @@ function collectMapResourceRefs() {
       ...(stateRegion.discoverable_resources || []),
       ...(stateRegion.arable_resources || []),
     ]) {
-      if (item?.key && !byKey.has(item.key)) byKey.set(item.key, { key: item.key, name_zh: item.name_zh || item.key });
+      if (item?.key && !byKey.has(item.key)) byKey.set(item.key, item);
     }
   }
   return [...byKey.values()];
@@ -168,20 +168,11 @@ function collectStateTraitRefs() {
   return [...byKey.values()].sort(sortRefByName);
 }
 
-function mapTooltipNeedsStateTraitLocales() {
-  return state.view === "region" || state.view === "company" || state.mapMode === "traitIcons";
-}
-
 function renderMap(mapStateRegions) {
   if (!els.mapCanvas) return;
   syncMapModeForView();
   mapRuntime.visibleStateKeys = new Set((mapStateRegions || []).map((stateRegion) => stateRegion.key));
   mapRuntime.lastMapStateRegions = mapStateRegions || [];
-  if (mapTooltipNeedsStateTraitLocales()) {
-    loadStateTraitLocaleMessages().then(() => {
-      if (mapTooltipNeedsStateTraitLocales() && mapRuntime.ready) paintMapCanvas();
-    });
-  }
   if (!mapRuntime.ready) {
     ensureMapLoaded();
     return;
@@ -297,10 +288,7 @@ function ensureMapLoaded() {
       ? decodeMapRuns(mapData.terrainRuns, mapRuntime.width * mapRuntime.height)
       : null;
     mapRuntime.stateCenters = computeMapStateCenters(mapRuntime.pixelStateIndexes, mapRuntime.width, mapRuntime.height, mapRuntime.stateKeysByIndex);
-    await Promise.all([
-      mapTooltipNeedsStateTraitLocales() ? loadStateTraitLocaleMessages() : Promise.resolve(),
-      loadStateTraitIconImages(),
-    ]);
+    await loadStateTraitIconImages();
     mapRuntime.ready = true;
     mapRuntime.loading = false;
     resetMapTransform();
@@ -403,21 +391,6 @@ function stateTraitIconFileName(trait) {
     : `${String(trait?.key || "").replace(/^state_trait_/, "")}.png`;
 }
 
-function loadStateTraitLocaleMessages() {
-  if (mapRuntime.stateTraitLocaleLoading) return mapRuntime.stateTraitLocaleLoading;
-  const files = dataIndex?.locales?.chunks?.["zh-Hans"]?.region?.files || [];
-  mapRuntime.stateTraitLocaleLoading = (async () => {
-    for (const file of files) {
-      const chunks = await loadScriptValue(dataChunkPath(file.path), "VIC3_LOCALE_CHUNKS").catch(() => null);
-      const messages = chunks?.[file.id]?.messages || {};
-      for (const [key, value] of Object.entries(messages)) {
-        mapRuntime.stateTraitLocaleMessages.set(key, value);
-      }
-    }
-  })();
-  return mapRuntime.stateTraitLocaleLoading;
-}
-
 function buildTraitIconMapFeatures() {
   const features = new Map();
   for (const stateRegion of stateRegions) {
@@ -444,16 +417,16 @@ const REGION_MAP_FOCUS_COLOR = "#00cc66";
 const COMPANY_LOCATION_MAP_COLOR = "#00cc66";
 const COMPANY_LOCATION_BORDER_COLOR = "#c8a45b";
 const terrainLegendEntries = [
-  { key: "plains", label: "平原", color: "#d9c989", rgb: [217, 201, 137] },
-  { key: "forest", label: "森林", color: "#4f8756", rgb: [79, 135, 86] },
-  { key: "hills", label: "丘陵", color: "#a98262", rgb: [169, 130, 98] },
-  { key: "mountain", label: "山地", color: "#887f78", rgb: [136, 127, 120] },
-  { key: "jungle", label: "丛林", color: "#23745f", rgb: [35, 116, 95] },
-  { key: "wetland", label: "湿地", color: "#78a69a", rgb: [120, 166, 154] },
-  { key: "desert", label: "沙漠", color: "#d69d56", rgb: [214, 157, 86] },
-  { key: "tundra", label: "苔原", color: "#9eb1a6", rgb: [158, 177, 166] },
-  { key: "savanna", label: "稀树草原", color: "#b4a95a", rgb: [180, 169, 90] },
-  { key: "snow", label: "极地", color: "#dce5ea", rgb: [220, 229, 234] },
+  { key: "plains", labelKey: "enum.terrain.plains", color: "#d9c989", rgb: [217, 201, 137] },
+  { key: "forest", labelKey: "enum.terrain.forest", color: "#4f8756", rgb: [79, 135, 86] },
+  { key: "hills", labelKey: "enum.terrain.hills", color: "#a98262", rgb: [169, 130, 98] },
+  { key: "mountain", labelKey: "enum.terrain.mountain", color: "#887f78", rgb: [136, 127, 120] },
+  { key: "jungle", labelKey: "enum.terrain.jungle", color: "#23745f", rgb: [35, 116, 95] },
+  { key: "wetland", labelKey: "enum.terrain.wetland", color: "#78a69a", rgb: [120, 166, 154] },
+  { key: "desert", labelKey: "enum.terrain.desert", color: "#d69d56", rgb: [214, 157, 86] },
+  { key: "tundra", labelKey: "enum.terrain.tundra", color: "#9eb1a6", rgb: [158, 177, 166] },
+  { key: "savanna", labelKey: "enum.terrain.savanna", color: "#b4a95a", rgb: [180, 169, 90] },
+  { key: "snow", labelKey: "enum.terrain.snow", color: "#dce5ea", rgb: [220, 229, 234] },
 ];
 const terrainLegendByKey = new Map(terrainLegendEntries.map((entry) => [entry.key, entry]));
 const terrainLandKeys = new Set(terrainLegendEntries.map((entry) => entry.key));
@@ -466,7 +439,7 @@ function buildTerrainMapFeatures() {
       color: mapFeatureColor(stateRegion, isSea ? MAP_SEA_COLOR : "#e9edeb"),
       active: !isSea,
       value: 0,
-      title: isSea ? "海域" : "省份地形",
+      title: isSea ? t("board.region.sea", "海域") : t("map.provinceTerrain", "省份地形"),
     });
   }
   return features;
@@ -483,7 +456,7 @@ function buildCompanyMapFeatures() {
     const association = associations.get(stateRegion.key) || emptyCompanyAssociation();
     const region = primaryStrategicRegionForState(stateRegion);
     const color = isSea ? MAP_SEA_COLOR : companyAssociationColor(association.count);
-    const title = isSea ? "海域" : companyAssociationTitle(association, region);
+    const title = isSea ? t("board.region.sea", "海域") : companyAssociationTitle(association, region);
     features.set(stateRegion.key, {
       color: mapFeatureColor(stateRegion, color),
       active: association.count > 0,
@@ -512,7 +485,8 @@ function buildCompanyStateAssociations(selectedCompanies) {
       if (referenced.has(stateKey) && !headquarters.has(stateKey)) association.special += 1;
       association.companies.push({
         key: company.key,
-        name_zh: company.name_zh || company.key,
+        id: company.id || `company:${company.key}`,
+        loc: company.loc,
         kind: headquarters.has(stateKey) ? "headquarters" : "special",
       });
     }
@@ -639,9 +613,9 @@ function companyLocationSummary(company, stateKeys) {
   if (rule.homelandCultureKeys?.length === 1) {
     const cultureKey = rule.homelandCultureKeys[0];
     const culture = (company.referenced_cultures || []).find((item) => item.key === cultureKey);
-    return `${culture?.name_zh || cultureKey}文化本土，共 ${stateKeys.length} 个地域`;
+    return t("map.companyCultureHomelands", { culture: entityText(culture) || cultureKey, count: localizedNumber(stateKeys.length) });
   }
-  return `总部及成立条件，共 ${stateKeys.length} 个地域`;
+  return t("map.companyHeadquartersAndConditions", { count: localizedNumber(stateKeys.length) });
 }
 
 function geographicRegionStrategicRegions(region) {
@@ -675,19 +649,19 @@ function companyAssociationColor(count) {
 
 function companyAssociationTitle(association, region) {
   if (!association.count) {
-    return `${region?.name_zh || "无战略区域"}：无公司关联`;
+    return t("map.noCompanyAssociation", { region: entityText(region) || t("map.noStrategicRegion", "无战略区域") });
   }
   const companyNames = association.companies
     .slice(0, 5)
-    .map((company) => company.name_zh)
+    .map((company) => entityText(company) || company.key)
     .join("、");
-  const more = association.companies.length > 5 ? `等 ${association.companies.length} 个` : "";
+  const more = association.companies.length > 5 ? t("map.moreCompanies", { count: localizedNumber(association.companies.length) }) : "";
   return [
-    `${region?.name_zh || "无战略区域"}：关联公司 ${association.count} 个`,
-    `总部 ${association.headquarters} 个`,
-    `条件 ${association.special} 个`,
+    t("map.companyAssociationCount", { region: entityText(region) || t("map.noStrategicRegion", "无战略区域"), count: localizedNumber(association.count) }),
+    t("map.companyHeadquartersCount", { count: localizedNumber(association.headquarters) }),
+    t("map.companyConditionCount", { count: localizedNumber(association.special) }),
     [companyNames, more].filter(Boolean).join(""),
-  ].filter(Boolean).join("；");
+  ].filter(Boolean).join(t("ui.semicolon", "；"));
 }
 
 function companyMapStateRegions(selectedCompanies) {
@@ -734,9 +708,9 @@ function buildStrategicRegionMapFeatures() {
       value: selectedGeographicStateKeys ? Number(Boolean(inGeographicRegion)) : region ? 1 : 0,
       title: selectedGeographicStateKeys
         ? inGeographicRegion
-          ? byGeographicRegion.get(state.selectedGeographicRegion)?.name_zh || "地理区域"
-          : "不在当前地理区域"
-        : region ? strategicRegionName(region) : "无战略区域",
+          ? entityText(byGeographicRegion.get(state.selectedGeographicRegion)) || t("board.region.geographicRegion", "地理区域")
+          : t("map.outsideGeographicRegion", "不在当前地理区域")
+        : region ? strategicRegionName(region) : t("map.noStrategicRegion", "无战略区域"),
       strategicRegion: region,
     });
   }
@@ -944,7 +918,7 @@ function buildSelectedResourceMapFeatures() {
       const valueInfo = stateRegionResourceValue(stateRegion, resourceKey);
       return {
         key: resourceKey,
-        label: filter.label,
+        label: resourceFilterLabel(filter),
         ...valueInfo,
       };
     }).filter((item) => item.value > 0);
@@ -968,8 +942,8 @@ function buildSelectedResourceMapFeatures() {
       value: valueInfo.total,
       label: valueInfo.total > 0 ? formatMapLabelValue(valueInfo.total) : "",
       title: valueInfo.items.length
-        ? valueInfo.items.map((item) => `${item.label} ${item.detail}`).join("；")
-        : `无${selectedResourceMapLabel()}`,
+        ? valueInfo.items.map((item) => `${item.label} ${item.detail}`).join(t("ui.semicolon", "；"))
+        : t("map.noResource", { resource: selectedResourceMapLabel() }),
       resourceItems: valueInfo.items,
     });
   }
@@ -998,7 +972,7 @@ function buildCultureFilterMapFeatures() {
       color: mapFeatureColor(stateRegion, color),
       active: matches.length > 0,
       value: matches.length,
-      title: matches.length ? matches.map((culture) => culture.name_zh || culture.key).join("、") : "无匹配文化本土",
+      title: matches.length ? matches.map((culture) => entityText(culture) || culture.key).join("、") : t("map.noMatchingCultureHomelands", "无匹配文化本土"),
       cultures: matches,
     });
   }
@@ -1078,7 +1052,7 @@ function buildTraitMapFeatures() {
       color: mapFeatureColor(stateRegion, color),
       active: matchingTraits.length > 0,
       value: matchingTraits.length,
-      title: matchingTraits.length ? matchingTraits.map((trait) => trait.name_zh || trait.key).join("、") : "无匹配地区特质",
+      title: matchingTraits.length ? matchingTraits.map((trait) => entityText(trait) || trait.key).join("、") : t("map.noMatchingStateTraits", "无匹配地区特质"),
       traits: matchingTraits,
     });
   }
@@ -1714,18 +1688,18 @@ function wrapMapX(x) {
 
 function mapTooltipHtml(stateRegion, feature, ownerTag = "", terrainKey = "", provinceCode = "") {
   const isSea = isSeaStateRegion(stateRegion);
-  const kind = isSea ? "海域" : "地域";
+  const kind = isSea ? t("board.region.sea", "海域") : t("board.region.stateRegion", "地域");
   const variants = stateRegionVariantNames(stateRegion);
   const variantText = variants.length ? `（${escapeHtml(variants.join("/"))}）` : "";
   if (isSea) {
     return `
-      <div class="map-tooltip-title">${escapeHtml(stateRegion.name_zh || stateRegion.key)}</div>
+      <div class="map-tooltip-title">${escapeHtml(entityText(stateRegion) || stateRegion.key)}</div>
       <div class="map-tooltip-sub">${escapeHtml(kind)} · ${escapeHtml(stateRegion.key)}</div>
     `;
   }
   const rows = mapTooltipRowsForView(stateRegion, feature, ownerTag, terrainKey, provinceCode);
   return `
-    <div class="map-tooltip-title">${escapeHtml(stateRegion.name_zh || stateRegion.key)}${variantText}</div>
+    <div class="map-tooltip-title">${escapeHtml(entityText(stateRegion) || stateRegion.key)}${variantText}</div>
     <div class="map-tooltip-sub">${escapeHtml(kind)} · ${escapeHtml(stateRegion.key)}</div>
     <dl>
       ${rows.map(([label, value]) => tooltipField(label, value)).join("")}
@@ -1737,53 +1711,54 @@ function mapTooltipRowsForView(stateRegion, feature, ownerTag = "", terrainKey =
   if (state.mapMode === "terrain") {
     if (!terrainLandKeys.has(terrainKey)) return [];
     return compactTooltipRows([
-      ["省份代码", provinceCode],
-      ["地形", terrainLabel(terrainKey)],
-      ["所属地域", stateRegion.name_zh || stateRegion.key],
-      ["战略区域", refNames(stateRegion.strategic_regions)],
+      [t("map.provinceCode", "省份代码"), provinceCode],
+      [t("map.terrain", "地形"), terrainLabel(terrainKey)],
+      [t("map.stateRegion", "所属地域"), entityText(stateRegion) || stateRegion.key],
+      [t("board.region.strategicRegion", "战略区域"), refNames(stateRegion.strategic_regions)],
     ]);
   }
   if (state.mapMode === "traitIcons") {
     return compactTooltipRows([
-      ["战略区域", refNames(stateRegion.strategic_regions)],
-      ["地区特质", tooltipHtml(mapTooltipStateTraitHtml(feature?.traits || stateRegion.traits || []))],
+      [t("board.region.strategicRegion", "战略区域"), refNames(stateRegion.strategic_regions)],
+      [t("board.region.traits", "地区特质"), tooltipHtml(mapTooltipStateTraitHtml(feature?.traits || stateRegion.traits || []))],
     ]);
   }
   if (state.view === "country" || state.mapMode === "country") {
     return compactTooltipRows([
-      ["开局归属", refNames(stateRegion.starting_owners)],
-      ["当前省份归属", ownerTag ? countryNameWithTag(ownerTag) : ""],
-      ["战略区域", refNames(stateRegion.strategic_regions)],
-      ["本土文化", refNames(stateRegion.homeland_cultures)],
+      [t("board.region.startingOwners", "开局归属"), refNames(stateRegion.starting_owners)],
+      [t("map.currentProvinceOwner", "当前省份归属"), ownerTag ? countryNameWithTag(ownerTag) : ""],
+      [t("board.region.strategicRegion", "战略区域"), refNames(stateRegion.strategic_regions)],
+      [t("board.region.homelandCultures", "本土文化"), refNames(stateRegion.homeland_cultures)],
     ]);
   }
   if (state.view === "culture" || state.mapMode === "culture") {
     const selectedCulture = byCulture.get(state.selectedCulture);
     return compactTooltipRows([
-      ["开局归属", refNames(stateRegion.starting_owners)],
-      ["当前省份归属", ownerTag ? countryNameWithTag(ownerTag) : ""],
-      ["本土文化", refNames(stateRegion.homeland_cultures)],
-      ["文化关系", selectedCulture ? cultureRelationForStateRegion(stateRegion, selectedCulture).label : feature?.title || ""],
+      [t("board.region.startingOwners", "开局归属"), refNames(stateRegion.starting_owners)],
+      [t("map.currentProvinceOwner", "当前省份归属"), ownerTag ? countryNameWithTag(ownerTag) : ""],
+      [t("board.region.homelandCultures", "本土文化"), refNames(stateRegion.homeland_cultures)],
+      [t("map.cultureRelation", "文化关系"), selectedCulture ? cultureRelationForStateRegion(stateRegion, selectedCulture).label : feature?.title || ""],
     ]);
   }
   if (state.view === "company" || state.mapMode === "company") {
     return compactTooltipRows([
-      ["开局归属", countryRefNames(stateRegion.starting_owners)],
-      ["战略区域", refNames(stateRegion.strategic_regions)],
+      [t("board.region.startingOwners", "开局归属"), countryRefNames(stateRegion.starting_owners)],
+      [t("board.region.strategicRegion", "战略区域"), refNames(stateRegion.strategic_regions)],
       ...mapTooltipResourceRows(stateRegion),
-      ["地区特质", tooltipHtml(mapTooltipStateTraitHtml(stateRegion.traits || []))],
+      [t("board.region.traits", "地区特质"), tooltipHtml(mapTooltipStateTraitHtml(stateRegion.traits || []))],
     ]);
   }
   return compactTooltipRows([
-    ["战略区域", refNames(stateRegion.strategic_regions)],
+    [t("board.region.strategicRegion", "战略区域"), refNames(stateRegion.strategic_regions)],
     ...mapTooltipResourceRows(stateRegion),
-    ["耕地", stateRegion.arable_land === null ? "" : String(stateRegion.arable_land)],
-    ["地区特质", tooltipHtml(mapTooltipStateTraitHtml(stateRegion.traits || []))],
+    [t("board.region.arableLand", "耕地"), stateRegion.arable_land === null ? "" : String(stateRegion.arable_land)],
+    [t("board.region.traits", "地区特质"), tooltipHtml(mapTooltipStateTraitHtml(stateRegion.traits || []))],
   ]);
 }
 
 function terrainLabel(key) {
-  return terrainLegendByKey.get(key)?.label || key;
+  const entry = terrainLegendByKey.get(key);
+  return entry ? t(entry.labelKey) : key;
 }
 
 function compactTooltipRows(rows) {
@@ -1810,28 +1785,14 @@ function resourceSummaryText(stateRegion) {
 function mapTooltipStateTraitHtml(traits) {
   return (traits || []).map((trait) => {
     const fileName = stateTraitIconFileName(trait);
-    const label = stateTraitLocalizedText(trait, "name") || trait.key;
-    const effect = stateTraitEffectText(trait);
-    return `<span class="map-tooltip-trait"><img class="map-tooltip-trait-icon" src="assets/state-traits/${encodeURIComponent(fileName)}" alt=""><span>${escapeHtml(label)}${effect ? `：${escapeHtml(effect)}` : ""}</span></span>`;
+    const label = entityText(trait) || trait.key;
+    const effect = (trait?.modifiers || []).map(modifierSummaryLabel).filter(Boolean).join(t("ui.listSeparator"));
+    return `<span class="map-tooltip-trait"><img class="map-tooltip-trait-icon" src="assets/state-traits/${encodeURIComponent(fileName)}" alt=""><span>${escapeHtml(label)}${effect ? `${escapeHtml(t("ui.colon"))}${escapeHtml(effect)}` : ""}</span></span>`;
   }).join("");
 }
 
-function stateTraitLocalizedText(trait, field) {
-  const directField = field === "name" ? "name_zh" : "modifier_summary_zh";
-  return trait?.[directField] || mapRuntime.stateTraitLocaleMessages.get(trait?.loc?.[field]) || "";
-}
-
-function stateTraitEffectText(trait) {
-  const summary = stateTraitLocalizedText(trait, "modifierSummary");
-  if (summary) return summary;
-  return (trait?.modifiers || [])
-    .map((modifier) => modifier.summary_zh || mapRuntime.stateTraitLocaleMessages.get(modifier?.loc?.summary) || "")
-    .filter(Boolean)
-    .join("；");
-}
-
 function compactResourceLabel(item, amount = "") {
-  const label = item?.name_zh || item?.key || "";
+  const label = entityText(item) || item?.key || "";
   if (!label) return "";
   return amount !== "" && amount !== null ? `${label} ${amount}` : label;
 }
@@ -1849,9 +1810,9 @@ const miningResourceBuildingKeys = new Set([
 function mapTooltipResourceRows(stateRegion) {
   const groups = mapTooltipResourceGroups(stateRegion);
   return compactTooltipRows([
-    ["采矿", tooltipHtml(mapTooltipResourceGroupHtml(groups.mining))],
-    ["其他资源", tooltipHtml(mapTooltipResourceGroupHtml(groups.other))],
-    ["农业", tooltipHtml(mapTooltipResourceGroupHtml(groups.agriculture))],
+    [t("map.mining", "采矿"), tooltipHtml(mapTooltipResourceGroupHtml(groups.mining))],
+    [t("map.otherResources", "其他资源"), tooltipHtml(mapTooltipResourceGroupHtml(groups.other))],
+    [t("map.agriculture", "农业"), tooltipHtml(mapTooltipResourceGroupHtml(groups.agriculture))],
   ]);
 }
 

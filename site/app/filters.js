@@ -21,7 +21,7 @@ function matchesCountryFilters(country) {
 
 function countryCivilWarMatch(country) {
   if (country.isCivilWar || country.is_civil_war || country.civil_war) return true;
-  return /civil_war/i.test([country.tag, country.name, country.name_zh, country.key].filter(Boolean).join(" "));
+  return /civil_war/i.test([country.tag, country.name, entityText(country), country.key].filter(Boolean).join(" "));
 }
 
 function isIndigenousCulture(culture) {
@@ -258,14 +258,14 @@ function stateRegionResourceKeys(stateRegion) {
 }
 
 function sortCountries(a, b) {
-  if (state.sort === "name") return a.name.localeCompare(b.name, "zh-Hans-CN") || a.tag.localeCompare(b.tag);
+  if (state.sort === "name") return localizedCompare(entityText(a), entityText(b)) || a.tag.localeCompare(b.tag);
   if (state.sort === "tier") return Number(b.tierPrestige || 0) - Number(a.tierPrestige || 0) || a.tag.localeCompare(b.tag);
   if (state.sort === "states") return b.startingStateCount - a.startingStateCount || a.tag.localeCompare(b.tag);
   return a.tag.localeCompare(b.tag);
 }
 
 function sortCultures(a, b) {
-  if (state.sort === "name") return a.name_zh.localeCompare(b.name_zh, "zh-Hans-CN") || a.key.localeCompare(b.key);
+  if (state.sort === "name") return localizedCompare(entityText(a), entityText(b)) || a.key.localeCompare(b.key);
   if (state.sort === "homelands") return (b.homeland_state_regions || []).length - (a.homeland_state_regions || []).length || a.key.localeCompare(b.key);
   return a.key.localeCompare(b.key);
 }
@@ -277,7 +277,7 @@ function sortStateRegions(a, b) {
       || Number(a.numeric_id || Number.MAX_SAFE_INTEGER) - Number(b.numeric_id || Number.MAX_SAFE_INTEGER)
       || a.key.localeCompare(b.key);
   }
-  if (state.sort === "name") return a.name_zh.localeCompare(b.name_zh, "zh-Hans-CN") || a.key.localeCompare(b.key);
+  if (state.sort === "name") return localizedCompare(entityText(a), entityText(b)) || a.key.localeCompare(b.key);
   if (state.sort === "region") {
     return firstStrategicRegionOrder(a) - firstStrategicRegionOrder(b)
       || Number(a.numeric_id || Number.MAX_SAFE_INTEGER) - Number(b.numeric_id || Number.MAX_SAFE_INTEGER)
@@ -288,10 +288,10 @@ function sortStateRegions(a, b) {
 }
 
 function sortGeographicRegions(a, b) {
-  if (state.sort === "name") return geographicRegionDisplayName(a).localeCompare(geographicRegionDisplayName(b), "zh-Hans-CN") || a.key.localeCompare(b.key);
+  if (state.sort === "name") return localizedCompare(geographicRegionDisplayName(a), geographicRegionDisplayName(b)) || a.key.localeCompare(b.key);
   if (state.sort === "region") {
     return firstGeographicStrategicRegionOrder(a) - firstGeographicStrategicRegionOrder(b)
-      || geographicRegionDisplayName(a).localeCompare(geographicRegionDisplayName(b), "zh-Hans-CN")
+      || localizedCompare(geographicRegionDisplayName(a), geographicRegionDisplayName(b))
       || a.key.localeCompare(b.key);
   }
   if (state.sort === "resources") return geographicRegionStateRegions(b).length - geographicRegionStateRegions(a).length || a.key.localeCompare(b.key);
@@ -314,7 +314,7 @@ function selectedResourceValue(stateRegion) {
 }
 
 function sortCompanies(a, b) {
-  if (state.sort === "name") return (a.name_zh || a.key).localeCompare(b.name_zh || b.key, "zh-Hans-CN") || a.key.localeCompare(b.key);
+  if (state.sort === "name") return localizedCompare(entityText(a), entityText(b)) || a.key.localeCompare(b.key);
   if (state.sort === "kind") return Number(b.flavored_company) - Number(a.flavored_company) || a.key.localeCompare(b.key);
   if (state.sort === "buildings") {
     return ((b.building_types || []).length + (b.extension_building_types || []).length)
@@ -325,10 +325,10 @@ function sortCompanies(a, b) {
 }
 
 function sortIdeologies(a, b) {
-  if (state.sort === "name") return (a.name_zh || a.key).localeCompare(b.name_zh || b.key, "zh-Hans-CN") || a.key.localeCompare(b.key);
+  if (state.sort === "name") return localizedCompare(entityText(a), entityText(b)) || a.key.localeCompare(b.key);
   if (state.sort === "type") {
     return orderValue(ideologyTypeOrder, ideologyTypeKey(a)) - orderValue(ideologyTypeOrder, ideologyTypeKey(b))
-      || (a.name_zh || a.key).localeCompare(b.name_zh || b.key, "zh-Hans-CN")
+      || localizedCompare(entityText(a), entityText(b))
       || a.key.localeCompare(b.key);
   }
   if (state.sort === "laws") return lawStanceCount(b) - lawStanceCount(a) || a.key.localeCompare(b.key);
@@ -337,7 +337,7 @@ function sortIdeologies(a, b) {
 
 function renderLawDetail(law) {
   if (!law) {
-    els.detail.innerHTML = `<p class="empty">没有匹配结果。</p>`;
+    els.detail.innerHTML = `<p class="empty">${t("board.law.empty", "没有匹配结果。")}</p>`;
     return;
   }
   const group = lawGroupByKey.get(law.group_key);
@@ -352,24 +352,24 @@ function renderLawDetail(law) {
       <span class="tag">${escapeHtml(law.key)}</span>
       ${victorianCenturyBadge(law)}
     </div>
-    <h3>基础</h3>
+    <h3>${t("board.law.base", "基础")}</h3>
     <dl class="field-grid">
-      ${field("法律组", tagPill(group?.name_zh || law.group_name_zh || law.group_key, "tag-type", law.group_key))}
-      ${field("进步度", lawProgressivenessLabel(law.progressiveness))}
-      ${field("前置科技", refItemsPills(law.unlocking_technologies, "technology", "tag-technology"))}
-      ${field("互斥法律", lawPills(law.disallowing_laws || []))}
-      ${field("来源文件", escapeHtml(fileBaseName(law.source_file)))}
+      ${field(t("board.law.group", "法律组"), tagPill(entityText(group || law, group ? "name" : "groupName", law.group_key), "tag-type", law.group_key))}
+      ${field(t("board.law.progressiveness", "进步度"), lawProgressivenessLabel(law.progressiveness))}
+      ${field(t("board.law.requiredTechnologies", "前置科技"), refItemsPills(law.unlocking_technologies, "technology", "tag-technology"))}
+      ${field(t("board.law.mutuallyExclusiveLaws", "互斥法律"), lawPills(law.disallowing_laws || []))}
+      ${field(t("board.law.sourceFile", "来源文件"), escapeHtml(fileBaseName(law.source_file)))}
     </dl>
-    <h3>效果</h3>
+    <h3>${t("board.law.effects", "效果")}</h3>
     ${lawEffectListHtml(law)}
     ${lawAmendmentDetailsHtml(law.amendments)}
-    <h3>意识形态态度</h3>
+    <h3>${t("board.law.ideologyStances", "意识形态态度")}</h3>
     ${lawIdeologyStanceHtml(stances)}
-    <h3>条件脚本</h3>
-    ${rawDetails("可见条件", law.is_visible?.raw)}
-    ${rawDetails("颁布条件", law.can_enact?.raw)}
-    ${rawDetails("法律组启用条件", group?.enable?.raw)}
-    ${rawDetails("法律组变更条件", group?.change_allowed_trigger?.raw)}
+    <h3>${t("board.law.conditions", "条件")}</h3>
+    ${conditionDetails(t("board.law.visibleCondition", "可见条件"), law.is_visible)}
+    ${conditionDetails(t("board.law.enactCondition", "颁布条件"), law.can_enact)}
+    ${conditionDetails(t("board.law.groupEnableCondition", "法律组启用条件"), group?.enable)}
+    ${conditionDetails(t("board.law.groupChangeCondition", "法律组变更条件"), group?.change_allowed_trigger)}
   `;
 }
 
@@ -407,7 +407,7 @@ function lawIdeologyStanceHtml(grouped) {
       </section>
     `;
   }).filter(Boolean).join("");
-  return blocks ? `<div class="law-ideology-stance-list">${blocks}</div>` : `<p class="empty compact">没有意识形态态度数据。</p>`;
+  return blocks ? `<div class="law-ideology-stance-list">${blocks}</div>` : `<p class="empty compact">${t("board.law.noIdeologyStances", "没有意识形态态度数据。")}</p>`;
 }
 
 function sortLaws(a, b) {
@@ -422,37 +422,37 @@ function sortCountriesByTag(a, b) {
 function renderSortOptions() {
   const options = state.view === "culture"
     ? [
-      ["key", "按 Key"],
-      ["name", "按名称"],
-      ["homelands", "按本土地域数"],
+      ["key", t("sort.key")],
+      ["name", t("sort.name")],
+      ["homelands", t("sort.homelands")],
     ]
     : state.view === "region"
       ? [
-        ["key", "按州编号"],
-        ["name", "按名称"],
-        ["region", "按战略区域"],
-        ["resources", "按资源项数"],
+        ["key", t("sort.id")],
+        ["name", t("sort.name")],
+        ["region", t("sort.region")],
+        ["resources", t("sort.resources")],
       ]
       : state.view === "company"
         ? [
-          ["key", "按 Key"],
-          ["name", "按名称"],
-          ["kind", "按类型"],
-          ["buildings", "按建筑数"],
+          ["key", t("sort.key")],
+          ["name", t("sort.name")],
+          ["kind", t("sort.kind")],
+          ["buildings", t("sort.buildings")],
         ]
         : state.view === "ideology"
           ? [
-            ["key", "按编号"],
-            ["name", "按名称"],
-            ["type", "按类型"],
+            ["key", t("sort.id")],
+            ["name", t("sort.name")],
+            ["type", t("sort.type")],
           ]
           : state.view === "law"
-            ? [["key", "游戏内顺序"]]
+            ? [["key", t("sort.gameOrder")]]
     : [
-      ["key", "按 Tag"],
-      ["name", "按名称"],
-      ["tier", "按位阶"],
-      ["states", "按开局州数"],
+      ["key", t("sort.tag")],
+      ["name", t("sort.name")],
+      ["tier", t("sort.tier")],
+      ["states", t("sort.states")],
     ];
   if (!options.some(([key]) => key === state.sort)) state.sort = options[0][0];
   els.sortSelect.innerHTML = options.map(([key, label]) => (
@@ -521,10 +521,10 @@ function renderGroupedFilterOptions({ container, groups, traits, selectedGroups,
     const singleTraitClass = groupKind === "language-group" && groupTraits.length === 1 ? " filter-single-trait" : "";
     return `
       <div class="filter-row filter-group-block${singleTraitClass}">
-        <div class="filter-row-label">${optionToken(groupKind, group.key, group.name_zh || group.key, selectedGroups.has(group.key), "filter-token-group")}</div>
+        <div class="filter-row-label">${optionToken(groupKind, group.key, entityText(group), selectedGroups.has(group.key), "filter-token-group")}</div>
         <span class="filter-row-items">
           ${groupTraits.map((trait) => (
-            optionToken(traitKind, trait.key, trait.name_zh || trait.key, selectedTraits.has(trait.key))
+            optionToken(traitKind, trait.key, entityText(trait), selectedTraits.has(trait.key))
           )).join("")}
         </span>
       </div>
@@ -565,7 +565,7 @@ function renderStateTraitFilterOptions() {
   if (!els.stateTraitFilters) return;
   syncSetWithOptions(state.stateTraitFilters, stateTraitFilterOptions);
   els.stateTraitFilters.innerHTML = stateTraitFilterOptions.map((option) => (
-    optionToken("state-trait-filter", option.key, option.label, state.stateTraitFilters.has(option.key))
+    optionToken("state-trait-filter", option.key, t(option.labelKey), state.stateTraitFilters.has(option.key))
   )).join("");
 }
 
@@ -576,14 +576,14 @@ function renderCompanyFilterOptions() {
   els.industryCharterFilters.innerHTML = optionToken(
     "industry-charter",
     industryCharterOption.key,
-    industryCharterOption.label,
+    t("board.company.includeIndustryCharter", industryCharterOption.label),
     state.includeIndustryCharter,
   );
   els.companyKindFilters.innerHTML = companyKindOptions.map((option) => (
-    optionToken("company-kind", option.key, option.label, state.companyKinds.has(option.key))
+    optionToken("company-kind", option.key, t(`enum.companyKind.${option.key}`), state.companyKinds.has(option.key))
   )).join("");
   els.companyPrestigeFilters.innerHTML = companyPrestigeOptions.map((option) => (
-    optionToken("company-prestige", option.key, option.label, state.companyPrestigeGoods.has(option.key))
+    optionToken("company-prestige", option.key, t(`enum.prestigeGoodsKind.${option.key}`), state.companyPrestigeGoods.has(option.key))
   )).join("");
   els.companyDlcFilters.innerHTML = companyDlcOptions.map((option) => (
     companyDlcOptionToken(option, state.companyDlcs.has(option.key))
@@ -599,13 +599,13 @@ function renderIdeologyFilterOptions() {
   syncSetWithOptions(state.ideologyOccurrences, occurrences);
   syncSetWithOptions(state.ideologyLawGroups, lawGroups);
   els.ideologyTypeFilters.innerHTML = ideologyTypeOptions.map((option) => (
-    ideologyChoiceToken("ideology-type", option.key, option.label, state.ideologyTypes.has(option.key))
+    ideologyChoiceToken("ideology-type", option.key, ideologyTypeLabel(option.key), state.ideologyTypes.has(option.key))
   )).join("");
   els.ideologyGroupFilters.innerHTML = groups.map((group) => (
     ideologyGroupIconToken(group, state.ideologyGroups.has(group.key))
   )).join("");
   els.ideologyOccurrenceFilters.innerHTML = occurrences.map((option) => (
-    ideologyChoiceToken("ideology-occurrence", option.key, option.label, state.ideologyOccurrences.has(option.key))
+    ideologyChoiceToken("ideology-occurrence", option.key, ideologyOccurrenceLabel(option.key), state.ideologyOccurrences.has(option.key))
   )).join("");
   els.ideologyLawGroupFilters.innerHTML = renderIdeologyLawGroupFilterSections(lawGroups);
 }
@@ -624,12 +624,12 @@ function renderLawGroupFilterSections(groups) {
     byCategory.get(category).push(group);
   }
   return [...byCategory.entries()]
-    .sort(([a], [b]) => lawGroupCategoryOrder(a) - lawGroupCategoryOrder(b) || lawGroupCategoryLabel(a).localeCompare(lawGroupCategoryLabel(b), "zh-Hans-CN"))
+    .sort(([a], [b]) => lawGroupCategoryOrder(a) - lawGroupCategoryOrder(b) || localizedCompare(lawGroupCategoryLabel(a), lawGroupCategoryLabel(b)))
     .map(([category, categoryGroups]) => `
       <section class="ideology-law-filter-group">
         <h3>${escapeHtml(lawGroupCategoryLabel(category))}</h3>
         <div class="ideology-law-filter-items">
-          ${categoryGroups.map((group) => ideologyChoiceToken("law-group", group.key, group.name_zh || group.key, state.lawGroups.has(group.key))).join("")}
+          ${categoryGroups.map((group) => ideologyChoiceToken("law-group", group.key, entityText(group), state.lawGroups.has(group.key))).join("")}
         </div>
       </section>
     `).join("");
@@ -637,7 +637,7 @@ function renderLawGroupFilterSections(groups) {
 
 function sortLawGroup(a, b) {
   return orderValue(ideologyLawGroupOrderMap, a.key) - orderValue(ideologyLawGroupOrderMap, b.key)
-    || (a.name_zh || a.key).localeCompare(b.name_zh || b.key, "zh-Hans-CN")
+    || localizedCompare(entityText(a), entityText(b))
     || a.key.localeCompare(b.key);
 }
 
@@ -652,7 +652,8 @@ function collectIdeologyLawGroupOptions() {
       if (!stance.law_group_key || map.has(stance.law_group_key)) continue;
       map.set(stance.law_group_key, {
         key: stance.law_group_key,
-        name_zh: stance.law_group_name_zh || stance.law_group_key,
+        id: `law_group:${stance.law_group_key}`,
+        loc: { name: stance.loc?.lawGroupName },
       });
     }
   }
@@ -677,10 +678,10 @@ function renderIdeologyLawGroupFilterSections(lawGroups) {
     if (!items.length) return "";
     return `
       <section class="ideology-law-filter-group">
-        <h3>${escapeHtml(group.label)}</h3>
+        <h3>${escapeHtml(ideologyLawFilterGroupLabel(group.key))}</h3>
         <div class="ideology-law-filter-items">
           ${items.map((option) => (
-            ideologyChoiceToken("ideology-law-group", option.key, option.name_zh || option.label || option.key, state.ideologyLawGroups.has(option.key))
+            ideologyChoiceToken("ideology-law-group", option.key, entityText(option), state.ideologyLawGroups.has(option.key))
           )).join("")}
         </div>
       </section>
@@ -689,10 +690,10 @@ function renderIdeologyLawGroupFilterSections(lawGroups) {
 }
 
 function sortIdeologyLawGroup(a, b) {
-  const aName = a.name_zh || a.name || a.key;
-  const bName = b.name_zh || b.name || b.key;
+  const aName = entityText(a);
+  const bName = entityText(b);
   return orderValue(ideologyLawGroupOrderMap, a.key) - orderValue(ideologyLawGroupOrderMap, b.key)
-    || aName.localeCompare(bName, "zh-Hans-CN")
+    || localizedCompare(aName, bName)
     || a.key.localeCompare(b.key);
 }
 
@@ -701,7 +702,7 @@ function ideologyChoiceToken(kind, value, label, checked = false) {
 }
 
 function ideologyGroupIconToken(group, checked = false) {
-  const label = group.name_zh || group.key;
+  const label = entityText(group);
   return `
     <button class="ideology-group-icon-button" type="button" data-filter-token data-ideology-group="${escapeHtml(group.key)}" aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}" aria-pressed="${checked ? "true" : "false"}">
       ${interestGroupIconHtml(group)}
@@ -736,10 +737,10 @@ function renderStrategicRegionGroups(options) {
     else otherRegions.push(region);
   }
   const rows = strategicRegionContinentGroups
-    .map((group) => renderStrategicRegionGroupRow(group.name, regionsByGroup.get(group.key)))
+    .map((group) => renderStrategicRegionGroupRow(t(`continent.${group.key}`), regionsByGroup.get(group.key)))
     .filter(Boolean);
   if (otherRegions.length) {
-    rows.push(renderStrategicRegionGroupRow("其他", otherRegions.sort(sortStrategicRegionRef)));
+    rows.push(renderStrategicRegionGroupRow(t("filter.other"), otherRegions.sort(sortStrategicRegionRef)));
   }
   els.strategicRegionFilters.innerHTML = rows.join("");
 }
@@ -763,7 +764,7 @@ function geographicRegionGroupRows(regions) {
   return [...byGroup.entries()]
     .map(([key, groupRegions]) => ({
       key,
-      label: geographicRegionGroupLabels.get(key) || groupRegions[0]?.geographic_region_group_zh || key,
+      label: t(`enum.geographicRegionGroup.${key}`),
       regions: groupRegions.sort(sortGeographicRegions),
     }))
     .filter((group) => group.regions.length);

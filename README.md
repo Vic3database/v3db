@@ -6,12 +6,14 @@ Vicdata 是一个面向《维多利亚 3》的静态资料查询网站。当前�
 
 ## 内容范围
 
-网站入口是 `site/index.html`。公开站点当前只发布一个数据版本，版本配置在 `site/versions.js`，对应数据文件为：
+网站入口是 `site/index.html`。公开站点当前只发布一个数据版本，版本配置在 `site/versions.js`，对应数据入口和地图文件为：
 
 ```text
-site/versions/1.13.9/data.js
+site/versions/1.13.9/data-index.js
 site/versions/1.13.9/map-data.js
 ```
+
+页面首批提供简体中文与英语。右上角的 Languages 图标可以切换语言，分享链接可使用 `?lang=zh-Hans` 或 `?lang=en`；语言切换保留当前板块、详情、筛选和滚动位置。结构数据与语言包按资料板块加载，全局搜索同时匹配中文名、英文名和内部键。
 
 仓库保留页面实际会加载的图标、地图图片、站点脚本和样式。历史版本数据、完整本地游戏目录、开发过程输出和调试文件不属于公开站点内容。
 
@@ -73,6 +75,8 @@ node scripts/check_about_page.mjs
 node scripts/check_country_map_selection.mjs
 node scripts/check_site_asset_coverage.mjs
 node scripts/check_filter_order.mjs --file site/index.html
+node scripts/check_multilingual_bundles.mjs --site-version site/versions/1.13.9
+node scripts/check_multilingual_legacy_fields.mjs
 git diff --check
 ```
 

@@ -4,6 +4,7 @@ import path from "node:path";
 import vm from "node:vm";
 
 const root = process.cwd();
+const buildSource = readText("scripts/build_map_data.ps1");
 const indexSource = readText("site/index.html");
 const mapSource = readText("site/app/map.js");
 const runtimeSource = readText("site/app/runtime.js");
@@ -26,10 +27,12 @@ const terrainKeys = [
   "wetland",
 ];
 const terrainMaps = [
-  "site/map-data.js",
   "site/versions/1.13.9/map-data.js",
-  "Victorian Century Database/map-data.js",
+  "site/vc/map-data.js",
 ];
+
+assert.match(buildSource, /\$ErrorActionPreference\s*=\s*["']Stop["']/, "map build must stop when an input read fails");
+assert.match(buildSource, /Test-Path[^\n]*state_regions\.json/, "map build must verify the database input before writing output");
 
 for (const relative of terrainMaps) {
   const map = readMapData(relative);
@@ -52,7 +55,7 @@ assert.match(mapSource, /state\.mapMode === "terrain"/, "map renderer should bra
 assert.match(mapSource, /terrainProvinceCodeFromPointerEvent/, "map should read province codes from pointer events");
 assert.match(mapSource, /provinceColorFromPointerEvent/, "map should recover province colors from the existing province map image");
 assert.match(functionSource(mapSource, "provinceColorFromPointerEvent"), /\.map\(\(value\) => value\.toString\(16\)\.padStart\(2, "0"\)\.toUpperCase\(\)\)[\s\S]*return `x\$\{hex\}`/, "province codes should preserve the lowercase x prefix and uppercase hexadecimal digits");
-assert.match(mapSource, /\["省份代码", provinceCode\]/, "terrain tooltip should show province codes");
+assert.match(mapSource, /t\("map\.provinceCode", "省份代码"\), provinceCode/, "terrain tooltip should show localized province codes");
 assert.match(indexSource, /id="terrainMapViewButton"/, "region filters should expose the terrain view button");
 assert.match(indexSource, /id="terrainMapLegend"/, "map panel should include the terrain legend container");
 assert.match(runtimeSource, /regionMapView: "default"/, "region state should retain the selected map view");
@@ -65,12 +68,12 @@ assert.match(functionSource(mapSource, "syncMapModeForView"), /state\.view === "
 assert.match(functionSource(mapSource, "regionMapStateRegions"), /filteredStateRegions\.filter\(\(stateRegion\) => geographicStateKeys\.has\(stateRegion\.key\)\)/, "geographic-region map focus should retain the active resource and strategic-region filters");
 assert.match(functionSource(mapSource, "renderTerrainMapLegend"), /terrainLegendEntries/, "terrain legend should render the land terrain entries");
 assert.match(functionSource(mapSource, "renderTerrainMapLegend"), /els\.terrainMapLegend\.hidden = !enabled/, "terrain legend should hide outside terrain mode");
-assert.match(mapSource, /key: "plains", label: "平原", color: "#d9c989", rgb: \[217, 201, 137\]/, "terrain entries should retain precomputed RGB colors for the map layer");
+assert.match(mapSource, /key: "plains", labelKey: "enum\.terrain\.plains", color: "#d9c989", rgb: \[217, 201, 137\]/, "terrain entries should retain localized labels and precomputed RGB colors for the map layer");
 assert.match(functionSource(mapSource, "terrainPixelRgb"), /terrainLegendByKey\.get\(terrainKey\)\.rgb/, "terrain drawing should reuse precomputed RGB colors");
 assert.match(mapStylesSource, /\.terrain-map-legend\s*\{[\s\S]*flex-wrap:\s*wrap/, "terrain legend should wrap items");
 assert.match(shellStylesSource, /\.terrain-map-legend\s*\{[\s\S]*position:\s*absolute/, "terrain legend should overlay the lower map area");
 assert.equal((mapSource.match(/key: "(plains|forest|hills|mountain|jungle|wetland|desert|tundra|savanna|snow)"/g) || []).length, 10, "terrain legend should expose ten land types");
-assert.match(indexSource, /app\/map\.js\?v=20260803-state-trait-tooltip1/, "terrain map script should have a fresh cache version");
+assert.match(indexSource, /app\/map\.js\?v=20260803-multilingual-map1/, "terrain map script should have a fresh cache version");
 
 console.log(JSON.stringify({ province_terrain_map: "ok", terrain_types: terrainKeys.length }, null, 2));
 

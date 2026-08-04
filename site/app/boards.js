@@ -1,10 +1,10 @@
 const HOME_NEWS_PAGE_SIZE = 10;
 const NEWS_PAGE_SIZE = 25;
 const newsCategoryLabels = {
-  all: "全部",
-  diary: "开发日志",
-  patch: "版本更新",
-  other: "其他",
+  all: "news.category.all",
+  diary: "news.category.diary",
+  patch: "news.category.patch",
+  other: "news.category.other",
 };
 
 function visibleNewsItems(category = state.newsCategory) {
@@ -25,9 +25,9 @@ function newsItemHtml(item, className = "news-item") {
 
 function newsCategoryTabsHtml(className = "news-tabs") {
   return `
-    <div class="${className}" role="group" aria-label="游戏资讯分类">
+    <div class="${className}" role="group" aria-label="${escapeHtml(t("news.categories"))}">
       ${Object.entries(newsCategoryLabels).map(([key, label]) => `
-        <button class="${className.slice(0, -1)}" type="button" data-news-category="${key}" aria-pressed="${state.newsCategory === key}">${label}</button>
+        <button class="${className.slice(0, -1)}" type="button" data-news-category="${key}" aria-pressed="${state.newsCategory === key}">${t(label)}</button>
       `).join("")}
     </div>
   `;
@@ -47,12 +47,12 @@ function renderHomeNewsHtml() {
   const items = visibleNewsItems().slice(0, HOME_NEWS_PAGE_SIZE);
   return `
     <section class="home-side-panel home-news-panel">
-      <div class="home-side-heading"><h2>游戏资讯</h2><span>最新 ${HOME_NEWS_PAGE_SIZE} 条</span></div>
+      <div class="home-side-heading"><h2>${t("nav.news")}</h2><span>${t("news.latestCount", { count: localizedNumber(HOME_NEWS_PAGE_SIZE) })}</span></div>
       ${newsCategoryTabsHtml("home-news-tabs")}
       <div class="home-news-list">
-        ${items.length ? items.map((item) => newsItemHtml(item, "home-news-item")).join("") : `<p class="empty">暂无资讯。</p>`}
+        ${items.length ? items.map((item) => newsItemHtml(item, "home-news-item")).join("") : `<p class="empty">${t("news.empty")}</p>`}
       </div>
-      <button class="home-news-more" type="button" data-news-more>查看更多 →</button>
+      <button class="home-news-more" type="button" data-news-more>${t("news.more")} →</button>
     </section>
   `;
 }
@@ -72,24 +72,24 @@ function renderNewsBoard() {
   state.newsPage = Math.min(Math.max(1, state.newsPage), pageCount);
   const start = (state.newsPage - 1) * NEWS_PAGE_SIZE;
   const pageItems = items.slice(start, start + NEWS_PAGE_SIZE);
-  els.resultCount.textContent = "游戏资讯";
-  els.activeHint.textContent = `${newsCategoryLabels[state.newsCategory]} · ${items.length} 条`;
+  els.resultCount.textContent = t("nav.news");
+  els.activeHint.textContent = t("news.categoryCount", { category: t(newsCategoryLabels[state.newsCategory]), count: localizedNumber(items.length) });
   els.countryList.className = "country-list news-board";
   els.detail.innerHTML = "";
   els.countryList.innerHTML = `
-    <section class="news-board-panel" aria-label="游戏资讯">
+    <section class="news-board-panel" aria-label="${escapeHtml(t("nav.news"))}">
       <div class="news-board-heading">
-        <div><h2>游戏资讯</h2><p>开发日志、版本更新与官方视频。</p></div>
-        <span>第 ${state.newsPage} / ${pageCount} 页</span>
+        <div><h2>${t("nav.news")}</h2><p>${t("news.description")}</p></div>
+        <span>${t("news.page", { page: localizedNumber(state.newsPage), count: localizedNumber(pageCount) })}</span>
       </div>
       ${newsCategoryTabsHtml("news-board-tabs")}
       <div class="news-board-list">
-        ${pageItems.length ? pageItems.map((item) => newsItemHtml(item, "news-board-item")).join("") : `<p class="empty">暂无资讯。</p>`}
+        ${pageItems.length ? pageItems.map((item) => newsItemHtml(item, "news-board-item")).join("") : `<p class="empty">${t("news.empty")}</p>`}
       </div>
-      <div class="news-pagination" aria-label="资讯分页">
-        <button type="button" data-news-page="previous"${state.newsPage === 1 ? " disabled" : ""}>上一页</button>
-        <span>第 ${state.newsPage} / ${pageCount} 页</span>
-        <button type="button" data-news-page="next"${state.newsPage === pageCount ? " disabled" : ""}>下一页</button>
+      <div class="news-pagination" aria-label="${escapeHtml(t("news.pagination"))}">
+        <button type="button" data-news-page="previous"${state.newsPage === 1 ? " disabled" : ""}>${t("news.previous")}</button>
+        <span>${t("news.page", { page: localizedNumber(state.newsPage), count: localizedNumber(pageCount) })}</span>
+        <button type="button" data-news-page="next"${state.newsPage === pageCount ? " disabled" : ""}>${t("news.next")}</button>
       </div>
     </section>
   `;
@@ -121,44 +121,44 @@ function renderHomeBoard() {
   els.activeHint.textContent = "";
   els.countryList.className = "country-list home-board";
   const entries = [
-    { category: "外交", label: "国家", text: "", view: "country", icon: "assets/home/waving_flag.png" },
-    { category: "外交", label: "国家集团", text: "筹备中", icon: "assets/home/sovereign_empire.png" },
-    { category: "外交", label: "外交条约与博弈", text: "筹备中", icon: "assets/home/international_diplomacy.png" },
-    { category: "内政", label: "法律", text: "", view: "law", icon: "assets/home/law_enforcement.png" },
-    { category: "内政", label: "意识形态", text: "", view: "ideology", icon: "assets/home/democracy.png" },
-    { category: "内政", label: "日志、事件与决议", text: "筹备中", icon: "assets/home/event_default.png" },
-    { category: "社会", label: "文化", text: "", view: "culture", icon: "assets/home/nationalism.png" },
-    { category: "社会", label: "科技", text: "", view: "technology", icon: "assets/home/academia.png" },
-    { category: "社会", label: "角色", text: "筹备中", icon: "assets/home/event_portrait.png" },
-    { category: "经济", label: "地域", text: "", view: "region", icon: "assets/home/state.png" },
-    { category: "经济", label: "建筑", text: "筹备中", icon: "assets/home/manufacturies.png" },
-    { category: "经济", label: "商品", text: "筹备中", icon: "assets/home/grand_strategy_games_prestige.png" },
-    { category: "经济", label: "公司", text: "", view: "company", icon: "assets/home/companies.png" },
-    { category: "军事", label: "陆军", text: "筹备中", icon: "assets/home/line_infantry.png" },
-    { category: "军事", label: "海军", text: "筹备中", icon: "assets/home/dreadnought.png" },
-    { category: "其他", label: "成就", text: "筹备中", icon: "assets/home/icon_achievements_enabled.png" },
-    { category: "其他", label: "游戏资源展示", text: "筹备中", icon: "assets/home/romanticism.png" },
-    { category: "其他", label: "更新日志", text: "版本差异", view: "changelog", icon: "assets/home/mass_communication.png" },
+    { category: "diplomacy", label: "nav.country", view: "country", icon: "assets/home/waving_flag.png" },
+    { category: "diplomacy", label: "home.entry.powerBloc", pending: true, icon: "assets/home/sovereign_empire.png" },
+    { category: "diplomacy", label: "home.entry.diplomacy", pending: true, icon: "assets/home/international_diplomacy.png" },
+    { category: "politics", label: "nav.law", view: "law", icon: "assets/home/law_enforcement.png" },
+    { category: "politics", label: "nav.ideology", view: "ideology", icon: "assets/home/democracy.png" },
+    { category: "politics", label: "home.entry.journal", pending: true, icon: "assets/home/event_default.png" },
+    { category: "society", label: "nav.culture", view: "culture", icon: "assets/home/nationalism.png" },
+    { category: "society", label: "nav.technology", view: "technology", icon: "assets/home/academia.png" },
+    { category: "society", label: "home.entry.character", pending: true, icon: "assets/home/event_portrait.png" },
+    { category: "economy", label: "nav.region", view: "region", icon: "assets/home/state.png" },
+    { category: "economy", label: "home.entry.building", pending: true, icon: "assets/home/manufacturies.png" },
+    { category: "economy", label: "home.entry.goods", pending: true, icon: "assets/home/grand_strategy_games_prestige.png" },
+    { category: "economy", label: "nav.company", view: "company", icon: "assets/home/companies.png" },
+    { category: "military", label: "home.entry.army", pending: true, icon: "assets/home/line_infantry.png" },
+    { category: "military", label: "home.entry.navy", pending: true, icon: "assets/home/dreadnought.png" },
+    { category: "other", label: "nav.achievement", pending: true, icon: "assets/home/icon_achievements_enabled.png" },
+    { category: "other", label: "home.entry.resources", pending: true, icon: "assets/home/romanticism.png" },
+    { category: "other", label: "nav.changelog", text: "home.versionDiff", view: "changelog", icon: "assets/home/mass_communication.png" },
   ];
   const visibleEntries = isStandaloneSite ? entries.filter((entry) => entry.view !== "changelog") : entries;
-  const categories = ["外交", "内政", "经济", "军事", "社会", "其他"];
+  const categories = ["diplomacy", "politics", "economy", "military", "society", "other"];
   els.countryList.innerHTML = `
     <div class="home-category-list">
       ${categories.map((category) => {
         const categoryEntries = visibleEntries.filter((entry) => entry.category === category);
         return `
-          <section class="home-category-card" data-category="${escapeHtml(category)}" aria-label="${escapeHtml(category)}">
-            <div class="home-category-heading"><h2>${escapeHtml(category)}</h2></div>
+          <section class="home-category-card" data-category="${escapeHtml(category)}" aria-label="${escapeHtml(t(`home.category.${category}`))}">
+            <div class="home-category-heading"><h2>${escapeHtml(t(`home.category.${category}`))}</h2></div>
             <div class="home-entry-grid">
               ${categoryEntries.map((entry) => entry.view ? `
                 <button class="home-entry" type="button" data-home-view="${escapeHtml(entry.view)}">
                   <img class="home-entry-icon" src="${escapeHtml(entry.icon)}" alt="" aria-hidden="true">
-                  <span class="home-entry-copy"><strong>${escapeHtml(entry.label)}</strong>${entry.text ? `<small>${escapeHtml(entry.text)}</small>` : ""}</span>
+                  <span class="home-entry-copy"><strong>${escapeHtml(t(entry.label))}</strong>${entry.text ? `<small>${escapeHtml(t(entry.text))}</small>` : ""}</span>
                 </button>
               ` : `
-                <article class="home-entry home-entry-pending" aria-label="${escapeHtml(entry.label)}，筹备中">
+                <article class="home-entry home-entry-pending" aria-label="${escapeHtml(t("home.pendingAria", { label: t(entry.label) }))}">
                   <img class="home-entry-icon" src="${escapeHtml(entry.icon)}" alt="" aria-hidden="true">
-                  <span class="home-entry-copy"><strong>${escapeHtml(entry.label)}</strong><small>${escapeHtml(entry.text)}</small></span>
+                  <span class="home-entry-copy"><strong>${escapeHtml(t(entry.label))}</strong><small>${escapeHtml(t("home.pending"))}</small></span>
                 </article>
               `).join("")}
             </div>
@@ -179,10 +179,10 @@ function renderHomeBoard() {
   });
   els.detail.innerHTML = isStandaloneSite ? "" : `
     <section class="home-side-panel home-announcement">
-      <div class="home-side-heading"><h2>公告</h2><span>站内</span></div>
+      <div class="home-side-heading"><h2>${t("home.announcements")}</h2><span>${t("home.onSite")}</span></div>
       ${announcementItems.length
         ? `<div class="home-announcement-list">${announcementItems.map(announcementItemHtml).join("")}</div>`
-        : `<p class="home-announcement-empty">暂无公告。</p>`}
+        : `<p class="home-announcement-empty">${t("home.noAnnouncements")}</p>`}
     </section>
     ${renderHomeNewsHtml()}
   `;
@@ -193,62 +193,60 @@ function renderHomeBoard() {
 function renderSettingsDialogContent() {
   return `
     <section class="settings-placeholder settings-panel">
-      <p>这些选项会影响筛选栏、地图和国家列表的默认显示。</p>
+      <p>${t("settings.description")}</p>
       <label class="settings-toggle">
         <input id="whiteDecentralizedSetting" type="checkbox"${state.whiteDecentralized ? " checked" : ""}>
-        <span>松散政权显示为白地</span>
+        <span>${t("settings.whiteDecentralized")}</span>
       </label>
       <label class="settings-toggle">
         <input id="subjectOverlordColorsSetting" type="checkbox"${state.subjectOverlordColors ? " checked" : ""}>
-        <span>低级附属国显示为宗主国的颜色</span>
+        <span>${t("settings.subjectOverlordColors")}</span>
       </label>
       <label class="settings-toggle">
         <input id="omitIndigenousSetting" type="checkbox"${state.omitIndigenousLanguagesCultures ? " checked" : ""}>
-        <span>省略原住民语言、文化</span>
+        <span>${t("settings.omitIndigenous")}</span>
       </label>
       <label class="settings-toggle">
         <input id="omitDecentralizedTagsSetting" type="checkbox"${state.omitDecentralizedTags ? " checked" : ""}>
-        <span>过滤松散政权 tag</span>
+        <span>${t("settings.omitDecentralizedTags")}</span>
       </label>
     </section>
   `;
 }
 
 function renderAboutDialogContent() {
-  const version = data.meta?.victoria3_version || "未知";
+  const version = data.meta?.victoria3_version || t("ui.unknown");
   const isStandaloneSite = Boolean(standaloneSiteConfig);
   const siteName = isStandaloneSite ? "Victorian Century" : "Vicdata";
-  const sourceText = isStandaloneSite
-    ? "站点数据由本地《维多利亚 3》安装目录与 Victorian Century 创意工坊内容共同解析和转换。项目不是 Paradox Interactive 或《维多利亚 3》的官方项目，游戏数据、图片、名称和商标仍属于原权利方。"
-    : "站点数据来自本地《维多利亚 3》安装目录的解析和转换。项目不是 Paradox Interactive 或《维多利亚 3》的官方项目，游戏数据、图片、名称和商标仍属于原权利方。";
+  const sourceText = t(isStandaloneSite ? "about.sourceVc" : "about.sourceMain");
   return `
     <div class="about-dialog-grid">
       <section class="settings-placeholder about-intro">
         <h3>${escapeHtml(siteTitle)}</h3>
-        <p>${escapeHtml(siteName)} 是一个面向《维多利亚 3》的资料查询网站。当前站点保留 ${escapeHtml(version)} 数据，提供国家、地区、文化、公司和意识形态等条目的浏览、筛选、搜索和地图查看。</p>
-        <p>网站把游戏数据整理成静态页面，适合用来查国家标签、地区资源、公司条件、文化关系和意识形态对法律的态度。地图用于辅助查看开局归属、地区范围、文化本土和公司关联，不模拟游戏运行时的全部判断。</p>
+        <p>${escapeHtml(t("about.intro", { site: siteName, version }))}</p>
+        <p>${escapeHtml(t("about.usage"))}</p>
       </section>
-      <section class="about-stat-grid" aria-label="站点数据范围">
-        ${aboutStat("当前版本", version)}
-        ${aboutStat("国家", `${dataCount("countries", countries)} 个`)}
-        ${aboutStat("地域", `${landStateRegions.length} 个`)}
-        ${aboutStat("文化", `${dataCount("cultures", cultures)} 个`)}
-        ${aboutStat("公司", `${dataCount("companies", companies)} 个`)}
-        ${aboutStat("意识形态", `${dataCount("ideologies", ideologies)} 个`)}
+      <section class="about-stat-grid" aria-label="${escapeHtml(t("about.dataScope"))}">
+        ${aboutStat(t("about.currentVersion"), version)}
+        ${aboutStat(t("nav.country"), localizedNumber(dataCount("countries", countries)))}
+        ${aboutStat(t("nav.region"), localizedNumber(landStateRegions.length))}
+        ${aboutStat(t("nav.culture"), localizedNumber(dataCount("cultures", cultures)))}
+        ${aboutStat(t("nav.company"), localizedNumber(dataCount("companies", companies)))}
+        ${aboutStat(t("nav.ideology"), localizedNumber(dataCount("ideologies", ideologies)))}
       </section>
       <section class="settings-placeholder about-note">
-        <h3>数据与声明</h3>
+        <h3>${t("about.dataAndDisclaimer")}</h3>
         <p>${escapeHtml(sourceText)}</p>
       </section>
     </div>
-    <section class="settings-placeholder developer-card" aria-label="开发者简介">
-      <img class="developer-avatar" src="assets/about/developer.jpg" alt="开发者头像">
+    <section class="settings-placeholder developer-card" aria-label="${escapeHtml(t("about.developerProfile"))}">
+      <img class="developer-avatar" src="assets/about/developer.jpg" alt="${escapeHtml(t("about.developerAvatar"))}">
       <div class="developer-copy">
-        <h3>开发者</h3>
-        <p>这个网站由霜月制作和维护。开发者长期整理《维多利亚 3》的数据、图标和地图资料，把分散在脚本、图片和本地数据库里的内容做成可以检索、可以对照的网页。</p>
-        <p>站点的主要工作包括解析游戏文件、生成资料库、整理公开发布资源、调整中文界面，以及持续检查国家、地区、公司和意识形态页面的显示结果。</p>
+        <h3>${t("about.developer")}</h3>
+        <p>${t("about.developerBio")}</p>
+        <p>${t("about.developerWork")}</p>
         <a class="support-link" href="https://afdian.com/a/shimotsukiyukimi" target="_blank" rel="noopener noreferrer">BUY ME A TEA</a>
-        <a class="feedback-link" href="${feedbackMailto}">发送希望添加的功能到 ${feedbackEmail}</a>
+        <a class="feedback-link" href="${feedbackMailto}">${t("about.feedback", { email: feedbackEmail })}</a>
       </div>
     </section>
   `;
@@ -267,15 +265,15 @@ function renderChangelogBoard() {
   const defaultPair = changelogPairs()[0]?.id || "";
   if (!state.changelogPair && defaultPair) state.changelogPair = defaultPair;
   mapRuntime.filteredCountryTags = new Set();
-  els.resultCount.textContent = "更新日志";
+  els.resultCount.textContent = t("nav.changelog");
   els.activeHint.textContent = changelogData.targetVersion && changelogData.baseVersion
     ? `${changelogData.baseVersion} -> ${changelogData.targetVersion}`
-    : "版本变化";
+    : t("changelog.versionChanges");
   els.countryList.className = "country-list changelog-board";
   els.detail.innerHTML = "";
   renderMap([]);
   if (state.changelogLoading) {
-    els.countryList.innerHTML = `<p class="empty">正在加载更新日志。</p>`;
+    els.countryList.innerHTML = `<p class="empty">${t("changelog.loading")}</p>`;
     return;
   }
   if (state.changelogError) {
@@ -283,7 +281,7 @@ function renderChangelogBoard() {
     return;
   }
   if (changelogLoadedPair !== state.changelogPair) {
-    els.countryList.innerHTML = `<p class="empty">没有可显示的更新日志。</p>`;
+    els.countryList.innerHTML = `<p class="empty">${t("changelog.empty")}</p>`;
     ensureChangelogLoaded();
     return;
   }
@@ -539,7 +537,7 @@ function renderCountryBoard() {
   if (state.selectedTag && !byTag.has(state.selectedTag)) state.selectedTag = "";
   if (!isDetailPageRoute() && state.selectedTag && !filtered.some((country) => country.tag === state.selectedTag)) state.selectedTag = "";
   const selectedCountry = byTag.get(state.selectedTag);
-  els.resultCount.textContent = `${filtered.length} 个国家`;
+  els.resultCount.textContent = t("board.country.resultCount", { count: localizedNumber(filtered.length) });
   els.activeHint.textContent = buildActiveHint(filtered.length);
   renderCountryList(filtered);
   renderMap(countryMapStateRegions(selectedCountry));
@@ -559,7 +557,7 @@ function renderCultureBoard() {
   const filtered = cultures.filter(matchesCultureFilters).sort(sortCultures);
   if (state.selectedCulture && !byCulture.has(state.selectedCulture)) state.selectedCulture = "";
   if (!isDetailPageRoute() && state.selectedCulture && !filtered.some((culture) => culture.key === state.selectedCulture)) state.selectedCulture = "";
-  els.resultCount.textContent = `${filtered.length} 个文化`;
+  els.resultCount.textContent = t("board.culture.resultCount", { count: localizedNumber(filtered.length) });
   els.activeHint.textContent = buildActiveHint(filtered.length);
   renderCultureList(filtered);
   renderMap(stateRegions);
@@ -596,7 +594,7 @@ function renderRegionBoard() {
     state.detailKind = regionListModeDetailKind();
   }
   const selectedStateRegion = byStateRegion.get(state.selectedStateRegion);
-  els.resultCount.textContent = `地域 ${filteredStateRegions.length} 个`;
+  els.resultCount.textContent = t("board.region.resultCount", { count: localizedNumber(filteredStateRegions.length) });
   els.activeHint.textContent = buildActiveHint(filteredStateRegions.length);
   renderRegionList(filteredStrategicRegions, filteredStateRegions, filteredSeaRegions, filteredGeographicRegions);
   renderMap(regionMapStateRegions(filteredStateRegions, filteredSeaStateRegions, filteredGeographicRegions));
@@ -636,7 +634,7 @@ function renderCompanyBoard() {
   if (!isDetailPageRoute() && state.selectedCompany && !filtered.some((company) => company.key === state.selectedCompany)) state.selectedCompany = "";
   const selectedCompany = byCompany.get(state.selectedCompany);
   mapRuntime.companyMapCompanies = selectedCompany ? [selectedCompany] : filtered;
-  els.resultCount.textContent = `${filtered.length} 个公司`;
+  els.resultCount.textContent = t("board.company.resultCount", { count: localizedNumber(filtered.length) });
   els.activeHint.textContent = buildActiveHint(filtered.length);
   renderCompanyList(filtered);
   if (isDetailPageRoute() && companyDetailLocationMapEnabled(selectedCompany) && companyLocationStateRegionKeys(selectedCompany).length) {
@@ -649,7 +647,7 @@ function renderIdeologyBoard() {
   const filtered = ideologies.filter(matchesIdeologyFilters).sort(sortIdeologies);
   if (state.selectedIdeology && !ideologyByKey.has(state.selectedIdeology)) state.selectedIdeology = "";
   if (!isDetailPageRoute() && state.selectedIdeology && !filtered.some((ideology) => ideology.key === state.selectedIdeology)) state.selectedIdeology = "";
-  els.resultCount.textContent = `${filtered.length} 个意识形态`;
+  els.resultCount.textContent = t("board.ideology.resultCount", { count: localizedNumber(filtered.length) });
   els.activeHint.textContent = buildActiveHint(filtered.length);
   renderIdeologyList(filtered);
 }
@@ -658,7 +656,7 @@ function renderLawBoard() {
   const filtered = laws.filter(matchesLawFilters).sort(sortLaws);
   if (state.selectedLaw && !lawByKey.has(state.selectedLaw)) state.selectedLaw = "";
   if (!isDetailPageRoute() && state.selectedLaw && !filtered.some((law) => law.key === state.selectedLaw)) state.selectedLaw = "";
-  els.resultCount.textContent = `${filtered.length} 条法律`;
+  els.resultCount.textContent = t("board.law.resultCount", { count: localizedNumber(filtered.length) });
   els.activeHint.textContent = buildActiveHint(filtered.length);
   renderLawList(filtered);
 }
@@ -878,7 +876,7 @@ function technologyGraphLayout() {
   const nodes = new Map();
   eras.forEach((era, eraIndex) => {
     const eraTechnologies = technologies.filter((item) => item.category === technologyGraphCategory && item.era === era)
-      .sort((a, b) => a.name_zh.localeCompare(b.name_zh, "zh-Hans-CN"));
+      .sort((a, b) => localizedCompare(entityText(a), entityText(b)));
     eraTechnologies.forEach((technology) => {
       const position = technologyPositions?.[technology.key] || nextAvailablePosition(eraIndex);
       const { column, row } = position;
@@ -932,21 +930,21 @@ function technologyEdgePath(from, to) {
 function technologyNodeHtml(node) {
   const selected = node.technology.key === state.selectedTechnology;
   const iconFile = node.technology.icon.split("/").pop().replace(/\.dds$/i, ".webp");
-  return `<button class="technology-node" type="button" data-technology-key="${escapeHtml(node.technology.key)}" aria-pressed="${selected}" style="left:${node.x}px;top:${node.y}px"><img src="assets/technologies/${escapeHtml(iconFile)}" alt="" aria-hidden="true"><span>${escapeHtml(node.technology.name_zh)}</span>${victorianCenturyBadge(node.technology)}</button>`;
+  return `<button class="technology-node" type="button" data-technology-key="${escapeHtml(node.technology.key)}" aria-pressed="${selected}" style="left:${node.x}px;top:${node.y}px"><img src="assets/technologies/${escapeHtml(iconFile)}" alt="" aria-hidden="true"><span>${escapeHtml(entityText(node.technology))}</span>${victorianCenturyBadge(node.technology)}</button>`;
 }
 
 function renderTechnologyBoard() {
   const layout = technologyGraphLayout();
   const selected = technologyByKey.get(state.selectedTechnology) || null;
-  const normalizedSearch = state.technologySearch.trim().toLocaleLowerCase("zh-Hans-CN");
-  const visibleNodes = [...layout.nodes.values()].filter((node) => !normalizedSearch || `${node.technology.name_zh} ${node.technology.key}`.toLocaleLowerCase("zh-Hans-CN").includes(normalizedSearch));
+  const normalizedSearch = state.technologySearch.trim();
+  const visibleNodes = [...layout.nodes.values()].filter((node) => !normalizedSearch || matchesLocalizedQuery(node.technology, normalizedSearch));
   const visibleNodeKeys = new Set(visibleNodes.map((node) => node.technology.key));
   const edges = technologyGraphEdges(layout).filter(({ from, to }) => visibleNodeKeys.has(from.technology.key) && visibleNodeKeys.has(to.technology.key));
   els.countryList.className = "country-list technology-board";
   els.resultCount.textContent = "";
   els.activeHint.textContent = "";
-  const categoryLabels = { production: "生产", military: "军事", society: "社会" };
-  els.countryList.innerHTML = `<section class="technology-shell"><div class="technology-controls"><select data-technology-category-select aria-label="科技类别">${Object.entries(categoryLabels).map(([key,label]) => `<option value="${key}" ${layout.technologyGraphCategory === key ? "selected" : ""}>${label}</option>`).join("")}</select><input type="search" data-technology-search aria-label="搜索科技" placeholder="搜索科技" value="${escapeHtml(state.technologySearch)}"><button class="map-tool-button" type="button" data-technology-reset aria-label="重置视图" title="重置视图"><img class="lucide-icon" src="assets/lucide/icons/refresh-ccw.svg" alt="" aria-hidden="true"></button></div><div class="technology-graph-viewport"><div class="technology-graph-canvas technology-grid-${layout.technologyGridColumns}x${layout.technologyGridRows}" style="width:${layout.width}px;height:${layout.height}px;transform:translate(${state.technologyViewport.x}px,${state.technologyViewport.y}px) scale(${state.technologyViewport.scale})"><svg class="technology-graph-edges" width="${layout.width}" height="${layout.height}" aria-hidden="true">${edges.map(({ from, to }) => { const highlighted = selected && (from.technology.key === selected.key || to.technology.key === selected.key); const stroke = highlighted ? "#c8a45b" : "#b7a883"; const strokeWidth = highlighted ? 5 : 3; const path = technologyEdgePath(from, to); return `<path d="${path}" fill="none" class="${highlighted ? "is-highlighted" : ""}" style="fill:none !important;stroke:${stroke} !important;stroke-width:${strokeWidth} !important"/>`; }).join("")}</svg>${visibleNodes.map(technologyNodeHtml).join("")}</div></div><div class="technology-mobile-list">${technologyEras.map((era) => `<details open><summary>${era.label_zh}</summary>${visibleNodes.filter((node) => node.technology.era === era.key).map(technologyNodeHtml).join("")}</details>`).join("")}</div><div class="technology-local-graph">${selected ? `已选：${escapeHtml(selected.name_zh)}　前置 ${selected.prerequisites.length}　后续 ${selected.unlocks.length}` : "选择科技查看局部关系"}</div></section>`;
+  const categoryLabels = Object.fromEntries(["production", "military", "society"].map((key) => [key, t(`enum.technology.${key}`, key)]));
+  els.countryList.innerHTML = `<section class="technology-shell"><div class="technology-controls"><select data-technology-category-select aria-label="${escapeHtml(t("board.technology.category", "科技类别"))}">${Object.entries(categoryLabels).map(([key,label]) => `<option value="${key}" ${layout.technologyGraphCategory === key ? "selected" : ""}>${escapeHtml(label)}</option>`).join("")}</select><input type="search" data-technology-search aria-label="${escapeHtml(t("board.technology.search", "搜索科技"))}" placeholder="${escapeHtml(t("board.technology.search", "搜索科技"))}" value="${escapeHtml(state.technologySearch)}"><button class="map-tool-button" type="button" data-technology-reset aria-label="${escapeHtml(t("board.technology.resetView", "重置视图"))}" title="${escapeHtml(t("board.technology.resetView", "重置视图"))}"><img class="lucide-icon" src="assets/lucide/icons/refresh-ccw.svg" alt="" aria-hidden="true"></button></div><div class="technology-graph-viewport"><div class="technology-graph-canvas technology-grid-${layout.technologyGridColumns}x${layout.technologyGridRows}" style="width:${layout.width}px;height:${layout.height}px;transform:translate(${state.technologyViewport.x}px,${state.technologyViewport.y}px) scale(${state.technologyViewport.scale})"><svg class="technology-graph-edges" width="${layout.width}" height="${layout.height}" aria-hidden="true">${edges.map(({ from, to }) => { const highlighted = selected && (from.technology.key === selected.key || to.technology.key === selected.key); const stroke = highlighted ? "#c8a45b" : "#b7a883"; const strokeWidth = highlighted ? 5 : 3; const path = technologyEdgePath(from, to); return `<path d="${path}" fill="none" class="${highlighted ? "is-highlighted" : ""}" style="fill:none !important;stroke:${stroke} !important;stroke-width:${strokeWidth} !important"/>`; }).join("")}</svg>${visibleNodes.map(technologyNodeHtml).join("")}</div></div><div class="technology-mobile-list">${technologyEras.map((era) => `<details open><summary>${escapeHtml(entityText(era, "label", t(`enum.technologyEra.${era.key}`, era.key)))}</summary>${visibleNodes.filter((node) => node.technology.era === era.key).map(technologyNodeHtml).join("")}</details>`).join("")}</div><div class="technology-local-graph">${selected ? t("board.technology.localRelation", { name: entityText(selected), prerequisites: localizedNumber(selected.prerequisites.length), unlocks: localizedNumber(selected.unlocks.length) }) : t("board.technology.selectForRelations", "选择科技查看局部关系")}</div></section>`;
   els.detail.innerHTML = renderTechnologyDetail(selected);
   els.countryList.querySelectorAll("[data-technology-key]").forEach((button) => {
     button.addEventListener("pointerdown", (event) => event.stopPropagation());
@@ -965,14 +963,17 @@ function renderTechnologyBoard() {
 
 function renderTechnologyDetail(technology) {
   if (!technology) return "";
-  const relation = (items, label) => `<section><h3>${label}</h3><div class="technology-relation-tags">${items.length ? items.map((item) => `<button class="pill tag-technology" type="button" data-technology-target="${escapeHtml(item.key)}">${escapeHtml(item.name_zh)}</button>`).join("") : "无"}</div></section>`;
+  const relation = (items, label) => `<section><h3>${escapeHtml(label)}</h3><div class="technology-relation-tags">${items.length ? items.map((item) => `<button class="pill tag-technology" type="button" data-technology-target="${escapeHtml(item.key)}">${escapeHtml(entityText(item))}</button>`).join("") : t("ui.none", "无")}</div></section>`;
   const refs = technology.references || { laws: [], companies: [] };
-  const linkItems = (items, route) => items.length ? items.map((item) => `<a class="pill" href="#/${route}/${encodeURIComponent(item.key)}">${escapeHtml(item.name_zh)}</a>`).join("") : "无";
+  const linkItems = (items, route) => items.length ? items.map((item) => `<a class="pill" href="#/${route}/${encodeURIComponent(item.key)}">${escapeHtml(entityText(item))}</a>`).join("") : t("ui.none", "无");
   queueMicrotask(() => {
     document.querySelectorAll("[data-technology-target]").forEach((button) => button.addEventListener("click", () => { location.hash = `/technology/${encodeURIComponent(button.dataset.technologyTarget)}`; }));
     document.querySelector("[data-technology-back]")?.addEventListener("click", () => { location.hash = "/technology"; });
   });
-  return `<section class="technology-detail"><div class="detail-title"><button class="detail-back-button" type="button" data-technology-back aria-label="返回科技树" title="返回科技树"><img class="lucide-icon" src="assets/lucide/icons/arrow-left.svg" alt="" aria-hidden="true"></button><div class="detail-title-main"><h2>${escapeHtml(technology.name_zh)}</h2></div>${victorianCenturyBadge(technology)}</div><p>${escapeHtml(technology.category_zh)} · ${escapeHtml(technology.era_label_zh)} · ${escapeHtml(String(technology.era_cost))} 创新力</p><p>${escapeHtml(technology.desc_zh || "无说明")}</p>${relation(technology.prerequisites.map((key) => technologyByKey.get(key)).filter(Boolean), "前置科技")}${relation(technology.unlocks, "后续科技")}<section><h3>修正效果</h3>${technology.modifiers.length ? technology.modifiers.map((item) => `<p>${escapeHtml(item.summary_zh)}</p>`).join("") : "无"}</section><section><h3>关联法律</h3>${linkItems(refs.laws, "law")}</section><section><h3>关联公司</h3>${linkItems(refs.companies, "company")}</section></section>`;
+  const eraLabel = t(`enum.technologyEra.${technology.era}`, technology.era);
+  const meta = t("board.technology.meta", { category: t(`enum.technology.${technology.category}`, technology.category), era: eraLabel, cost: localizedNumber(technology.era_cost) });
+  const description = entityText(technology, "description", t("ui.noDescription", "无说明"));
+  return `<section class="technology-detail"><div class="detail-title"><button class="detail-back-button" type="button" data-technology-back aria-label="${escapeHtml(t("board.technology.back", "返回科技树"))}" title="${escapeHtml(t("board.technology.back", "返回科技树"))}"><img class="lucide-icon" src="assets/lucide/icons/arrow-left.svg" alt="" aria-hidden="true"></button><div class="detail-title-main"><h2>${escapeHtml(entityText(technology))}</h2></div>${victorianCenturyBadge(technology)}</div><p>${escapeHtml(meta)}</p><p>${escapeHtml(description)}</p>${relation(technology.prerequisites.map((key) => technologyByKey.get(key)).filter(Boolean), t("board.technology.prerequisites", "前置科技"))}${relation(technology.unlocks, t("board.technology.unlocks", "后续科技"))}<section><h3>${t("board.technology.modifiers", "修正效果")}</h3>${technology.modifiers.length ? technology.modifiers.map((item) => `<p>${escapeHtml(renderTextSpec({ message: item.loc?.summary, fallback: item.key }))}</p>`).join("") : t("ui.none", "无")}</section><section><h3>${t("board.technology.relatedLaws", "关联法律")}</h3>${linkItems(refs.laws, "law")}</section><section><h3>${t("board.technology.relatedCompanies", "关联公司")}</h3>${linkItems(refs.companies, "company")}</section></section>`;
 }
 
 function renderDetailForState() {
@@ -1013,8 +1014,8 @@ function renderGlobalSearchBoard() {
   if (!state.selectedGlobalResult || !results.some((item) => item.id === state.selectedGlobalResult)) {
     state.selectedGlobalResult = results[0]?.id || "";
   }
-  els.resultCount.textContent = `${results.length} 个全局结果`;
-  els.activeHint.textContent = state.globalSearch ? `搜索：${state.globalSearch}` : "";
+  els.resultCount.textContent = tc("results.count", results.length, { count: localizedNumber(results.length) });
+  els.activeHint.textContent = state.globalSearch ? t("search.activeQuery", { query: state.globalSearch }) : "";
   renderGlobalSearchList(results);
   renderGlobalSearchDetail(results.find((item) => item.id === state.selectedGlobalResult) || null);
 }
@@ -1022,7 +1023,7 @@ function renderGlobalSearchBoard() {
 function renderGlobalSearchList(results) {
   els.countryList.className = "country-list global-search-list";
   if (!results.length) {
-    els.countryList.innerHTML = `<p class="empty">没有匹配结果。</p>`;
+    els.countryList.innerHTML = `<p class="empty">${t("search.noResults")}</p>`;
     return;
   }
   const groups = [];
@@ -1059,11 +1060,11 @@ function renderGlobalSearchDialogResults() {
   if (!els.globalSearchDialogResults) return;
   const results = globalSearchResults(state.globalSearch);
   if (!state.globalSearch) {
-    els.globalSearchDialogResults.innerHTML = `<p class="empty">输入文本后显示相关资料。</p>`;
+    els.globalSearchDialogResults.innerHTML = `<p class="empty">${t("search.enterQuery")}</p>`;
     return;
   }
   if (!results.length) {
-    els.globalSearchDialogResults.innerHTML = `<p class="empty">没有匹配结果。</p>`;
+    els.globalSearchDialogResults.innerHTML = `<p class="empty">${t("search.noResults")}</p>`;
     return;
   }
   const groups = [];
@@ -1136,6 +1137,7 @@ async function navigateGlobalSearchResult(kind, key) {
   else if (kind === "ideology") replaceHash(`/ideology/${encodeURIComponent(key)}`);
   else if (kind === "law") replaceHash(`/law/${encodeURIComponent(key)}`);
   else if (kind === "technology") replaceHash(`/technology/${encodeURIComponent(key)}`);
+  else if (kind === "achievement") replaceHash(`/achievement/${encodeURIComponent(key)}`);
   else return;
   await applyHash();
   render();
@@ -1143,7 +1145,7 @@ async function navigateGlobalSearchResult(kind, key) {
 
 function renderGlobalSearchDetail(result) {
   if (!result) {
-    els.detail.innerHTML = `<p class="empty">没有匹配结果。</p>`;
+    els.detail.innerHTML = `<p class="empty">${t("search.noResults")}</p>`;
     return;
   }
   if (result.kind === "country") return renderCountryDetail(byTag.get(result.key));
@@ -1173,151 +1175,58 @@ function renderGlobalSearchDetail(result) {
 function globalSearchResults(query) {
   const needle = normalizeSearchText(query);
   if (!needle) return [];
-  const results = [];
-  const add = (result) => {
-    const haystack = normalizeSearchText([result.title, result.key, result.aliases, result.subtitle, result.searchText].flat().filter(Boolean).join(" "));
-    if (!haystack.includes(needle)) return;
-    const title = normalizeSearchText(result.title || "");
-    const key = normalizeSearchText(result.key || "");
-    const score = title === needle ? 0 : key === needle ? 1 : title.startsWith(needle) ? 2 : haystack.indexOf(needle) + 10;
-    results.push({ ...result, displayTitle: globalSearchDisplayTitle(result, needle), score });
-  };
-  countries.forEach((country) => add({
-    id: `country:${country.tag}`,
-    kind: "country",
-    typeLabel: "国家",
-    key: country.tag,
-    title: country.name,
-    subtitle: [countryTypeTagLabel(country), country.tierZh].filter(Boolean).join("，"),
-    color: country.colorHex,
-    raw: country,
-    searchText: countrySearchBlob(country),
-  }));
-  cultures.forEach((culture) => add({
-    id: `culture:${culture.key}`,
-    kind: "culture",
-    typeLabel: "文化",
-    key: culture.key,
-    title: culture.name_zh || culture.key,
-    subtitle: [culture.heritage?.name_zh, culture.language?.name_zh].filter(Boolean).join("，"),
-    raw: culture,
-    searchText: cultureSearchBlob(culture),
-  }));
-  landStateRegions.forEach((stateRegion) => add({
-    id: `stateRegion:${stateRegion.key}`,
-    kind: "stateRegion",
-    typeLabel: "地区",
-    key: stateRegion.key,
-    title: stateRegion.name_zh || stateRegion.key,
-    aliases: stateRegionVariantNames(stateRegion),
-    subtitle: refNames(stateRegion.strategic_regions),
-    color: byStrategicRegion.get(stateRegion.strategic_regions?.[0]?.key)?.map_color?.hex || "",
-    raw: stateRegion,
-    searchText: stateRegionSearchBlob(stateRegion),
-  }));
-  landStrategicRegions.forEach((region) => add({
-    id: `strategicRegion:${region.key}`,
-    kind: "strategicRegion",
-    typeLabel: "战略区域",
-    key: region.key,
-    title: strategicRegionName(region),
-    subtitle: `地域 ${(region.states || []).length} 个`,
-    color: region.map_color?.hex || "",
-    raw: region,
-    searchText: strategicRegionSearchBlob(region),
-  }));
-  groupedGeographicRegions.forEach((region) => add({
-    id: `geographicRegion:${region.key}`,
-    kind: "geographicRegion",
-    typeLabel: "地理区域",
-    key: region.key,
-    title: geographicRegionDisplayName(region),
-    subtitle: `地域 ${geographicRegionStateRegions(region).length} 个`,
-    raw: region,
-    searchText: geographicRegionSearchBlob(region),
-  }));
-  companies.forEach((company) => add({
-    id: `company:${company.key}`,
-    kind: "company",
-    typeLabel: "公司",
-    key: company.key,
-    title: company.name_zh || company.key,
-    subtitle: companyKindText(company),
-    raw: company,
-    searchText: companySearchBlob(company),
-  }));
-  ideologies.forEach((ideology) => add({
-    id: `ideology:${ideology.key}`,
-    kind: "ideology",
-    typeLabel: "意识形态",
-    key: ideology.key,
-    title: ideology.name_zh || ideology.key,
-    subtitle: ideologyTypeLabels.get(ideologyTypeKey(ideology)) || "",
-    raw: ideology,
-    searchText: ideologySearchBlob(ideology),
-  }));
-  laws.forEach((law) => add({
-    id: `law:${law.key}`,
-    kind: "law",
-    typeLabel: "法律",
-    key: law.key,
-    title: law.name_zh || law.key,
-    subtitle: law.group_name_zh || law.group_key || "",
-    raw: law,
-    searchText: lawSearchBlob(law),
-  }));
-  technologies.forEach((technology) => add({
-    id: `technology:${technology.key}`,
-    kind: "technology",
-    typeLabel: "科技",
-    key: technology.key,
-    title: technology.name_zh || technology.key,
-    subtitle: [technology.category_zh, technology.era_label_zh].filter(Boolean).join("，"),
-    raw: technology,
-    searchText: [technology.name_zh, technology.key, technology.desc_zh, technology.category_zh, technology.era_label_zh].filter(Boolean).join(" "),
-  }));
-  cultureTraits.forEach((trait) => add({
-    id: `cultureTrait:${trait.key}`,
-    kind: "cultureTrait",
-    typeLabel: trait.type_zh || "文化特质",
-    key: trait.key,
-    title: trait.name_zh || trait.key,
-    subtitle: trait.group_name_zh || trait.type_zh || "",
-    searchText: [trait.name_zh, trait.key, trait.group_name_zh, trait.type_zh].filter(Boolean).join(" "),
-  }));
-  cultureTraitGroups.forEach((group) => add({
-    id: `cultureTraitGroup:${group.key}`,
-    kind: "cultureTraitGroup",
-    typeLabel: group.type === "language" ? "语族" : group.type_zh ? `${group.type_zh}组` : "文化特质组",
-    key: group.key,
-    title: group.name_zh || group.key,
-    subtitle: group.type_zh || "",
-    searchText: [group.name_zh, group.key, group.type_zh].filter(Boolean).join(" "),
-  }));
-  interestGroups.forEach((group) => add({
-    id: `interestGroup:${group.key}`,
-    kind: "interestGroup",
-    typeLabel: "利益集团",
-    key: group.key,
-    title: group.name_zh || group.key,
-    subtitle: group.desc_zh || "",
-    color: group.color?.hex || "",
-    searchText: [group.name_zh, group.key, group.desc_zh].filter(Boolean).join(" "),
-  }));
-  interestGroupTraits.forEach((trait) => add({
-    id: `interestGroupTrait:${trait.key}`,
-    kind: "interestGroupTrait",
-    typeLabel: "利益集团特质",
-    key: trait.key,
-    title: trait.name_zh || trait.key,
-    subtitle: trait.modifier_summary_zh || "",
-    searchText: [trait.name_zh, trait.key, trait.desc_zh, trait.modifier_summary_zh].filter(Boolean).join(" "),
-  }));
-  interestGroupFlavorSearchResults().forEach(add);
-  const order = new Map(["国家", "文化", "地区", "地理区域", "语言", "语族", "传承", "传承组", "传统", "战略区域", "公司", "意识形态", "法律", "科技", "利益集团", "利益集团特质", "利益集团风味"].map((label, index) => [label, index]));
+  const results = (window.VIC3_SEARCH_INDEX?.entries || []).flatMap((entry) => {
+    const names = Object.values(entry.names || {}).filter(Boolean);
+    const haystack = normalizeSearchText([entry.key, ...names].join(" "));
+    if (!haystack.includes(needle)) return [];
+    const title = entry.names?.[localeRuntime.current] || entry.names?.en || entry.key;
+    const aliases = [...new Set(names.filter((name) => name !== title))];
+    const normalizedTitle = normalizeSearchText(title);
+    const normalizedKey = normalizeSearchText(entry.key);
+    const score = normalizedTitle === needle
+      ? 0
+      : normalizedKey === needle
+        ? 1
+        : normalizedTitle.startsWith(needle)
+          ? 2
+          : haystack.indexOf(needle) + 10;
+    const kind = searchResultKind(entry.kind);
+    const result = {
+      ...entry,
+      kind,
+      typeLabel: t(`entity.${kind}`),
+      title,
+      aliases,
+      raw: searchResultEntity(kind, entry.key),
+      score,
+    };
+    return [{ ...result, displayTitle: globalSearchDisplayTitle(result, needle) }];
+  });
+  const order = new Map(["country", "culture", "stateRegion", "geographicRegion", "cultureTrait", "cultureTraitGroup", "strategicRegion", "company", "ideology", "law", "technology", "achievement", "interestGroup", "interestGroupTrait", "interestGroupFlavor"].map((kind, index) => [kind, index]));
   return results
-    .sort((a, b) => a.score - b.score || orderValue(order, a.typeLabel) - orderValue(order, b.typeLabel) || a.title.localeCompare(b.title, "zh-Hans-CN"))
+    .sort((a, b) => a.score - b.score || orderValue(order, a.kind) - orderValue(order, b.kind) || localizedCompare(a.title, b.title))
     .slice(0, 120);
+}
+
+function searchResultKind(kind) {
+  return kind === "region" ? "stateRegion" : kind;
+}
+
+function searchResultEntity(kind, key) {
+  if (kind === "country") return byTag.get(key);
+  if (kind === "culture") return byCulture.get(key);
+  if (kind === "stateRegion") return byStateRegion.get(key);
+  if (kind === "strategicRegion") return byStrategicRegion.get(key);
+  if (kind === "geographicRegion") return byGeographicRegion.get(key);
+  if (kind === "company") return byCompany.get(key);
+  if (kind === "ideology") return ideologyByKey.get(key);
+  if (kind === "law") return lawByKey.get(key);
+  if (kind === "technology") return technologyByKey.get(key);
+  if (kind === "achievement") return achievementByKey.get(key);
+  if (kind === "cultureTrait") return cultureTraitByKey.get(key);
+  if (kind === "interestGroup") return interestGroups.find((item) => item.key === key);
+  if (kind === "interestGroupTrait") return interestGroupTraitByKey.get(key);
+  return null;
 }
 
 function normalizeSearchText(value) {
@@ -1336,7 +1245,7 @@ function renderCultureTraitDetail(result) {
     }
     return false;
   }).sort(sortCultures);
-  const title = trait?.name_zh || group?.name_zh || result.title;
+  const title = entityText(trait || group) || result.title;
   els.detail.innerHTML = `
     <div class="detail-title">
       <div class="detail-title-main"><h2>${escapeHtml(title)}</h2></div>
@@ -1345,8 +1254,8 @@ function renderCultureTraitDetail(result) {
     <dl class="field-grid">
       ${field("编号", escapeHtml(result.key))}
       ${field("类型", escapeHtml(result.typeLabel))}
-      ${field("所属组", escapeHtml(trait?.group_name_zh || group?.type_zh || ""))}
-      ${field("相关文化", cultureLinks(relatedCultures.map((culture) => ({ key: culture.key, name_zh: culture.name_zh || culture.key }))))}
+      ${field("所属组", escapeHtml(entityText(trait, "groupName", "") || entityText(group, "type", "")))}
+      ${field("相关文化", cultureLinks(relatedCultures))}
     </dl>
   `;
 }
@@ -1361,7 +1270,7 @@ function renderInterestGroupDetail(result) {
     <div class="detail-title">
       <div class="detail-title-main">
         ${interestGroupIconHtml(group)}
-        <h2>${escapeHtml(group.name_zh || group.key)}</h2>
+        <h2>${escapeHtml(entityText(group))}</h2>
       </div>
       <span class="tag">${escapeHtml(group.key)}</span>
     </div>
@@ -1382,7 +1291,7 @@ function renderInterestGroupTraitDetail(result) {
   }
   els.detail.innerHTML = `
     <div class="detail-title">
-      <div class="detail-title-main"><h2>${escapeHtml(trait.name_zh || trait.key)}</h2></div>
+      <div class="detail-title-main"><h2>${escapeHtml(entityText(trait))}</h2></div>
       <span class="tag">${escapeHtml(trait.key)}</span>
     </div>
     ${interestGroupTraitDetailCard(trait)}

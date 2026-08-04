@@ -9,12 +9,12 @@ const buildScript = read("scripts/build_wiki.mjs");
 const appSource = readSiteAppSource(root);
 const styleSource = readSiteStyleSource(root);
 
-assert.match(indexHtml, /app\/economy\.js\?v=20260804-goods-detail1/, "economy script must use the expanded goods-detail cache version");
-assert.match(indexHtml, /styles\.css\?v=20260804-goods-detail2/, "site styles must use the current goods-detail cache version");
+assert.match(indexHtml, /app\/economy\.js\?v=20260804-multilingual-economy1/, "economy script must use the multilingual economy cache version");
+assert.match(indexHtml, /styles\.css\?v=20260804-multilingual-economy1/, "site styles must use the multilingual economy cache version");
 
 for (const view of ["building", "goods"]) {
   assert(indexHtml.includes(`data-nav-view="${view}"`), `top navigation must include ${view}`);
-  assert(indexHtml.includes(`<option value="${view}">`), `mobile view selector must include ${view}`);
+  assert(indexHtml.includes(`<option value="${view}" data-i18n="nav.${view}">`), `mobile view selector must include localized ${view}`);
   assert(appSource.includes(`view === "${view}"`), `runtime must recognize ${view} view`);
   assert(appSource.includes(`parts[0] === "${view}"`), `router must recognize ${view} route`);
   assert(appSource.includes(`render${view === "building" ? "Building" : "Goods"}Board()`), `${view} board must render`);
@@ -35,11 +35,11 @@ for (const text of [
   "productionCombinationSummaryHtml",
   "data-production-method-picker",
   "data-production-summary",
-  "标准产值",
+  "board.economy.standardOutputLabel",
   "data-production-standard-output",
   "annualProfitPerWorker",
   "goodByKey.get(goodKey)?.price",
-  "method.description_zh",
+  'entityText(method, "description"',
   "combined: true",
   "data-production-method-key",
   "economyAsset(\"production-methods\"",

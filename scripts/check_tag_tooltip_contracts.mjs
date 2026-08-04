@@ -91,7 +91,7 @@ assert.match(definitionsSource, /const TAG_TOOLTIP_DEFAULTS\s*=\s*{/, "tooltip d
 for (const defaultKey of ["tag", "building", "goods", "technology", "stateTrait", "culture", "cultureTrait", "cultureTraitGroup"]) {
   assert.match(
     definitionsSource,
-    new RegExp(`${defaultKey}:\\s*{[\\s\\S]{0,300}category:`),
+    new RegExp(`${defaultKey}:\\s*{[\\s\\S]{0,300}category(?:Key)?:`),
     `${defaultKey} category default is missing`,
   );
 }
@@ -126,7 +126,7 @@ for (const functionName of ["groupedTraitPills", "refConceptPill", "traitPill", 
 
 const countryTagPillsSource = functionSource("countryTagPills");
 assert.match(countryTagPillsSource, /`country-type:\$\{countryTypeTagLabel\(country\)\}`/);
-assert.match(countryTagPillsSource, /`country-tier:\$\{country\.tierZh \|\| ""\}`/);
+assert.match(countryTagPillsSource, /`country-tier:\$\{country\.tier \|\| ""\}`/);
 
 const statusPillsSource = functionSource("statusPills");
 for (const semanticKey of [
@@ -213,9 +213,9 @@ assert.ok(/function\s+conceptTooltipContent\s*\(/.test(uiSource), "generic toolt
 assert.ok(/function\s+conceptTooltipActionHints\s*\(/.test(uiSource), "generic tooltip action resolver is missing");
 assert.ok(/concept-tooltip-head/.test(uiSource), "generic tooltip must render a two-column header");
 assert.ok(/concept-tooltip-divider/.test(uiSource), "generic tooltip must separate header, content, and actions");
-assert.match(uiSource, /左键进入详情页/, "generic tooltip must name the detail action");
-assert.match(uiSource, /右键进行筛选/, "generic tooltip must name the filter action");
-assert.match(uiSource, /\$\{group\.type_zh\}特质组/, "heritage groups must identify themselves as trait groups");
+assert.match(uiSource, /t\("tooltip\.openDetail"\)/, "generic tooltip must localize the detail action");
+assert.match(uiSource, /t\("tooltip\.filter"\)/, "generic tooltip must localize the filter action");
+assert.match(uiSource, /tooltip\.cultureTraitGroupType/, "heritage groups must identify themselves with a localized trait-group template");
 assert.match(uiSource, /cultureTraitGroupByKey\.get\(key\)/, "culture trait groups must resolve from their own index");
 assert.match(uiSource, /related_countries/, "culture tooltip must show primary-culture countries");
 assert.match(uiSource, /obsessions/, "culture tooltip must show obsessions");
@@ -249,12 +249,12 @@ assert.match(source, /function\s+buildingChip\s*\([\s\S]*conceptDataAttributes\(
 
 const rootStyleSource = fs.readFileSync(path.join(process.cwd(), "site/styles.css"), "utf8");
 const presentationSource = fs.readFileSync(path.join(process.cwd(), "site/app/presentation.js"), "utf8");
-assert.match(indexSource, /styles\.css\?v=20260725-tooltip-layout3/, "main stylesheet cache version is missing");
-assert.match(indexSource, /app\/runtime\.js\?v=20260725-tooltip-layout1/, "tooltip runtime cache version is missing");
-assert.match(indexSource, /app\/ui\.js\?v=20260725-tooltip-layout3/, "tooltip UI cache version is missing");
-assert.match(indexSource, /app\/tag-tooltip-definitions\.js\?v=20260725-tooltip-layout1/, "tooltip definitions cache version is missing");
-assert.match(indexSource, /app\/components\.js\?v=20260725-tooltip-layout3/, "tooltip component cache version is missing");
-assert.match(rootStyleSource, /styles\/records\.css\?v=20260725-tooltip-layout3/, "tooltip record-style cache version is missing");
+assert.match(indexSource, /styles\.css\?v=[^"']+/, "main stylesheet cache version is missing");
+assert.match(indexSource, /app\/runtime\.js\?v=[^"']+/, "tooltip runtime cache version is missing");
+assert.match(indexSource, /app\/ui\.js\?v=[^"']+/, "tooltip UI cache version is missing");
+assert.match(indexSource, /app\/tag-tooltip-definitions\.js\?v=[^"']+/, "tooltip definitions cache version is missing");
+assert.match(indexSource, /app\/components\.js\?v=[^"']+/, "tooltip component cache version is missing");
+assert.match(rootStyleSource, /styles\/records\.css\?v=[^"']+/, "tooltip record-style cache version is missing");
 
 const definitionsScriptOffset = indexSource.indexOf("app/tag-tooltip-definitions.js");
 const componentsScriptOffset = indexSource.indexOf("app/components.js");

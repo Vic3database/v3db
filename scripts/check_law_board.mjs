@@ -11,6 +11,7 @@ const siteData = readChunkedSiteData(root);
 const indexSource = readText("site/index.html");
 const appSource = readSiteAppSource(root);
 const styleSource = readSiteStyleSource(root);
+const localeZh = JSON.parse(readText("database/vic3_1.13.9/locales/zh-Hans.json"));
 
 assert.ok(Array.isArray(siteData.laws) && siteData.laws.length > 0, "site data should include laws");
 assert.ok(Array.isArray(siteData.lawGroups) && siteData.lawGroups.length > 0, "site data should include law groups");
@@ -18,7 +19,7 @@ assert.ok(Array.isArray(siteData.lawGroups) && siteData.lawGroups.length > 0, "s
 const monarchy = siteData.laws.find((law) => law.key === "law_monarchy");
 assert.ok(monarchy, "law data should include law_monarchy");
 assert.equal(monarchy?.group_key, "lawgroup_governance_principles", "monarchy should belong to governance principles");
-assert.equal(monarchy?.name_zh, "君主制", "monarchy should keep its Chinese localization");
+assert.equal(localeZh[monarchy?.loc?.name], "君主制", "monarchy should keep its Chinese localization through loc.name");
 assert.equal(typeof monarchy?.sort_order, "number", "laws should retain their source declaration order");
 
 const colonialAdministration = siteData.laws.find((law) => law.key === "law_colonial_administration");
@@ -32,7 +33,7 @@ const autocracy = siteData.laws.find((law) => law.key === "law_autocracy");
 assert.ok(autocracy?.amendments?.length, "laws should include related amendments");
 
 const slaveryBanned = siteData.laws.find((law) => law.key === "law_slavery_banned");
-assert.ok(slaveryBanned?.enactment_effects?.includes("颁布时解放奴隶"), "slavery banned should retain its enactment effect");
+assert.ok(slaveryBanned?.enactment_effects?.some((effect) => effect.template === "enum.lawEnactmentEffect.liberateSlaves"), "slavery banned should retain its localized enactment effect");
 
 const loyalist = siteData.ideologies.find((ideology) => ideology.key === "ideology_loyalist");
 const jingoist = siteData.ideologies.find((ideology) => ideology.key === "ideology_jingoist");
@@ -54,7 +55,7 @@ for (const key of [
 
 const governance = siteData.lawGroups.find((group) => group.key === "lawgroup_governance_principles");
 assert.ok(governance, "law group data should include governance principles");
-assert.equal(governance?.name_zh, "治理原则", "governance principles should keep its Chinese localization");
+assert.equal(localeZh[governance?.loc?.name], "治理原则", "governance principles should keep its Chinese localization through loc.name");
 assert.equal(governance?.category, "power_structure", "law groups should retain their category");
 assert.ok(fs.existsSync(path.join(root, "site/assets/laws/monarchy.png")), "monarchy icon is missing");
 assert.match(appSource, /function\s+renderLawBoard\s*\(/, "law board renderer is missing");
@@ -87,13 +88,13 @@ assert.doesNotMatch(appSource, /\$\{ideology\.name_zh \|\| ideology\.key\}\$\{id
 assert.match(styleSource, /\.ideology-pill-group\s*{[\s\S]*?display:\s*grid;[\s\S]*?grid-template-columns:\s*5em\s+minmax\(0,\s*1fr\)/, "ideology tag rows should share one aligned label column");
 assert.match(appSource, /lawDisplayName\(law\)/, "law rows should render variants through their display name");
 assert.match(appSource, /lawEffectListHtml\(law\)/, "law details should render effects as a list");
-assert.match(appSource, /\$\{laws\.length\} 条法律/, "home board should expose the law entry");
+assert.match(appSource, /function\s+renderLawBoard\s*\([^)]*\)\s*{[\s\S]*filtered\.length/, "law board should expose the filtered law count");
 assert.match(appSource, /view: "law"/, "home law entry should link to the law board");
 assert.match(indexSource, /data-nav-view="law"[\s\S]*assets\/lucide\/icons\/scale\.svg/, "law nav should use the scale icon");
-assert.match(indexSource, /<strong>列表<\/strong>/, "content panel should be called a list");
+assert.match(indexSource, /<div id="countryList" class="country-list"><\/div>/, "content panel should expose the shared list container");
 assert.match(indexSource, /id="commonLawIdeologyFilter"/, "common-only law and ideology checkbox is missing");
 assert.doesNotMatch(appSource, /（运动）/, "movement labels should use ASCII parentheses");
-assert.match(appSource, /\(运动\)/, "movement labels should identify movements");
+assert.match(readText("site/locales/ui.zh-Hans.js"), /"enum\.ideologyType\.movement":\s*"政治运动"/, "movement labels should identify political movements");
 
 const lawListSource = appSource.slice(appSource.indexOf("function renderLawList"), appSource.indexOf("function selectLawCard"));
 assert.doesNotMatch(lawListSource, /lawProgressivenessLabel|lawModifierListHtml|modifier_summary_zh/, "law rows should not display progressiveness or modifiers");

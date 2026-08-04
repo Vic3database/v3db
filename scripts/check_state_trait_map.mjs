@@ -75,18 +75,17 @@ for (const [label, rows] of [["main", states], ["Victorian Century", victorianCe
   assert.deepEqual(uncovered.map((trait) => trait.key), [], `${label} traits should all reach at least one specific filter`);
 }
 
-assert.ok(/<summary>地区特质<\/summary>[\s\S]*id="stateTraitFilters"/.test(indexSource), "region filters should expose a state-trait filter section");
+assert.ok(/<summary data-i18n="filter\.stateTraits">地区特质<\/summary>[\s\S]*id="stateTraitFilters"/.test(indexSource), "region filters should expose a localized state-trait filter section");
 assert.doesNotMatch(indexSource, /id="stateTraitMapViewButton"/, "the standalone trait-view button should be removed");
-assert.ok(/styles\.css\?v=20260803-state-trait-tooltip1/.test(indexSource), "trait tooltip styles should refresh the main stylesheet URL");
+assert.ok(/styles\.css\?v=20260803-multilingual-map1/.test(indexSource), "trait tooltip styles should refresh the main stylesheet URL");
 for (const script of ["runtime", "ui", "filters", "map", "components"]) {
-  const cacheKey = script === "map" ? "20260803-state-trait-tooltip1" : "20260803-state-trait-filter1";
-  assert.ok(new RegExp(`app/${script}\\.js\\?v=${cacheKey}`).test(indexSource), `${script} should use the current state-trait cache URL`);
+  assert.ok(new RegExp(`app/${script}\\.js\\?v=20260803-multilingual-map1`).test(indexSource), `${script} should use the current combined cache URL`);
 }
-assert.ok(/app\/data\.js\?v=20260803-state-trait-map1/.test(indexSource), "unchanged data code should retain its cache URL");
+assert.ok(/app\/data\.js\?v=20260803-multilingual-map1/.test(indexSource), "data code should use the current combined cache URL");
 assert.ok(/stateTraitFilters:\s*new Set\(\)/.test(runtimeSource), "runtime should store selected state-trait filters");
 assert.ok(/stateTraitFilters:\s*document\.querySelector\("#stateTraitFilters"\)/.test(runtimeSource), "runtime should expose the filter container");
-for (const label of ["所有", "河流海港", "土壤地貌", "自然资源", "殖民环境", "MAPI"]) {
-  assert.ok(runtimeSource.includes(`label: "${label}"`), `state-trait filters should expose ${label}`);
+for (const key of ["all", "waterways", "land", "resources", "colonialEnvironment", "mapi"]) {
+  assert.ok(runtimeSource.includes(`labelKey: "filter.stateTrait.${key}"`), `state-trait filters should expose localized ${key}`);
 }
 assert.ok(/value === "all"[\s\S]*state\.stateTraitFilters\.clear\(\)/.test(functionSource(uiSource, "bindStateTraitFilterTokens")), "all should be mutually exclusive");
 assert.ok(/state\.stateTraitFilters\.delete\("all"\)/.test(functionSource(uiSource, "bindStateTraitFilterTokens")), "specific categories should clear all");
@@ -104,16 +103,11 @@ assert.ok(/matchingTraits/.test(functionSource(mapSource, "buildTraitIconMapFeat
 assert.ok(/stateTraitFilters/.test(functionSource(mapSource, "mapLayerSignature")), "trait filters should invalidate cached map layers");
 assert.ok(/state\.stateTraitFilters\.size > 0/.test(functionSource(mapSource, "regionMapStateRegions")), "trait filters should constrain visible map regions");
 assert.ok(/state\.stateTraitFilters\.size === 0/.test(functionSource(presentationSource, "renderRegionList")), "filtered map selections should not be reinserted into a trait-filtered list");
-assert.ok(/app\/presentation\.js\?v=20260803-state-trait-filter1/.test(indexSource), "changed presentation code should use the state-trait filter cache key");
-assert.ok(/styles\/map\.css\?v=20260803-state-trait-tooltip1/.test(readText("site/styles.css")), "map tooltip styles should use the current cache URL");
+assert.ok(/app\/presentation\.js\?v=20260803-multilingual-map1/.test(indexSource), "changed presentation code should use the combined cache key");
+assert.ok(/styles\/map\.css\?v=20260803-multilingual-map1/.test(readText("site/styles.css")), "map tooltip styles should use the current cache URL");
 assert.ok(/replace\(\/\\\.dds\$\/i, "\.png"\)/.test(functionSource(mapSource, "stateTraitIconFileName")), "icon names should derive from DDS icon paths");
 assert.ok(/stateTraitIconImages: new Map\(\)/.test(runtimeSource), "map runtime should cache trait icon images");
-assert.ok(/stateTraitLocaleMessages: new Map\(\)/.test(runtimeSource), "map runtime should cache trait locale messages");
 assert.ok(/Promise\.all/.test(functionSource(mapSource, "loadStateTraitIconImages")), "trait icon images should preload before paint");
-assert.ok(/dataIndex\?\.locales\?\.chunks/.test(functionSource(mapSource, "loadStateTraitLocaleMessages")), "trait locale loader should support localized standalone datasets");
-assert.ok(/state\.view === "region" \|\| state\.view === "company" \|\| state\.mapMode === "traitIcons"/.test(functionSource(mapSource, "mapTooltipNeedsStateTraitLocales")), "ordinary region, company, and trait-icon maps should request trait tooltip locales");
-assert.ok(/if \(mapTooltipNeedsStateTraitLocales\(\)\) \{\s*loadStateTraitLocaleMessages\(\)/.test(functionSource(mapSource, "renderMap", true)), "trait locale messages should load for every map tooltip that renders complete traits");
-assert.ok(/mapTooltipNeedsStateTraitLocales\(\) \? loadStateTraitLocaleMessages\(\)/.test(functionSource(mapSource, "ensureMapLoaded")), "initial ordinary region maps should await trait tooltip locales");
 const drawStateTraitMapIconsSource = functionSource(mapSource, "drawStateTraitMapIcons");
 assert.ok(/const iconSize = 32;/.test(drawStateTraitMapIconsSource), "map trait icons should use 32 pixels");
 assert.ok(/0\.18/.test(drawStateTraitMapIconsSource), "nonmatching icons in a matching region should use 0.18 opacity");
@@ -129,9 +123,9 @@ assert.ok(/state\.mapMode === "traitIcons"/.test(mapTooltipRowsSource), "trait i
 assert.ok((mapTooltipRowsSource.match(/tooltipHtml\(mapTooltipStateTraitHtml\(/g) || []).length >= 3, "trait, company, and ordinary region tooltips should share the complete trait list renderer");
 assert.doesNotMatch(mapTooltipRowsSource, /mapTooltipTraitSummary\(/, "ordinary region tooltips should not summarize or truncate state traits");
 assert.ok(/stateTraitIconFileName/.test(functionSource(mapSource, "mapTooltipStateTraitHtml")), "trait tooltip should resolve the same icon files as the map");
-assert.ok(/stateTraitEffectText/.test(functionSource(mapSource, "mapTooltipStateTraitHtml")), "trait tooltip should include effects");
-assert.ok(/modifier_summary_zh/.test(functionSource(mapSource, "stateTraitLocalizedText")), "trait tooltip should retain directly localized effects");
-assert.ok(/modifierSummary/.test(functionSource(mapSource, "stateTraitEffectText")), "trait tooltip should resolve delayed localized effects");
+assert.ok(/entityText\(trait\)/.test(functionSource(mapSource, "mapTooltipStateTraitHtml")), "trait tooltip should use the active locale name");
+assert.ok(/modifierSummaryLabel/.test(functionSource(mapSource, "mapTooltipStateTraitHtml")), "trait tooltip should use structural localized effects");
+assert.doesNotMatch(functionSource(mapSource, "mapTooltipStateTraitHtml"), /name_zh|modifier_summary_zh/, "trait tooltip must not read fixed Chinese fields");
 assert.ok(/\.map-tooltip-trait-icon\s*\{[\s\S]*width:\s*30px;[\s\S]*height:\s*30px;/.test(readText("site/styles/map.css")), "tooltip icons should use 30 pixels");
 assert.ok(/!key\.startsWith\("state_trait_"\) && !icon\.includes\("\/state_trait_icons\/"\)/.test(functionSource(extractorSource, "loadStateTraits")), "extractor should retain mod traits whose declared keys omit the conventional prefix");
 if (victorianCenturyStates) {

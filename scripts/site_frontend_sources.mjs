@@ -3,6 +3,7 @@ import path from "node:path";
 
 export const appSections = [
   "app/runtime.js",
+  "app/i18n.js",
   "app/data.js",
   "app/ui.js",
   "app/company-location-rules.js",

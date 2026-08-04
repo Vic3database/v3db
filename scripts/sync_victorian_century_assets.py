@@ -241,35 +241,42 @@ def check_assets(assets: list[Asset], target_assets: Path) -> tuple[list[str], d
     for asset in assets:
         counts[asset.kind] += 1
         if not asset.destination.is_file():
-            failures.append(f"missing PNG: {asset.destination.relative_to(ROOT).as_posix()}")
+            failures.append(f"missing PNG: {display_path(asset.destination)}")
             continue
         if image_size(asset.source) != image_size(asset.destination):
-            failures.append(f"PNG dimension mismatch: {asset.destination.relative_to(ROOT).as_posix()}")
+            failures.append(f"PNG dimension mismatch: {display_path(asset.destination)}")
         elif not images_match(asset.source, asset.destination):
-            failures.append(f"PNG content mismatch: {asset.destination.relative_to(ROOT).as_posix()}")
+            failures.append(f"PNG content mismatch: {display_path(asset.destination)}")
         webp = asset.destination.with_suffix(".webp")
         if asset.uses_webp:
             counts["webp"] += 1
             if not webp.is_file():
-                failures.append(f"missing WebP: {webp.relative_to(ROOT).as_posix()}")
+                failures.append(f"missing WebP: {display_path(webp)}")
             elif image_size(asset.destination) != image_size(webp):
-                failures.append(f"WebP dimension mismatch: {webp.relative_to(ROOT).as_posix()}")
+                failures.append(f"WebP dimension mismatch: {display_path(webp)}")
         elif webp.exists():
-            failures.append(f"unexpected WebP for prestige good: {webp.relative_to(ROOT).as_posix()}")
+            failures.append(f"unexpected WebP for prestige good: {display_path(webp)}")
 
     manifest = target_assets / MANIFEST_NAME
     expected_manifest = {"version": 1, "assets": manifest_entries(assets, target_assets)}
     if not manifest.is_file():
-        failures.append(f"missing manifest: {manifest.relative_to(ROOT).as_posix()}")
+        failures.append(f"missing manifest: {display_path(manifest)}")
     else:
         try:
             actual_manifest = json.loads(manifest.read_text(encoding="utf-8"))
         except json.JSONDecodeError as error:
-            failures.append(f"invalid manifest: {manifest.relative_to(ROOT).as_posix()}: {error.msg}")
+            failures.append(f"invalid manifest: {display_path(manifest)}: {error.msg}")
         else:
             if actual_manifest != expected_manifest:
-                failures.append(f"outdated manifest: {manifest.relative_to(ROOT).as_posix()}")
+                failures.append(f"outdated manifest: {display_path(manifest)}")
     return failures, counts
+
+
+def display_path(candidate: Path) -> str:
+    try:
+        return candidate.relative_to(ROOT).as_posix()
+    except ValueError:
+        return candidate.as_posix()
 
 
 def output(payload: dict, as_json: bool) -> None:
@@ -313,7 +320,7 @@ def main() -> int:
             {
                 "status": "ok" if not failures else "failed",
                 "counts": counts,
-                "manifest": manifest.relative_to(ROOT).as_posix(),
+                "manifest": display_path(manifest),
                 "failures": failures,
             },
             args.json,

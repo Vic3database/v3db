@@ -49,11 +49,11 @@ function checkFrontendContract(root) {
   const runtime = fs.readFileSync(path.join(root, "site", "app", "runtime.js"), "utf8");
   const boards = fs.readFileSync(path.join(root, "site", "app", "boards.js"), "utf8");
   const homeStyles = fs.readFileSync(path.join(root, "site", "styles", "home.css"), "utf8");
-  assert.match(index, /<script src="announcement-data\.js\?v=20260726-announcements1"><\/script>/);
+  assert.match(index, /<script src="announcement-data\.js\?v=20260802-multilingual1"><\/script>/);
   assert.match(runtime, /const announcementItems = Array\.isArray\(window\.VICDATA_ANNOUNCEMENTS\)/);
   assert.match(boards, /function announcementItemHtml\(item\)/);
   assert.match(boards, /announcementItems\.map\(announcementItemHtml\)/);
-  assert.match(boards, /暂无公告/);
+  assert.match(boards, /t\("home\.noAnnouncements"\)/);
   assert.match(homeStyles, /\.home-announcement-list\s*\{/);
   assert.match(homeStyles, /max-height:\s*min\(48vh, 560px\)/);
 }

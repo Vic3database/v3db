@@ -75,7 +75,7 @@ for (const key of ["building_arms_industry", "building_munition_plant", "buildin
 }
 assert.equal(required(groupByKey, "pmg_dummy", "dummy production-method group").icon, null, "the iconless dummy group must remain explicit");
 assert.equal(required(methodByKey, "pm_dummy", "dummy production method").icon, null, "the iconless dummy method must remain explicit");
-assert(typeof required(methodByKey, "pm_combustion_derricks", "combustion derricks").description_zh === "string", "production methods must expose a localized description field");
+assert(typeof required(methodByKey, "pm_combustion_derricks", "combustion derricks").loc?.description === "string", "production methods must reference a localized description field");
 const oilRig = required(buildingByKey, "building_oil_rig", "oil rig building");
 assert.deepEqual(
   oilRig.production_method_group_keys.map((key) => [key, required(groupByKey, key, `oil rig group ${key}`).production_method_keys.length]),
@@ -132,7 +132,7 @@ for (const key of ["services", "transportation", "electricity", "gold"]) {
 
 for (const building of buildings) {
   assert(building.icon?.source && building.icon?.site_path, `${building.key} must declare an icon source and output path`);
-  assert(building.name_zh || building.name_fallback_zh, `${building.key} must expose a readable Chinese name`);
+  assert(building.loc?.name || building.loc?.nameFallback, `${building.key} must expose a localized name reference`);
 }
 for (const item of excludedGraphicalBuildings) {
   assert.equal(item.reason, "missing_icon", `${item.key} must record its exclusion reason`);

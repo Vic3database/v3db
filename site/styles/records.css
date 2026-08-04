@@ -757,6 +757,8 @@ body.results-collapsed .concept-tooltip {
   color: #44595d;
   border-color: rgba(68, 89, 93, 0.24);
   background: rgba(68, 89, 93, 0.08);
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .pill.tag-ig-trait-1 {
@@ -1368,6 +1370,32 @@ body.results-collapsed .concept-tooltip {
   font-size: var(--text-title);
   line-height: 1.25;
   overflow-wrap: anywhere;
+}
+
+@media (max-width: 760px) {
+  .detail-title {
+    display: grid;
+    grid-template-columns: var(--control-height) minmax(0, 1fr);
+    gap: 8px 12px;
+  }
+
+  .detail-title > .detail-back-button {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .detail-title > .detail-title-main {
+    grid-column: 2;
+    grid-row: 1;
+    width: 100%;
+  }
+
+  .detail-title > .tag {
+    grid-column: 2;
+    margin-left: 0;
+    justify-self: start;
+    max-width: 100%;
+  }
 }
 
 .company-icon-box {

@@ -14,6 +14,9 @@ assert(fs.existsSync(indexFile), "missing data index");
 const index = readGlobal(indexFile, "VIC3_DATA_INDEX");
 assert.equal(index?.meta?.victoria3_version, "1.13.9", "index should retain dataset metadata");
 assert.equal(fs.existsSync(path.join(versionDir, "data.js")), false, "complete data.js should not remain in the published version bundle");
+assert.deepEqual(Array.from(index?.locales?.supported || []), ["zh-Hans", "en"], "data index must publish supported locales");
+assert(index?.locales?.search_index?.path, "data index must publish the search index");
+assert(fs.existsSync(path.join(versionDir, index.locales.search_index.path)), "search index file is missing");
 
 const expectedChunks = {
   country: ["countries", "dynamicCountryNameVariants", "dynamicCountryMapColorRules", "formables", "releasables"],
@@ -38,6 +41,14 @@ for (const [key, keys] of Object.entries(expectedChunks)) {
     Object.keys(value).forEach((field) => chunkKeys.add(field));
   }
   assert.deepEqual(Array.from(chunkKeys).sort(), keys.slice().sort(), `${key} chunk files expose unexpected fields`);
+  for (const locale of index.locales.supported) {
+    const localeChunk = index.locales.chunks?.[locale]?.[key];
+    assert(localeChunk?.files?.length, `missing ${locale}/${key} locale chunk`);
+    for (const entry of localeChunk.files) {
+      assert.match(entry.id, new RegExp(`^${locale}:${key}:`), `${entry.path} must use an isolated locale chunk id`);
+      assert(fs.existsSync(path.join(versionDir, entry.path)), `missing locale file ${entry.path}`);
+    }
+  }
 }
 
 const appSource = readSiteAppSource(root);
@@ -66,6 +77,7 @@ assert(/data_index:\s*"versions\/1\.13\.9\/data-index\.js"/.test(versionSource),
 assert(/async function openGlobalSearchDialog\(\)[\s\S]*ensureDataChunks\(Object\.keys\(dataIndex\?\.chunks/.test(appSource), "global search must load every searchable chunk");
 assert(/for \(const key of pending\)/.test(appSource), "data chunks must load sequentially because they share a browser global");
 assert(/versions\/\$\{loadedDataVersion\}/.test(appSource), "chunk URLs must use the selected version");
+assert(/window\.VIC3_LOCALE_CHUNKS\?\.?\[entry\.id\]/.test(appSource), "locale chunks must be read through their unique ids");
 
 console.log(JSON.stringify({
   data_chunking: "ok",

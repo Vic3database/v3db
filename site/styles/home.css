@@ -308,11 +308,11 @@ body[data-view="home"] .detail {
   overflow: hidden;
 }
 
-.home-category-card[data-category="经济"] {
+.home-category-card[data-category="economy"] {
   grid-column: span 4;
 }
 
-.home-category-card[data-category="军事"] {
+.home-category-card[data-category="military"] {
   grid-column: span 2;
 }
 
@@ -339,12 +339,12 @@ body[data-view="home"] .detail {
   gap: 36px;
 }
 
-.home-category-card[data-category="经济"] .home-entry-grid {
+.home-category-card[data-category="economy"] .home-entry-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 36px;
 }
 
-.home-category-card[data-category="军事"] .home-entry-grid {
+.home-category-card[data-category="military"] .home-entry-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
@@ -834,7 +834,7 @@ body[data-view="news"] .detail {
   }
 }
 
-@media (max-aspect-ratio: 3 / 2) {
+@media (max-width: 1180px) and (max-aspect-ratio: 3 / 2) {
   body[data-view="home"] {
     overflow: auto;
   }
@@ -920,14 +920,14 @@ body[data-view="news"] .detail {
   }
 
   .home-category-card,
-  .home-category-card[data-category="经济"],
-  .home-category-card[data-category="军事"] {
+  .home-category-card[data-category="economy"],
+  .home-category-card[data-category="military"] {
     grid-column: auto;
   }
 
   .home-category-card .home-entry-grid,
-  .home-category-card[data-category="经济"] .home-entry-grid,
-  .home-category-card[data-category="军事"] .home-entry-grid {
+  .home-category-card[data-category="economy"] .home-entry-grid,
+  .home-category-card[data-category="military"] .home-entry-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

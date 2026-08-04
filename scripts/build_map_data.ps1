@@ -7,6 +7,8 @@ param(
   [int]$Height = 0
 )
 
+$ErrorActionPreference = "Stop"
+
 Add-Type -AssemblyName System.Drawing
 
 if (-not ("VicdataMapRunEncoder" -as [type])) {
@@ -128,7 +130,11 @@ function Write-RunPairs($Writer, $Runs) {
   $writer.Write("]")
 }
 
-$stateRegions = Read-Utf8Json (Join-Path $Database "state_regions.json")
+$stateRegionsFile = Join-Path $Database "state_regions.json"
+if (-not (Test-Path -LiteralPath (Join-Path $Database "state_regions.json") -PathType Leaf)) {
+  throw "Missing state region database: $stateRegionsFile"
+}
+$stateRegions = Read-Utf8Json $stateRegionsFile
 $stateKeys = New-Object System.Collections.Generic.List[string]
 $stateKeys.Add("") | Out-Null
 $stateIndexByKey = @{}

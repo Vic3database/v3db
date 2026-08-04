@@ -26,6 +26,9 @@ const requiredFiles = new Set([
   "announcement-data.js",
   "versions.js",
   "site.webmanifest",
+  "locales/manifest.js",
+  "locales/ui.zh-Hans.js",
+  "locales/ui.en.js",
 ]);
 for (const relative of ["vc/index.html", "vc/data-index.js", "vc/map-data.js", "vc/victorian-century-config.js", "vc/assets/map/provinces.png"]) {
   requiredFiles.add(relative);
@@ -126,6 +129,12 @@ function readChunkedData(versionDir) {
       for (const [field, rows] of Object.entries(value)) {
         data[field] = field === "countries" ? [...(data[field] || []), ...(rows || [])] : rows;
       }
+    }
+  }
+  addRequired(`versions/1.13.9/${index.locales?.search_index?.path || ""}`);
+  for (const localeChunks of Object.values(index.locales?.chunks || {})) {
+    for (const chunk of Object.values(localeChunks || {})) {
+      for (const entry of chunk.files || []) addRequired(`versions/1.13.9/${entry.path}`);
     }
   }
   return data;

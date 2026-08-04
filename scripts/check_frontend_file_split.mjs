@@ -8,6 +8,7 @@ const index = fs.readFileSync(path.join(site, "index.html"), "utf8");
 
 const appFiles = [
   "app/runtime.js",
+  "app/i18n.js",
   "app/data.js",
   "app/ui.js",
   "app/boards.js",

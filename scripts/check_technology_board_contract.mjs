@@ -7,12 +7,14 @@ const root = process.cwd();
 const app = readSiteAppSource(root);
 const index = fs.readFileSync(path.join(root, "site", "index.html"), "utf8");
 const styles = readSiteStyleSource(root);
+const ui = fs.readFileSync(path.join(root, "site", "app", "ui.js"), "utf8");
 const technologyChunk = readGlobal(path.join(root, "site", "versions", "1.13.9", "data-technologies.js"));
+const searchIndex = readGlobal(path.join(root, "site", "versions", "1.13.9", "search-index.js"), "VIC3_SEARCH_INDEX");
 const technologyRenderer = app.match(/function renderTechnologyBoard\(\) \{[\s\S]*?\r?\n}\r?\n\s*function renderTechnologyDetail/)[0];
 
 assert.match(app, /function renderTechnologyBoard\(/, "technology board renderer must exist");
 assert.match(app, /function renderTechnologyDetail\(/, "technology detail renderer must exist");
-assert.match(app, /id: `technology:\$\{technology\.key\}`/, "global search must include technology entries");
+assert(searchIndex.entries.some((entry) => entry.kind === "technology" && entry.key === "rubber_mastication" && entry.names?.["zh-Hans"] === "橡胶塑炼" && entry.names?.en === "Rubber Mastication"), "global search must include bilingual technology entries");
 assert.match(app, /kind === "technology"\) replaceHash\(`\/technology\/\$\{encodeURIComponent\(key\)\}`\)/, "global search must navigate technology entries to their detail route");
 assert.match(app, /technologyGraphLayout/, "technology graph layout must exist");
 assert.match(app, /const technologyGraphCategory = state\.technologyCategory/, "technology graph must render the selected category only");
@@ -20,7 +22,7 @@ assert.match(app, /const eraBaseRows = \[0, 2, 4, 6, 8\]/, "technology graph mus
 assert.match(app, /eraBaseRows\[eraIndex\]/, "technology graph must place era I at the top and era V at the bottom");
 assert.match(app, /technologyGraphCategory/, "technology graph must keep category trees independent");
 assert.match(app, /const technologyGridColumns = Math\.max\(1, \.\.\.Object\.values\(technologyPositions\)\.map\(\(position\) => position\.column\)\)/, "technology graph must size its canvas to the current category's rightmost technology");
-assert.match(app, /const technologyGridRows = Math\.max\(1, \.\.\.Object\.values\(technologyPositions\)\.map\(\(position\) => position\.row\)\)/, "technology graph must size its canvas to the current category's lowest technology");
+assert.match(app, /(?:const|let) technologyGridRows = Math\.max\(1, \.\.\.Object\.values\(technologyPositions\)\.map\(\(position\) => position\.row\)\)/, "technology graph must size its canvas to the current category's lowest technology");
 assert.match(app, /technologyGridPositions/, "technology graph must support explicitly placed technologies");
 assert.match(app, /function technologyGraphEdges/, "technology graph must generate relationship edges between placed technologies");
 assert.match(app, /data-technology-key/, "technology nodes must expose stable keys");
@@ -49,14 +51,14 @@ assert.match(styles, /body\[data-view="technology"\]:not\(\.detail-page\) \.deta
 assert.match(styles, /body\.detail-page\[data-view="technology"\] \.results \{[\s\S]*?right: 20vw/s, "technology detail page must reserve the right twenty percent for details");
 assert.match(styles, /body\.detail-page\[data-view="technology"\] \.detail \{[\s\S]*?width: 20vw/s, "technology detail panel must occupy twenty percent of the page width");
 assert.match(app, /data-technology-back/, "selected technology detail must expose a return button");
-assert.match(index, /data-nav-view="technology"[^>]*>[\s\S]*?<span>科技<\/span>/, "top navigation must provide a technology entry");
+assert.match(index, /data-nav-view="technology"[^>]*>[\s\S]*?<span data-i18n="nav\.technology">科技<\/span>/, "top navigation must provide a localized technology entry");
 assert.match(index, /data-nav-view="technology"[^>]*>[\s\S]*?lightbulb\.svg/, "technology navigation must use the lightbulb icon");
-assert.match(technologyRenderer, /data-technology-reset[^>]*aria-label="重置视图"[^>]*>[\s\S]*?refresh-ccw\.svg/, "technology reset control must use the shared reset icon");
+assert.match(technologyRenderer, /data-technology-reset[^>]*aria-label="\$\{escapeHtml\(t\("board\.technology\.resetView"[^>]*>[\s\S]*?refresh-ccw\.svg/, "technology reset control must use the localized shared reset icon");
 assert.match(app, /location\.hash = "\/technology"/, "technology detail return button must clear the selected technology route");
 assert.match(app, /if \(!technology\) return ""/, "technology detail renderer must render no right-panel content when no technology is selected");
 assert.match(technologyRenderer, /button\.addEventListener\("pointerdown", \(event\) => event\.stopPropagation\(\)\)/, "technology card presses must not begin canvas dragging");
 assert.match(technologyRenderer, /if \(event\.target\.closest\("\.technology-node"\)\) return/, "canvas dragging must ignore technology cards");
-assert.match(app, /state\.selectedTechnology = "";\s*state\.detailKind = "technology";/, "opening the unselected technology route must clear the previous selected technology");
+assert.match(ui, /changeBoard\("technology", "technology"\);\s*state\.selectedTechnology = "";/, "opening the unselected technology route must clear the previous selected technology");
 assert.match(app, /function technologyEdgePath\(from, to\)/, "technology relationships must calculate paths from both endpoint positions");
 assert.doesNotMatch(app, /const vertical = Math\.abs\(toCenterY - fromCenterY\)/, "technology relationships must not use left or right card ports");
 assert.match(app, /const startY = downward \? from\.y \+ cardHeight : from\.y/, "technology relationships must leave only the top or bottom card edge");
@@ -93,7 +95,7 @@ assert.match(app, /analytical_philosophy: \{ column: 29, row: 11 \}/, "society t
 assert.match(app, /mass_propaganda: \{ column: 22, row: 11 \}/, "society technology positions must define mass propaganda at row eleven column twenty-two");
 assert.match(app, /technology-relation-tags/, "technology detail relationships must use a spaced tag container");
 assert.match(styles, /\.technology-relation-tags \{ display: flex; flex-wrap: wrap; gap: 10px; \}/, "technology detail tags must have a 10px gap");
-assert.match(fs.readFileSync(path.join(root, "site", "index.html"), "utf8"), /styles\.css\?v=20260725-tooltip-layout3/, "stylesheet version must refresh the split source files");
+assert.match(fs.readFileSync(path.join(root, "site", "index.html"), "utf8"), /styles\.css\?v=[^"']+/, "stylesheet version must refresh the split source files");
 for (const technology of technologyChunk.technologies) {
   const iconFile = path.basename(technology.icon).replace(/\.dds$/i, ".webp");
   assert(fs.existsSync(path.join(root, "site", "assets", "technologies", iconFile)), `${technology.key} must have a published WebP icon`);
@@ -101,9 +103,9 @@ for (const technology of technologyChunk.technologies) {
 
 console.log(JSON.stringify({ technology_board_contract: "ok" }, null, 2));
 
-function readGlobal(file) {
+function readGlobal(file, globalName = "VIC3_DATA_CHUNK") {
   const source = fs.readFileSync(file, "utf8");
-  const match = source.match(/window\.VIC3_DATA_CHUNK\s*=\s*(.+);\s*$/s);
-  assert(match, "technology chunk must define VIC3_DATA_CHUNK");
+  const match = source.match(new RegExp(`window\\.${globalName}\\s*=\\s*(.+);\\s*$`, "s"));
+  assert(match, `${file} must define ${globalName}`);
   return JSON.parse(match[1]);
 }

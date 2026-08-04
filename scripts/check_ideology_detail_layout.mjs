@@ -4,7 +4,7 @@ import path from "node:path";
 import { readSiteStyleSource } from "./site_frontend_sources.mjs";
 
 const root = process.cwd();
-const styles = readSiteStyleSource(root);
+const styles = readSiteStyleSource(root).replace(/\r\n/g, "\n");
 
 function styleBlock(selector) {
   const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

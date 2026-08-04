@@ -1,4 +1,19 @@
 function bindEvents() {
+  els.languageMenuButton?.addEventListener("click", () => {
+    const open = els.languageMenu?.hidden !== false;
+    if (els.languageMenu) els.languageMenu.hidden = !open;
+    els.languageMenuButton.setAttribute("aria-expanded", String(open));
+  });
+  els.languageMenu?.addEventListener("click", (event) => {
+    const option = event.target.closest("[data-locale]");
+    if (option) void switchLocale(option.dataset.locale);
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeLanguageMenu();
+  });
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest(".language-menu")) closeLanguageMenu();
+  });
   document.querySelectorAll("[data-nav-view]").forEach((button) => {
     button.addEventListener("click", async () => {
       await setView(button.dataset.navView);
@@ -74,12 +89,16 @@ function bindEvents() {
       els.librarySelect.value = "vic3";
       return;
     }
-    location.assign(new URL(entry.href, window.location.href).href);
+    const url = new URL(entry.href, window.location.href);
+    url.searchParams.set("lang", localeRuntime.current);
+    location.assign(url.href);
   });
   els.standaloneLibrarySelect?.addEventListener("change", () => {
     if (els.standaloneLibrarySelect.value !== "vic3") return;
     hideTransientOverlays();
-    location.assign(new URL("../index.html", window.location.href).href);
+    const url = new URL("../index.html", window.location.href);
+    url.searchParams.set("lang", localeRuntime.current);
+    location.assign(url.href);
   });
   els.searchInput.addEventListener("input", () => {
     state.search = els.searchInput.value.trim().toLowerCase();
@@ -702,14 +721,14 @@ function ideologyTooltipRows(target) {
       <div class="ideology-tooltip-identity">
         ${ideologyIconHtml(ideology, "ideology-tooltip-icon")}
         <div>
-          <div class="ideology-tooltip-title">${escapeHtml(ideology.name_zh || ideology.key)}</div>
+          <div class="ideology-tooltip-title">${escapeHtml(entityText(ideology))}</div>
           <div class="ideology-tooltip-id">${escapeHtml(ideology.key)}</div>
         </div>
       </div>
-      <div class="ideology-tooltip-type">${escapeHtml(ideologyTypeLabels.get(ideologyTypeKey(ideology)) || "")}</div>
+      <div class="ideology-tooltip-type">${escapeHtml(ideologyTypeLabel(ideologyTypeKey(ideology)))}</div>
     </div>
     ${ideologyTooltipAttitudeGroups(ideology)}
-    ${ideology.desc_zh ? `<p class="ideology-tooltip-desc">${escapeHtml(cleanIdeologyDescription(ideology.desc_zh))}</p>` : ""}
+    ${entityText(ideology, "description", "") ? `<p class="ideology-tooltip-desc">${escapeHtml(cleanIdeologyDescription(entityText(ideology, "description", "")))}</p>` : ""}
   `;
 }
 
@@ -722,7 +741,7 @@ function ideologyTooltipAttitudeGroups(ideology) {
     });
     return `
       <section class="ideology-tooltip-attitude-group">
-        <h4>对${escapeHtml(group.name)}的态度</h4>
+        <h4>${escapeHtml(t("board.ideology.stanceToward", { group: group.name }))}</h4>
         ${ideologyTooltipAttitudeLines(items)}
       </section>
     `;
@@ -740,7 +759,7 @@ function ideologyTooltipAttitudeLines(stances) {
     const names = grouped.get(stance).map((item) => {
       const law = lawByKey.get(item.law_key) || item;
       return lawDisplayName(law);
-    }).filter(Boolean).join("、");
+    }).filter(Boolean).join(t("ui.listSeparator", "、"));
     return `<div class="ideology-tooltip-attitude-line ${lawStanceClassName(stance)}"><span>${escapeHtml(lawStanceSentencePrefix(stance))}</span> ${escapeHtml(names)}</div>`;
   }).join("");
 }
@@ -748,11 +767,11 @@ function ideologyTooltipAttitudeLines(stances) {
 function cultureTooltipRelationSection(title, items) {
   if (!title) return "";
   const labels = [...(items || [])]
-    .map((item) => item?.name_zh || item?.key || "")
+    .map((item) => entityText(item) || item?.key || "")
     .filter(Boolean)
-    .sort((left, right) => left.localeCompare(right, "zh-Hans-CN"));
-  const empty = TAG_TOOLTIP_DEFAULTS.cultureRelations?.empty || "无";
-  return `<section class="concept-tooltip-relation"><h4>${escapeHtml(title)}</h4><p>${escapeHtml(labels.join("、") || empty)}</p></section>`;
+    .sort(localizedCompare);
+  const empty = t("ui.none", "无");
+  return `<section class="concept-tooltip-relation"><h4>${escapeHtml(title)}</h4><p>${escapeHtml(labels.join(t("ui.listSeparator", "、")) || empty)}</p></section>`;
 }
 
 function cultureTooltipRelationSections(kind, key) {
@@ -760,7 +779,7 @@ function cultureTooltipRelationSections(kind, key) {
   if (kind === "cultureTraitGroup") {
     const group = cultureTraitGroupByKey.get(key);
     if (!group || !["heritage", "language"].includes(group.type)) return "";
-    const title = group.type === "heritage" ? labels.heritageGroup : labels.languageGroup;
+    const title = t(group.type === "heritage" ? labels.heritageGroup : labels.languageGroup);
     const items = cultureTraits.filter((trait) => trait.group_key === key && trait.type === group.type);
     return cultureTooltipRelationSection(title, items);
   }
@@ -769,19 +788,19 @@ function cultureTooltipRelationSections(kind, key) {
     if (!trait) return "";
     if (trait.type === "heritage") {
       return cultureTooltipRelationSection(
-        labels.heritage,
+        t(labels.heritage),
         cultures.filter((culture) => culture.heritage?.key === key),
       );
     }
     if (trait.type === "language") {
       return cultureTooltipRelationSection(
-        labels.language,
+        t(labels.language),
         cultures.filter((culture) => culture.language?.key === key),
       );
     }
     if (trait.type === "tradition") {
       return cultureTooltipRelationSection(
-        labels.tradition,
+        t(labels.tradition),
         cultures.filter((culture) => (culture.traditions || []).some((item) => item.key === key)),
       );
     }
@@ -791,9 +810,9 @@ function cultureTooltipRelationSections(kind, key) {
     const culture = byCulture.get(key);
     if (!culture) return "";
     return [
-      cultureTooltipRelationSection(labels.primaryCultureCountries, culture.related_countries),
-      cultureTooltipRelationSection(labels.obsessions, culture.obsessions),
-      cultureTooltipRelationSection(labels.taboos, culture.taboos),
+      cultureTooltipRelationSection(t(labels.primaryCultureCountries), culture.related_countries),
+      cultureTooltipRelationSection(t(labels.obsessions), culture.obsessions),
+      cultureTooltipRelationSection(t(labels.taboos), culture.taboos),
     ].join("");
   }
   return "";
@@ -819,11 +838,11 @@ function conceptTooltipType(target) {
   const key = target.dataset.conceptKey || "";
   if (kind === "cultureTraitGroup") {
     const group = cultureTraitGroupByKey.get(key);
-    return group?.type_zh ? `${group.type_zh}特质组` : "文化特质组";
+    return t("tooltip.cultureTraitGroupType", { type: t(`enum.cultureTraitType.${group?.type || "unknown"}`) });
   }
   if (kind === "cultureTrait") {
     const trait = cultureTraitByKey.get(key);
-    return trait?.type_zh ? `${trait.type_zh}特质` : "文化特质";
+    return t("tooltip.cultureTraitType", { type: t(`enum.cultureTraitType.${trait?.type || "unknown"}`) });
   }
   return target.dataset.conceptCategory || conceptKindLabel(kind);
 }
@@ -850,9 +869,9 @@ function conceptTooltipContent(target, relationSections = "") {
 
 function conceptTooltipActionHints(target) {
   return [
-    target.matches("a[href]") ? "左键进入详情页" : "",
-    target.dataset.conceptSearch?.trim() ? "右键进行筛选" : "",
-  ].filter(Boolean).join("　");
+    target.matches("a[href]") ? t("tooltip.openDetail") : "",
+    target.dataset.conceptSearch?.trim() ? t("tooltip.filter") : "",
+  ].filter(Boolean).join(t("ui.actionSeparator"));
 }
 
 function conceptTooltipRows(target, relationSections = "") {
@@ -878,7 +897,7 @@ function conceptTooltipDescription(target, kind, key, label) {
   const entity = conceptTooltipEntity(kind, key);
   if (kind === "country") return [countryTooltipMainInfo(entity), explicit].filter(Boolean).join("\n");
   if (explicit) return explicit;
-  const description = String(entity?.desc_zh || entity?.modifier_summary_zh || "").replace(/\s+/g, " ").trim();
+  const description = String(entityText(entity, "description", "") || entityText(entity, "modifierSummary", "")).replace(/\s+/g, " ").trim();
   if (description) return description;
   const category = target.dataset.conceptCategory || conceptKindLabel(kind);
   const defaults = TAG_TOOLTIP_DEFAULTS.concept || {};
@@ -887,13 +906,13 @@ function conceptTooltipDescription(target, kind, key, label) {
 
 function countryTooltipMainInfo(country) {
   if (!country) return "";
-  const primaryCultures = (country.primaryCulturesZh || []).filter(Boolean).join("、");
-  const religion = country.religionZh || country.religion || "";
-  const capital = country.capitalZh || country.capital || "";
+  const primaryCultures = (country.primaryCultures || []).map((key) => entityText(byCulture.get(key)) || key).filter(Boolean).join(t("ui.listSeparator"));
+  const religion = entityText(country.religion) || country.religion || "";
+  const capital = entityText(byStateRegion.get(country.capital)) || country.capital || "";
   return [
-    primaryCultures ? `主流文化：${primaryCultures}` : "",
-    religion ? `宗教：${religion}` : "",
-    capital ? `首都：${capital}` : "",
+    primaryCultures ? t("tooltip.country.primaryCultures", { value: primaryCultures }) : "",
+    religion ? t("tooltip.country.religion", { value: religion }) : "",
+    capital ? t("tooltip.country.capital", { value: capital }) : "",
   ].filter(Boolean).join("\n");
 }
 
@@ -921,11 +940,11 @@ function conceptTooltipContextLine(kind, key) {
   if (!key) return "";
   if (kind === "country") {
     const country = byTag.get(key);
-    return [countryTypeTagLabel(country || {}), country?.tierZh].filter(Boolean).join(" · ");
+    return [countryTypeTagLabel(country || {}), t(`enum.tier.${country?.tier}`)].filter(Boolean).join(" · ");
   }
   if (kind === "culture") {
     const culture = byCulture.get(key);
-    return [culture?.heritage?.name_zh, culture?.language?.name_zh].filter(Boolean).join(" · ");
+    return [entityText(culture?.heritage), entityText(culture?.language)].filter(Boolean).join(" · ");
   }
   if (kind === "stateRegion") {
     const stateRegion = byStateRegion.get(key);
@@ -934,37 +953,37 @@ function conceptTooltipContextLine(kind, key) {
   if (kind === "strategicRegion") {
     const region = byStrategicRegion.get(key);
     const count = (region?.states || []).length;
-    return count ? `${count} 个地域` : "";
+    return count ? t("tooltip.stateRegionCount", { count: localizedNumber(count) }) : "";
   }
   if (kind === "geographicRegion") {
     const region = byGeographicRegion.get(key);
     const count = geographicRegionStateRegions(region).length;
-    return count ? `${count} 个地域` : "";
+    return count ? t("tooltip.stateRegionCount", { count: localizedNumber(count) }) : "";
   }
   if (kind === "company") {
     const company = byCompany.get(key);
-    return [companyKindText(company || {}), company?.category_zh || company?.category].filter(Boolean).join(" · ");
+    return [companyKindText(company || {}), entityText(company, "category", "") || company?.category].filter(Boolean).join(" · ");
   }
   if (kind === "ideology") {
     const ideology = ideologyByKey.get(key);
     return [
-      ideologyTypeLabels.get(ideologyTypeKey(ideology || {})),
+      ideologyTypeLabel(ideologyTypeKey(ideology || {})),
       refNames(ideologyInterestGroupRefs(ideology || {})),
       conceptTooltipIdeologyLawStance(ideology),
     ].filter(Boolean).join(" · ");
   }
   if (kind === "stateTrait") {
-    return (stateTraitByKey.get(key)?.categories || []).map((category) => category.name_zh || category.key).filter(Boolean).join(" · ");
+    return (stateTraitByKey.get(key)?.categories || []).map((category) => entityText(category)).filter(Boolean).join(" · ");
   }
   if (kind === "technology") {
     const technology = technologyByKey.get(key);
-    return [technology?.category_zh, technology?.era_label_zh].filter(Boolean).join(" · ");
+    return [entityText(technology, "category", ""), entityText(technology, "eraLabel", "")].filter(Boolean).join(" · ");
   }
   if (kind === "building" || kind === "goods") return "";
   if (kind === "cultureTrait" || kind === "cultureTraitGroup") return "文化特质";
-  if (kind === "interestGroup") return "利益集团";
-  if (kind === "interestGroupTrait") return "利益集团特质";
-  if (kind === "law") return "法律";
+  if (kind === "interestGroup") return t("board.ideology.interestGroup", "利益集团");
+  if (kind === "interestGroupTrait") return t("board.ideology.interestGroupTrait", "利益集团特质");
+  if (kind === "law") return t("board.law.title", "法律");
   return "";
 }
 
@@ -972,7 +991,7 @@ function conceptTooltipIdeologyLawStance(ideology) {
   const law = state.detailKind === "law" ? lawByKey.get(state.selectedLaw) : null;
   const stanceLaw = law ? lawByKey.get(lawStanceSourceKey(law)) || law : null;
   const stance = stanceLaw && (ideology?.law_stances || []).find((item) => item.law_key === stanceLaw.key);
-  return stance ? `对${lawDisplayName(law)}：${lawStanceLabel(stance.stance)}` : "";
+  return stance ? t("tooltip.ideologyLawStance", { law: lawDisplayName(law), stance: lawStanceLabel(stance.stance) }) : "";
 }
 
 function moveConceptTooltip(event) {
@@ -1003,26 +1022,7 @@ function searchConcept(target) {
 }
 
 function conceptKindLabel(kind) {
-  return {
-    country: "国家",
-    culture: "文化",
-    stateRegion: "地域",
-    strategicRegion: "战略区域",
-    geographicRegion: "地理区域",
-    company: "公司",
-    interestGroup: "利益集团",
-    interestGroupTrait: "利益集团特质",
-    ideology: "意识形态",
-    law: "法律",
-    building: "建筑",
-    technology: "科技",
-    cultureTrait: "文化特质",
-    cultureTraitGroup: "文化特质组",
-    stateTrait: "地区特质",
-    goods: "商品",
-    religion: "宗教",
-    trait: "角色特质",
-  }[kind] || "概念";
+  return t(`tooltip.kind.${kind || "concept"}`);
 }
 
 async function openGlobalSearchDialog() {
@@ -1070,12 +1070,12 @@ function closeInfoDialog() {
 function renderInfoDialog() {
   if (!els.infoDialogTitle || !els.infoDialogBody || !state.infoDialog) return;
   if (state.infoDialog === "settings") {
-    els.infoDialogTitle.textContent = "设置";
+    els.infoDialogTitle.textContent = t("ui.settings");
     els.infoDialogBody.innerHTML = renderSettingsDialogContent();
     bindSettingsControls(els.infoDialogBody);
     return;
   }
-  els.infoDialogTitle.textContent = "关于";
+  els.infoDialogTitle.textContent = t("ui.about");
   els.infoDialogBody.innerHTML = renderAboutDialogContent();
 }
 
@@ -1318,8 +1318,8 @@ function hideTransientOverlays() {
 }
 
 function updatePageChrome() {
-  const label = viewLabels[state.view] || "国家";
-  const title = `${label} - ${siteTitle}`;
+  const label = viewLabel(state.view);
+  const title = t("template.documentTitle", { board: label, site: siteTitle });
   setOptionalText(els.pageTitle, title);
   document.title = title;
   const achievementAvailable = achievementBoardAvailable();
@@ -1356,14 +1356,16 @@ function updatePanelToggleState() {
   if (els.leftPanelToggle) {
     const collapsed = document.body.classList.contains("filters-collapsed");
     els.leftPanelToggle.setAttribute("aria-pressed", String(collapsed));
-    els.leftPanelToggle.setAttribute("aria-label", collapsed ? "展开筛选" : "折叠筛选");
-    els.leftPanelToggle.title = collapsed ? "展开筛选" : "折叠筛选";
+    const label = t(collapsed ? "ui.expandFilters" : "ui.collapseFilters");
+    els.leftPanelToggle.setAttribute("aria-label", label);
+    els.leftPanelToggle.title = label;
   }
   if (els.bottomPanelToggle) {
     const collapsed = (state.resultsPanelMode || "side") === "collapsed";
     els.bottomPanelToggle.setAttribute("aria-pressed", String(collapsed));
-    els.bottomPanelToggle.setAttribute("aria-label", collapsed ? "展开列表" : "折叠列表");
-    els.bottomPanelToggle.title = collapsed ? "展开列表" : "折叠列表";
+    const label = t(collapsed ? "ui.expandList" : "ui.collapseList");
+    els.bottomPanelToggle.setAttribute("aria-label", label);
+    els.bottomPanelToggle.title = label;
   }
 }
 
@@ -1393,9 +1395,12 @@ function render() {
     button.setAttribute("aria-current", String(button.dataset.navView === state.view));
   });
   setTokenPressed(els.filteredCountryMapToggle, state.dimUnfilteredCountries);
-  syncVictorianCenturyChangeFilter();
-  els.strategicRegionFilterTitle.textContent = state.view === "culture" ? "本土战略区域" : state.view === "company" ? "相关战略区域" : "所在战略区域";
-  els.resourceFilterTitle.textContent = state.view === "company" ? "相关建筑" : "资源";
+  els.strategicRegionFilterTitle.textContent = state.view === "culture"
+    ? t("filter.homelandStrategicRegions")
+    : state.view === "company"
+      ? t("filter.relatedStrategicRegions")
+      : t("filter.strategicRegions");
+  els.resourceFilterTitle.textContent = state.view === "company" ? t("filter.relatedBuildings") : t("filter.resources");
   els.searchInput.placeholder = searchPlaceholder();
   renderSortOptions();
   renderStrategicRegionFilterOptions();
@@ -1405,6 +1410,7 @@ function render() {
   renderCompanyFilterOptions();
   renderIdeologyFilterOptions();
   renderLawFilterOptions();
+  syncVictorianCenturyChangeFilter();
   syncFilterSectionOpenStates();
   renderMapControls();
 

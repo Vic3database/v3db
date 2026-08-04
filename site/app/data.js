@@ -4,8 +4,10 @@ function setOptionalText(node, text) {
 }
 
 async function init() {
+  await initializeLocale();
   await loadCountryFlagData();
   await loadInitialDataset();
+  syncStaticUiText();
   syncViewLabels();
   initTheme();
   initDisplaySettings();
@@ -34,13 +36,15 @@ async function loadInitialDataset() {
 }
 
 async function loadStandaloneDataset() {
-  setOptionalText(els.metaLine, "正在加载 Victorian Century 数据");
+  setOptionalText(els.metaLine, t("ui.loadingDataset", { dataset: "Victorian Century" }));
   const [nextDataIndex, nextMapData] = await Promise.all([
     loadScriptValue(standaloneSiteConfig.dataIndex, "VIC3_DATA_INDEX"),
     loadScriptValue(standaloneSiteConfig.mapData, "VIC3_MAP_DATA"),
   ]);
-  dataIndex = nextDataIndex || null;
   loadedDataVersion = "";
+  dataIndex = nextDataIndex || null;
+  await loadSearchIndex();
+  await activateInitialLocaleAfterDataIndex();
   loadedDataChunks.clear();
   applyLoadedDataset({ meta: dataIndex?.meta || {} }, nextMapData || null);
   await ensureDataChunksForRoute();
@@ -57,13 +61,15 @@ async function loadVersion(version, options = {}) {
     applyLoadedDataset(window.VIC3_DATA || {}, window.VIC3_MAP_DATA || null);
     return;
   }
-  setOptionalText(els.metaLine, `正在加载 ${entry.label || entry.version}`);
+  setOptionalText(els.metaLine, t("ui.loadingDataset", { dataset: entry.label || entry.version }));
   const [nextDataIndex, nextMapData] = await Promise.all([
     loadScriptValue(entry.data_index, "VIC3_DATA_INDEX"),
     loadScriptValue(entry.map_data, "VIC3_MAP_DATA"),
   ]);
-  dataIndex = nextDataIndex || null;
   loadedDataVersion = entry.version;
+  dataIndex = nextDataIndex || null;
+  await loadSearchIndex();
+  await activateInitialLocaleAfterDataIndex();
   loadedDataChunks.clear();
   applyLoadedDataset({ meta: dataIndex?.meta || {} }, nextMapData || null);
   await ensureDataChunksForRoute();
@@ -122,6 +128,7 @@ async function ensureDataChunks(chunkKeys) {
       }
       loadedDataChunks.add(key);
     }
+    await ensureLocaleChunks(chunkKeys);
   })();
   try {
     await dataChunkLoadPromise;
@@ -135,6 +142,36 @@ function dataChunkPath(file) {
   if (!standaloneSiteConfig) return `versions/${loadedDataVersion}/${file}`;
   const dataRoot = String(standaloneSiteConfig.dataRoot || ".").replace(/\\/g, "/").replace(/\/+$/, "");
   return !dataRoot || dataRoot === "." ? file : `${dataRoot}/${file}`;
+}
+
+function localeChunkPath(file) {
+  return dataChunkPath(file);
+}
+
+async function loadSearchIndex() {
+  const entry = dataIndex?.locales?.search_index;
+  if (!entry?.path) return;
+  await loadScript(localeChunkPath(entry.path));
+}
+
+async function ensureLocaleChunks(chunkKeys, locale = localeRuntime.current, targetMessages = localeRuntime.dataMessages[locale] || {}) {
+  const entries = chunkKeys.flatMap((key) => dataIndex?.locales?.chunks?.[locale]?.[key]?.files || []);
+  const loaded = [];
+  for (const entry of entries) {
+    const cacheKey = `${locale}:${entry.path}`;
+    if (localeRuntime.loadedChunks.has(cacheKey)) {
+      mergeLocaleMessages(targetMessages, localeRuntime.dataMessages[locale] || {}, locale);
+      continue;
+    }
+    await loadScript(localeChunkPath(entry.path));
+    const chunk = window.VIC3_LOCALE_CHUNKS?.[entry.id];
+    if (!chunk || chunk.locale !== locale) throw new Error(`Invalid locale chunk ${entry.id}`);
+    mergeLocaleMessages(targetMessages, chunk.messages || {}, locale);
+    loaded.push(cacheKey);
+  }
+  if (!localeRuntime.dataMessages[locale]) localeRuntime.dataMessages[locale] = targetMessages;
+  loaded.forEach((key) => localeRuntime.loadedChunks.add(key));
+  return loaded;
 }
 
 function versionEntry(version) {
@@ -158,13 +195,13 @@ function loadScriptValue(src, globalName) {
     };
     script.onerror = () => {
       script.remove();
-      reject(new Error(`无法加载 ${src}`));
+      reject(new Error(t("ui.scriptLoadFailed", { src })));
     };
     document.head.appendChild(script);
   });
 }
 
-function applyLoadedDataset(nextData, nextMapData) {
+function applyLoadedDataset(nextData, nextMapData, options = {}) {
   data = nextData || {};
   countries = data.countries || [];
   cultures = data.cultures || [];
@@ -223,8 +260,10 @@ function applyLoadedDataset(nextData, nextMapData) {
   landStateRegions = stateRegions.filter((stateRegion) => !isSeaStateRegion(stateRegion));
   landGeographicRegions = geographicRegions.filter((region) => geographicRegionStateRegions(region).some((stateRegion) => !isSeaStateRegion(stateRegion)));
   groupedGeographicRegions = geographicRegions.filter((region) => region.geographic_region_group && !region.is_current_strategic_region);
-  resetDatasetState();
-  resetMapRuntime();
+  if (!options.preserveState) {
+    resetDatasetState();
+    resetMapRuntime();
+  }
   updateMetaLine();
   renderLibraryOptions();
 }
@@ -255,7 +294,11 @@ function buildSemanticTagIndexes() {
 }
 
 function indexStateTraitRegions(stateRegion) {
-  const region = { key: stateRegion?.key || "", name_zh: stateRegion?.name_zh || "" };
+  const region = {
+    id: stateRegion?.id || `state_region:${stateRegion?.key || ""}`,
+    key: stateRegion?.key || "",
+    loc: stateRegion?.loc || {},
+  };
   if (!region.key) return;
   for (const trait of stateRegion?.traits || []) {
     const key = trait?.key || "";
@@ -343,8 +386,6 @@ function resetMapRuntime() {
   mapRuntime.provinceSampleContext = null;
   mapRuntime.stateTraitIconImages = new Map();
   mapRuntime.stateTraitIconLoading = null;
-  mapRuntime.stateTraitLocaleMessages = new Map();
-  mapRuntime.stateTraitLocaleLoading = null;
   mapRuntime.stateKeysByIndex = [""];
   mapRuntime.ownerKeysByIndex = [""];
   mapRuntime.terrainKeysByIndex = [""];
@@ -359,15 +400,24 @@ function resetMapRuntime() {
 }
 
 function updateMetaLine() {
-  const datasetPrefix = data.meta?.dataset_name ? `${data.meta.dataset_name}，` : "";
-  setOptionalText(els.metaLine, `${datasetPrefix}版本 ${data.meta?.victoria3_version || "未知"}，国家 ${dataCount("countries", countries)} 个，文化 ${dataCount("cultures", cultures)} 个，地域 ${dataCount("stateRegions", stateRegions)} 个，地理区域 ${dataCount("geographicRegions", groupedGeographicRegions)} 个，公司 ${dataCount("companies", companies)} 个，意识形态 ${dataCount("ideologies", ideologies)} 个，法律 ${dataCount("laws", laws)} 条`);
+  setOptionalText(els.metaLine, t("ui.datasetSummary", {
+    dataset: data.meta?.dataset_name || siteTitle,
+    version: data.meta?.victoria3_version || t("ui.unknown"),
+    countries: localizedNumber(dataCount("countries", countries)),
+    cultures: localizedNumber(dataCount("cultures", cultures)),
+    regions: localizedNumber(dataCount("stateRegions", stateRegions)),
+    geographicRegions: localizedNumber(dataCount("geographicRegions", groupedGeographicRegions)),
+    companies: localizedNumber(dataCount("companies", companies)),
+    ideologies: localizedNumber(dataCount("ideologies", ideologies)),
+    laws: localizedNumber(dataCount("laws", laws)),
+  }));
 }
 
 function renderLibraryOptions() {
   if (!els.librarySelect || !versionConfig) return;
   const entries = Array.isArray(versionConfig.libraries) ? versionConfig.libraries : [];
   els.librarySelect.innerHTML = entries.map((entry) => (
-    `<option value="${escapeHtml(entry.id)}">${escapeHtml(entry.label)}</option>`
+    `<option value="${escapeHtml(entry.id)}">${escapeHtml(t(entry.labelKey || "ui.libraryLabel", { label: entry.label }))}</option>`
   )).join("");
   els.librarySelect.value = "vic3";
 }
@@ -385,7 +435,8 @@ function syncViewLabels() {
     ideology: els.ideologyViewButton,
     law: els.lawViewButton,
   };
-  for (const [view, label] of Object.entries(viewLabels)) {
+  for (const view of Object.keys(viewLabels)) {
+    const label = viewLabel(view);
     if (buttonByView[view]) buttonByView[view].textContent = label;
     const option = els.viewSelect?.querySelector(`option[value="${view}"]`);
     if (option) option.textContent = label;
@@ -402,8 +453,7 @@ function renderFilterOptions() {
   const traditions = collectCultureRefs((culture) => culture.traditions || []);
 
   els.tierFilters.innerHTML = tiers.map((tier) => {
-    const sample = countries.find((country) => country.tier === tier);
-    return optionToken("tier", tier, sample?.tierZh || tier, state.tiers.has(tier));
+    return optionToken("tier", tier, t(`enum.tier.${tier}`), state.tiers.has(tier));
   }).join("");
 
   els.countryTypeFilters.innerHTML = types.map((type) => {
@@ -412,15 +462,15 @@ function renderFilterOptions() {
   }).join("");
 
   els.heritageGroupFilters.innerHTML = heritageGroups.map((group) => (
-    optionToken("heritage-group", group.key, group.name_zh, state.heritageGroups.has(group.key))
+    optionToken("heritage-group", group.key, entityText(group), state.heritageGroups.has(group.key))
   )).join("");
 
   els.languageGroupFilters.innerHTML = languageGroups.map((group) => (
-    optionToken("language-group", group.key, group.name_zh, state.languageGroups.has(group.key))
+    optionToken("language-group", group.key, entityText(group), state.languageGroups.has(group.key))
   )).join("");
 
   els.traditionFilters.innerHTML = traditions.map((trait) => (
-    optionToken("tradition", trait.key, trait.name_zh || trait.key, state.tradition === trait.key)
+    optionToken("tradition", trait.key, entityText(trait), state.tradition === trait.key)
   )).join("");
 
   renderDependentFilterOptions();

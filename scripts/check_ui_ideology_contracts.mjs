@@ -7,9 +7,13 @@ const root = process.cwd();
 const failures = [];
 
 const appSource = readSiteAppSource(root);
+const i18nSource = readText("site/app/i18n.js");
 const indexSource = readText("site/index.html");
 const styleSource = readSiteStyleSource(root);
 const siteData = readChunkedSiteData(root);
+const uiZhSource = readText("site/locales/ui.zh-Hans.js");
+const countryLocaleZhSource = readText("site/versions/1.13.9/locale-countries-1.zh-Hans.js");
+const countryLocaleEnSource = readText("site/versions/1.13.9/locale-countries-1.en.js");
 
 checkFilterContracts();
 checkOverlayContracts();
@@ -17,6 +21,10 @@ checkSingleThemeContracts();
 checkTypographyContracts();
 checkRedesignContracts();
 checkIdeologyContracts();
+assert(
+  !/spec\.fallback\s*\|\|\s*spec\.message/.test(i18nSource),
+  "empty text-spec fallbacks must not expose internal localization keys",
+);
 
 if (failures.length) {
   console.error(failures.map((failure) => `- ${failure}`).join("\n"));
@@ -136,7 +144,7 @@ function checkTypographyContracts() {
   assert(/function\s+renderCompanyList\s*\([^)]*\)\s*{[\s\S]*const\s+visible\s*=\s*filtered;/.test(appSource), "company list should render every filtered company, not only the first 220");
   assert(!/if\s*\(count\s*>\s*220\)\s*parts\.push\("列表仅显示前 220 条"\)/.test(appSource), "active hint should not warn about a removed company list limit");
   const companyTagPillSource = functionSource("companyTagPills");
-  assert(/referenced_strategic_regions[\s\S]*referenced_geographic_regions[\s\S]*tagPill\(company\.category_zh\s*\|\|\s*company\.category[\s\S]*companyKindKey\(company\)\s*===\s*"easter_egg"[\s\S]*tagPill\(companyKindText\(company\),\s*"tag-special"\)/.test(companyTagPillSource), "company list final tag line should show regions first, then holding category, then easter-egg tags only when needed");
+  assert(/referenced_strategic_regions[\s\S]*referenced_geographic_regions[\s\S]*tagPill\(entityText\(company,\s*"category"\)[\s\S]*companyKindKey\(company\)\s*===\s*"easter_egg"[\s\S]*tagPill\(companyKindText\(company\),\s*"tag-special"\)/.test(companyTagPillSource), "company list final tag line should show regions first, then holding category, then easter-egg tags only when needed");
   assert(!/function\s+companyMetaLine[\s\S]{0,260}companyKindText/.test(appSource), "company easter-egg marker should be a final-row tag, not inline metadata text");
   assert(/company-asset-line">\$\{companyPrestigeGoodsPills\(company\)\}<\/span>[\s\S]*company-tag-line">\$\{companyTagPills\(company\)\}/.test(appSource), "company prestige goods should be placed above region and category labels");
   assert(/function\s+companyDlcIconPill\s*\([^)]*\)\s*{[\s\S]*companyDlcKey\(company\)\s*===\s*"base"[\s\S]*return\s+""/.test(appSource), "base Victoria 3 DLC marker should be omitted from company list rows");
@@ -199,7 +207,7 @@ function checkTypographyContracts() {
   assert(/<img\s+class="lucide-icon"/.test(indexSource), "fixed UI icons should render as direct SVG images");
   assert(!/--icon-url/.test(indexSource), "fixed UI icons should not depend on CSS mask URLs");
   assert(!/[⌕⌂⚑◇▣✦☰⚙↔]/.test(indexSource), "fixed UI controls should not use text symbols as icons");
-  assert(/id="versionSelect"/.test(indexSource), "single version entry is missing");
+  assert(/id="librarySelect"/.test(indexSource), "library and version entry is missing");
   assert(!/id="versionGroupSelect"/.test(indexSource), "version group selector should be removed from the topbar");
   assert(!/id="themeToggle"/.test(indexSource), "theme toggle should be removed from the compact topbar");
   assert(!/id="rightPanelToggle"/.test(indexSource), "detail edge toggle should be removed");
@@ -288,17 +296,17 @@ function checkIdeologyContracts() {
   assert(/ideologyUnlockTagsHtml/.test(appSource), "ideology unlock tag renderer is missing");
   assert(/ideologyRuleSourceLabel/.test(appSource), "ideology source label renderer is missing");
   assert(/ideologyReplacementUsageHtml/.test(appSource), "ideology replacement renderer is missing");
-  assert(/风味·新增/.test(appSource), "ideology flavor additions should be labeled 风味·新增");
-  assert(/风味·移除/.test(appSource), "ideology flavor removals should be labeled 风味·移除");
-  assert(/风味·替换/.test(appSource), "added flavor ideologies should be labeled 风味·替换A");
-  assert(/风味：替换为/.test(appSource), "removed default ideologies should be labeled 风味：替换为B");
+  assert(/"enum\.ideologyFlavorUsage\.added":\s*"风味·新增"/.test(uiZhSource), "ideology flavor additions should be labeled 风味·新增");
+  assert(/"enum\.ideologyFlavorUsage\.removed":\s*"风味·移除"/.test(uiZhSource), "ideology flavor removals should be labeled 风味·移除");
+  assert(/"enum\.ideologyFlavorUsage\.replaces":\s*"风味·替换"/.test(uiZhSource), "added flavor ideologies should be labeled 风味·替换A");
+  assert(/"enum\.ideologyFlavorUsage\.replaced_by":\s*"风味：替换为"/.test(uiZhSource), "removed default ideologies should be labeled 风味：替换为B");
   assert(!/风味·使用/.test(appSource), "removed default ideology label should not use 风味·使用B替换A");
   assert(/ideologyRefPill/.test(appSource), "ideology references should render as ideology tags");
   assert(/ideologyLawGroupTooltip/.test(appSource), "ideology tag tooltip should include related law groups");
   assert(!/ideologyLawGroupOrderValue/.test(appSource), "ideology law group tooltip should use the existing law group order helper");
   assert(!/\[ideology\.key,\s*cleanIdeologyDescription/.test(appSource), "ideology tag title should not include flavor description text");
   assert(/ideologyWeightSectionHtml/.test(appSource), "ideology detail should include a character weight section");
-  assert(/角色权重/.test(appSource), "ideology weight section should be labeled 角色权重");
+  assert(/"board\.ideology\.characterWeight":\s*"角色权重"/.test(uiZhSource), "ideology weight section should be labeled 角色权重");
   assert(/sharedIdeologyLawGroupKeys/.test(appSource), "flavor replacement classification should compare ideology law groups");
   assert(/classifyFlavorIdeologyUsage/.test(appSource), "flavor ideology usage classification helper is missing");
   assert(!/\bbyIdeology\b/.test(appSource), "production ideology usage should use the existing ideologyByKey map");
@@ -314,7 +322,7 @@ function checkIdeologyContracts() {
   const abolitionist = ideologyByKey.get("ideology_abolitionist");
   assert(abolitionist, "ideology_abolitionist is missing from site data");
   assert(abolitionist?.character_ideology === true, "ideology_abolitionist should be marked as a character ideology");
-  assert(abolitionist?.character_requirements?.country?.summary_zh, "ideology_abolitionist should expose country requirements");
+  assert(abolitionist?.character_requirements?.country?.loc?.summary, "ideology_abolitionist should expose country requirement localization");
   assert((abolitionist?.interest_group_leader_weight?.entries || []).some((entry) => entry.value === 100 && /base_value/.test(entry.desc || "")), "ideology_abolitionist leader weight should expose base 100");
   assert((abolitionist?.interest_group_leader_weight?.entries || []).some((entry) => entry.value === 100 && entry.interest_groups?.some((item) => item.key === "ig_trade_unions")), "ideology_abolitionist leader weight should link trade unions modifier");
   assert((abolitionist?.non_interest_group_leader_weight?.entries || []).some((entry) => entry.value === 75 && entry.traits?.some((item) => item.key === "trait_tactful")), "ideology_abolitionist non-leader weight should link tactful trait modifier");
@@ -357,11 +365,12 @@ function checkIdeologyContracts() {
     "expected ideology_pious to have a flavor-only removal when no added ideology shares its law group",
   );
 
-  const eastIndiaNames = countries
-    .filter((country) => /东印度|East India/i.test([country.name, country.name_zh, country.tag].filter(Boolean).join(" ")))
-    .map((country) => country.name || country.name_zh || country.tag);
-  assert(eastIndiaNames.some((name) => /英|British/i.test(name)), "British East India label is missing");
-  assert(eastIndiaNames.some((name) => /荷|Dutch/i.test(name)), "Dutch East India label is missing");
+  assert(countries.find((country) => country.tag === "BIC")?.loc?.displayName === "country:BIC.displayName", "British East India display-name reference is missing");
+  assert(countries.find((country) => country.tag === "DEI")?.loc?.displayName === "country:DEI.displayName", "Dutch East India display-name reference is missing");
+  assert(countryLocaleZhSource.includes('"country:BIC.displayName":"东印度（英属）"'), "British East India Chinese label is missing");
+  assert(countryLocaleZhSource.includes('"country:DEI.displayName":"东印度（荷属）"'), "Dutch East India Chinese label is missing");
+  assert(countryLocaleEnSource.includes('"country:BIC.displayName":"East India (British)"'), "British East India English label is missing");
+  assert(countryLocaleEnSource.includes('"country:DEI.displayName":"East India (Dutch)"'), "Dutch East India English label is missing");
 }
 
 function readText(relativePath) {

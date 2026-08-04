@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="zh-Hans">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Vicdata</title>
-    <link rel="stylesheet" href="styles.css?v=20260804-goods-detail2">
+    <link rel="stylesheet" href="styles.css?v=20260804-multilingual-economy1">
     <link rel="icon" type="image/png" sizes="16x16" href="assets/brand/favicon-16.png?v=20260720-v">
     <link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png?v=20260720-v">
     <link rel="apple-touch-icon" sizes="180x180" href="assets/brand/apple-touch-icon.png">
@@ -13,61 +13,68 @@
   <body>
     <header class="topbar">
       <div class="topbar-left">
-        <button class="topbar-brand" type="button" data-nav-view="home" aria-label="Vicdata 首页" title="Vicdata"><span class="brand-mark"><img class="brand-logo" src="assets/brand/vicdata-icon.svg" alt="" aria-hidden="true"></span></button>
-        <nav class="topbar-nav" aria-label="资料板块">
-          <button class="topbar-nav-item" type="button" data-nav-view="country"><img class="lucide-icon" src="assets/lucide/icons/earth.svg" alt="" aria-hidden="true"><span>国家</span></button>
-          <button class="topbar-nav-item" type="button" data-nav-view="culture"><img class="lucide-icon" src="assets/lucide/icons/drama.svg" alt="" aria-hidden="true"><span>文化</span></button>
-          <button class="topbar-nav-item" type="button" data-nav-view="region"><img class="lucide-icon" src="assets/lucide/icons/map.svg" alt="" aria-hidden="true"><span>地域</span></button>
-          <button class="topbar-nav-item" type="button" data-nav-view="company"><img class="lucide-icon" src="assets/lucide/icons/briefcase-business.svg" alt="" aria-hidden="true"><span>公司</span></button>
-          <button class="topbar-nav-item" type="button" data-nav-view="ideology"><img class="lucide-icon" src="assets/lucide/icons/user-star.svg" alt="" aria-hidden="true"><span>意识形态</span></button>
-          <button class="topbar-nav-item" type="button" data-nav-view="law"><img class="lucide-icon" src="assets/lucide/icons/scale.svg" alt="" aria-hidden="true"><span>法律</span></button>
-          <button class="topbar-nav-item" type="button" data-nav-view="technology"><img class="lucide-icon" src="assets/lucide/icons/lightbulb.svg" alt="" aria-hidden="true"><span>科技</span></button>
-          <button class="topbar-nav-item" type="button" data-nav-view="achievement"><img class="lucide-icon" src="assets/lucide/icons/trophy.svg" alt="" aria-hidden="true"><span>成就</span></button>
-          <button class="topbar-nav-item" type="button" data-nav-view="building"><img class="lucide-icon" src="assets/lucide/icons/landmark.svg" alt="" aria-hidden="true"><span>建筑</span></button>
-          <button class="topbar-nav-item" type="button" data-nav-view="goods"><img class="lucide-icon" src="assets/lucide/icons/package.svg" alt="" aria-hidden="true"><span>商品</span></button>
+        <button class="topbar-brand" type="button" data-nav-view="home" aria-label="Vicdata 首页" data-i18n-aria-label="ui.homeAria" title="Vicdata"><span class="brand-mark"><img class="brand-logo" src="assets/brand/vicdata-icon.svg" alt="" aria-hidden="true"></span></button>
+        <nav class="topbar-nav" aria-label="资料板块" data-i18n-aria-label="ui.boards">
+          <button class="topbar-nav-item" type="button" data-nav-view="country"><img class="lucide-icon" src="assets/lucide/icons/earth.svg" alt="" aria-hidden="true"><span data-i18n="nav.country">国家</span></button>
+          <button class="topbar-nav-item" type="button" data-nav-view="culture"><img class="lucide-icon" src="assets/lucide/icons/drama.svg" alt="" aria-hidden="true"><span data-i18n="nav.culture">文化</span></button>
+          <button class="topbar-nav-item" type="button" data-nav-view="region"><img class="lucide-icon" src="assets/lucide/icons/map.svg" alt="" aria-hidden="true"><span data-i18n="nav.region">地域</span></button>
+          <button class="topbar-nav-item" type="button" data-nav-view="company"><img class="lucide-icon" src="assets/lucide/icons/briefcase-business.svg" alt="" aria-hidden="true"><span data-i18n="nav.company">公司</span></button>
+          <button class="topbar-nav-item" type="button" data-nav-view="ideology"><img class="lucide-icon" src="assets/lucide/icons/user-star.svg" alt="" aria-hidden="true"><span data-i18n="nav.ideology">意识形态</span></button>
+          <button class="topbar-nav-item" type="button" data-nav-view="law"><img class="lucide-icon" src="assets/lucide/icons/scale.svg" alt="" aria-hidden="true"><span data-i18n="nav.law">法律</span></button>
+          <button class="topbar-nav-item" type="button" data-nav-view="technology"><img class="lucide-icon" src="assets/lucide/icons/lightbulb.svg" alt="" aria-hidden="true"><span data-i18n="nav.technology">科技</span></button>
+          <button class="topbar-nav-item" type="button" data-nav-view="achievement"><img class="lucide-icon" src="assets/lucide/icons/trophy.svg" alt="" aria-hidden="true"><span data-i18n="nav.achievement">成就</span></button>
+          <button class="topbar-nav-item" type="button" data-nav-view="building"><img class="lucide-icon" src="assets/lucide/icons/landmark.svg" alt="" aria-hidden="true"><span data-i18n="nav.building">建筑</span></button>
+          <button class="topbar-nav-item" type="button" data-nav-view="goods"><img class="lucide-icon" src="assets/lucide/icons/package.svg" alt="" aria-hidden="true"><span data-i18n="nav.goods">商品</span></button>
         </nav>
       </div>
-      <div class="topbar-actions" aria-label="全局控制">
+      <div class="topbar-actions" aria-label="全局控制" data-i18n-aria-label="ui.globalControls">
         <label class="version-menu topbar-icon-select">
           <img class="lucide-icon" src="assets/lucide/icons/milestone.svg" alt="" aria-hidden="true">
-          <select id="librarySelect" aria-label="资料库切换"></select>
+          <select id="librarySelect" aria-label="资料库切换" data-i18n-aria-label="ui.librarySwitch"></select>
         </label>
-        <button id="globalSearchButton" class="topbar-icon-button" type="button" aria-label="全局搜索" title="全局搜索"><img class="lucide-icon" src="assets/lucide/icons/search.svg" alt="" aria-hidden="true"></button>
-        <button id="settingsNavButton" class="topbar-icon-button" type="button" aria-label="设置" title="设置"><img class="lucide-icon" src="assets/lucide/icons/settings.svg" alt="" aria-hidden="true"></button>
-        <button id="aboutNavButton" class="topbar-icon-button" type="button" aria-label="关于" title="关于"><img class="lucide-icon" src="assets/lucide/icons/circle-help.svg" alt="" aria-hidden="true"></button>
-        <select id="viewSelect" aria-label="板块切换" hidden>
-          <option value="home">首页</option>
-          <option value="country">国家</option>
-          <option value="culture">文化</option>
-          <option value="region">地域</option>
-          <option value="company">公司</option>
-          <option value="ideology">意识形态</option>
-          <option value="law">法律</option>
-          <option value="technology">科技</option>
-          <option value="achievement">成就</option>
-          <option value="building">建筑</option>
-          <option value="goods">商品</option>
+        <div class="language-menu">
+          <button id="languageMenuButton" class="topbar-icon-button" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="语言" data-i18n-aria-label="ui.language" title="语言" data-i18n-title="ui.language"><img class="lucide-icon" src="assets/lucide/icons/languages.svg" alt="" aria-hidden="true"></button>
+          <div id="languageMenu" class="language-menu-popover" role="menu" hidden>
+            <button type="button" role="menuitemradio" data-locale="zh-Hans">简体中文</button>
+            <button type="button" role="menuitemradio" data-locale="en">English</button>
+          </div>
+        </div>
+        <button id="globalSearchButton" class="topbar-icon-button" type="button" aria-label="全局搜索" data-i18n-aria-label="ui.search" title="全局搜索" data-i18n-title="ui.search"><img class="lucide-icon" src="assets/lucide/icons/search.svg" alt="" aria-hidden="true"></button>
+        <button id="settingsNavButton" class="topbar-icon-button" type="button" aria-label="设置" data-i18n-aria-label="ui.settings" title="设置" data-i18n-title="ui.settings"><img class="lucide-icon" src="assets/lucide/icons/settings.svg" alt="" aria-hidden="true"></button>
+        <button id="aboutNavButton" class="topbar-icon-button" type="button" aria-label="关于" data-i18n-aria-label="ui.about" title="关于" data-i18n-title="ui.about"><img class="lucide-icon" src="assets/lucide/icons/circle-help.svg" alt="" aria-hidden="true"></button>
+        <select id="viewSelect" aria-label="板块切换" data-i18n-aria-label="ui.boardSwitch" hidden>
+          <option value="home" data-i18n="nav.home">首页</option>
+          <option value="country" data-i18n="nav.country">国家</option>
+          <option value="culture" data-i18n="nav.culture">文化</option>
+          <option value="region" data-i18n="nav.region">地域</option>
+          <option value="company" data-i18n="nav.company">公司</option>
+          <option value="ideology" data-i18n="nav.ideology">意识形态</option>
+          <option value="law" data-i18n="nav.law">法律</option>
+          <option value="technology" data-i18n="nav.technology">科技</option>
+          <option value="achievement" data-i18n="nav.achievement">成就</option>
+          <option value="building" data-i18n="nav.building">建筑</option>
+          <option value="goods" data-i18n="nav.goods">商品</option>
         </select>
       </div>
     </header>
 
     <main class="layout">
-      <section id="mapPanel" class="map-panel" aria-label="地图模式">
+      <section id="mapPanel" class="map-panel" aria-label="地图模式" data-i18n-aria-label="map.mode">
         <div class="map-toolbar">
-          <button id="leftPanelToggle" class="map-tool-button panel-toggle" type="button" aria-label="折叠筛选" title="折叠筛选"><img class="lucide-icon" src="assets/lucide/icons/text-search.svg" alt="" aria-hidden="true"></button>
-          <button id="bottomPanelToggle" class="map-tool-button panel-toggle" type="button" aria-label="折叠列表" title="折叠列表"><img class="lucide-icon" src="assets/lucide/icons/layout-list.svg" alt="" aria-hidden="true"></button>
-          <button id="mapFitWidthButton" class="map-tool-button" type="button" aria-label="重置地图位置" title="重置地图位置"><img class="lucide-icon" src="assets/lucide/icons/refresh-ccw.svg" alt="" aria-hidden="true"></button>
+          <button id="leftPanelToggle" class="map-tool-button panel-toggle" type="button" aria-label="折叠筛选" data-i18n-aria-label="ui.collapseFilters" title="折叠筛选" data-i18n-title="ui.collapseFilters"><img class="lucide-icon" src="assets/lucide/icons/text-search.svg" alt="" aria-hidden="true"></button>
+          <button id="bottomPanelToggle" class="map-tool-button panel-toggle" type="button" aria-label="折叠列表" data-i18n-aria-label="ui.collapseList" title="折叠列表" data-i18n-title="ui.collapseList"><img class="lucide-icon" src="assets/lucide/icons/layout-list.svg" alt="" aria-hidden="true"></button>
+          <button id="mapFitWidthButton" class="map-tool-button" type="button" aria-label="重置地图位置" data-i18n-aria-label="map.resetPosition" title="重置地图位置" data-i18n-title="map.resetPosition"><img class="lucide-icon" src="assets/lucide/icons/refresh-ccw.svg" alt="" aria-hidden="true"></button>
           <span id="mapResourceContext" class="map-resource-context" aria-live="polite" hidden></span>
           <label hidden>
-            <span>地图模式</span>
+            <span data-i18n="map.mode">地图模式</span>
             <select id="mapModeSelect">
-              <option value="resource">资源潜力</option>
-              <option value="culture">文化关系</option>
-              <option value="trait">地区特质</option>
+              <option value="resource" data-i18n="map.resourcePotential">资源潜力</option>
+              <option value="culture" data-i18n="map.cultureRelation">文化关系</option>
+              <option value="trait" data-i18n="map.stateTraits">地区特质</option>
             </select>
           </label>
           <label hidden>
-            <span>对象</span>
+            <span data-i18n="map.subject">对象</span>
             <select id="mapSubjectSelect"></select>
           </label>
         </div>
@@ -75,181 +82,181 @@
           <canvas id="mapCanvas" width="4096" height="1808"></canvas>
           <div id="mapTooltip" class="map-tooltip" hidden></div>
         </div>
-        <div id="terrainMapLegend" class="terrain-map-legend" aria-label="陆地地形图例" hidden></div>
+        <div id="terrainMapLegend" class="terrain-map-legend" aria-label="陆地地形图例" data-i18n-aria-label="map.landTerrainLegend" hidden></div>
       </section>
 
-      <section id="mobileCountryToolbar" class="mobile-country-toolbar" aria-label="国家窄屏工具栏"></section>
-      <section id="mobileCountryFilterPanel" class="mobile-country-filter-panel" aria-label="国家窄屏筛选"></section>
-      <section id="mobileCultureToolbar" class="mobile-culture-toolbar" aria-label="文化窄屏工具栏"></section>
-      <section id="mobileCultureFilterPanel" class="mobile-culture-filter-panel" aria-label="文化窄屏筛选"></section>
+      <section id="mobileCountryToolbar" class="mobile-country-toolbar" aria-label="国家窄屏工具栏" data-i18n-aria-label="board.country.mobileToolbar"></section>
+      <section id="mobileCountryFilterPanel" class="mobile-country-filter-panel" aria-label="国家窄屏筛选" data-i18n-aria-label="board.country.mobileFilters"></section>
+      <section id="mobileCultureToolbar" class="mobile-culture-toolbar" aria-label="文化窄屏工具栏" data-i18n-aria-label="board.culture.mobileToolbar"></section>
+      <section id="mobileCultureFilterPanel" class="mobile-culture-filter-panel" aria-label="文化窄屏筛选" data-i18n-aria-label="board.culture.mobileFilters"></section>
 
-      <aside class="filters" aria-label="筛选">
+      <aside class="filters" aria-label="筛选" data-i18n-aria-label="ui.filters">
         <div class="panel-head">
-          <strong>筛选</strong>
-          <button id="resetButton" type="button">清除筛选</button>
+          <strong data-i18n="ui.filters">筛选</strong>
+          <button id="resetButton" type="button" data-i18n="ui.clearFilters">清除筛选</button>
         </div>
         <section class="view-switch">
-          <h2>板块</h2>
-          <div class="segmented" role="group" aria-label="资料板块">
-            <button id="countryViewButton" type="button">国家</button>
-            <button id="cultureViewButton" type="button">文化</button>
-            <button id="regionViewButton" type="button">地域</button>
-            <button id="companyViewButton" type="button">公司</button>
-            <button id="ideologyViewButton" type="button">意识形态</button>
+          <h2 data-i18n="ui.boards">板块</h2>
+          <div class="segmented" role="group" aria-label="资料板块" data-i18n-aria-label="ui.boards">
+            <button id="countryViewButton" type="button" data-i18n="nav.country">国家</button>
+            <button id="cultureViewButton" type="button" data-i18n="nav.culture">文化</button>
+            <button id="regionViewButton" type="button" data-i18n="nav.region">地域</button>
+            <button id="companyViewButton" type="button" data-i18n="nav.company">公司</button>
+            <button id="ideologyViewButton" type="button" data-i18n="nav.ideology">意识形态</button>
           </div>
         </section>
 
         <label class="search">
-          <span>搜索</span>
-          <input id="searchInput" type="search" autocomplete="off" placeholder="国家、Tag、文化、宗教、地域">
+          <span data-i18n="ui.searchLabel">搜索</span>
+          <input id="searchInput" type="search" autocomplete="off" placeholder="国家、Tag、文化、宗教、地域" data-i18n-placeholder="ui.boardSearchPlaceholder">
         </label>
 
         <details class="filter-section region-only company-visible">
-          <summary id="resourceFilterTitle">资源</summary>
+          <summary id="resourceFilterTitle" data-i18n="filter.resources">资源</summary>
           <div id="industryCharterFilters" class="option-list company-only company-option-strip"></div>
           <div id="resourceFilters" class="option-list scroll-list grouped-filter-list"></div>
         </details>
 
         <details class="filter-section region-only">
-          <summary>地区特质</summary>
+          <summary data-i18n="filter.stateTraits">地区特质</summary>
           <div id="stateTraitFilters" class="option-list"></div>
         </details>
 
         <details class="filter-section region-only">
-          <summary>地图</summary>
+          <summary data-i18n="filter.map">地图</summary>
           <div class="option-list">
-            <button id="terrainMapViewButton" class="filter-token" type="button" aria-pressed="false">地形视图</button>
+            <button id="terrainMapViewButton" class="filter-token" type="button" aria-pressed="false" data-i18n="map.terrainView">地形视图</button>
           </div>
         </details>
 
         <details id="victorianCenturyChangeFilterSection" class="filter-section" hidden>
-          <summary>资料标签</summary>
+          <summary data-i18n="filter.dataTags">资料标签</summary>
           <div class="option-list">
-            <button id="victorianCenturyAddedFilter" class="filter-token" type="button" data-filter-token aria-pressed="false">VC新增</button>
-            <button id="victorianCenturyAdjustedFilter" class="filter-token" type="button" data-filter-token aria-pressed="false">VC调整</button>
+            <button id="victorianCenturyAddedFilter" class="filter-token" type="button" data-filter-token aria-pressed="false" data-i18n="filter.vcAdded">VC新增</button>
+            <button id="victorianCenturyAdjustedFilter" class="filter-token" type="button" data-filter-token aria-pressed="false" data-i18n="filter.vcAdjusted">VC调整</button>
           </div>
         </details>
 
         <details class="filter-section country-only country-primary-filter">
-          <summary>类型</summary>
+          <summary data-i18n="filter.type">类型</summary>
           <div class="filter-subgroup">
-            <div class="filter-subtitle">政治类型</div>
+            <div class="filter-subtitle" data-i18n="filter.politicalType">政治类型</div>
             <div id="countryTypeFilters" class="option-list"></div>
           </div>
           <div class="filter-subgroup">
-            <div class="filter-subtitle">资料标签</div>
+            <div class="filter-subtitle" data-i18n="filter.dataTags">资料标签</div>
             <div class="option-list">
-              <button class="filter-token" type="button" data-filter-token data-filter="existsAtStart" aria-pressed="false">开局存在</button>
-              <button class="filter-token" type="button" data-filter-token data-filter="isReleasable" aria-pressed="false">可释放</button>
-              <button class="filter-token" type="button" data-filter-token data-filter="isMinorFormable" aria-pressed="false">次要统一</button>
-              <button class="filter-token" type="button" data-filter-token data-filter="isMajorFormable" aria-pressed="false">重大统一</button>
-              <button class="filter-token" type="button" data-filter-token data-filter="isDualHeritage" aria-pressed="false">双传承</button>
-              <button class="filter-token" type="button" data-filter-token data-filter="isSpecial" aria-pressed="false">彩蛋</button>
-              <button class="filter-token" type="button" data-filter-token data-filter="isCivilWar" aria-pressed="false">内战国家</button>
+              <button class="filter-token" type="button" data-filter-token data-filter="existsAtStart" aria-pressed="false" data-i18n="board.country.filter.type.existsAtStart">开局存在</button>
+              <button class="filter-token" type="button" data-filter-token data-filter="isReleasable" aria-pressed="false" data-i18n="board.country.filter.type.isReleasable">可释放</button>
+              <button class="filter-token" type="button" data-filter-token data-filter="isMinorFormable" aria-pressed="false" data-i18n="board.country.filter.type.isMinorFormable">次要统一</button>
+              <button class="filter-token" type="button" data-filter-token data-filter="isMajorFormable" aria-pressed="false" data-i18n="board.country.filter.type.isMajorFormable">重大统一</button>
+              <button class="filter-token" type="button" data-filter-token data-filter="isDualHeritage" aria-pressed="false" data-i18n="board.country.filter.type.isDualHeritage">双传承</button>
+              <button class="filter-token" type="button" data-filter-token data-filter="isSpecial" aria-pressed="false" data-i18n="board.country.filter.type.isSpecial">彩蛋</button>
+              <button class="filter-token" type="button" data-filter-token data-filter="isCivilWar" aria-pressed="false" data-i18n="board.country.filter.type.isCivilWar">内战国家</button>
             </div>
           </div>
         </details>
 
         <details class="filter-section country-only">
-          <summary>位阶</summary>
+          <summary data-i18n="board.country.filter.tier">位阶</summary>
           <div id="tierFilters" class="option-list"></div>
         </details>
 
         <details class="filter-section company-visible company-region-filter-section">
-          <summary id="strategicRegionFilterTitle">战略区域</summary>
+          <summary id="strategicRegionFilterTitle" data-i18n="board.country.filter.strategicRegion">战略区域</summary>
           <div id="strategicRegionFilters" class="option-list scroll-list grouped-filter-list"></div>
         </details>
 
         <details class="filter-section geographic-region-filter region-only company-region-filter-section">
-          <summary>地理区域</summary>
+          <summary data-i18n="board.region.geographicRegion">地理区域</summary>
           <div id="geographicRegionFilters" class="option-list scroll-list grouped-filter-list"></div>
         </details>
 
         <details class="filter-section company-only">
-          <summary>公司类型</summary>
+          <summary data-i18n="filter.companyType">公司类型</summary>
           <div id="companyKindFilters" class="option-list"></div>
         </details>
 
         <details class="filter-section company-only">
-          <summary>名贵商品</summary>
+          <summary data-i18n="board.company.prestigeGoods">名贵商品</summary>
           <div id="companyPrestigeFilters" class="option-list"></div>
         </details>
 
         <details class="filter-section company-only">
-          <summary>资料片</summary>
+          <summary data-i18n="board.company.dlc">资料片</summary>
           <div id="companyDlcFilters" class="option-list dlc-filter-list"></div>
         </details>
 
         <details class="filter-section ideology-only">
-          <summary>类型</summary>
+          <summary data-i18n="filter.type">类型</summary>
           <div id="ideologyTypeFilters" class="ideology-type-list"></div>
         </details>
 
         <details class="filter-section law-ideology-only">
-          <summary>法律组</summary>
-          <label class="filter-check"><input id="commonLawIdeologyFilter" type="checkbox">仅查看通用法律和意识形态</label>
+          <summary data-i18n="filter.lawGroups">法律组</summary>
+          <label class="filter-check"><input id="commonLawIdeologyFilter" type="checkbox"><span data-i18n="filter.commonLawIdeology">仅查看通用法律和意识形态</span></label>
           <div id="lawGroupFilters" class="ideology-law-filter-list"></div>
         </details>
 
         <details class="filter-section ideology-only">
-          <summary>利益集团</summary>
+          <summary data-i18n="board.ideology.interestGroup">利益集团</summary>
           <div id="ideologyGroupFilters" class="ideology-icon-grid"></div>
         </details>
 
         <details class="filter-section ideology-only">
-          <summary>出现方式</summary>
+          <summary data-i18n="filter.occurrence">出现方式</summary>
           <div id="ideologyOccurrenceFilters" class="ideology-choice-list"></div>
         </details>
 
         <details class="filter-section ideology-only">
-          <summary>相关法律组</summary>
+          <summary data-i18n="board.ideology.relatedLawGroups">相关法律组</summary>
           <div id="ideologyLawGroupFilters" class="ideology-law-filter-list"></div>
         </details>
 
         <details class="filter-section culture-filter">
-          <summary>传承</summary>
+          <summary data-i18n="board.culture.filter.heritage">传承</summary>
           <div id="heritageGroupFilters" class="option-list scroll-list grouped-filter-list"></div>
         </details>
 
         <section hidden>
-          <h2>传承</h2>
+          <h2 data-i18n="board.culture.filter.heritage">传承</h2>
           <div id="heritageFilters" class="option-list scroll-list"></div>
         </section>
 
         <details class="filter-section culture-filter">
-          <summary>语言</summary>
+          <summary data-i18n="board.culture.filter.language">语言</summary>
           <div id="languageGroupFilters" class="option-list scroll-list grouped-filter-list"></div>
         </details>
 
         <section hidden>
-          <h2>语言</h2>
+          <h2 data-i18n="board.culture.filter.language">语言</h2>
           <div id="languageFilters" class="option-list scroll-list"></div>
         </section>
 
         <details class="filter-section culture-filter">
-          <summary>传统</summary>
-          <div id="traditionFilters" class="option-list scroll-list" aria-label="传统"></div>
+          <summary data-i18n="board.culture.filter.tradition">传统</summary>
+          <div id="traditionFilters" class="option-list scroll-list" aria-label="传统" data-i18n-aria-label="board.culture.filter.tradition"></div>
         </details>
       </aside>
 
       <section class="home-left-column">
-      <section id="homeWelcome" class="home-welcome" hidden aria-label="Vicdata 资料库说明">
+      <section id="homeWelcome" class="home-welcome" hidden aria-label="Vicdata 资料库说明" data-i18n-aria-label="home.databaseIntro">
         <p class="home-kicker">VICTORIA 3 · DATA REFERENCE</p>
-        <h1>Vicdata 维多利亚 3 资料库</h1>
-        <p>查阅国家、文化、地区、公司与意识形态资料，并在地图中查看它们之间的关联。</p>
+        <h1 data-i18n="home.title">Vicdata 维多利亚 3 资料库</h1>
+        <p data-i18n="home.description">查阅国家、文化、地区、公司与意识形态资料，并在地图中查看它们之间的关联。</p>
         <button id="homeGuideButton" class="home-guide-button" type="button">
           <span class="home-guide-mark">?</span>
-          <span><strong>网站使用说明</strong><small>了解资料范围、搜索方式、地图操作与常见问题。</small></span>
+          <span><strong data-i18n="home.guide">网站使用说明</strong><small data-i18n="home.guideDescription">了解资料范围、搜索方式、地图操作与常见问题。</small></span>
           <span class="home-guide-arrow" aria-hidden="true">→</span>
         </button>
         <!-- MAIN_SITE_VC_ENTRY_START -->
-        <a id="vcHomeEntry" class="home-mod-database-entry" href="vc/index.html" aria-label="进入 Victorian Century 资料库">
+        <a id="vcHomeEntry" class="home-mod-database-entry" href="vc/index.html" aria-label="进入 Victorian Century 资料库" data-i18n-aria-label="home.vcEntryAria">
           <img class="lucide-icon home-mod-database-icon" src="assets/lucide/icons/library-big.svg" alt="" aria-hidden="true">
-          <span class="home-mod-database-copy"><strong>Victorian Century 资料库</strong><small>模组数据与地图</small></span>
+          <span class="home-mod-database-copy"><strong data-i18n="home.vcTitle">Victorian Century 资料库</strong><small data-i18n="home.vcDescription">模组数据与地图</small></span>
           <span class="home-guide-arrow" aria-hidden="true">→</span>
         </a>
         <!-- MAIN_SITE_VC_ENTRY_END -->
-        <p class="home-copyright">Vicdata 为玩家制作的资料浏览工具，与 Paradox Interactive 没有从属、授权或合作关系。游戏名称、图像、数据与商标归其权利人所有。</p>
+        <p class="home-copyright" data-i18n="home.disclaimer">Vicdata 为玩家制作的资料浏览工具，与 Paradox Interactive 没有从属、授权或合作关系。游戏名称、图像、数据与商标归其权利人所有。</p>
       </section>
 
       <section class="results">
@@ -258,18 +265,18 @@
             <strong id="resultCount"></strong>
             <span id="activeHint"></span>
           </div>
-          <select id="sortSelect" aria-label="排序">
-            <option value="tag">按 Tag</option>
-            <option value="name">按名称</option>
-            <option value="tier">按位阶</option>
-            <option value="states">按开局州数</option>
+          <select id="sortSelect" aria-label="排序" data-i18n-aria-label="ui.sort">
+            <option value="tag" data-i18n="sort.tag">按 Tag</option>
+            <option value="name" data-i18n="sort.name">按名称</option>
+            <option value="tier" data-i18n="sort.tier">按位阶</option>
+            <option value="states" data-i18n="sort.states">按开局州数</option>
           </select>
         </div>
         <div id="countryList" class="country-list"></div>
       </section>
 
       <section id="homeLinks" class="home-links" hidden aria-labelledby="home-links-title">
-        <h2 id="home-links-title">链接</h2>
+        <h2 id="home-links-title" data-i18n="home.links">链接</h2>
         <a href="https://vic3.paradoxwikis.com/Victoria_3_Wiki" target="_blank" rel="noreferrer">Victoria 3 Wiki</a>
         <a href="https://vic3.parawikis.com/wiki/%E9%A6%96%E9%A1%B5" target="_blank" rel="noreferrer">Parawikis</a>
         <a href="https://forum.paradoxplaza.com/forum/forums/victoria-3.1095/" target="_blank" rel="noreferrer">Victoria 3 官方论坛</a>
@@ -282,48 +289,50 @@
       <div id="globalSearchDialog" class="global-search-backdrop" hidden>
         <section class="global-search-dialog" role="dialog" aria-modal="true" aria-labelledby="globalSearchDialogTitle">
           <div class="global-search-dialog-head">
-            <h2 id="globalSearchDialogTitle">全局搜索</h2>
-            <button id="globalSearchCloseButton" class="dialog-close-button" type="button" aria-label="关闭全局搜索">×</button>
+            <h2 id="globalSearchDialogTitle" data-i18n="ui.search">全局搜索</h2>
+            <button id="globalSearchCloseButton" class="dialog-close-button" type="button" aria-label="关闭全局搜索" data-i18n-aria-label="search.close">×</button>
           </div>
           <label class="global-search-field">
-            <span>搜索全部资料</span>
-            <input id="globalSearchDialogInput" type="search" autocomplete="off" placeholder="国家、地区、文化、公司、意识形态">
+            <span data-i18n="search.allRecords">搜索全部资料</span>
+            <input id="globalSearchDialogInput" type="search" autocomplete="off" placeholder="国家、地区、文化、公司、意识形态" data-i18n-placeholder="search.placeholder">
           </label>
           <label class="global-search-legacy-toggle">
             <input id="globalSearchLegacyToggle" type="checkbox">
-            <span>包含旧版本</span>
+            <span data-i18n="search.includeLegacy">包含旧版本</span>
           </label>
-          <div id="globalSearchDialogResults" class="global-search-dialog-results" role="listbox" aria-label="全局搜索结果"></div>
+          <div id="globalSearchDialogResults" class="global-search-dialog-results" role="listbox" aria-label="全局搜索结果" data-i18n-aria-label="search.results"></div>
         </section>
       </div>
       <div id="infoDialog" class="global-search-backdrop info-dialog-backdrop" hidden>
         <section class="global-search-dialog info-dialog" role="dialog" aria-modal="true" aria-labelledby="infoDialogTitle">
           <div class="global-search-dialog-head">
             <h2 id="infoDialogTitle"></h2>
-            <button id="infoDialogCloseButton" class="dialog-close-button" type="button" aria-label="关闭浮窗">×</button>
+            <button id="infoDialogCloseButton" class="dialog-close-button" type="button" aria-label="关闭浮窗" data-i18n-aria-label="ui.closeDialog">×</button>
           </div>
           <div id="infoDialogBody" class="info-dialog-body"></div>
         </section>
       </div>
     </main>
 
-    <script src="announcement-data.js?v=20260726-announcements1"></script>
+    <script src="announcement-data.js?v=20260802-multilingual1"></script>
     <script src="versions.js?v=20260729-vc-library-navigation1"></script>
     <script src="news-data.js?v=20260718-news3"></script>
     <script src="assets/flags/country-flags.js?v=20260712-all-flags2"></script>
     <script src="assets/victorian-century-flags.js?v=20260729-country-flags1"></script>
-    <script src="app/runtime.js?v=20260803-economy-boards1"></script>
-    <script src="app/data.js?v=20260803-economy-boards1"></script>
-    <script src="app/ui.js?v=20260803-economy-boards1"></script>
+    <script src="locales/manifest.js?v=20260804-multilingual-economy1"></script>
+    <script src="app/runtime.js?v=20260804-multilingual-economy1"></script>
+    <script src="app/i18n.js?v=20260804-multilingual-economy1"></script>
+    <script src="app/data.js?v=20260804-multilingual-economy1"></script>
+    <script src="app/ui.js?v=20260804-multilingual-economy1"></script>
     <script src="app/company-location-rules.js?v=20260718-company-location2"></script>
-    <script src="app/boards.js?v=20260730-culture-mobile1"></script>
-    <script src="app/filters.js?v=20260803-state-trait-filter1"></script>
-    <script src="app/presentation.js?v=20260803-state-trait-filter1"></script>
-    <script src="app/map.js?v=20260803-state-trait-tooltip1"></script>
-    <script src="app/tag-tooltip-definitions.js?v=20260725-tooltip-layout1"></script>
-    <script src="app/components.js?v=20260803-state-trait-filter1"></script>
-    <script src="app/achievements.js?v=20260730-achievement-cache1"></script>
-    <script src="app/economy.js?v=20260804-goods-detail1"></script>
-    <script src="app/bootstrap.js?v=20260718-file-split1"></script>
+    <script src="app/boards.js?v=20260804-multilingual-economy1"></script>
+    <script src="app/filters.js?v=20260804-multilingual-economy1"></script>
+    <script src="app/presentation.js?v=20260804-multilingual-economy1"></script>
+    <script src="app/map.js?v=20260804-multilingual-economy1"></script>
+    <script src="app/tag-tooltip-definitions.js?v=20260804-multilingual-economy1"></script>
+    <script src="app/components.js?v=20260804-multilingual-economy1"></script>
+    <script src="app/achievements.js?v=20260804-multilingual-economy1"></script>
+    <script src="app/economy.js?v=20260804-multilingual-economy1"></script>
+    <script src="app/bootstrap.js?v=20260804-multilingual-economy1"></script>
   </body>
 </html>

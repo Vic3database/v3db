@@ -98,8 +98,6 @@ const mapRuntime = {
   provinceSampleContext: null,
   stateTraitIconImages: new Map(),
   stateTraitIconLoading: null,
-  stateTraitLocaleMessages: new Map(),
-  stateTraitLocaleLoading: null,
   sourcePixels: null,
   width: 4096,
   height: 1808,
@@ -428,12 +426,12 @@ const heritageGroupOrder = [
 const heritageGroupOrderByKey = new Map(heritageGroupOrder.map((key, index) => [key, index]));
 
 const stateTraitFilterOptions = [
-  { key: "all", label: "所有" },
-  { key: "waterways", label: "河流海港" },
-  { key: "land", label: "土壤地貌" },
-  { key: "resources", label: "自然资源" },
-  { key: "colonial_environment", label: "殖民环境" },
-  { key: "mapi", label: "MAPI" },
+  { key: "all", labelKey: "filter.stateTrait.all" },
+  { key: "waterways", labelKey: "filter.stateTrait.waterways" },
+  { key: "land", labelKey: "filter.stateTrait.land" },
+  { key: "resources", labelKey: "filter.stateTrait.resources" },
+  { key: "colonial_environment", labelKey: "filter.stateTrait.colonialEnvironment" },
+  { key: "mapi", labelKey: "filter.stateTrait.mapi" },
 ];
 
 const resourceFilterGroups = [
@@ -570,20 +568,24 @@ const ideologyTypeOptions = [
 ];
 
 const viewLabels = {
-  home: "首页",
-  country: "国家",
-  culture: "文化",
-  region: "地区（资源）",
-  company: "公司",
-  ideology: "意识形态",
-  law: "法律",
-  technology: "科技",
-  achievement: "成就",
-  building: "建筑",
-  goods: "商品",
-  changelog: "更新日志",
-  news: "游戏资讯",
+  home: "nav.home",
+  country: "nav.country",
+  culture: "nav.culture",
+  region: "nav.region",
+  company: "nav.company",
+  ideology: "nav.ideology",
+  law: "nav.law",
+  technology: "nav.technology",
+  achievement: "nav.achievement",
+  building: "nav.building",
+  goods: "nav.goods",
+  changelog: "nav.changelog",
+  news: "nav.news",
 };
+
+function viewLabel(view) {
+  return t(viewLabels[view] || "nav.country");
+}
 
 const feedbackEmail = "vic3database@outlook.com";
 const feedbackMailto = "mailto:vic3database@outlook.com?subject=Vicdata%20feature%20request";
@@ -717,6 +719,8 @@ const els = {
   pageTitle: document.querySelector("#pageTitle"),
   metaLine: document.querySelector("#metaLine"),
   globalSearchButton: document.querySelector("#globalSearchButton"),
+  languageMenuButton: document.querySelector("#languageMenuButton"),
+  languageMenu: document.querySelector("#languageMenu"),
   globalSearchDialog: document.querySelector("#globalSearchDialog"),
   globalSearchDialogInput: document.querySelector("#globalSearchDialogInput"),
   globalSearchDialogResults: document.querySelector("#globalSearchDialogResults"),

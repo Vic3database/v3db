@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { collectLocalizationRefs, sha256Text } from "./lib/localization-schema.mjs";
 
 const victorianCenturyChangeCollections = [
   ["countries", "tag"],
@@ -38,7 +39,7 @@ if (args.help) {
 
 const databaseDir = path.resolve(args.database || "database/vic3_1.13.9");
 const source = path.resolve(args.source || path.join(databaseDir, "index.json"));
-const outDir = path.resolve(args.out || "site");
+const outDir = path.resolve(args.out || path.join("site", "versions", "1.13.9"));
 const baselineDatabaseDir = args["baseline-database"] ? path.resolve(args["baseline-database"]) : "";
 const baselineSource = baselineDatabaseDir ? path.join(baselineDatabaseDir, "index.json") : "";
 
@@ -52,8 +53,10 @@ if (baselineSource && !fs.existsSync(baselineSource)) {
 fs.mkdirSync(outDir, { recursive: true });
 
 const siteData = loadSiteData(source);
+registerSiteCountryDisplayNames(siteData);
 const baselineData = baselineSource ? loadSiteData(baselineSource) : null;
-const data = deriveSiteData(baselineData ? applyVictorianCenturyChangeTags(siteData, baselineData) : siteData);
+if (baselineData) registerSiteCountryDisplayNames(baselineData);
+const data = stripLegacyLocalizedFields(deriveSiteData(baselineData ? applyVictorianCenturyChangeTags(siteData, baselineData) : siteData));
 
 const wikiData = {
   meta: data.meta,
@@ -112,6 +115,25 @@ const dataChunkFileNames = {
   goods: "data-goods.js",
 };
 
+const localeChunkDescriptors = Object.fromEntries(["zh-Hans", "en"].map((locale) => [locale, {}]));
+
+function writeLocaleChunk(board, structureFile, structureChunk) {
+  const refs = collectLocalizationRefs(structureChunk);
+  for (const locale of Object.keys(localeChunkDescriptors)) {
+    const messages = Object.fromEntries([...refs].sort().map((key) => [key, siteData.databaseMessagesByLocale?.[locale]?.[key] || ""]));
+    const base = structureFile.replace(/^data-/, "locale-").replace(/\.js$/, "");
+    const file = `${base}.${locale}.js`;
+    const id = `${locale}:${board}:${base}`;
+    const source = `window.VIC3_LOCALE_CHUNKS = window.VIC3_LOCALE_CHUNKS || {};\nwindow.VIC3_LOCALE_CHUNKS[${JSON.stringify(id)}] = ${JSON.stringify({ locale, messages })};\n`;
+    fs.writeFileSync(path.join(outDir, file), source, "utf8");
+    const entry = { id, path: file, sha256: sha256Text(source), missing: Object.values(messages).filter((value) => !value).length };
+    const descriptor = localeChunkDescriptors[locale][board] || { files: [], missing: 0 };
+    descriptor.files.push(entry);
+    descriptor.missing += entry.missing;
+    localeChunkDescriptors[locale][board] = descriptor;
+  }
+}
+
 for (const [key, keys] of Object.entries(dataChunks)) {
   if (key === "country") continue;
   const chunk = Object.fromEntries(keys.map((field) => [field, wikiData[field] || []]));
@@ -120,6 +142,7 @@ for (const [key, keys] of Object.entries(dataChunks)) {
     `window.VIC3_DATA_CHUNK = ${JSON.stringify(chunk)};\n`,
     "utf8",
   );
+  writeLocaleChunk(key, dataChunkFileNames[key], chunk);
 }
 
 const countryShardCount = 4;
@@ -128,19 +151,26 @@ const countryShardFiles = [];
 for (let index = 0; index < countryShardCount; index += 1) {
   const file = `data-countries-${index + 1}.js`;
   countryShardFiles.push(file);
+  const chunk = { countries: wikiData.countries.slice(index * countryShardSize, (index + 1) * countryShardSize) };
   fs.writeFileSync(
     path.join(outDir, file),
-    `window.VIC3_DATA_CHUNK = ${JSON.stringify({ countries: wikiData.countries.slice(index * countryShardSize, (index + 1) * countryShardSize) })};\n`,
+    `window.VIC3_DATA_CHUNK = ${JSON.stringify(chunk)};\n`,
     "utf8",
   );
+  writeLocaleChunk("country", file, chunk);
 }
 const countryMetaFile = "data-country-meta.js";
 countryShardFiles.push(countryMetaFile);
+const countryMetaChunk = Object.fromEntries(dataChunks.country.slice(1).map((field) => [field, wikiData[field] || []]));
 fs.writeFileSync(
   path.join(outDir, countryMetaFile),
-  `window.VIC3_DATA_CHUNK = ${JSON.stringify(Object.fromEntries(dataChunks.country.slice(1).map((field) => [field, wikiData[field] || []])))};\n`,
+  `window.VIC3_DATA_CHUNK = ${JSON.stringify(countryMetaChunk)};\n`,
   "utf8",
 );
+writeLocaleChunk("country", countryMetaFile, countryMetaChunk);
+
+const searchSource = `window.VIC3_SEARCH_INDEX = ${JSON.stringify({ locales: ["zh-Hans", "en"], entries: createSearchEntries(wikiData, siteData.databaseMessagesByLocale || {}) })};\n`;
+fs.writeFileSync(path.join(outDir, "search-index.js"), searchSource, "utf8");
 
 const dataIndex = {
   meta: wikiData.meta,
@@ -149,6 +179,11 @@ const dataIndex = {
     keys,
     counts: Object.fromEntries(keys.map((field) => [field, Array.isArray(wikiData[field]) ? wikiData[field].length : 0])),
   }])),
+  locales: {
+    supported: ["zh-Hans", "en"],
+    chunks: localeChunkDescriptors,
+    search_index: { path: "search-index.js", sha256: sha256Text(searchSource) },
+  },
 };
 
 fs.writeFileSync(
@@ -156,17 +191,14 @@ fs.writeFileSync(
   `window.VIC3_DATA_INDEX = ${JSON.stringify(dataIndex)};\n`,
   "utf8",
 );
-if (args["legacy-data"]) {
-  fs.writeFileSync(
-    path.join(outDir, "data.js"),
-    `window.VIC3_DATA = ${JSON.stringify(wikiData)};\n`,
-    "utf8",
-  );
-} else {
-  fs.rmSync(path.join(outDir, "data.js"), { force: true });
-}
-for (const legacyFile of ["data-countries.js", "data-countrys.js", "data-companys.js", "data-ideologys.js"]) {
-  fs.rmSync(path.join(outDir, legacyFile), { force: true });
+for (const generatedFile of fs.readdirSync(outDir)) {
+  if (!/^(?:data-.+|locale-.+|search-index)\.js$/.test(generatedFile)) continue;
+  const active = generatedFile === "data-index.js"
+    || generatedFile === "search-index.js"
+    || countryShardFiles.includes(generatedFile)
+    || Object.values(dataChunkFileNames).includes(generatedFile)
+    || Object.values(localeChunkDescriptors).some((byBoard) => Object.values(byBoard).some((entry) => entry.files.some((file) => file.path === generatedFile)));
+  if (!active) fs.rmSync(path.join(outDir, generatedFile), { force: true });
 }
 
 console.log(JSON.stringify({
@@ -194,7 +226,6 @@ console.log(JSON.stringify({
   dynamicCountryMapColorRules: wikiData.dynamicCountryMapColorRules.length,
   formables: wikiData.formables.length,
   releasables: wikiData.releasables.length,
-  legacyData: Boolean(args["legacy-data"]),
 }, null, 2));
 
 function loadSiteData(sourceFile) {
@@ -230,6 +261,10 @@ function loadSiteData(sourceFile) {
     const releasables = readJson(path.join(baseDir, sourceData.files.releasable_countries));
     const nameById = new Map(dynamicCountryNameVariants.map((variant) => [variant.id, variant]));
     const colorById = new Map(dynamicCountryMapColorRules.map((rule) => [rule.id, rule]));
+    const databaseMessagesByLocale = Object.fromEntries((sourceData.locales?.supported || []).map((locale) => [
+      locale,
+      readJson(path.join(baseDir, sourceData.locales.files[locale].file)),
+    ]));
     return {
       meta: {
         dataset_name: sourceData.dataset_name,
@@ -268,9 +303,10 @@ function loadSiteData(sourceFile) {
       dynamicCountryMapColorRules,
       formables,
       releasables,
+      databaseMessagesByLocale,
     };
   }
-  return loadLegacyData(sourceData);
+  throw new Error(`Unsupported database schema in ${sourceFile}: expected schema_version and files.`);
 }
 
 function deriveSiteData(siteData) {
@@ -396,7 +432,7 @@ function stableJson(value) {
 }
 
 function deriveCountryRecord(country) {
-  const countryName = disambiguateCountryName(country.tag, country.name || country.name_zh || country.tag);
+  const displayName = ["BIC", "DEI"].includes(country.tag) ? `country:${country.tag}.displayName` : "";
   const primaryCultureTraits = uniqueByKey(country.primaryCultureTraits || []);
   const primaryCultureTraitGroups = uniqueByKey(country.primaryCultureTraitGroups || []);
   const primaryCultureHomelandStateRegions = uniqueByKey(country.primaryCultureHomelandStateRegions || []);
@@ -412,7 +448,7 @@ function deriveCountryRecord(country) {
   const primaryCultureLanguageGroups = primaryCultureTraitGroups.filter((group) => group.type === "language");
   return {
     ...country,
-    name: countryName,
+    loc: displayName ? { ...country.loc, displayName } : country.loc,
     primaryCultureTraits,
     primaryCultureTraitGroups,
     primaryCultureHomelandStateRegions,
@@ -430,11 +466,22 @@ function deriveCountryRecord(country) {
   };
 }
 
-function disambiguateCountryName(tag, name) {
-  const text = String(name || "");
-  if (tag === "BIC" && /^(东印度|East India)$/.test(text)) return "东印度（英属）";
-  if (tag === "DEI" && /^(东印度|East India)$/.test(text)) return "东印度（荷属）";
-  return text;
+function registerSiteCountryDisplayNames(data) {
+  const messages = data?.databaseMessagesByLocale;
+  if (!messages) return;
+  const values = {
+    "zh-Hans": {
+      "country:BIC.displayName": "东印度（英属）",
+      "country:DEI.displayName": "东印度（荷属）",
+    },
+    en: {
+      "country:BIC.displayName": "East India (British)",
+      "country:DEI.displayName": "East India (Dutch)",
+    },
+  };
+  for (const [locale, entries] of Object.entries(values)) {
+    messages[locale] = { ...(messages[locale] || {}), ...entries };
+  }
 }
 
 function deriveCultureRecords(cultures) {
@@ -480,13 +527,14 @@ function flattenDatabaseCountry(country, nameById, colorById) {
     .map((id) => colorById.get(id))
     .filter(Boolean);
   return {
+    id: country.id,
+    key: country.tag,
+    loc: country.loc,
     tag: country.tag,
-    name: country.name?.zh || country.tag,
     existsAtStart: boolText(country.status?.exists_at_start),
     startingStateCount: (country.starting_states || []).length,
     startingStates: (country.starting_states || []).map((state) => state.key),
     startingOverlordTag: country.starting_subject?.overlord_tag || "",
-    startingOverlordName: country.starting_subject?.overlord_name_zh || "",
     startingSubjectType: country.starting_subject?.type || "",
     startingSubjectUsesOverlordColor: Boolean(country.starting_subject?.uses_overlord_color),
     hasHistoryCountryFile: boolText(country.status?.has_history_country_file),
@@ -495,32 +543,27 @@ function flattenDatabaseCountry(country, nameById, colorById) {
     isMajorFormable: boolText(country.status?.is_major_formable),
     isMinorFormable: boolText(country.status?.is_formable && !country.status?.is_major_formable),
     isSpecial: boolText(country.special_mechanic?.is_special),
-    specialMechanic: country.special_mechanic?.name_zh || "",
+    specialMechanic: country.special_mechanic?.loc?.name || "",
     specialTags: country.special_mechanic?.tags || [],
     canFormTags: (country.can_form_by_primary_culture || []).map((target) => target.tag),
-    canFormNames: (country.can_form_by_primary_culture || []).map((target) => target.name_zh),
     primaryCultures: (country.primary_cultures || []).map((culture) => culture.key),
-    primaryCulturesZh: (country.primary_cultures || []).map((culture) => culture.name_zh),
     religion: country.religion?.key || "",
-    religionZh: country.religion?.name_zh || "",
     religionSource: country.religion?.source || "",
     tier: country.classification?.tier || "",
-    tierZh: country.classification?.tier_zh || "",
+    tierLoc: country.classification?.loc?.tier || "",
     tierPrestige: String(country.classification?.tier_prestige ?? ""),
     countryType: country.classification?.country_type || "",
-    countryTypeZh: country.classification?.country_type_zh || "",
+    countryTypeLoc: country.classification?.loc?.countryType || "",
     colorRgb: country.color?.rgb || [],
     colorHex: country.color?.hex || "",
     primaryUnitColor: country.unit_colors?.primary || "",
     secondaryUnitColor: country.unit_colors?.secondary || "",
     tertiaryUnitColor: country.unit_colors?.tertiary || "",
     capital: country.capital?.key || "",
-    capitalZh: country.capital?.name_zh || "",
     dynamicNameVariants,
     usesDefaultDynamicCountryNameVariants: Boolean(country.uses_default_dynamic_country_name_variants),
     dynamicMapColorRules,
     formationRequiredCultures: (country.formation?.required_cultures || []).map((culture) => culture.key),
-    formationRequiredCulturesZh: (country.formation?.required_cultures || []).map((culture) => culture.name_zh),
     formationStates: (country.formation?.states || []).map((state) => state.key),
     formationStateRegions: country.formation_state_regions || [],
     formationStrategicRegions: country.formation_strategic_regions || [],
@@ -537,96 +580,41 @@ function flattenDatabaseCountry(country, nameById, colorById) {
   };
 }
 
-function loadLegacyData(data) {
-  const dynamicCountryNameVariants = data.dynamic_country_name_variants || [];
-  const dynamicCountryMapColorRules = data.dynamic_country_map_color_rules || [];
-  const namesByTag = groupBy(dynamicCountryNameVariants, "country_tag");
-  const colorsByTag = new Map();
-  for (const rule of dynamicCountryMapColorRules) {
-    for (const tag of split(rule.referenced_tags)) {
-      if (!colorsByTag.has(tag)) colorsByTag.set(tag, []);
-      colorsByTag.get(tag).push(rule);
-    }
-  }
-  return {
-    meta: {
-      ...data.meta,
-      default_dynamic_country_name_variant_count: dynamicCountryNameVariants.filter((variant) => variant.scope === "DEFAULT").length,
-    },
-    countries: (data.countries || []).map((country) => ({
-      tag: country.tag,
-      name: country.name_zh,
-      existsAtStart: country.exists_at_start,
-      startingStateCount: Number(country.starting_state_count || 0),
-      startingStates: split(country.starting_states),
-      startingOverlordTag: country.starting_overlord_tag || "",
-      startingOverlordName: "",
-      startingSubjectType: country.starting_subject_type || "",
-      startingSubjectUsesOverlordColor: country.starting_subject_uses_overlord_color === "是",
-      hasHistoryCountryFile: country.has_history_country_file,
-      isReleasable: country.is_releasable,
-      isFormable: country.is_formable,
-      isMajorFormable: country.is_major_formable,
-      isMinorFormable: country.is_formable === "是" && country.is_major_formable !== "是" ? "是" : "否",
-      isSpecial: "否",
-      specialMechanic: "",
-      specialTags: [],
-      canFormTags: split(country.can_form_tags_by_primary_culture),
-      canFormNames: split(country.can_form_names_zh_by_primary_culture),
-      primaryCultures: split(country.primary_cultures),
-      primaryCulturesZh: split(country.primary_cultures_zh),
-      religion: country.religion,
-      religionZh: country.religion_zh,
-      religionSource: country.religion_source,
-      tier: country.tier,
-      tierZh: country.tier_zh,
-      tierPrestige: country.tier_prestige,
-      countryType: country.country_type,
-      countryTypeZh: country.country_type_zh,
-      colorRgb: split(country.color_rgb).map(Number).filter(Number.isFinite),
-      colorHex: country.color_hex,
-      primaryUnitColor: country.primary_unit_color,
-      secondaryUnitColor: country.secondary_unit_color,
-      tertiaryUnitColor: country.tertiary_unit_color,
-      capital: country.capital,
-      capitalZh: country.capital_zh,
-      dynamicNameVariants: namesByTag.get(country.tag) || [],
-      usesDefaultDynamicCountryNameVariants: dynamicCountryNameVariants.some((variant) => variant.scope === "DEFAULT"),
-      dynamicMapColorRules: colorsByTag.get(country.tag) || [],
-      formationRequiredCultures: split(country.formation_required_cultures),
-      formationRequiredCulturesZh: split(country.formation_required_cultures_zh),
-      formationStates: split(country.formation_states),
-      formationStateRegions: [],
-      formationStrategicRegions: [],
-      locationStateRegions: [],
-      locationStrategicRegions: [],
-      formationRegion: country.formation_region,
-      releaseStates: split(country.release_states),
-      primaryCultureTraits: [],
-      primaryCultureTraitGroups: [],
-      primaryCultureHomelandStateRegions: [],
-      primaryCultureHomelandStrategicRegions: [],
-      definitionFile: country.definition_file,
-    })),
-    cultures: data.cultures || [],
-    cultureTraits: data.culture_traits || [],
-    cultureTraitGroups: data.culture_trait_groups || [],
-    stateRegions: data.state_regions || [],
-    strategicRegions: data.strategic_regions || [],
-    geographicRegions: data.geographic_regions || [],
-    interestGroups: data.interest_groups || [],
-    interestGroupTraits: data.interest_group_traits || [],
-    ideologies: data.ideologies || [],
-    dynamicCountryNameVariants,
-    dynamicCountryMapColorRules,
-    formables: data.formable_countries || [],
-    releasables: data.releasable_countries || [],
-  };
-}
-
 function readJson(file) {
   const raw = fs.readFileSync(file, "utf8").replace(/^\uFEFF/, "");
   return JSON.parse(raw);
+}
+
+function createSearchEntries(data, messagesByLocale) {
+  const collections = [
+    ["country", "countries", "tag"],
+    ["culture", "cultures", "key"],
+    ["region", "stateRegions", "key"],
+    ["company", "companies", "key"],
+    ["ideology", "ideologies", "key"],
+    ["law", "laws", "key"],
+    ["technology", "technologies", "key"],
+    ["achievement", "achievements", "key"],
+    ["cultureTrait", "cultureTraits", "key"],
+    ["interestGroup", "interestGroups", "key"],
+    ["interestGroupTrait", "interestGroupTraits", "key"],
+    ["strategicRegion", "strategicRegions", "key"],
+    ["geographicRegion", "geographicRegions", "key"],
+  ];
+  return collections.flatMap(([kind, collection, keyField]) => (data[collection] || []).map((item) => {
+    const key = item[keyField] || item.key || item.tag || "";
+    const id = item.id || `${kind}:${key}`;
+    const message = item.loc?.displayName || item.loc?.name || "";
+    return {
+      kind,
+      id,
+      key,
+      names: {
+        "zh-Hans": messagesByLocale["zh-Hans"]?.[message] || key,
+        en: messagesByLocale.en?.[message] || key,
+      },
+    };
+  }));
 }
 
 function printHelp() {
@@ -636,8 +624,7 @@ Options:
   --database <path>  Database directory, default database/vic3_1.13.9
   --source <path>    Source index.json, default <database>/index.json
   --baseline-database <path>  Compare against this database and tag added or adjusted records
-  --out <path>       Output site directory, default site
-  --legacy-data      Also write a compatibility data.js bundle
+  --out <path>       Output site directory, default site/versions/1.13.9
   --help             Show this help
 `);
 }
@@ -655,7 +642,7 @@ function relatedCulturesByKeys(cultureKeys, currentKey, byKey) {
       return {
         id: `culture:${key}`,
         key,
-        name_zh: culture.name_zh || key,
+        loc: culture.loc || { name: `culture:${key}.name` },
       };
     });
 }
@@ -665,10 +652,22 @@ function traitToGroupRef(trait) {
   return {
     id: `culture_trait_group:${trait.group_key}`,
     key: trait.group_key,
-    name_zh: trait.group_name_zh || trait.group_key,
     type: trait.type || "",
-    type_zh: trait.type_zh || "",
+    loc: { name: `culture_trait_group:${trait.group_key}.name`, type: `culture_trait_group:${trait.group_key}.type` },
   };
+}
+
+function stripLegacyLocalizedFields(value) {
+  const legacyFieldPattern = /(?:^|_)(?:zh|en)$/i;
+  const legacyCamelFields = new Set([
+    "tierZh", "countryTypeZh", "capitalZh", "religionZh", "primaryCulturesZh", "formationRequiredCulturesZh",
+    "canFormNames", "startingOverlordName",
+  ]);
+  if (Array.isArray(value)) return value.map(stripLegacyLocalizedFields);
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(Object.entries(value)
+    .filter(([key]) => !legacyFieldPattern.test(key) && !legacyCamelFields.has(key))
+    .map(([key, item]) => [key, stripLegacyLocalizedFields(item)]));
 }
 
 function uniqueByKey(items) {
@@ -688,16 +687,6 @@ function pushMapSet(map, key, value) {
   map.get(key).add(value);
 }
 
-function groupBy(rows, field) {
-  const result = new Map();
-  for (const row of rows || []) {
-    const key = row[field] || "";
-    if (!result.has(key)) result.set(key, []);
-    result.get(key).push(row);
-  }
-  return result;
-}
-
 function parseArgs(argv) {
   const result = {};
   for (let i = 0; i < argv.length; i += 1) {
@@ -713,12 +702,4 @@ function parseArgs(argv) {
     }
   }
   return result;
-}
-
-function split(value) {
-  if (!value) return [];
-  return String(value)
-    .split(";")
-    .map((item) => item.trim())
-    .filter(Boolean);
 }

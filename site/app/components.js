@@ -12,7 +12,7 @@ function countryTagPills(country) {
     victorianCenturyBadge(country),
     statusPills(country),
     tagPill(countryTypeTagLabel(country), "tag-type", "", `country-type:${countryTypeTagLabel(country)}`),
-    tagPill(country.tierZh, "tag-tier", "", `country-tier:${country.tierZh || ""}`),
+    tagPill(countryTierLabel(country.tier), "tag-tier", "", `country-tier:${country.tier || ""}`),
     groupedTraitPills(country.primaryCultureHeritageGroups, country.primaryCultureHeritages, "tag-heritage-group", "tag-heritage"),
     groupedTraitPills(country.primaryCultureLanguageGroups, country.primaryCultureLanguages, "tag-language-group", "tag-language"),
     refPills(country.primaryCultureTraditions, "tag-tradition"),
@@ -22,12 +22,12 @@ function countryTagPills(country) {
 
 function statusPills(country) {
   const pills = [];
-  if (country.existsAtStart === "是") pills.push(tagPill("开局", "good", "", "country-status:start"));
-  if (country.isReleasable === "是") pills.push(tagPill("释放", "tag-release", "", "country-status:releasable"));
-  if (country.isMajorFormable === "是") pills.push(tagPill("重大统一", "warn", "", "country-formation:major"));
-  else if (country.isMinorFormable === "是") pills.push(tagPill("次要统一", "warn", "", "country-formation:minor"));
-  if (country.isSpecial === "是") pills.push(tagPill("特殊", "special", "", "country-status:special"));
-  if (country.isDualHeritage === "是") pills.push(tagPill("双传承", "tag-dual", "", "country-status:dual-heritage"));
+  if (country.existsAtStart === "是") pills.push(tagPill(t("board.country.status.startsInPlay"), "good", "", "country-status:start"));
+  if (country.isReleasable === "是") pills.push(tagPill(t("board.country.status.releasable"), "tag-release", "", "country-status:releasable"));
+  if (country.isMajorFormable === "是") pills.push(tagPill(t("board.country.status.majorFormable"), "warn", "", "country-formation:major"));
+  else if (country.isMinorFormable === "是") pills.push(tagPill(t("board.country.status.minorFormable"), "warn", "", "country-formation:minor"));
+  if (country.isSpecial === "是") pills.push(tagPill(t("board.country.status.special"), "special", "", "country-status:special"));
+  if (country.isDualHeritage === "是") pills.push(tagPill(t("board.country.status.dualHeritage"), "tag-dual", "", "country-status:dual-heritage"));
   return pills.join("");
 }
 
@@ -46,7 +46,7 @@ function groupedTraitPills(groups, traits, groupClass, traitClass) {
   const orderedGroups = [...(groups || [])].sort(groupClass.includes("heritage") ? sortHeritageGroupRef : sortRefByName);
   for (const group of orderedGroups) {
     if (!group?.key) continue;
-    const label = group.name_zh || group.key;
+    const label = entityText(group);
     const metadata = conceptTooltipMetadata(label, groupClass, "cultureTraitGroup", group.key);
     items.push(conceptPill({
       label,
@@ -59,7 +59,7 @@ function groupedTraitPills(groups, traits, groupClass, traitClass) {
     }));
     items.push(victorianCenturyBadge(group));
     for (const trait of traitsByGroup.get(group.key) || []) {
-      const label = trait.name_zh || trait.key;
+      const label = entityText(trait);
       const metadata = conceptTooltipMetadata(label, traitClass, "cultureTrait", trait.key);
       items.push(conceptPill({
         label,
@@ -76,7 +76,7 @@ function groupedTraitPills(groups, traits, groupClass, traitClass) {
   }
   for (const traits of traitsByGroup.values()) {
     for (const trait of traits) {
-      const label = trait.name_zh || trait.key;
+      const label = entityText(trait);
       const metadata = conceptTooltipMetadata(label, traitClass, "cultureTrait", trait.key);
       items.push(conceptPill({
         label,
@@ -91,7 +91,7 @@ function groupedTraitPills(groups, traits, groupClass, traitClass) {
     }
   }
   for (const trait of remaining) {
-    const label = trait.name_zh || trait.key;
+    const label = entityText(trait);
     const metadata = conceptTooltipMetadata(label, traitClass, "cultureTrait", trait.key);
     items.push(conceptPill({
       label,
@@ -144,8 +144,9 @@ function tagTooltipMetadata(label, className, sourceKey, semanticKey) {
   const definition = TAG_TOOLTIP_DEFINITIONS[definitionKey] || {};
   const defaults = TAG_TOOLTIP_DEFAULTS.tag || {};
   const key = semanticKey || sourceKey || label || "";
-  const category = definition.category || defaults.category || "";
-  const description = formatTooltipDescription(definition.description || defaults.description, { label, key, category });
+  const category = definition.categoryKey ? t(definition.categoryKey) : defaults.categoryKey ? t(defaults.categoryKey) : definition.category || defaults.category || "";
+  const descriptionTemplate = definition.descriptionKey ? t(definition.descriptionKey) : defaults.descriptionKey ? t(defaults.descriptionKey) : definition.description || defaults.description;
+  const description = formatTooltipDescription(descriptionTemplate, { label, key, category });
   return { key, category, description };
 }
 
@@ -154,9 +155,10 @@ function conceptTooltipMetadata(label, className, kind, key) {
   const definitionKey = [key, kind, ...classKeys].find((candidate) => candidate && TAG_TOOLTIP_DEFINITIONS[candidate]);
   const definition = TAG_TOOLTIP_DEFINITIONS[definitionKey] || {};
   const defaults = TAG_TOOLTIP_DEFAULTS[kind] || {};
-  if (!definition.category && !definition.description && !defaults.category && !defaults.description) return {};
-  const category = definition.category || defaults.category || "";
-  const description = formatTooltipDescription(definition.description || defaults.description || "", { label, key, category });
+  if (!definition.category && !definition.categoryKey && !definition.description && !definition.descriptionKey && !defaults.category && !defaults.categoryKey && !defaults.description && !defaults.descriptionKey) return {};
+  const category = definition.categoryKey ? t(definition.categoryKey) : defaults.categoryKey ? t(defaults.categoryKey) : definition.category || defaults.category || "";
+  const descriptionTemplate = definition.descriptionKey ? t(definition.descriptionKey) : defaults.descriptionKey ? t(defaults.descriptionKey) : definition.description || defaults.description || "";
+  const description = formatTooltipDescription(descriptionTemplate, { label, key, category });
   return { category, description };
 }
 
@@ -283,7 +285,7 @@ function refConceptPill(item, className = "", relation = null) {
     ? strategicRegionName(byStrategicRegion.get(key) || item)
     : kind === "geographicRegion"
       ? geographicRegionDisplayName(byGeographicRegion.get(key) || item)
-    : item.name_zh || item.key || item.tag || "";
+    : entityText(item);
   const metadata = conceptTooltipMetadata(label, className, kind, key);
   const relationMetadata = relation?.semanticKey
     ? tagTooltipMetadata(label, className, "", relation.semanticKey)
@@ -342,10 +344,8 @@ function tagPill(label, className = "", title = "", semanticKey = "", html = "")
 function victorianCenturyBadge(item) {
   if (!isVictorianCenturyEntry(item)) return "";
   const isAdded = item.vc_change_kind === "added";
-  const title = isAdded
-    ? "Victorian Century 新增的条目"
-    : "Victorian Century 调整的条目";
-  return tagPill(isAdded ? "VC新增" : "VC调整", `tag-vc ${isAdded ? "tag-vc-added" : "tag-vc-adjusted"}`, title);
+  const title = t(isAdded ? "vc.badge.addedTitle" : "vc.badge.adjustedTitle");
+  return tagPill(t(isAdded ? "vc.badge.added" : "vc.badge.adjusted"), `tag-vc ${isAdded ? "tag-vc-added" : "tag-vc-adjusted"}`, title);
 }
 
 function isVictorianCenturyEntry(item) {
@@ -353,11 +353,11 @@ function isVictorianCenturyEntry(item) {
 }
 
 function countryTypeTagLabel(country) {
-  return countryTypeTagLabels[country.countryType] || country.countryTypeZh || country.countryType || "";
+  return t(`enum.countryType.${country?.countryType}`) || countryTypeTagLabels[country?.countryType] || country?.countryType || "";
 }
 
 function field(label, value) {
-  const html = value || `<span class="empty">无</span>`;
+  const html = value || `<span class="empty">${escapeHtml(t("ui.none"))}</span>`;
   return `<dt>${escapeHtml(label)}</dt><dd>${html}</dd>`;
 }
 
@@ -381,7 +381,7 @@ function countryLinks(tags, names) {
   const links = (tags || []).map((tag, index) => {
     if (!tag) return "";
     return conceptPill({
-      label: countryRefLabel({ tag, name_zh: names?.[index] }),
+      label: countryRefLabel(byTag.get(tag) || { tag }),
       kind: "country",
       key: tag,
       title: tag,
@@ -410,11 +410,10 @@ function stateRegionLinks(items) {
 function countryStartingStateRegionLinks(country) {
   const items = (country?.startingStates || []).map((key) => {
     const stateRegion = byStateRegion.get(key);
-    const name = stateRegion?.name_zh || key;
-    const suffix = isSplitStartingStateForCountry(stateRegion, country.tag) ? "(分属)" : "";
-    return { key, name_zh: `${name}${suffix}`, id: `state_region:${key}` };
+    const label = `${entityText(stateRegion) || key}${isSplitStartingStateForCountry(stateRegion, country.tag) ? t("board.country.splitStartingState") : ""}`;
+    return conceptPill({ label, kind: "stateRegion", key, title: key, href: conceptHref("stateRegion", key) });
   });
-  return stateRegionLinks(items);
+  return items.length ? `<span class="link-list">${items.join("")}</span>` : "";
 }
 
 function isSplitStartingStateForCountry(stateRegion, tag) {
@@ -445,7 +444,7 @@ function companyAssociationLinks(items) {
   const links = (items || []).map((item) => {
     const company = item.company;
     if (!company?.key) return "";
-    const label = company.name_zh || company.key;
+    const label = entityText(company) || company.key;
     return conceptPill({
       label,
       className: `resource-pill company-link-pill ${item.kind === "special" ? "extension-building-pill" : ""}`,
@@ -472,18 +471,25 @@ function companiesForStateRegion(stateRegion) {
     };
   }).filter(Boolean).sort((a, b) => (
     Number(b.kind === "headquarters") - Number(a.kind === "headquarters")
-    || (a.company.name_zh || a.company.key).localeCompare(b.company.name_zh || b.company.key, "zh-Hans-CN")
+    || localizedCompare(entityText(a.company), entityText(b.company))
     || a.company.key.localeCompare(b.company.key)
   ));
 }
 
 function sourceSuffix(source) {
-  return source ? ` <span class="minor">来源：${escapeHtml(source)}</span>` : "";
+  if (!source) return "";
+  const sourceKey = {
+    国家定义: "countryDefinition",
+    历史开局: "startingHistory",
+    首个主流文化: "primaryCulture",
+  }[source];
+  const label = sourceKey ? t(`board.country.religionSource.${sourceKey}`) : source;
+  return ` <span class="minor">${escapeHtml(t("ui.source", { source: label }))}</span>`;
 }
 
 function listText(values) {
   const items = (values || []).map((item) => {
-    const label = typeof item === "string" ? item : item?.name_zh || item?.key || "";
+    const label = typeof item === "string" ? item : entityText(item);
     const title = typeof item === "string" ? "" : item?.key && item.key !== label ? ` title="${escapeHtml(item.key)}"` : "";
     return label ? `<span class="pill"${title}>${escapeHtml(label)}</span>` : "";
   }).filter(Boolean);
@@ -492,7 +498,7 @@ function listText(values) {
 
 function traitPill(trait) {
   if (!trait?.key) return "";
-  const label = trait.name_zh || trait.key;
+  const label = entityText(trait);
   const metadata = conceptTooltipMetadata(label, "", "cultureTrait", trait.key);
   return conceptPill({
     label,
@@ -506,7 +512,7 @@ function traitPill(trait) {
 
 function traitGroupPill(group) {
   if (!group?.key) return "";
-  const label = group.name_zh || group.key;
+  const label = entityText(group);
   const metadata = conceptTooltipMetadata(label, "", "cultureTraitGroup", group.key);
   return conceptPill({
     label,
@@ -530,7 +536,7 @@ function traitGroupList(groups) {
 
 function goodsList(goods) {
   const items = (goods || []).map((item) => conceptPill({
-    label: item.name_zh || item.key,
+    label: entityText(item),
     kind: "goods",
     key: item.key,
     title: item.key,
@@ -574,7 +580,7 @@ function buildingList(buildings, className = "tag-arable") {
 }
 
 function resourcePill(item, amount = "") {
-  const name = item?.name_zh || item?.key || "";
+  const name = entityText(item) || item?.key || "";
   const suffix = amount !== "" && amount !== null ? ` · ${escapeHtml(amount)}` : "";
   const metadata = buildingTooltipMetadata(item);
   return conceptPill({
@@ -590,9 +596,9 @@ function resourcePill(item, amount = "") {
 }
 
 function buildingPill(item, className = "") {
-  const name = item?.name_zh || item?.key || "";
+  const name = entityText(item) || item?.key || "";
   const classText = className ? ` ${className}` : "";
-  const extensionBadge = className.includes("extension-building-pill") ? `<span class="building-kind-badge">扩展</span>` : "";
+  const extensionBadge = className.includes("extension-building-pill") ? `<span class="building-kind-badge">${t("board.company.expansionBadge", "扩展")}</span>` : "";
   const metadata = buildingTooltipMetadata(item);
   return conceptPill({
     label: name,
@@ -607,7 +613,7 @@ function buildingPill(item, className = "") {
 }
 
 function buildingTooltipMetadata(item) {
-  const label = item?.name_zh || item?.key || "";
+  const label = entityText(item) || item?.key || "";
   return conceptTooltipMetadata(label, "", "building", item?.key || label);
 }
 
@@ -617,7 +623,7 @@ function stateTraitPills(traits, stateRegion = null, { showVictorianCenturyBadge
 }
 
 function stateTraitPill(trait, stateRegion = null) {
-  const label = trait?.name_zh || trait?.key || "";
+  const label = entityText(trait) || trait?.key || "";
   const metadata = conceptTooltipMetadata(label, "", "stateTrait", trait?.key || label);
   const description = stateTraitTooltipDescription(trait);
   const secondaryDescription = stateTraitTooltipSecondaryDescription(trait, stateRegion);
@@ -634,11 +640,11 @@ function stateTraitPill(trait, stateRegion = null) {
 }
 
 function stateTraitTooltipDescription(trait) {
-  const summary = String(trait?.modifier_summary_zh || "").split(/;\s*/).map((item) => item.trim()).filter(Boolean);
+  const summary = (trait?.modifiers || []).map(modifierSummaryLabel).filter(Boolean);
   const parts = [];
   if (summary.length) parts.push(summary.join("\n"));
-  if ((trait?.required_techs_for_colonization || []).length) parts.push(`殖民所需科技：${technologyRefNames(trait.required_techs_for_colonization)}`);
-  if ((trait?.disabling_technologies || []).length) parts.push(`失效科技：${technologyRefNames(trait.disabling_technologies)}`);
+  if ((trait?.required_techs_for_colonization || []).length) parts.push(`${t("board.region.colonizationTechnologies", "殖民所需科技")}：${technologyRefNames(trait.required_techs_for_colonization)}`);
+  if ((trait?.disabling_technologies || []).length) parts.push(`${t("board.region.disablingTechnologies", "失效科技")}：${technologyRefNames(trait.disabling_technologies)}`);
   return parts.join("\n");
 }
 
@@ -646,13 +652,13 @@ function stateTraitTooltipSecondaryDescription(trait, stateRegion = null) {
   const isGeneric = /(?:^|[\\/])00_generic_traits\.txt$/i.test(String(trait?.source_file || ""));
   const otherRegions = (stateTraitRegionsByKey.get(trait?.key || "") || [])
     .filter((region) => region.key && region.key !== stateRegion?.key)
-    .map((region) => region.name_zh || region.key);
-  return !isGeneric && otherRegions.length ? `拥有该特质的地区：\n${otherRegions.join("、")}` : "";
+    .map((region) => entityText(region) || region.key);
+  return !isGeneric && otherRegions.length ? `${t("board.region.otherTraitRegions", "拥有该特质的地区")}：\n${otherRegions.join("、")}` : "";
 }
 
 function stateTraitEffectList(traits) {
   if (!(traits || []).length) {
-    return `<p class="empty compact">无地区特质。</p>`;
+    return `<p class="empty compact">${t("board.region.noTraits", "无地区特质。")}</p>`;
   }
   return `<div class="rule-list">${traits.map((trait) => `
     <article class="rule-item">
@@ -660,14 +666,14 @@ function stateTraitEffectList(traits) {
         ${traitIconHtml(trait, "state")}
         <div class="trait-card-content">
           <div class="rule-head">
-            <strong>${escapeHtml(trait.name_zh || trait.key)}${victorianCenturyBadge(trait)}</strong>
+            <strong>${escapeHtml(entityText(trait) || trait.key)}${victorianCenturyBadge(trait)}</strong>
             <span class="minor">${escapeHtml(trait.key)}</span>
           </div>
           <dl class="mini-grid">
-            ${field("类型", traitCategoryPills(trait.categories))}
-            ${field("效果", modifierPills(trait.modifiers))}
-            ${field("殖民科技", technologyPills(trait.required_techs_for_colonization))}
-            ${field("失效科技", technologyPills(trait.disabling_technologies))}
+            ${field(t("board.region.type", "类型"), traitCategoryPills(trait.categories))}
+            ${field(t("board.region.effect", "效果"), modifierPills(trait.modifiers))}
+            ${field(t("board.region.colonizationTechnologies", "殖民科技"), technologyPills(trait.required_techs_for_colonization))}
+            ${field(t("board.region.disablingTechnologies", "失效科技"), technologyPills(trait.disabling_technologies))}
           </dl>
         </div>
       </div>
@@ -677,7 +683,7 @@ function stateTraitEffectList(traits) {
 
 function traitCategoryPills(categories) {
   const items = (categories || []).map((category) => tagPill(
-    category.name_zh || category.key,
+    entityText(category) || category.key,
     category.key === "mapi" ? "tag-mapi" : "tag-tradition",
     category.key,
     category.key === "mapi" ? "mapi-category" : "state-trait-category",
@@ -697,10 +703,7 @@ function technologyPills(items, className = "tag-technology") {
   const refs = (items || []).map((item) => {
     const key = typeof item === "string" ? item : item?.key;
     const technology = technologyByKey.get(key);
-    return {
-      key,
-      name_zh: technology?.name_zh || (typeof item === "string" ? "" : item?.name_zh) || key,
-    };
+    return technology || (typeof item === "string" ? { key } : item);
   }).filter((item) => item.key);
   return refItemsPills(refs, "technology", className);
 }
@@ -708,28 +711,54 @@ function technologyPills(items, className = "tag-technology") {
 function technologyRefNames(items) {
   return (items || []).map((item) => {
     const key = typeof item === "string" ? item : item?.key;
-    return technologyByKey.get(key)?.name_zh || (typeof item === "string" ? item : item?.name_zh || key);
+    return entityText(technologyByKey.get(key) || (typeof item === "string" ? { key } : item));
   }).filter(Boolean).join("、");
 }
 
 function modifierSummaryLabel(modifier) {
-  if (modifier?.key === "state_market_access_price_impact") {
-    return `市场接入度的价格影响(MAPI)${modifier?.value_zh ? ` ${modifier.value_zh}` : ""}`;
+  const label = modifierNameLabel(modifier);
+  const value = modifierValueLabel(modifier);
+  return [label, value].filter(Boolean).join(" ");
+}
+
+function modifierNameLabel(modifier) {
+  const label = cleanGameLocalizationText(entityText(modifier))
+    || humanizeGameLocalizationKey(modifier?.key || "", false);
+  return label ? `${label.charAt(0).toLocaleUpperCase()}${label.slice(1)}` : "";
+}
+
+function modifierValueLabel(modifier) {
+  const rawValue = modifier?.value;
+  const numericValue = rawValue === null || rawValue === undefined || rawValue === "" ? NaN : Number(rawValue);
+  if (!Number.isFinite(numericValue)) {
+    return modifier?.value_raw === "yes" ? "" : cleanGameLocalizationText(modifier?.value_raw || "");
   }
-  return modifier?.summary_zh || modifier?.key || "";
+  const percentage = isPercentageModifierKey(modifier?.key || "");
+  const displayedValue = percentage ? numericValue * 100 : numericValue;
+  const sign = displayedValue > 0 ? "+" : "";
+  return `${sign}${localizedNumber(displayedValue)}${percentage ? "%" : ""}`;
+}
+
+function isPercentageModifierKey(key) {
+  return key === "state_market_access_price_impact"
+    || key.endsWith("_mult")
+    || key.includes("_throughput_add")
+    || key.includes("_efficiency_add")
+    || key.includes("_speed_add")
+    || key.includes("_rate_add");
 }
 
 function interestGroupFlavorList(groups) {
   const items = (groups || []).filter(Boolean);
   if (!items.length) {
-    return `<p class="empty compact">松散政权没有常规利益集团风味数据。</p>`;
+    return `<p class="empty compact">${t("board.ideology.noInterestGroupFlavor", "松散政权没有常规利益集团风味数据。")}</p>`;
   }
   return `<div class="interest-group-list">${items.map(interestGroupFlavorCard).join("")}</div>`;
 }
 
 function interestGroupFlavorCard(group) {
   const displayName = interestGroupDisplayName(group);
-  const flavoredNameTag = group.display_name?.is_flavored ? tagPill("改名", "tag-ig-changed", group.display_name.key) : "";
+  const flavoredNameTag = group.display_name?.is_flavored ? tagPill(t("board.ideology.renamed", "改名"), "tag-ig-changed", group.display_name.key) : "";
   const changedTraits = !sameKeySet(group.base_traits, group.active_traits);
   const changedIdeologies = (group.added_ideologies || []).length || (group.removed_ideologies || []).length;
   return `
@@ -738,18 +767,18 @@ function interestGroupFlavorCard(group) {
         <span class="interest-group-title">
           <span class="interest-group-color" aria-hidden="true"></span>
           <strong>${escapeHtml(displayName)}</strong>
-          ${!group.display_name?.is_flavored ? tagPill("基础", "tag-muted") : ""}
+          ${!group.display_name?.is_flavored ? tagPill(t("board.ideology.base", "基础"), "tag-muted") : ""}
         </span>
         <span class="minor">${escapeHtml(group.key)}</span>
       </div>
       <dl class="mini-grid interest-group-grid">
-        ${flavoredNameTag ? field("风味名", flavoredNameTag) : ""}
-        ${field("特质", interestGroupTraitDetailsHtml(group.active_traits, changedTraits))}
-        ${field("意识形态", activeIdeologyPills(group))}
-        ${changedIdeologies ? field("新增", ideologyPills(group.added_ideologies, "tag-ig-added")) : ""}
-        ${changedIdeologies ? field("移除", ideologyPills(group.removed_ideologies, "tag-ig-removed")) : ""}
-        ${field("个人意识形态", ideologyPills(group.character_ideologies, "tag-tradition"))}
-        ${field("规则", interestGroupRuleSummary(group.applied_rules))}
+        ${flavoredNameTag ? field(t("board.ideology.flavorName", "风味名"), flavoredNameTag) : ""}
+        ${field(t("board.ideology.traits", "特质"), interestGroupTraitDetailsHtml(group.active_traits, changedTraits))}
+        ${field(t("board.ideology.title", "意识形态"), activeIdeologyPills(group))}
+        ${changedIdeologies ? field(t("board.ideology.added", "新增"), ideologyPills(group.added_ideologies, "tag-ig-added")) : ""}
+        ${changedIdeologies ? field(t("board.ideology.removed", "移除"), ideologyPills(group.removed_ideologies, "tag-ig-removed")) : ""}
+        ${field(t("board.ideology.characterIdeologies", "个人意识形态"), ideologyPills(group.character_ideologies, "tag-tradition"))}
+        ${field(t("board.ideology.rules", "规则"), interestGroupRuleSummary(group.applied_rules))}
       </dl>
       ${interestGroupRuleDetails(group.applied_rules)}
     </article>
@@ -757,10 +786,10 @@ function interestGroupFlavorCard(group) {
 }
 
 function interestGroupDisplayName(group) {
-  const name = group.display_name?.name_zh || group.name_zh || group.key;
-  const baseName = group.name_zh || byInterestGroup.get(group.key)?.name_zh || group.key;
+  const name = entityText(group.display_name || group);
+  const baseName = entityText(byInterestGroup.get(group.key) || group);
   if (group.display_name?.is_flavored && baseName && baseName !== name) {
-    return `${name}（${baseName}）`;
+    return t("board.ideology.flavoredGroupName", { name, base: baseName });
   }
   return name;
 }
@@ -782,7 +811,7 @@ function interestGroupTraitPills(traits, options = {}) {
   const normalizedOptions = typeof options === "string" ? { className: options } : options;
   const items = (traits || []).map((trait, index) => {
     const approval = interestGroupTraitApprovalText(trait);
-    const title = [trait.key, approval, trait.modifier_summary_zh, trait.desc_zh].filter(Boolean).join("；");
+    const title = [trait.key, approval, entityText(trait, "modifierSummary", ""), entityText(trait, "description", "")].filter(Boolean).join(t("ui.semicolon", "；"));
     const orderedClass = index < 3 ? `tag-ig-trait-${index + 1}` : "tag-effect";
     const classes = [
       normalizedOptions.className || orderedClass,
@@ -790,12 +819,12 @@ function interestGroupTraitPills(traits, options = {}) {
       normalizedOptions.changed ? "tag-changed-outline" : "",
     ].filter(Boolean).join(" ");
     return conceptPill({
-      label: trait.name_zh || trait.key,
+      label: entityText(trait),
       className: classes,
       title,
       kind: "interestGroupTrait",
       key: trait.key,
-      search: trait.name_zh || trait.key,
+      search: searchNames(trait.id || `interest_group_trait:${trait.key}`).join(" "),
     });
   }).filter(Boolean);
   return items.length ? `<span class="link-list">${items.join("")}</span>` : "";
@@ -809,16 +838,17 @@ function interestGroupTraitDetailsHtml(traits, changed = false) {
 function interestGroupTraitDetailCard(trait, changed = false) {
   if (!trait) return "";
   const approval = interestGroupTraitApprovalText(trait);
-  const summary = trait.modifier_summary_zh || "";
-  const desc = cleanDescriptionText(trait.desc_zh || "");
+  const summary = entityText(trait, "modifierSummary", "");
+  const desc = cleanDescriptionText(entityText(trait, "description", ""));
+  const name = entityText(trait);
   const className = changed ? " interest-group-trait-card-changed" : "";
   return `
-    <article class="interest-group-trait-card${className}" data-concept-kind="interestGroupTrait" data-concept-key="${escapeHtml(trait.key || "")}" data-concept-label="${escapeHtml(trait.name_zh || trait.key || "")}" data-concept-search="${escapeHtml(trait.name_zh || trait.key || "")}">
+    <article class="interest-group-trait-card${className}" data-concept-kind="interestGroupTrait" data-concept-key="${escapeHtml(trait.key || "")}" data-concept-label="${escapeHtml(name)}" data-concept-search="${escapeHtml(searchNames(trait.id || `interest_group_trait:${trait.key}`).join(" "))}">
       <div class="trait-card-layout">
         ${traitIconHtml(trait, "interest-group")}
         <div class="trait-card-content">
           <div class="interest-group-trait-head">
-            <strong>${escapeHtml(trait.name_zh || trait.key || "")}</strong>
+            <strong>${escapeHtml(name)}</strong>
             ${approval ? `<span>${escapeHtml(approval)}</span>` : ""}
           </div>
           ${summary ? `<p>${escapeHtml(summary)}</p>` : ""}
@@ -836,7 +866,7 @@ function traitIconHtml(trait, kind) {
     : String(trait?.key || "").replace(/^ig_trait_/, "").replace(/^state_trait_/, "") + ".png";
   if (!fileName || fileName === ".png") return "";
   const folder = kind === "interest-group" ? "interest-group-traits" : "state-traits";
-  const alt = escapeHtml(trait?.name_zh || trait?.key || "特质");
+  const alt = escapeHtml(entityText(trait, "name", t("board.ideology.trait", "特质")));
   return `<img class="trait-icon" src="assets/${folder}/${escapeHtml(fileName)}" alt="${alt}" onerror="this.hidden=true">`;
 }
 
@@ -876,7 +906,7 @@ function ideologyPillGroups(ideologyRefs, className = "tag-ideology") {
       const resolvedClassName = typeof className === "function" ? className(ideology) : className;
       return ideologyPill(ideology, resolvedClassName);
     }).filter(Boolean);
-    return `<div class="ideology-pill-group"><span class="ideology-pill-group-label">${escapeHtml(type.label)}：</span><span class="link-list">${items.join("")}</span></div>`;
+    return `<div class="ideology-pill-group"><span class="ideology-pill-group-label">${escapeHtml(ideologyTypeLabel(type.key))}${t("ui.colon", "：")}</span><span class="link-list">${items.join("")}</span></div>`;
   }).join("");
 }
 
@@ -884,7 +914,7 @@ function ideologyPill(ideology, className = "tag-ideology") {
   if (!ideology?.key) return "";
   const source = ideologyByKey.get(ideology.key) || ideology;
   // 类型标题“运动：”替代了名称后的“(运动)”后缀。
-  const label = ideology.name_zh || ideology.key;
+  const label = entityText(source);
   return conceptPill({
     label,
     className: `${className} ideology-tooltip-trigger`.trim(),
@@ -892,13 +922,13 @@ function ideologyPill(ideology, className = "tag-ideology") {
     hideNativeTitle: true,
     kind: "ideology",
     key: ideology.key,
-    search: ideology.name_zh || ideology.key,
+    search: searchNames(source.id || `ideology:${source.key}`).join(" "),
     href: conceptHref("ideology", ideology.key),
   });
 }
 
 function ideologyRefPill(key, className = "tag-ideology") {
-  const ideology = ideologyByKey.get(key) || { key, name_zh: key };
+  const ideology = ideologyByKey.get(key) || { key };
   return ideologyPill(ideology, className);
 }
 
@@ -919,10 +949,10 @@ function ideologyLawGroupNames(ideology) {
   const seen = new Map();
   for (const stance of ideology?.law_stances || []) {
     if (!stance.law_group_key || seen.has(stance.law_group_key)) continue;
-    seen.set(stance.law_group_key, stance.law_group_name_zh || stance.law_group_key);
+    seen.set(stance.law_group_key, entityText(lawGroupByKey.get(stance.law_group_key) || stance, lawGroupByKey.has(stance.law_group_key) ? "name" : "lawGroupName", stance.law_group_key));
   }
   return [...seen.entries()]
-    .sort((a, b) => orderValue(ideologyLawGroupOrderMap, a[0]) - orderValue(ideologyLawGroupOrderMap, b[0]) || a[1].localeCompare(b[1], "zh-Hans-CN"))
+    .sort((a, b) => orderValue(ideologyLawGroupOrderMap, a[0]) - orderValue(ideologyLawGroupOrderMap, b[0]) || localizedCompare(a[1], b[1]))
     .map(([, name]) => name);
 }
 
@@ -942,7 +972,48 @@ function cleanIdeologyDescription(value) {
 }
 
 function cleanDescriptionText(value) {
-  return String(value || "").replace(/!+$/, "").trim();
+  return cleanGameLocalizationText(value);
+}
+
+function cleanGameLocalizationText(value) {
+  return String(value || "")
+    .replace(/\\_/g, "_")
+    .replace(/\[Concept\(\s*'([^']+)'\s*,\s*'([^']+)'\s*\)\]/gi, (_, conceptKey, displayKey) => (
+      gameLocalizationReferenceLabel(displayKey.replace(/^\$|\$$/g, "") || conceptKey)
+    ))
+    .replace(/\[Nbsp\]/gi, " ")
+    .replace(/\[(concept_[A-Za-z0-9_]+)\]/gi, (_, key) => gameLocalizationReferenceLabel(key))
+    .replace(/\$([A-Za-z0-9_:.]+)(?:\|[^$]+)?\$/g, (_, key) => gameLocalizationReferenceLabel(key))
+    .replace(/@[A-Za-z0-9_]+!/g, "")
+    .replace(/#!/g, "")
+    .replace(/#[A-Za-z0-9_]+\s*/g, "")
+    .replace(/#$/g, "")
+    .replace(/!(?=\p{L})/gu, "")
+    .replace(/!+$/, "")
+    .replace(/\s+([,.;:!?])/g, "$1")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function gameLocalizationReferenceLabel(key) {
+  const normalizedKey = String(key || "").replace(/^\$|\$$/g, "");
+  const entity = buildingByKey.get(normalizedKey)
+    || goodsByKey.get(normalizedKey)
+    || byInterestGroup.get(normalizedKey)
+    || ideologyByKey.get(normalizedKey)
+    || lawByKey.get(normalizedKey)
+    || technologyByKey.get(normalizedKey);
+  if (entity) return entityText(entity);
+  if (normalizedKey.startsWith("concept_")) return humanizeGameLocalizationKey(normalizedKey.slice("concept_".length), false);
+  if (normalizedKey.startsWith("ship_group_")) return humanizeGameLocalizationKey(normalizedKey.slice("ship_group_".length), true);
+  if (normalizedKey.startsWith("ig_variant_")) return humanizeGameLocalizationKey(normalizedKey.slice("ig_variant_".length), true);
+  return humanizeGameLocalizationKey(normalizedKey, true);
+}
+
+function humanizeGameLocalizationKey(key, titleCase) {
+  const words = String(key || "").replace(/[_:.]+/g, " ").trim();
+  if (!titleCase) return words.toLocaleLowerCase();
+  return words.replace(/\b\p{L}/gu, (letter) => letter.toLocaleUpperCase());
 }
 
 function ideologyInterestGroupRefs(ideology) {
@@ -973,7 +1044,7 @@ function ideologyOccurrenceRefs(ideology) {
   if ((related.flavorUsage || []).length || file.includes("flavor") || file.includes("event")) keys.add("flavor");
   if (file.includes("tech") || file.includes("technology") || (ideology.unlock_technologies || []).length) keys.add("technology");
   if (file.includes("journal") || (ideology.unlock_journal_entries || []).length) keys.add("journal");
-  return [...keys].map((key) => ({ key, name_zh: ideologyOccurrenceOptions.find((item) => item.key === key)?.label || key }));
+  return [...keys].map((key) => ({ key, loc: { name: `enum.ideologyOccurrence.${key}` } }));
 }
 
 function ideologyLawGroupRefs(ideology) {
@@ -982,7 +1053,8 @@ function ideologyLawGroupRefs(ideology) {
     if (!stance.law_group_key || map.has(stance.law_group_key)) continue;
     map.set(stance.law_group_key, {
       key: stance.law_group_key,
-      name_zh: stance.law_group_name_zh || stance.law_group_key,
+      id: `law_group:${stance.law_group_key}`,
+      loc: { name: stance.loc?.lawGroupName },
     });
   }
   return [...map.values()].sort(sortIdeologyLawGroup);
@@ -990,10 +1062,10 @@ function ideologyLawGroupRefs(ideology) {
 
 function lawStanceGroupsHtml(ideology) {
   const groups = groupLawStances(ideology?.law_stances || []);
-  if (!groups.length) return `<p class="empty compact">没有法律态度数据。</p>`;
+  if (!groups.length) return `<p class="empty compact">${t("board.ideology.noLawStances", "没有法律态度数据。")}</p>`;
   return `<div class="vic3-law-groups">${groups.map((group) => `
     <section class="vic3-law-group">
-      <h3>对${escapeHtml(group.name)}的态度</h3>
+      <h3>${escapeHtml(t("board.ideology.stanceToward", { group: group.name }))}</h3>
       <div class="vic3-law-lines">
         ${lawAttitudeLinesHtml(group.items)}
       </div>
@@ -1008,7 +1080,7 @@ function groupLawStances(stances) {
     if (!groups.has(key)) {
       groups.set(key, {
         key,
-        name: stance.law_group_name_zh || key || "未分组",
+        name: entityText(lawGroupByKey.get(key) || stance, lawGroupByKey.has(key) ? "name" : "lawGroupName", key || t("enum.lawGroupCategory.uncategorized", "未分组")),
         items: [],
       });
     }
@@ -1018,7 +1090,7 @@ function groupLawStances(stances) {
 }
 
 function lawStanceChip(stance) {
-  const name = stance.law_name_zh || stance.law_key || "";
+  const name = entityText(lawByKey.get(stance.law_key) || stance, lawByKey.has(stance.law_key) ? "name" : "lawName", stance.law_key);
   const stanceLabel = lawStanceLabel(stance.stance);
   const className = `law-pill ${lawStanceClassName(stance.stance)}`;
   return conceptPill({
@@ -1043,9 +1115,9 @@ function lawAttitudeLinesHtml(stances) {
     .filter((stance) => grouped.has(stance))
     .map((stance) => {
       const items = grouped.get(stance).sort((a, b) => (
-        (a.law_name_zh || a.law_key || "").localeCompare(b.law_name_zh || b.law_key || "", "zh-Hans-CN")
+        localizedCompare(entityText(lawByKey.get(a.law_key) || a, lawByKey.has(a.law_key) ? "name" : "lawName", a.law_key), entityText(lawByKey.get(b.law_key) || b, lawByKey.has(b.law_key) ? "name" : "lawName", b.law_key))
       ));
-      const names = items.map((item) => item.law_name_zh || item.law_key).filter(Boolean).join("、");
+      const names = items.map((item) => entityText(lawByKey.get(item.law_key) || item, lawByKey.has(item.law_key) ? "name" : "lawName", item.law_key)).filter(Boolean).join(t("ui.listSeparator", "、"));
       return `
         <div class="vic3-law-line ${lawStanceClassName(stance)}">
           <span>${escapeHtml(lawStanceSentencePrefix(stance))} </span>${escapeHtml(names)}
@@ -1055,29 +1127,23 @@ function lawAttitudeLinesHtml(stances) {
 }
 
 function lawStanceSentencePrefix(stance) {
-  return {
-    strongly_disapprove: "坚决反对",
-    disapprove: "反对",
-    neutral: "不在意",
-    approve: "支持",
-    strongly_approve: "坚决支持",
-  }[stance] || lawStanceLabel(stance);
+  return t(`enum.lawStance.${stance}`, stance || "");
 }
 
 function ideologyUnlockTagsHtml(ideology) {
   const tags = [
     ...(ideology.unlock_technologies || []).map((item) => technologyPill(item, "tag-technology")),
     ...(ideology.unlock_journal_entries || []).map((item) => conceptPill({
-      label: `日志条目：${item.name_zh || item.key}`,
+      label: t("board.ideology.journalEntryValue", { name: entityText(item) }),
       className: "tag-journal",
       title: item.key,
       key: item.key,
-      search: item.name_zh || item.key,
+      search: searchNames(item.id || item.key).join(" "),
     })),
   ].filter(Boolean);
   if (!tags.length) return "";
   return `
-    <div class="ideology-unlock-tags" aria-label="解锁来源">
+    <div class="ideology-unlock-tags" aria-label="${escapeHtml(t("board.ideology.unlockSources", "解锁来源"))}">
       ${tags.join("")}
     </div>
   `;
@@ -1088,7 +1154,7 @@ function ideologyRuleSourceLabel(ideology) {
   if (!sources.length) return "";
   return `
     <section class="vic3-special-usage ideology-source-usage">
-      <h3>来源</h3>
+      <h3>${t("board.ideology.source", "来源")}</h3>
       <dl class="field-grid">
         ${sources.slice(0, 12).map((source) => field(ideologySourceKindLabel(source.kind), ideologySourceText(source))).join("")}
       </dl>
@@ -1100,7 +1166,7 @@ function uniqueUnlockSourceRows(sources) {
   const seen = new Set();
   const result = [];
   for (const source of sources || []) {
-    const key = [source.kind, source.source_key, source.source_file, source.condition_summary_zh].join("|");
+    const key = [source.kind, source.source_key, source.source_file, source.loc?.conditionSummary].join("|");
     if (seen.has(key)) continue;
     seen.add(key);
     result.push(source);
@@ -1109,19 +1175,29 @@ function uniqueUnlockSourceRows(sources) {
 }
 
 function ideologySourceKindLabel(kind) {
-  return {
-    interest_group_flavor: "风味规则",
-    political_movement: "政治运动",
-    event_or_journal: "事件/日志条目",
-  }[kind] || "来源";
+  return t(`enum.ideologySourceKind.${kind}`, t("board.ideology.source", "来源"));
+}
+
+function ideologyTypeLabel(key) {
+  return t(`enum.ideologyType.${key}`, key || t("board.ideology.title", "意识形态"));
+}
+
+function ideologyOccurrenceLabel(key) {
+  return t(`enum.ideologyOccurrence.${key}`, key || "");
+}
+
+function ideologyLawFilterGroupLabel(key) {
+  return t(`enum.ideologyLawFilterGroup.${key}`, key || "");
 }
 
 function ideologySourceText(source) {
+  const sourceName = entityText(source, "sourceName", source.source_key);
+  const conditionSummary = renderTextSpec({ message: source.loc?.conditionSummary, fallback: "" });
   const parts = [
-    source.source_name_zh && source.source_name_zh !== source.source_key ? `${source.source_name_zh}（${source.source_key}）` : source.source_key,
-    ideologyUnlockRefsText(source.technologies, "科技"),
-    ideologyUnlockRefsText(source.journal_entries, "日志条目"),
-    source.condition_summary_zh && source.condition_summary_zh !== "脚本条件" ? source.condition_summary_zh : "",
+    sourceName !== source.source_key ? t("board.ideology.sourceNameWithKey", { name: sourceName, key: source.source_key }) : source.source_key,
+    ideologyUnlockRefsText(source.technologies, t("board.ideology.technology", "科技")),
+    ideologyUnlockRefsText(source.journal_entries, t("board.ideology.journalEntry", "日志条目")),
+    conditionSummary && conditionSummary !== t("board.law.scriptCondition", "脚本条件") ? conditionSummary : "",
     fileBaseName(source.source_file),
   ].filter(Boolean);
   return escapeHtml(parts.join("；"));
@@ -1129,7 +1205,7 @@ function ideologySourceText(source) {
 
 function ideologyUnlockRefsText(items, label) {
   if (!(items || []).length) return "";
-  return `${label}：${(items || []).map((item) => item.name_zh || item.key).join("、")}`;
+  return t("board.ideology.namedRefs", { label, values: (items || []).map((item) => entityText(item)).join(t("ui.listSeparator", "、")) });
 }
 
 function ideologyReplacementUsageHtml(related) {
@@ -1139,22 +1215,14 @@ function ideologyReplacementUsageHtml(related) {
   if (!rows.length) return "";
   return `
     <section class="vic3-special-usage ideology-replacement-usage">
-      <h3>出现和替换</h3>
+      <h3>${t("board.ideology.occurrenceAndReplacement", "出现和替换")}</h3>
       <dl class="field-grid">${rows.join("")}</dl>
     </section>
   `;
 }
 
 function ideologyFlavorUsageLabel(rule) {
-  if (rule.kind === "added") return "风味·新增";
-  if (rule.kind === "removed") return "风味·移除";
-  if (rule.kind === "replaces") {
-    return "风味·替换";
-  }
-  if (rule.kind === "replaced_by") {
-    return "风味：替换为";
-  }
-  return "风味";
+  return t(`enum.ideologyFlavorUsage.${rule.kind}`, t("board.ideology.flavor", "风味"));
 }
 
 function ideologyFlavorUsageValue(rule) {
@@ -1170,11 +1238,11 @@ function ideologyFlavorDefinitionHtml(ideology) {
   if (ideology?.flavor_definition_status !== "unassigned") return "";
   return `
     <section class="vic3-special-usage ideology-flavor-definition">
-      <h3>风味定义</h3>
-      <p>${escapeHtml(ideology.flavor_definition_note_zh || "风味意识形态定义；当前脚本未分配给任何利益集团。")}</p>
+      <h3>${t("board.ideology.flavorDefinition", "风味定义")}</h3>
+      <p>${escapeHtml(renderTextSpec({ message: ideology.loc?.flavorDefinitionNote, fallback: t("board.ideology.unassignedFlavorNote", "风味意识形态定义；当前脚本未分配给任何利益集团。") }))}</p>
       <dl class="field-grid">
-        ${field("状态", tagPill("未分配", "tag-muted"))}
-        ${field("文件", escapeHtml(fileBaseName(ideology.source_file)))}
+        ${field(t("board.ideology.status", "状态"), tagPill(t("board.ideology.unassigned", "未分配"), "tag-muted"))}
+        ${field(t("board.ideology.file", "文件"), escapeHtml(fileBaseName(ideology.source_file)))}
       </dl>
     </section>
   `;
@@ -1186,15 +1254,15 @@ function ideologyWeightSectionHtml(ideology) {
   const nonLeaderWeight = ideology.non_interest_group_leader_weight;
   if (!requirements.country && !requirements.interest_group_leader && !requirements.non_interest_group_leader && !leaderWeight && !nonLeaderWeight) return "";
   const sections = [
-    weightRequirementHtml("国家要求", requirements.country),
-    weightRequirementHtml("领袖要求", requirements.interest_group_leader),
-    weightRequirementHtml("非领袖要求", requirements.non_interest_group_leader),
-    weightListHtml("领袖权重", leaderWeight),
-    weightListHtml("非领袖权重", nonLeaderWeight),
+    weightRequirementHtml(t("board.ideology.countryRequirement", "国家要求"), requirements.country),
+    weightRequirementHtml(t("board.ideology.leaderRequirement", "领袖要求"), requirements.interest_group_leader),
+    weightRequirementHtml(t("board.ideology.nonLeaderRequirement", "非领袖要求"), requirements.non_interest_group_leader),
+    weightListHtml(t("board.ideology.leaderWeight", "领袖权重"), leaderWeight),
+    weightListHtml(t("board.ideology.nonLeaderWeight", "非领袖权重"), nonLeaderWeight),
   ].filter(Boolean).join("");
   return `
     <details class="collapsible-detail-section ideology-weight-section">
-      <summary><span>角色权重</span><small>要求与权重修正</small></summary>
+      <summary><span>${t("board.ideology.characterWeight", "角色权重")}</span><small>${t("board.ideology.requirementsAndModifiers", "要求与权重修正")}</small></summary>
       <div class="collapsible-detail-body ideology-weight-body">
         ${sections}
       </div>
@@ -1207,9 +1275,9 @@ function weightRequirementHtml(label, requirement) {
   return `
     <section class="ideology-weight-group">
       <h3>${escapeHtml(label)}</h3>
-      <p>${escapeHtml(requirement.summary_zh || "脚本条件")}</p>
+      <p>${escapeHtml(renderTextSpec({ message: requirement.loc?.summary, fallback: t("board.law.scriptCondition", "脚本条件") }))}</p>
       ${conditionRefPills(requirement)}
-      ${rawDetails("条件脚本", requirement.raw)}
+      ${rawDetails(t("board.law.conditionScript", "条件脚本"), requirement.raw)}
     </section>
   `;
 }
@@ -1229,10 +1297,11 @@ function weightListHtml(label, weight) {
 
 function weightEntryHtml(entry) {
   const label = entry.kind === "multiply"
-    ? `乘数 ${formatWeightValue(entry.value)}`
-    : entry.condition_summary_zh
-      ? `${entry.kind === "base" ? "基础" : "加值"} ${formatSignedWeight(entry.value)}`
-      : `基础 ${formatWeightValue(entry.value)}`;
+    ? t("board.ideology.weightMultiplier", { value: formatWeightValue(entry.value) })
+    : entry.loc?.conditionSummary
+      ? t(entry.kind === "base" ? "board.ideology.weightBase" : "board.ideology.weightAdd", { value: formatSignedWeight(entry.value) })
+      : t("board.ideology.weightBase", { value: formatWeightValue(entry.value) });
+  const conditionSummary = renderTextSpec({ message: entry.loc?.conditionSummary, fallback: "" });
   const refs = conditionRefPills(entry);
   return `
     <article class="ideology-weight-entry">
@@ -1240,9 +1309,9 @@ function weightEntryHtml(entry) {
         <strong>${escapeHtml(label)}</strong>
         ${entry.desc ? `<span>${escapeHtml(weightDescLabel(entry.desc))}</span>` : ""}
       </div>
-      ${entry.condition_summary_zh ? `<p>${escapeHtml(entry.condition_summary_zh)}</p>` : ""}
+      ${conditionSummary ? `<p>${escapeHtml(conditionSummary)}</p>` : ""}
       ${refs}
-      ${rawDetails("条件脚本", entry.condition_raw)}
+      ${rawDetails(t("board.law.conditionScript", "条件脚本"), entry.condition_raw)}
     </article>
   `;
 }
@@ -1261,7 +1330,7 @@ function conditionRefPills(condition) {
 function refItemsPills(items, kind, className) {
   const pills = (items || []).map((item) => {
     if (kind === "technology") return technologyPill(item, className);
-    const label = item.name_zh || item.key;
+    const label = entityText(item);
     const metadata = conceptTooltipMetadata(label, className, kind, item.key);
     return conceptPill({
       label,
@@ -1281,7 +1350,7 @@ function technologyPill(item, className = "tag-technology") {
   const key = typeof item === "string" ? item : item?.key || "";
   if (!key) return "";
   const technology = technologyByKey.get(key);
-  const label = technology?.name_zh || (typeof item === "string" ? "" : item?.name_zh) || key;
+  const label = entityText(technology || (typeof item === "string" ? { key } : item));
   const metadata = conceptTooltipMetadata(label, "", "technology", key);
   return conceptPill({
     label,
@@ -1308,12 +1377,12 @@ function formatWeightValue(value) {
 }
 
 function weightDescLabel(desc) {
-  if (desc === "base_value") return "基础值";
+  if (desc === "base_value") return t("board.ideology.baseValue", "基础值");
   return desc || "";
 }
 
 function lawStanceLabel(stance) {
-  return lawStanceLabels[stance] || stance || "";
+  return t(`enum.lawStance.${stance}`, stance || "");
 }
 
 function lawStanceClassName(stance) {
@@ -1359,7 +1428,7 @@ function relatedIdeologyUsage(ideology) {
     flavorUsage: [...flavorUsage.values()].map((rule) => ({
       ...rule,
       countries: [...rule.countries.values()].sort(sortCountriesByTag),
-    })).sort((a, b) => a.label.localeCompare(b.label, "zh-Hans-CN")),
+    })).sort((a, b) => localizedCompare(ideologyFlavorUsageLabel(a), ideologyFlavorUsageLabel(b))),
   };
   ideologyUsageCache.set(key, result);
   return result;
@@ -1381,7 +1450,7 @@ function classifyFlavorIdeologyUsage(key, group, country, out) {
           addIdeologyFlavorUsage(out, {
             kind: "replaces",
             ideologyKey: removedIdeology.key,
-            ideologyName: removedIdeology.name_zh || removedIdeology.key,
+            ideologyName: entityText(removedIdeology),
             country,
           });
         }
@@ -1389,9 +1458,9 @@ function classifyFlavorIdeologyUsage(key, group, country, out) {
           addIdeologyFlavorUsage(out, {
             kind: "replaced_by",
             ideologyKey: addedIdeology.key,
-            ideologyName: addedIdeology.name_zh || addedIdeology.key,
+            ideologyName: entityText(addedIdeology),
             currentKey: removedIdeology.key,
-            currentName: removedIdeology.name_zh || removedIdeology.key,
+            currentName: entityText(removedIdeology),
             country,
           });
         }
@@ -1440,12 +1509,12 @@ function addIdeologyFlavorUsage(out, rule) {
 
 function interestGroupRefPills(groups, className = "") {
   const pills = (groups || []).map((group) => conceptPill({
-    label: group.name_zh || group.key,
+    label: entityText(group),
     className,
     title: group.key,
     kind: "interestGroup",
     key: group.key,
-    search: group.name_zh || group.key,
+    search: searchNames(group.id || `interest_group:${group.key}`).join(" "),
   })).filter(Boolean);
   return pills.length ? `<span class="link-list">${pills.join("")}</span>` : "";
 }
@@ -1459,7 +1528,7 @@ function limitedCountryLinks(items, limit = 36) {
     title: country.tag,
     href: conceptHref("country", country.tag),
   })).join("");
-  const more = (items || []).length > limit ? tagPill(`另有 ${(items || []).length - limit} 个国家`, "tag-more") : "";
+  const more = (items || []).length > limit ? tagPill(t("ui.moreCountries", { count: localizedNumber((items || []).length - limit) }), "tag-more") : "";
   return links || more ? `<span class="link-list">${links}${more}</span>` : "";
 }
 
@@ -1476,30 +1545,30 @@ function fullCountryLinks(items) {
 
 function interestGroupRuleSummary(rules) {
   const names = unique((rules || []).flatMap((rule) => [
-    ...(rule.names || []).map((item) => item.name_zh || item.key),
-    ...(rule.traits || []).map((item) => item.name_zh || item.key),
-    ...(rule.added_ideologies || []).map((item) => item.name_zh || item.key),
+    ...(rule.names || []).map((item) => entityText(item)),
+    ...(rule.traits || []).map((item) => entityText(item)),
+    ...(rule.added_ideologies || []).map((item) => entityText(item)),
   ]).filter(Boolean));
-  if (!names.length) return tagPill("基础默认", "tag-muted");
-  return tagPill(`${rules.length} 条匹配规则`, "tag-special", names.join("；"));
+  if (!names.length) return tagPill(t("board.ideology.baseDefault", "基础默认"), "tag-muted");
+  return tagPill(t("board.ideology.ruleCount", { count: localizedNumber(rules.length) }), "tag-special", names.join(t("ui.semicolon", "；")));
 }
 
 function interestGroupRuleDetails(rules) {
   if (!(rules || []).length) return "";
   return `
     <details class="script-details interest-group-rule-details">
-      <summary>匹配规则</summary>
+      <summary>${t("board.ideology.matchingRules", "匹配规则")}</summary>
       <div class="interest-group-rule-list">
         ${rules.map((rule) => `
           <section class="interest-group-rule">
-            <div class="minor">${escapeHtml(rule.condition_summary_zh || "默认")}</div>
+            <div class="minor">${escapeHtml(renderTextSpec({ message: rule.loc?.conditionSummary, fallback: t("board.ideology.default", "默认") }))}</div>
             <dl class="mini-grid">
-              ${field("名称", interestGroupEffectRefPills(rule.names, "interestGroup", "tag-ig-changed"))}
-              ${field("特质", interestGroupEffectRefPills(rule.traits, "interestGroupTrait", "tag-changed-outline"))}
-              ${field("新增", interestGroupEffectRefPills(rule.added_ideologies, "ideology", "tag-ig-added"))}
-              ${field("移除", interestGroupEffectRefPills(rule.removed_ideologies, "ideology", "tag-ig-removed"))}
+              ${field(t("board.ideology.name", "名称"), interestGroupEffectRefPills(rule.names, "interestGroup", "tag-ig-changed"))}
+              ${field(t("board.ideology.traits", "特质"), interestGroupEffectRefPills(rule.traits, "interestGroupTrait", "tag-changed-outline"))}
+              ${field(t("board.ideology.added", "新增"), interestGroupEffectRefPills(rule.added_ideologies, "ideology", "tag-ig-added"))}
+              ${field(t("board.ideology.removed", "移除"), interestGroupEffectRefPills(rule.removed_ideologies, "ideology", "tag-ig-removed"))}
             </dl>
-            ${rawDetails("条件脚本", rule.condition_raw)}
+            ${rawDetails(t("board.law.conditionScript", "条件脚本"), rule.condition_raw)}
           </section>
         `).join("")}
       </div>
@@ -1509,7 +1578,7 @@ function interestGroupRuleDetails(rules) {
 
 function interestGroupEffectRefPills(items, kind, className) {
   const pills = (items || []).map((item) => conceptPill({
-    label: item.name_zh || item.key,
+    label: entityText(item),
     className,
     title: item.key,
     kind,
@@ -1521,8 +1590,8 @@ function interestGroupEffectRefPills(items, kind, className) {
 
 function interestGroupTraitApprovalText(trait) {
   const parts = [];
-  if (trait?.min_approval) parts.push(`最低支持：${trait.min_approval}`);
-  if (trait?.max_approval) parts.push(`最高支持：${trait.max_approval}`);
+  if (trait?.min_approval) parts.push(t("board.ideology.minimumApproval", { value: trait.min_approval }));
+  if (trait?.max_approval) parts.push(t("board.ideology.maximumApproval", { value: trait.max_approval }));
   return parts.join("；");
 }
 
@@ -1547,16 +1616,12 @@ function stateRegionTagPills(stateRegion) {
 }
 
 function stateRegionMapiPill(stateRegion) {
-  const values = unique((stateRegion.traits || [])
-    .filter((trait) => trait.has_mapi)
-    .map((trait) => trait.mapi_value_zh)
-    .filter(Boolean));
-  if (!values.length) return "";
-  return tagPill(`MAPI ${values.join("/")}`, "tag-mapi", "MAPI", "mapi-summary");
+  if (!(stateRegion.traits || []).some((trait) => trait.has_mapi)) return "";
+  return tagPill("MAPI", "tag-mapi", "MAPI", "mapi-summary");
 }
 
 function companyKindText(company) {
-  return company.company_kind_zh || companyKindLabels.get(companyKindKey(company)) || "通用公司";
+  return t(`enum.companyKind.${companyKindKey(company)}`) || companyKindKey(company);
 }
 
 function companyKindKey(company) {
@@ -1581,29 +1646,34 @@ function companyDlcKey(company) {
 }
 
 function companyDlcLabel(company) {
-  return company?.dlc_name_en || company?.dlc_name_zh || companyDlcLabels.get(companyDlcKey(company)) || companyDlcKey(company);
+  return entityText(company, "dlcName") || t(`enum.companyDlc.${companyDlcKey(company)}`) || companyDlcKey(company);
 }
 
 function companyPrestigeLabel(company) {
-  const label = company?.prestige_goods_kind_zh || companyPrestigeLabels.get(prestigeGoodsKindKey(company)) || "";
-  return label.replace(/^仅(?=通用名贵商品|特殊名贵商品)/, "");
+  return t(`enum.prestigeGoodsKind.${prestigeGoodsKindKey(company)}`) || "";
 }
 
 function companyTagPills(company) {
+  const categoryLabel = companyCategoryLabel(company);
   return [
     victorianCenturyBadge(company),
     limitedRefPills(company.referenced_strategic_regions, "tag-region", 4),
     limitedRefPills(company.referenced_geographic_regions, "tag-region", 3),
-    tagPill(company.category_zh || company.category, "tag-company-ownership", company.category, `company-ownership-category:${company.category || ""}`),
+    categoryLabel ? tagPill(categoryLabel, "tag-company-ownership", company.category, `company-ownership-category:${company.category}`) : "",
     companyKindKey(company) === "easter_egg" ? tagPill(companyKindText(company), "tag-special") : "",
   ].filter(Boolean).join("");
 }
 
+function companyCategoryLabel(company) {
+  if (!company?.category) return "";
+  return entityText(company, "category", company.category) || company.category;
+}
+
 function companyMetaLine(company) {
   return [
-    company.preferred_headquarters?.length ? `总部倾向：${refNames(company.preferred_headquarters, " / ")}` : "",
-    company.referenced_cultures?.length ? `限定文化：${refNames(company.referenced_cultures, " / ")}` : "",
-  ].filter(Boolean).join("；");
+    company.preferred_headquarters?.length ? `${t("board.company.headquarters", "总部倾向")}：${refNames(company.preferred_headquarters, " / ")}` : "",
+    company.referenced_cultures?.length ? `${t("board.company.relatedCultures", "限定文化")}：${refNames(company.referenced_cultures, " / ")}` : "",
+  ].filter(Boolean).join(t("ui.semicolon", "；"));
 }
 
 function companyDlcIconPill(company) {
@@ -1628,15 +1698,15 @@ function companyPrestigeGoodsPills(company) {
 function companyPrestigeGoodPill(item) {
   if (!item) return "";
   const key = item.key || "";
-  const label = item.name_zh || key;
+  const label = entityText(item) || key;
   return conceptPill({
     label,
     className: "tag-good prestige-good-pill",
     title: key,
     kind: "goods",
     key,
-    category: "名贵商品",
-    description: `“${label}”是一种名贵商品。`,
+    category: t("board.company.prestigeGoods", "名贵商品"),
+    description: t("board.company.prestigeGoodsDescription", { name: label }),
     html: `${goodsIconHtml(item, "prestige-good-icon")}<span>${escapeHtml(label)}</span>`,
   });
 }
@@ -1664,7 +1734,7 @@ function companyBuildingStrip(company) {
 }
 
 function companyBuildingPill(item, className = "") {
-  const name = item?.name_zh || item?.key || "";
+  const name = entityText(item) || item?.key || "";
   if (!name) return "";
   const classText = className ? ` ${className}` : "";
   const metadata = buildingTooltipMetadata(item);
@@ -1704,7 +1774,7 @@ function stateRegionTooltipResourceHtml(stateRegion) {
 }
 
 function stateRegionTooltipResourceChip(item, amount = "") {
-  const label = item?.name_zh || item?.key || "";
+  const label = entityText(item) || item?.key || "";
   if (!label) return "";
   const icon = buildingIconHtml(item?.key);
   const count = amount !== "" && amount !== null ? `<span class="tooltip-resource-count">${escapeHtml(amount)}</span>` : "";
@@ -1731,7 +1801,7 @@ function stateRegionBuildingStrip(stateRegion) {
 }
 
 function buildingChip(item, amount = "", className = "") {
-  const name = item?.name_zh || item?.key || "";
+  const name = entityText(item) || item?.key || "";
   const count = amount !== "" && amount !== null ? `<span class="building-chip-count">${escapeHtml(amount)}</span>` : "";
   const classText = className ? ` ${className}` : "";
   const defaults = TAG_TOOLTIP_DEFAULTS.building || {};
@@ -1749,7 +1819,7 @@ function buildingChip(item, amount = "", className = "") {
 function limitedHtmlItems(items, limit) {
   const filtered = (items || []).filter(Boolean);
   if (filtered.length <= limit) return filtered.join("");
-  return `${filtered.slice(0, limit).join("")}${tagPill(`另有 ${filtered.length - limit} 项`, "tag-more")}`;
+  return `${filtered.slice(0, limit).join("")}${tagPill(t("ui.moreItems", { count: localizedNumber(filtered.length - limit) }), "tag-more")}`;
 }
 
 function sameTraditionCultures(traditions, groups) {
@@ -1758,7 +1828,7 @@ function sameTraditionCultures(traditions, groups) {
     if (!related.length) return "";
     return `
       <div class="inline-block">
-        <span class="minor">${escapeHtml(tradition.name_zh)}</span>
+        <span class="minor">${escapeHtml(entityText(tradition))}</span>
         ${cultureLinks(related)}
       </div>
     `;
@@ -1768,21 +1838,21 @@ function sameTraditionCultures(traditions, groups) {
 
 function dynamicNameList(country) {
   if (!(country.dynamicNameVariants || []).length) {
-    return `<p class="empty compact">无专属国名变体。</p>`;
+    return `<p class="empty compact">${escapeHtml(t("board.country.dynamic.noNames"))}</p>`;
   }
   return `<div class="rule-list">${country.dynamicNameVariants.map((variant) => `
     <article class="rule-item">
       <div class="rule-head">
-        <strong>${escapeHtml(variant.name_zh || variant.name_key)}</strong>
+        <strong>${escapeHtml(entityText(variant) || variant.name_key)}</strong>
         <span class="minor">${escapeHtml(variant.name_key)}</span>
       </div>
       <dl class="mini-grid">
-        ${field("形容词", escapeHtml(variant.adjective_zh || variant.adjective_key || ""))}
-        ${field("优先级", escapeHtml(variant.priority || "0"))}
-        ${field("革命名", escapeHtml(variant.is_revolutionary))}
-        ${field("引用", refsText(variant))}
+        ${field(t("board.country.dynamic.adjective"), escapeHtml(entityText(variant, "adjective", "") || variant.adjective_key || ""))}
+        ${field(t("board.country.dynamic.priority"), escapeHtml(variant.priority || "0"))}
+        ${field(t("board.country.dynamic.revolutionary"), localizedBoolean(variant.is_revolutionary))}
+        ${field(t("board.country.dynamic.references"), refsText(variant))}
       </dl>
-      ${rawDetails("条件脚本", variant.trigger_raw)}
+      ${rawDetails(t("board.country.dynamic.conditionScript"), variant.trigger_raw)}
     </article>
   `).join("")}</div>`;
 }
@@ -1790,26 +1860,26 @@ function dynamicNameList(country) {
 function dynamicStateNameList(stateRegion) {
   const variants = visibleDynamicStateNameVariants(stateRegion);
   if (!variants.length) {
-    return `<p class="empty compact">无地区名称变体。</p>`;
+    return `<p class="empty compact">${t("board.region.noNameVariants", "无地区名称变体。")}</p>`;
   }
   return `<div class="rule-list">${variants.map((variant) => `
     <article class="rule-item">
       <div class="rule-head">
-        <strong>${escapeHtml(variant.name_zh || variant.name_key)}</strong>
+        <strong>${escapeHtml(entityText(variant) || variant.name_key)}</strong>
         <span class="minor">${escapeHtml(variant.name_key)}</span>
       </div>
       <dl class="mini-grid">
-        ${field("采用名称", escapeHtml(variant.name_zh || variant.name_key || ""))}
-        ${field("来源", escapeHtml(fileBaseName(variant.source_file)))}
+        ${field(t("board.region.appliedName", "采用名称"), escapeHtml(entityText(variant) || variant.name_key || ""))}
+        ${field(t("board.region.source", "来源"), escapeHtml(fileBaseName(variant.source_file)))}
       </dl>
-      ${rawDetails("采用条件", variant.trigger_raw)}
+      ${rawDetails(t("board.region.appliedCondition", "采用条件"), variant.trigger_raw)}
     </article>
   `).join("")}</div>`;
 }
 
 function dynamicMapColorList(country) {
   if (!(country.dynamicMapColorRules || []).length) {
-    return `<p class="empty compact">无专属特殊地图色。</p>`;
+    return `<p class="empty compact">${escapeHtml(t("board.country.dynamic.noMapColors"))}</p>`;
   }
   return `<div class="rule-list">${country.dynamicMapColorRules.map((rule) => `
     <article class="rule-item color-rule">
@@ -1821,10 +1891,10 @@ function dynamicMapColorList(country) {
         <span class="minor">${escapeHtml(rule.color_key)} ${escapeHtml(rule.color_hex)}</span>
       </div>
       <dl class="mini-grid">
-        ${field("颜色", colorValue(rule.color_hex, splitNumbers(rule.color_rgb)))}
-        ${field("引用", refsText(rule))}
+        ${field(t("board.country.dynamic.color"), colorValue(rule.color_hex, splitNumbers(rule.color_rgb)))}
+        ${field(t("board.country.dynamic.references"), refsText(rule))}
       </dl>
-      ${rawDetails("条件脚本", rule.possible_raw)}
+      ${rawDetails(t("board.country.dynamic.conditionScript"), rule.possible_raw)}
     </article>
   `).join("")}</div>`;
 }
@@ -1844,39 +1914,52 @@ function countryFlagVariantSection(country) {
               ${conceptTag(variant.exportKey || variant.key, "tag", `country-flag-variant:${variant.exportKey || variant.key}`)}
             </div>
             <dl class="mini-grid country-flag-variant-meta">
-              ${field("优先级", escapeHtml(String(variant.priority ?? 0)))}
-              ${field("触发", escapeHtml(variant.triggerSummary || "默认候选"))}
-              ${field("附属旗角", escapeHtml(variant.subjectCanton || ""))}
-              ${field("领主旗角", escapeHtml(flagYesNo(variant.allowOverlordCanton)))}
+              ${field(t("board.country.dynamic.priority"), escapeHtml(String(variant.priority ?? 0)))}
+              ${field(t("board.country.flags.trigger"), escapeHtml(localizedFlagTriggerSummary(variant.triggerSummary)))}
+              ${field(t("board.country.flags.subjectCanton"), escapeHtml(variant.subjectCanton || ""))}
+              ${field(t("board.country.flags.overlordCanton"), localizedBoolean(variant.allowOverlordCanton))}
             </dl>
-            ${rawDetails("触发条件", variant.triggerRaw)}
+            ${rawDetails(t("board.country.flags.triggerCondition"), variant.triggerRaw)}
           </div>
         </article>
       `).join("")}
     </div>
   `;
-  return collapsibleDetailSection("国旗变体", body, `${variants.length} 种`);
+  return collapsibleDetailSection(t("board.country.flags.title"), body, t("board.country.flags.count", { count: localizedNumber(variants.length) }));
 }
 
 function countryFlagVariantAlt(country, variant) {
-  const name = country?.name || country?.tag || "国家";
-  return `${name} ${variant.key || variant.exportKey || "国旗"}`;
+  const name = entityText(country) || country?.tag || t("board.country.flags.countryAlt");
+  return `${name} ${variant.key || variant.exportKey || t("board.country.flags.flagAlt")}`;
 }
 
-function flagYesNo(value) {
-  if (value === "yes") return "是";
-  if (value === "no") return "否";
-  return "";
+function localizedFlagTriggerSummary(value) {
+  const messageKey = {
+    默认候选: "defaultCandidate",
+    控制印度的一部分地区: "controlsPartOfIndia",
+    使用英国旗帜: "usesBritishFlag",
+    君主制: "monarchy",
+    共和制: "republic",
+    委员会共和制: "councilRepublic",
+    神权制: "theocracy",
+  }[value];
+  return messageKey ? t(`board.country.flags.${messageKey}`) : value || t("board.country.flags.defaultCandidate");
+}
+
+function localizedBoolean(value) {
+  if (value === true || value === "yes" || value === "是") return escapeHtml(t("ui.yes"));
+  if (value === false || value === "no" || value === "否") return escapeHtml(t("ui.no"));
+  return value == null ? "" : escapeHtml(String(value));
 }
 
 function refsText(rule) {
   const parts = [];
-  if (rule.referenced_tags) parts.push(`国家：${rule.referenced_tags}`);
-  if (rule.referenced_cultures) parts.push(`文化：${rule.referenced_cultures}`);
-  if (rule.referenced_laws) parts.push(`法律：${rule.referenced_laws}`);
-  if (rule.referenced_journal_entries) parts.push(`日志条目：${rule.referenced_journal_entries}`);
-  if (rule.referenced_variables) parts.push(`变量：${rule.referenced_variables}`);
-  return parts.length ? escapeHtml(parts.join("；")) : "";
+  if (rule.referenced_tags) parts.push(`${t("board.country.reference.country")}${t("ui.colon")}${rule.referenced_tags}`);
+  if (rule.referenced_cultures) parts.push(`${t("board.country.reference.culture")}${t("ui.colon")}${rule.referenced_cultures}`);
+  if (rule.referenced_laws) parts.push(`${t("board.country.reference.law")}${t("ui.colon")}${rule.referenced_laws}`);
+  if (rule.referenced_journal_entries) parts.push(`${t("board.country.reference.journalEntry")}${t("ui.colon")}${rule.referenced_journal_entries}`);
+  if (rule.referenced_variables) parts.push(`${t("board.country.reference.variable")}${t("ui.colon")}${rule.referenced_variables}`);
+  return parts.length ? escapeHtml(parts.join(t("ui.clauseSeparator"))) : "";
 }
 
 function rawDetails(label, value) {
@@ -1892,7 +1975,7 @@ function rawDetails(label, value) {
 function lawIconHtml(law, className = "law-icon") {
   const baseName = fileBaseName(law?.icon).replace(/\.dds$/i, "");
   if (!baseName) return "";
-  const alt = escapeHtml(law?.name_zh || law?.key || "法律");
+  const alt = escapeHtml(entityText(law, "name", t("board.law.title", "法律")));
   const path = `assets/laws/${encodeURIComponent(baseName)}.png`;
   return webpPreferredImageHtml({ className, path, alt, fallback: "this.hidden=true" });
 }
@@ -1900,7 +1983,7 @@ function lawIconHtml(law, className = "law-icon") {
 function lawPill(law) {
   if (!law?.key) return "";
   return conceptPill({
-    label: law.name_zh || law.key,
+    label: entityText(law),
     className: "tag-law",
     title: law.key,
     kind: "law",
@@ -1916,7 +1999,7 @@ function sortIdeologyRefsByType(left, right) {
 }
 
 function lawPills(keys) {
-  const pills = (keys || []).map((key) => lawPill(lawByKey.get(key) || { key, name_zh: key })).filter(Boolean);
+  const pills = (keys || []).map((key) => lawPill(lawByKey.get(key) || { key })).filter(Boolean);
   return pills.length ? `<span class="link-list">${pills.join("")}</span>` : "";
 }
 
@@ -1942,7 +2025,7 @@ function buildingIconHtml(key) {
 }
 
 function companyIconHtml(company) {
-  const label = company?.name_zh || company?.key || "公司";
+  const label = entityText(company) || company?.key || t("entity.company", "公司");
   const title = [label, company?.icon].filter(Boolean).join("；");
   const path = companyIconPath(company?.icon);
   if (!path) return `<span class="company-icon-placeholder" title="${escapeHtml(title)}">司</span>`;
@@ -1959,7 +2042,7 @@ function companyIconPath(icon) {
 function countryFlagIconHtml(country, className = "country-flag-inline") {
   const image = countryDefaultFlagImage(country);
   if (!image) return "";
-  const label = country?.name || country?.name_zh || country?.tag || "country";
+  const label = entityText(country) || country?.tag || "country";
   const tag = country?.tag || "";
   const title = [label, tag].filter(Boolean).join(" ");
   return `<img class="${escapeHtml(className)}" src="${escapeHtml(image)}" alt="" title="${escapeHtml(title)}">`;
@@ -1973,7 +2056,7 @@ function countryDefaultFlagImage(country) {
 }
 
 function ideologyIconHtml(ideology, className = "ideology-icon") {
-  const label = ideology?.name_zh || ideology?.key || "意识形态";
+  const label = entityText(ideology, "name", t("board.ideology.title", "意识形态"));
   const title = [label, ideology?.key].filter(Boolean).join("；");
   const path = ideologyIconPath(ideology?.icon);
   if (!path) return `<span class="${escapeHtml(className)} ideology-icon-placeholder" title="${escapeHtml(title)}"></span>`;
@@ -2000,7 +2083,7 @@ function ideologyIconPath(icon) {
 }
 
 function interestGroupIconHtml(group, className = "interest-group-icon") {
-  const label = group?.name_zh || group?.key || "利益集团";
+  const label = entityText(group, "name", t("board.ideology.interestGroup", "利益集团"));
   const path = interestGroupIconPath(group?.texture);
   if (!path) return `<span class="${escapeHtml(className)} interest-group-icon-placeholder" title="${escapeHtml(label)}"></span>`;
   return `<img class="${escapeHtml(className)}" src="${path}" alt="" title="${escapeHtml(label)}">`;
@@ -2047,7 +2130,7 @@ function countryNameText(country) {
   const suffix = variants.length
     ? `<span class="name-variants">（${escapeHtml(variants.join("/"))}）</span>`
     : "";
-  return `${escapeHtml(country.name)}${suffix}`;
+  return `${escapeHtml(entityText(country) || country.name || country.tag || "")}${suffix}`;
 }
 
 function stateRegionNameText(stateRegion) {
@@ -2055,14 +2138,14 @@ function stateRegionNameText(stateRegion) {
   const suffix = variants.length
     ? `<span class="name-variants">（${escapeHtml(variants.join("/"))}）</span>`
     : "";
-  return `${escapeHtml(stateRegion.name_zh || stateRegion.key)}${suffix}`;
+  return `${escapeHtml(entityText(stateRegion) || stateRegion.key)}${suffix}`;
 }
 
 function countryVariantNames(country) {
   const names = [];
-  const seen = new Set([country.name]);
+  const seen = new Set([entityText(country) || country.name || country.tag || ""]);
   for (const variant of country.dynamicNameVariants || []) {
-    const name = variant.name_zh || variant.name_key || "";
+    const name = entityText(variant) || variant.name_key || "";
     if (!name || seen.has(name)) continue;
     seen.add(name);
     names.push(name);
@@ -2071,14 +2154,23 @@ function countryVariantNames(country) {
 }
 
 function stateRegionVariantNames(stateRegion) {
-  return visibleDynamicStateNameVariants(stateRegion).map((variant) => variant.name_zh || variant.name_key);
+  return visibleDynamicStateNameVariants(stateRegion).map((variant) => entityText(variant) || variant.name_key);
+}
+
+function conditionDetails(label, condition) {
+  if (!condition) return "";
+  const summary = renderTextSpec({
+    message: condition.loc?.summary || condition.loc?.conditionSummary,
+    fallback: t("board.law.scriptCondition", "脚本条件"),
+  });
+  return `${summary ? `<p><strong>${escapeHtml(label)}：</strong>${escapeHtml(summary)}</p>` : ""}${rawDetails(label, condition.raw || condition.condition_raw)}`;
 }
 
 function visibleDynamicStateNameVariants(stateRegion) {
-  const seen = new Set([stateRegion.name_zh || stateRegion.key]);
+  const seen = new Set([entityText(stateRegion) || stateRegion.key]);
   const visible = [];
   for (const variant of stateRegion.dynamic_name_variants || []) {
-    const name = variant.name_zh || "";
+    const name = entityText(variant, "name", "");
     if (!name || name === variant.name_key || seen.has(name)) continue;
     seen.add(name);
     visible.push(variant);
@@ -2087,38 +2179,38 @@ function visibleDynamicStateNameVariants(stateRegion) {
 }
 
 function countryCapitalText(country) {
-  const capital = country.capitalZh || country.capital || "无";
+  const capital = entityText(byStateRegion.get(country.capital), "name", country.capital) || country.capital || t("ui.none");
   const stateRegion = byStateRegion.get(country.capital);
   const strategicRegionNames = (stateRegion?.strategic_regions || [])
-    .map((region) => `${strategicRegionName(byStrategicRegion.get(region.key) || region)}战略区域`);
-  const suffix = strategicRegionNames.length ? `（${strategicRegionNames.join("、")}）` : "";
-  return `首都：${escapeHtml(capital)}${escapeHtml(suffix)}`;
+    .map((region) => t("board.country.strategicRegionSummary", { name: strategicRegionName(byStrategicRegion.get(region.key) || region) }));
+  const suffix = strategicRegionNames.length ? t("ui.parenthetical", { value: strategicRegionNames.join(t("ui.listSeparator")) }) : "";
+  return escapeHtml(t("board.country.capitalSummary", { capital, suffix }));
 }
 
 function stateRegionSummaryText(stateRegion) {
-  return `开局归属：${countryRefNames(stateRegion.starting_owners)}`;
+  return t("board.region.startingOwnersSummary", { owners: countryRefNames(stateRegion.starting_owners) });
 }
 
-function refNames(items, separator = "、") {
+function refNames(items, separator = t("ui.listSeparator")) {
   const names = (items || []).map(refName).filter(Boolean);
-  return names.length ? names.join(separator) : "无";
+  return names.length ? names.join(separator) : t("ui.none");
 }
 
 function refName(item) {
   if (!item) return "";
   if (item.tag) return countryRefLabel(item);
   if (item.key && byStrategicRegion.has(item.key)) return strategicRegionName(byStrategicRegion.get(item.key));
-  if (item.key && byStateRegion.has(item.key)) return byStateRegion.get(item.key)?.name_zh || item.key;
-  return item.name_zh || item.key || item.tag || "";
+  if (item.key && byStateRegion.has(item.key)) return entityText(byStateRegion.get(item.key)) || item.key;
+  return entityText(item);
 }
 
 function countryNameWithTag(tag) {
   return countryRefLabel({ tag });
 }
 
-function countryRefNames(items, separator = "、") {
+function countryRefNames(items, separator = t("ui.listSeparator")) {
   const names = (items || []).map(countryRefLabel).filter(Boolean);
-  return names.length ? names.join(separator) : "无";
+  return names.length ? names.join(separator) : t("ui.none");
 }
 
 function countryRefLabel(item) {
@@ -2126,21 +2218,21 @@ function countryRefLabel(item) {
   const tag = item.tag || item.key || "";
   if (!tag) return "";
   const country = byTag.get(tag);
-  const name = item.name_zh || item.name || country?.name || country?.name_zh || tag;
+  const name = entityText(item) || entityText(country) || tag;
   return `${name}(${tag})`;
 }
 
 function strategicRegionName(region) {
-  const rawName = region?.name_zh || region?.key || "";
+  const rawName = entityText(region) || region?.key || "";
   if (!isWrappedLocalizationKey(rawName)) return rawName;
   const stateKey = rawName.slice(1, -1);
   const stateRegion = byStateRegion.get(stateKey);
-  return stateRegion?.name_zh || stateKey || rawName;
+  return entityText(stateRegion) || stateKey || rawName;
 }
 
 function isSeaStrategicRegion(region) {
   return String(region?.source_file || "").includes("water_strategic_regions")
-    || isWrappedLocalizationKey(region?.name_zh);
+    || isWrappedLocalizationKey(entityText(region));
 }
 
 function isSeaStateRegion(stateRegion) {
@@ -2213,7 +2305,7 @@ function cultureRelationForStateRegion(stateRegion, selectedCulture) {
   if (isSeaStateRegion(stateRegion)) return { rank: 0, label: "海域" };
   const homelands = stateRegion.homeland_cultures || [];
   if (homelands.some((cultureRef) => cultureRef.key === selectedCulture.key)) {
-    return { rank: 5, label: `${selectedCulture.name_zh || selectedCulture.key}本土` };
+    return { rank: 5, label: t("map.cultureRelation.homeland", { culture: entityText(selectedCulture) }) };
   }
   let best = { rank: 0, label: "无关系" };
   for (const cultureRef of homelands) {
@@ -2227,16 +2319,16 @@ function cultureRelationForStateRegion(stateRegion, selectedCulture) {
 
 function cultureRelation(selectedCulture, culture) {
   if (selectedCulture.language?.key && selectedCulture.language.key === culture.language?.key) {
-    return { rank: 4, label: `同语言：${culture.name_zh}` };
+    return { rank: 4, label: t("map.cultureRelation.sameLanguage", { culture: entityText(culture) }) };
   }
   if (selectedCulture.language_group?.key && selectedCulture.language_group.key === culture.language_group?.key) {
-    return { rank: 3, label: `同语言组：${culture.name_zh}` };
+    return { rank: 3, label: t("map.cultureRelation.sameLanguageGroup", { culture: entityText(culture) }) };
   }
   if (selectedCulture.heritage?.key && selectedCulture.heritage.key === culture.heritage?.key) {
-    return { rank: 2, label: `同传承：${culture.name_zh}` };
+    return { rank: 2, label: t("map.cultureRelation.sameHeritage", { culture: entityText(culture) }) };
   }
   if (selectedCulture.heritage_group?.key && selectedCulture.heritage_group.key === culture.heritage_group?.key) {
-    return { rank: 1, label: `同传承组：${culture.name_zh}` };
+    return { rank: 1, label: t("map.cultureRelation.sameHeritageGroup", { culture: entityText(culture) }) };
   }
   return { rank: 0, label: "无关系" };
 }
@@ -2254,7 +2346,7 @@ function cultureRelationColor(rank, isSea) {
 function mapModeLabel(mode) {
   if (mode === "country") return "开局归属";
   if (mode === "strategicRegion") return "战略区域";
-  if (mode === "terrain") return "地形视图";
+  if (mode === "terrain") return t("map.terrainView", "地形视图");
   if (mode === "company") return "公司关联";
   if (mode === "cultureFilter") return "文化筛选";
   if (mode === "resourceSelection") return "资源潜力";
@@ -2278,10 +2370,12 @@ function automaticMapSubjectLabel(mode) {
 
 function selectedResourceMapLabel() {
   const labels = [...state.resourceFilters]
-    .map((key) => resourceFilterByKey.get(key)?.label)
+    .map((key) => resourceFilterLabel(resourceFilterByKey.get(key)))
     .filter(Boolean);
-  if (!labels.length) return "战略区域";
-  return labels.length > 3 ? `${labels.slice(0, 3).join("、")}等 ${labels.length} 项` : labels.join("、");
+  if (!labels.length) return t("filter.strategicRegions");
+  return labels.length > 3
+    ? `${labels.slice(0, 3).join(t("ui.listSeparator"))}${t("ui.listSeparator")}${t("ui.moreItems", { count: labels.length - 3 })}`
+    : labels.join(t("ui.listSeparator"));
 }
 
 function cultureFilterMapLabel() {
@@ -2293,7 +2387,7 @@ function cultureFilterMapLabel() {
   ];
   if (state.tradition) {
     const tradition = cultureTraitByKey.get(state.tradition);
-    labels.push(`传统：${tradition?.name_zh || state.tradition}`);
+    labels.push(t("map.cultureRelation.tradition", { tradition: entityText(tradition) || state.tradition }));
   }
   if (!labels.length) return "未选择文化特质";
   return labels.length > 3 ? `${labels.slice(0, 3).join("、")}等 ${labels.length} 项` : labels.join("、");
@@ -2302,7 +2396,7 @@ function cultureFilterMapLabel() {
 function selectedTraitFilterLabels(values, prefix) {
   return [...values].map((key) => {
     const trait = cultureTraitByKey.get(key);
-    return `${prefix}：${trait?.name_zh || key}`;
+    return `${prefix}：${entityText(trait) || key}`;
   });
 }
 
@@ -2346,21 +2440,21 @@ function clampNumber(value, min, max) {
 }
 
 function searchPlaceholder() {
-  if (state.view === "culture") return "文化、特质、宗教、本土战略区域、地域";
-  if (state.view === "region") return "地域、战略区域、海域、资源、地区特质、国家、文化";
-  if (state.view === "company") return "公司、建筑、名贵商品、总部、战略区域、条件";
-  if (state.view === "ideology") return "板块内搜索：意识形态、利益集团、法律组、法律";
-  if (state.view === "law") return "法律、法律组、修正、条件";
-  return "国家、Tag、文化、宗教、地域";
+  if (state.view === "culture") return t("board.culture.searchPlaceholder");
+  if (state.view === "region") return t("board.region.searchPlaceholder");
+  if (state.view === "company") return t("board.company.searchPlaceholder");
+  if (state.view === "ideology") return t("board.ideology.searchPlaceholder");
+  if (state.view === "law") return t("board.law.searchPlaceholder");
+  return t("board.country.searchPlaceholder");
 }
 
 function unitColorText(country) {
   const values = [
-    country.primaryUnitColor && `一色 ${country.primaryUnitColor}`,
-    country.secondaryUnitColor && `二色 ${country.secondaryUnitColor}`,
-    country.tertiaryUnitColor && `三色 ${country.tertiaryUnitColor}`,
+    country.primaryUnitColor && t("board.country.unitColor.primary", { value: country.primaryUnitColor }),
+    country.secondaryUnitColor && t("board.country.unitColor.secondary", { value: country.secondaryUnitColor }),
+    country.tertiaryUnitColor && t("board.country.unitColor.tertiary", { value: country.tertiaryUnitColor }),
   ].filter(Boolean);
-  return values.length ? escapeHtml(values.join("；")) : "";
+  return values.length ? escapeHtml(values.join(t("ui.listSeparator"))) : "";
 }
 
 function splitNumbers(value) {
@@ -2372,19 +2466,13 @@ function splitNumbers(value) {
 function countrySearchBlob(country) {
   return [
     country.tag,
-    country.name,
     country.capital,
-    country.capitalZh,
     country.countryType,
-    country.countryTypeZh,
     countryTypeTagLabel(country),
     country.tier,
-    country.tierZh,
     country.isDualHeritage === "是" ? "双传承" : "",
     country.religion,
-    country.religionZh,
     ...country.primaryCultures,
-    ...country.primaryCulturesZh,
     ...refSearchParts(country.primaryCultureHeritageGroups),
     ...refSearchParts(country.primaryCultureHeritages),
     ...refSearchParts(country.primaryCultureLanguageGroups),
@@ -2400,15 +2488,14 @@ function countrySearchBlob(country) {
     ...country.formationStates,
     ...country.releaseStates,
     ...country.canFormTags,
-    ...country.canFormNames,
     country.specialMechanic,
     ...(country.specialTags || []),
     country.colorHex,
     ...(country.dynamicNameVariants || []).flatMap((variant) => [
       variant.name_key,
-      variant.name_zh,
       variant.adjective_key,
-      variant.adjective_zh,
+      entityText(variant),
+      entityText(variant, "adjective", ""),
       variant.referenced_tags,
       variant.referenced_cultures,
       variant.referenced_laws,
@@ -2421,9 +2508,7 @@ function countrySearchBlob(country) {
 function cultureSearchBlob(culture) {
   return [
     culture.key,
-    culture.name_zh,
     culture.religion?.key,
-    culture.religion?.name_zh,
     ...refSearchParts([culture.heritage_group, culture.heritage, culture.language_group, culture.language]),
     ...refSearchParts(culture.traditions),
     ...refSearchParts(culture.homeland_strategic_regions),
@@ -2436,8 +2521,8 @@ function cultureSearchBlob(culture) {
 
 function stateRegionSearchBlob(stateRegion) {
   return [
-    stateRegion.key,
-    stateRegion.name_zh,
+    ...searchNames(stateRegion.id || `state_region:${stateRegion.key}`),
+    entityText(stateRegion),
     stateRegion.numeric_id,
     stateRegion.subsistence_building,
     ...refSearchParts(stateRegion.strategic_regions),
@@ -2454,8 +2539,7 @@ function stateRegionSearchBlob(stateRegion) {
 
 function strategicRegionSearchBlob(region) {
   return [
-    region.key,
-    region.name_zh,
+    ...searchNames(region.id || `strategic_region:${region.key}`),
     strategicRegionName(region),
     region.capital_province,
     ...refSearchParts(region.states),
@@ -2466,31 +2550,27 @@ function strategicRegionSearchBlob(region) {
 
 function geographicRegionSearchBlob(region) {
   return [
-    region.key,
-    region.name_zh,
-    region.display_name_zh,
+    ...searchNames(region.id || `geographic_region:${region.key}`),
+    geographicRegionDisplayName(region),
     ...refSearchParts(geographicRegionStrategicRegions(region)),
     ...refSearchParts(geographicRegionStateRegions(region)),
   ].join(" ").toLowerCase();
 }
 
 function geographicRegionDisplayName(region) {
-  return region?.display_name_zh || region?.name_zh || region?.key || "";
+  return entityText(region) || region?.key || "";
 }
 
 function companySearchBlob(company) {
   return [
-    company.key,
-    company.name_zh,
-    company.desc_zh,
+    ...searchNames(company.id || `company:${company.key}`),
+    entityText(company),
+    entityText(company, "description"),
     company.category,
-    company.category_zh,
     companyKindText(company),
     companyPrestigeLabel(company),
     companyDlcLabel(company),
-    company.dlc_name_en,
     company.source_file,
-    company.prosperity_modifier_summary_zh,
     ...refSearchParts(company.preferred_headquarters),
     ...refSearchParts(company.referenced_state_regions),
     ...refSearchParts(company.referenced_strategic_regions),
@@ -2514,22 +2594,21 @@ function companySearchBlob(company) {
 function ideologySearchBlob(ideology) {
   const typeKey = ideologyTypeKey(ideology);
   return [
-    ideology.key,
-    ideology.name_zh,
-    cleanIdeologyDescription(ideology.desc_zh),
-    ideologyTypeLabels.get(typeKey),
-    ideologyTypeShortLabels.get(typeKey),
+    ...searchNames(ideology.id || `ideology:${ideology.key}`),
+    entityText(ideology),
+    cleanIdeologyDescription(entityText(ideology, "description", "")),
+    ideologyTypeLabel(typeKey),
     fileBaseName(ideology.source_file),
     ...refSearchParts(ideology.unlock_technologies),
     ...refSearchParts(ideology.unlock_journal_entries),
     ...(ideology.unlock_sources || []).flatMap((source) => [
       source.source_key,
-      source.source_name_zh,
+      entityText(source, "sourceName", source.source_key),
       fileBaseName(source.source_file),
-      source.condition_summary_zh,
+      renderTextSpec({ message: source.loc?.conditionSummary, fallback: "" }),
     ]),
     ideology.flavor_definition_status,
-    ideology.flavor_definition_note_zh,
+    renderTextSpec({ message: ideology.loc?.flavorDefinitionNote, fallback: "" }),
     ...ideologyWeightSearchParts(ideology),
     ...refSearchParts(ideologyInterestGroupRefs(ideology)),
     ...refSearchParts(ideologyOccurrenceRefs(ideology)),
@@ -2540,15 +2619,15 @@ function ideologySearchBlob(ideology) {
 function lawSearchBlob(law) {
   const group = lawGroupByKey.get(law.group_key);
   return [
-    law.key,
-    law.name_zh,
+    ...searchNames(law.id || `law:${law.key}`),
+    entityText(law),
     law.group_key,
-    law.group_name_zh,
+    entityText(group || law, group ? "name" : "groupName", law.group_key),
     law.progressiveness,
-    law.modifier_summary_zh,
+    entityText(law, "modifierSummary", ""),
     law.parent,
     ...(law.disallowing_laws || []),
-    ...(law.modifiers || []).flatMap((modifier) => [modifier.key, modifier.name_zh, modifier.desc_zh, modifier.summary_zh]),
+    ...(law.modifiers || []).flatMap((modifier) => [modifier.key, entityText(modifier), entityText(modifier, "description", ""), renderTextSpec({ message: modifier.loc?.summary, fallback: "" })]),
     ...conditionSearchParts(law.can_enact),
     ...conditionSearchParts(law.is_visible),
     ...conditionSearchParts(group?.enable),
@@ -2571,7 +2650,7 @@ function weightSearchParts(weight) {
     entry.kind,
     entry.value,
     entry.desc,
-    entry.condition_summary_zh,
+    renderTextSpec({ message: entry.loc?.conditionSummary, fallback: "" }),
     ...conditionSearchParts(entry),
   ]);
 }
@@ -2579,8 +2658,8 @@ function weightSearchParts(weight) {
 function conditionSearchParts(condition) {
   if (!condition) return [];
   return [
-    condition.summary_zh,
-    condition.condition_summary_zh,
+    renderTextSpec({ message: condition.loc?.summary, fallback: "" }),
+    renderTextSpec({ message: condition.loc?.conditionSummary, fallback: "" }),
     ...refSearchParts(condition.interest_groups),
     ...refSearchParts(condition.laws),
     ...refSearchParts(condition.technologies),
@@ -2593,9 +2672,9 @@ function conditionSearchParts(condition) {
 function lawStanceSearchParts(stances) {
   return (stances || []).flatMap((stance) => [
     stance?.law_group_key,
-    stance?.law_group_name_zh,
+    entityText(lawGroupByKey.get(stance?.law_group_key) || stance, lawGroupByKey.has(stance?.law_group_key) ? "name" : "lawGroupName", stance?.law_group_key),
     stance?.law_key,
-    stance?.law_name_zh,
+    entityText(lawByKey.get(stance?.law_key) || stance, lawByKey.has(stance?.law_key) ? "name" : "lawName", stance?.law_key),
     stance?.stance,
     lawStanceLabel(stance?.stance),
   ]).filter(Boolean);
@@ -2603,18 +2682,19 @@ function lawStanceSearchParts(stances) {
 
 function refSearchParts(items) {
   return (items || []).flatMap((item) => [
+    ...searchNames(item?.id || item?.key || item?.tag || ""),
     item?.key,
     item?.tag,
-    item?.name_zh,
+    entityText(item),
     item?.group_key,
-    item?.group_name_zh,
+    entityText(item, "groupName", ""),
   ]).filter(Boolean);
 }
 
 function resourceSearchParts(items) {
   return (items || []).flatMap((item) => [
     item?.key,
-    item?.name_zh,
+    entityText(item),
     item?.amount,
     item?.discovered_amount,
     item?.undiscovered_amount,
@@ -2623,16 +2703,16 @@ function resourceSearchParts(items) {
 
 function stateTraitSearchParts(traits) {
   return (traits || []).flatMap((trait) => [
-    trait?.category_zh,
-    trait?.modifier_summary_zh,
+    entityText(trait, "category", ""),
+    entityText(trait, "modifierSummary", ""),
     trait?.has_mapi ? "MAPI" : "",
-    ...(trait?.categories || []).flatMap((category) => [category.key, category.name_zh]),
+    ...(trait?.categories || []).flatMap((category) => [category.key, entityText(category)]),
     ...(trait?.modifiers || []).flatMap((modifier) => [
       modifier.key,
-      modifier.name_zh,
-      modifier.desc_zh,
-      modifier.value_zh,
-      modifier.summary_zh,
+      entityText(modifier),
+      entityText(modifier, "description", ""),
+      entityText(modifier, "valueDisplay", ""),
+      entityText(modifier, "summary", ""),
     ]),
   ]).filter(Boolean);
 }
@@ -2640,23 +2720,29 @@ function stateTraitSearchParts(traits) {
 function dynamicStateNameSearchParts(variants) {
   return (variants || []).flatMap((variant) => [
     variant.name_key,
-    variant.name_zh,
+    entityText(variant),
     variant.trigger_raw,
   ]).filter(Boolean);
 }
 
 function resourceOptionToken(filter) {
   const iconKey = (filter.resources || filter.arableResources || filter.companyBuildings || [])[0] || "";
+  const label = resourceFilterLabel(filter);
   const checked = state.resourceFilters.has(filter.key);
   return `
-    <button class="filter-token filter-token-with-icon resource-filter-token" type="button" data-filter-token data-resource-filter="${escapeHtml(filter.key)}" aria-label="${escapeHtml(filter.label)}" title="${escapeHtml(filter.label)}" aria-pressed="${checked ? "true" : "false"}">
-      ${buildingIconHtml(iconKey, filter.label)}
+    <button class="filter-token filter-token-with-icon resource-filter-token" type="button" data-filter-token data-resource-filter="${escapeHtml(filter.key)}" aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}" aria-pressed="${checked ? "true" : "false"}">
+      ${buildingIconHtml(iconKey, label)}
     </button>
   `;
 }
 
+function resourceFilterLabel(filter) {
+  const resourceKey = (filter?.resources || filter?.arableResources || filter?.companyBuildings || [])[0] || filter?.key || "";
+  return entityText(buildingByKey.get(resourceKey), "name", resourceKey) || resourceKey;
+}
+
 function companyDlcOptionToken(option, checked = false) {
-  const title = `${option.label} / ${option.title || option.key}`;
+  const title = `${t(`enum.companyDlc.${option.key}`)} / ${option.title || option.key}`;
   return `
     <button class="filter-token filter-token-with-icon dlc-filter-token" type="button" data-filter-token data-company-dlc="${escapeHtml(option.key)}" aria-label="${escapeHtml(title)}" title="${escapeHtml(title)}" aria-pressed="${checked ? "true" : "false"}">
       ${dlcIconHtml(option)}
@@ -2671,39 +2757,41 @@ function optionToken(kind, value, label, checked = false, extraClass = "") {
 
 function buildActiveHint(count) {
   const parts = [];
-  if (state.search) parts.push(`搜索：${state.search}`);
-  if (state.globalSearch) parts.push(`全局：${state.globalSearch}`);
-  if (state.view === "country" && state.flags.size) parts.push(`状态 ${state.flags.size}`);
-  if (state.view === "country" && state.tiers.size) parts.push(`位阶 ${state.tiers.size}`);
-  if (state.view === "country" && state.types.size) parts.push(`类型 ${state.types.size}`);
+  const addCount = (labelKey, value) => value && parts.push(t("filter.active.count", { label: t(labelKey), count: localizedNumber(value) }));
+  if (state.search) parts.push(t("filter.active.search", { value: state.search }));
+  if (state.globalSearch) parts.push(t("filter.active.global", { value: state.globalSearch }));
+  if (state.view === "country") addCount("filter.active.status", state.flags.size);
+  if (state.view === "country") addCount("filter.active.tier", state.tiers.size);
+  if (state.view === "country") addCount("filter.active.type", state.types.size);
   if (state.view !== "ideology" && state.strategicRegions.size) {
-    parts.push(`${state.view === "culture" ? "本土战略区域" : state.view === "company" ? "相关战略区域" : "所在战略区域"} ${state.strategicRegions.size}`);
+    addCount(state.view === "culture" ? "filter.homelandStrategicRegions" : state.view === "company" ? "filter.relatedStrategicRegions" : "filter.strategicRegions", state.strategicRegions.size);
   }
-  if (["country", "culture"].includes(state.view) && state.heritageGroups.size) parts.push(`传承组 ${state.heritageGroups.size}`);
-  if (["country", "culture"].includes(state.view) && state.heritages.size) parts.push(`传承 ${state.heritages.size}`);
-  if (["country", "culture"].includes(state.view) && state.languageGroups.size) parts.push(`语言组 ${state.languageGroups.size}`);
-  if (["country", "culture"].includes(state.view) && state.languages.size) parts.push(`语言 ${state.languages.size}`);
+  if (["country", "culture"].includes(state.view)) addCount("filter.active.heritageGroup", state.heritageGroups.size);
+  if (["country", "culture"].includes(state.view)) addCount("filter.active.heritage", state.heritages.size);
+  if (["country", "culture"].includes(state.view)) addCount("filter.active.languageGroup", state.languageGroups.size);
+  if (["country", "culture"].includes(state.view)) addCount("filter.active.language", state.languages.size);
   if ((state.view === "region" || state.view === "company") && state.resourceFilters.size) {
-    parts.push(`${state.view === "company" ? "建筑" : "资源"} ${state.resourceFilters.size}`);
+    addCount(state.view === "company" ? "filter.active.buildings" : "filter.resources", state.resourceFilters.size);
   }
   if (state.view === "region" && state.stateTraitFilters.size) {
-    parts.push(`地区特质 ${state.stateTraitFilters.has("all") ? "所有" : state.stateTraitFilters.size}`);
+    const count = state.stateTraitFilters.has("all") ? t("filter.active.all") : localizedNumber(state.stateTraitFilters.size);
+    parts.push(t("filter.active.stateTraits", { count }));
   }
-  if (state.view === "company" && state.companyKinds.size) parts.push(`公司类型 ${state.companyKinds.size}`);
-  if (state.view === "company" && state.includeIndustryCharter) parts.push("包含产业特许");
-  if (state.view === "company" && state.companyPrestigeGoods.size) parts.push(`名贵商品 ${state.companyPrestigeGoods.size}`);
-  if (state.view === "company" && state.companyDlcs.size) parts.push(`资料片 ${state.companyDlcs.size}`);
-  if (state.view === "ideology" && state.ideologyTypes.size) parts.push(`类型 ${state.ideologyTypes.size}`);
-  if (state.view === "ideology" && state.ideologyGroups.size) parts.push(`利益集团 ${state.ideologyGroups.size}`);
-  if (state.view === "ideology" && state.ideologyOccurrences.size) parts.push(`出现方式 ${state.ideologyOccurrences.size}`);
-  if (state.view === "ideology" && state.ideologyLawGroups.size) parts.push(`法律组 ${state.ideologyLawGroups.size}`);
-  if (state.view === "law" && state.lawGroups.size) parts.push(`法律组 ${state.lawGroups.size}`);
-  if (["country", "culture"].includes(state.view) && state.tradition) parts.push(`传统 ${getTraitName(state.tradition)}`);
-  return parts.join("；");
+  if (state.view === "company") addCount("filter.active.companyType", state.companyKinds.size);
+  if (state.view === "company" && state.includeIndustryCharter) parts.push(t("filter.active.industryCharter"));
+  if (state.view === "company") addCount("filter.active.prestigeGoods", state.companyPrestigeGoods.size);
+  if (state.view === "company") addCount("filter.active.dlc", state.companyDlcs.size);
+  if (state.view === "ideology") addCount("filter.active.type", state.ideologyTypes.size);
+  if (state.view === "ideology") addCount("filter.active.interestGroup", state.ideologyGroups.size);
+  if (state.view === "ideology") addCount("filter.active.occurrence", state.ideologyOccurrences.size);
+  if (state.view === "ideology") addCount("filter.active.lawGroup", state.ideologyLawGroups.size);
+  if (state.view === "law") addCount("filter.active.lawGroup", state.lawGroups.size);
+  if (["country", "culture"].includes(state.view) && state.tradition) parts.push(t("filter.active.tradition", { value: getTraitName(state.tradition) }));
+  return parts.join(t("ui.listSeparator"));
 }
 
 function getTraitName(key) {
-  return cultureTraitByKey.get(key)?.name_zh || key;
+  return entityText(cultureTraitByKey.get(key)) || key;
 }
 
 function toggleSet(set, value, checked) {
@@ -2752,12 +2840,12 @@ function uniqueByKey(items) {
 }
 
 function sortRefByName(a, b) {
-  return (a.name_zh || a.key || a.tag).localeCompare(b.name_zh || b.key || b.tag, "zh-Hans-CN") || (a.key || a.tag).localeCompare(b.key || b.tag);
+  return localizedCompare(entityText(a), entityText(b)) || (a.key || a.tag).localeCompare(b.key || b.tag);
 }
 
 function sortStrategicRegionRef(a, b) {
   return orderValue(strategicRegionOrderByKey, a.key) - orderValue(strategicRegionOrderByKey, b.key)
-    || strategicRegionName(a).localeCompare(strategicRegionName(b), "zh-Hans-CN")
+    || localizedCompare(strategicRegionName(a), strategicRegionName(b))
     || a.key.localeCompare(b.key);
 }
 

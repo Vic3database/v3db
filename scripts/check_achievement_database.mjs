@@ -5,6 +5,7 @@ import path from "node:path";
 const databaseDir = path.join(process.cwd(), "database", "vic3_1.13.9");
 const index = readJson(path.join(databaseDir, "index.json"));
 const readme = fs.readFileSync(path.join(databaseDir, "README.md"), "utf8").replace(/^\uFEFF/, "");
+const locales = Object.fromEntries(["zh-Hans", "en"].map((locale) => [locale, readJson(path.join(databaseDir, "locales", `${locale}.json`))]));
 
 assert.equal(index.files?.achievements, "achievements.json", "database index must declare achievements.json");
 assert.equal(index.counts?.achievements, 141, "database index must declare 141 achievements");
@@ -12,8 +13,6 @@ assert(readme.includes("- achievements.json："), "database README must describe
 assert(readme.indexOf("成就：141") > readme.indexOf("## 数量"), "database README must count achievements in its quantity section");
 
 const achievements = readJson(path.join(databaseDir, index.files.achievements));
-const countries = readJson(path.join(databaseDir, index.files.countries));
-const countryNameByTag = new Map(countries.map((country) => [country.tag, country.name?.zh]));
 assert.equal(achievements.length, 141, "database must contain 141 achievements");
 assert.deepEqual(countBy(achievements, (achievement) => achievement.group_key), {
   easy_group: 31,
@@ -28,9 +27,13 @@ for (const achievement of achievements) {
   assert(!keys.has(achievement.key), `${achievement.key} must be unique`);
   keys.add(achievement.key);
 
-  for (const key of ["key", "name_zh", "name_en", "description_zh", "group_key", "group_name_zh", "group_order", "source_file"]) {
+  for (const key of ["key", "group_key", "group_order", "source_file", "loc"]) {
     assert.notEqual(achievement[key], undefined, `${achievement.key || "achievement"} must contain ${key}`);
     assert.notEqual(achievement[key], "", `${achievement.key || "achievement"} must contain ${key}`);
+  }
+  for (const field of ["name", "description", "groupName"]) {
+    assert(achievement.loc?.[field], `${achievement.key} must declare loc.${field}`);
+    for (const locale of ["zh-Hans", "en"]) assert(locales[locale][achievement.loc[field]], `${achievement.key} loc.${field} must resolve in ${locale}`);
   }
   assert(achievement.script && Object.hasOwn(achievement.script, "possible"), `${achievement.key} must declare script.possible`);
   if (achievement.script.possible !== null) {
@@ -44,13 +47,18 @@ for (const achievement of achievements) {
     .sort();
   assert.deepEqual(achievement.related_countries.map((country) => country.tag), directTags, `${achievement.key} must retain only direct c:TAG references`);
   for (const country of achievement.related_countries) {
-    assert.equal(country.name_zh, countryNameByTag.get(country.tag), `${achievement.key} ${country.tag} must use the database country name`);
+    assert(country.loc?.name, `${achievement.key} ${country.tag} must declare loc.name`);
+    for (const locale of ["zh-Hans", "en"]) assert(locales[locale][country.loc.name], `${achievement.key} ${country.tag} must resolve in ${locale}`);
   }
 
   assert(Array.isArray(achievement.details), `${achievement.key} details must be an array`);
   for (const detail of achievement.details) {
-    assert(detail.key && detail.text_zh, `${achievement.key} details must contain labeled values`);
-    assert(!/[\[\]$#@!]/.test(detail.text_zh), `${achievement.key} details must not retain localization markup`);
+    assert(detail.key && detail.loc?.text, `${achievement.key} details must contain localized values`);
+    for (const locale of ["zh-Hans", "en"]) {
+      const text = locales[locale][detail.loc.text];
+      assert(text, `${achievement.key} detail ${detail.key} must resolve in ${locale}`);
+      if (locale === "zh-Hans") assert(!/[\[\]$#@!]/.test(text), `${achievement.key} detail ${detail.key} must not retain localization markup in ${locale}`);
+    }
   }
 
   for (const state of ["achieved", "not_achieved"]) {
