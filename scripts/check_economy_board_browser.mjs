@@ -104,12 +104,25 @@ try {
   assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector("#mapPanel")).display), "none", "goods wall must hide the map");
   await page.evaluate(() => document.querySelector("[data-good-key='rubber']").click());
   await page.waitFor(() => location.hash === "#/goods/rubber", "rubber good route");
+  await page.waitFor(() => {
+    const results = document.querySelector(".results")?.getBoundingClientRect();
+    const detail = document.querySelector(".detail")?.getBoundingClientRect();
+    return Boolean(results && detail && results.right <= detail.left + 1);
+  }, "settled desktop goods layout");
   const rubber = await page.evaluate(() => ({
     producers: Array.from(document.querySelectorAll("[data-good-building-relation='producer']"), (item) => item.dataset.goodBuilding),
     standardPrice: document.querySelector("[data-good-standard-price]")?.textContent?.trim() || "",
+    resultsRight: document.querySelector(".results")?.getBoundingClientRect().right || 0,
+    detailLeft: document.querySelector(".detail")?.getBoundingClientRect().left || 0,
+    detailRight: document.querySelector(".detail")?.getBoundingClientRect().right || 0,
+    factsWidth: document.querySelector(".goods-facts")?.getBoundingClientRect().width || 0,
+    lastFactWidth: document.querySelector(".goods-facts > div:last-child")?.getBoundingClientRect().width || 0,
   }));
   assert(rubber.producers.includes("building_rubber_plantation"), "rubber must link to rubber plantation");
   assert.equal(rubber.standardPrice, "£40", "rubber must show its standard price");
+  assert(rubber.resultsRight <= rubber.detailLeft + 1, "desktop goods wall must stop before the detail panel");
+  assert(rubber.detailRight > 1300, "desktop goods detail must occupy the right side of the layout");
+  assert(rubber.lastFactWidth >= rubber.factsWidth - 2, "an unpaired final goods fact must span the table width");
 
   await page.goto(`${baseUrl}#/goods/grain`);
   await page.waitFor(() => location.hash === "#/goods/grain", "grain good route");
