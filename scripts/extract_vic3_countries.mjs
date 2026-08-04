@@ -3,6 +3,10 @@ import path from "node:path";
 import extractorEn from "./locales/extractor.en.mjs";
 import extractorZhHans from "./locales/extractor.zh-Hans.mjs";
 import { sha256Text, splitLocalizedTrees } from "./lib/localization-schema.mjs";
+import {
+  applyDefinitionAssignment,
+  parseDefinitionDirective,
+} from "./lib/clausewitz-definition-patches.mjs";
 
 const DEFAULT_GAME_PATH = "D:\\SteamLibrary\\steamapps\\common\\Victoria 3";
 const DEFAULT_VERSION = "1.13.9";
@@ -568,6 +572,29 @@ function listFilesFromPath(target, suffix = ".txt") {
     if (entry.isFile() && entry.name.endsWith(suffix)) out.push(full);
   }
   return out.sort();
+}
+
+function loadPatchedDefinitions(dirs, accept) {
+  const definitions = new Map();
+  for (const file of listFiles(dirs)) {
+    const root = parseScript(readText(file), file);
+    for (const assignment of root.assignments) {
+      const { key } = parseDefinitionDirective(assignment.key);
+      const node = asNode(assignment.value);
+      if (!accept(key, node)) continue;
+      const relativeToMod = modContentRoot ? path.relative(modContentRoot, file) : "";
+      const modStage = Boolean(modContentRoot)
+        && !relativeToMod.startsWith("..")
+        && !path.isAbsolute(relativeToMod);
+      applyDefinitionAssignment(
+        definitions,
+        assignment,
+        normalizePath(file),
+        { modStage },
+      );
+    }
+  }
+  return definitions;
 }
 
 function readText(file) {
@@ -1876,21 +1903,22 @@ function loadEconomyData({
 function loadBuildingGroups(dirs, loc) {
   const groupMap = new Map();
   let order = 0;
-  for (const file of listFiles(dirs)) {
-    const root = parseScript(readText(file), file);
-    for (const assignment of root.assignments) {
-      const key = scriptEntryKey(assignment.key);
-      const node = asNode(assignment.value);
-      if (!node || !key.startsWith("bg_")) continue;
-      groupMap.set(key, {
-        key,
-        name_zh: locCleanName(loc, key),
-        parent_group_key: firstScalar(node, "parent_group"),
-        category_key: firstScalar(node, "category"),
-        order: order += 1,
-        source_file: normalizePath(file),
-      });
-    }
+  const definitions = loadPatchedDefinitions(
+    dirs,
+    (key, node) => Boolean(node && key.startsWith("bg_")),
+  );
+  for (const record of definitions.values()) {
+    const { key, node } = record;
+    groupMap.set(key, {
+      key,
+      name_zh: locCleanName(loc, key),
+      parent_group_key: firstScalar(node, "parent_group"),
+      category_key: firstScalar(node, "category"),
+      order: order += 1,
+      source_file: record.source_file,
+      source_files: record.source_files,
+      patch_directives: record.patch_directives,
+    });
   }
   for (const group of groupMap.values()) {
     let categoryKey = group.category_key;
@@ -1910,101 +1938,104 @@ function loadBuildingGroups(dirs, loc) {
 
 function loadProductionMethodGroups(dirs, loc) {
   const groups = new Map();
-  for (const file of listFiles(dirs)) {
-    const root = parseScript(readText(file), file);
-    for (const assignment of root.assignments) {
-      const key = scriptEntryKey(assignment.key);
-      const node = asNode(assignment.value);
-      if (!node || !key.startsWith("pmg_")) continue;
-      const texture = firstScalar(node, "texture");
-      groups.set(key, {
-        key,
-        name_zh: locCleanName(loc, key),
-        icon: texture ? economyIcon(texture, "production-methods", key, "production method group") : null,
-        production_method_keys: nodeItems(asNode(firstValue(node, "production_methods")) || { items: [] }).map(scriptEntryKey).filter(Boolean),
-        source_file: normalizePath(file),
-      });
-    }
+  const definitions = loadPatchedDefinitions(
+    dirs,
+    (key, node) => Boolean(node && key.startsWith("pmg_")),
+  );
+  for (const record of definitions.values()) {
+    const { key, node } = record;
+    const texture = firstScalar(node, "texture");
+    groups.set(key, {
+      key,
+      name_zh: locCleanName(loc, key),
+      icon: texture ? economyIcon(texture, "production-methods", key, "production method group") : null,
+      production_method_keys: nodeItems(asNode(firstValue(node, "production_methods")) || { items: [] }).map(scriptEntryKey).filter(Boolean),
+      source_file: record.source_file,
+      source_files: record.source_files,
+      patch_directives: record.patch_directives,
+    });
   }
   return [...groups.values()].sort((left, right) => left.key.localeCompare(right.key, "en"));
 }
 
 function loadProductionMethods(dirs, loc, referencedKeys = new Set()) {
   const methods = new Map();
-  for (const file of listFiles(dirs)) {
-    const root = parseScript(readText(file), file);
-    for (const assignment of root.assignments) {
-      const key = scriptEntryKey(assignment.key);
-      const node = asNode(assignment.value);
-      if (!node || (!key.startsWith("pm_") && !referencedKeys.has(key))) continue;
-      const texture = firstScalar(node, "texture");
-      methods.set(key, {
-        key,
-        name_zh: locCleanName(loc, key),
-        description_zh: loc.has(`${key}_desc`) ? locCleanName(loc, `${key}_desc`) : "",
-        icon: texture ? economyIcon(texture, "production-methods", key, "production method") : null,
-        unlocking_technologies: referenceList(asNode(firstValue(node, "unlocking_technologies")), loc, "technology"),
-        availability_conditions: productionMethodAvailabilityConditions(node, loc),
-        effects: productionMethodEffects(node, loc),
-        source_file: normalizePath(file),
-      });
-    }
+  const definitions = loadPatchedDefinitions(
+    dirs,
+    (key, node) => Boolean(node && (key.startsWith("pm_") || referencedKeys.has(key))),
+  );
+  for (const record of definitions.values()) {
+    const { key, node } = record;
+    const texture = firstScalar(node, "texture");
+    methods.set(key, {
+      key,
+      name_zh: locCleanName(loc, key),
+      description_zh: loc.has(`${key}_desc`) ? locCleanName(loc, `${key}_desc`) : "",
+      icon: texture ? economyIcon(texture, "production-methods", key, "production method") : null,
+      unlocking_technologies: referenceList(asNode(firstValue(node, "unlocking_technologies")), loc, "technology"),
+      availability_conditions: productionMethodAvailabilityConditions(node, loc),
+      effects: productionMethodEffects(node, loc),
+      source_file: record.source_file,
+      source_files: record.source_files,
+      patch_directives: record.patch_directives,
+    });
   }
   return [...methods.values()].sort((left, right) => left.key.localeCompare(right.key, "en"));
 }
 
 function loadGoods(dirs, loc) {
   const goods = new Map();
-  for (const file of listFiles(dirs)) {
-    const root = parseScript(readText(file), file);
-    for (const assignment of root.assignments) {
-      const key = scriptEntryKey(assignment.key);
-      const node = asNode(assignment.value);
-      if (!node || key.startsWith("goods_")) continue;
-      const texture = firstScalar(node, "texture");
-      if (!texture.includes("goods_icons/")) continue;
-      goods.set(key, {
-        key,
-        name_zh: locCleanName(loc, key),
-        description_zh: loc.has(`${key}_desc`) ? locCleanName(loc, `${key}_desc`) : "",
-        category: firstScalar(node, "category") || "other",
-        price: toNumberOrNull(firstScalar(node, "cost")),
-        tradeable: firstScalar(node, "tradeable") !== "no",
-        is_local: boolFromYesNo(firstScalar(node, "local")),
-        fixed_price: boolFromYesNo(firstScalar(node, "fixed_price")),
-        prestige_factor: toNumberOrNull(firstScalar(node, "prestige_factor")) ?? 0,
-        traded_quantity: toNumberOrNull(firstScalar(node, "traded_quantity")) ?? 10,
-        convoy_cost_multiplier: toNumberOrNull(firstScalar(node, "convoy_cost_multiplier")) ?? 1,
-        obsession_chance: toNumberOrNull(firstScalar(node, "obsession_chance")) ?? 0,
-        consumption_tax_cost: toNumberOrNull(firstScalar(node, "consumption_tax_cost")),
-        pop_consumption_can_add_infrastructure: boolFromYesNo(firstScalar(node, "pop_consumption_can_add_infrastructure")),
-        icon: economyIcon(texture, "goods", key, "good"),
-        prestige_good_keys: [],
-        producing_buildings: [],
-        source_file: normalizePath(file),
-      });
-    }
+  const definitions = loadPatchedDefinitions(dirs, (key, node) => {
+    if (!node || key.startsWith("goods_")) return false;
+    return firstScalar(node, "texture").includes("goods_icons/");
+  });
+  for (const record of definitions.values()) {
+    const { key, node } = record;
+    const texture = firstScalar(node, "texture");
+    goods.set(key, {
+      key,
+      name_zh: locCleanName(loc, key),
+      description_zh: loc.has(`${key}_desc`) ? locCleanName(loc, `${key}_desc`) : "",
+      category: firstScalar(node, "category") || "other",
+      price: toNumberOrNull(firstScalar(node, "cost")),
+      tradeable: firstScalar(node, "tradeable") !== "no",
+      is_local: boolFromYesNo(firstScalar(node, "local")),
+      fixed_price: boolFromYesNo(firstScalar(node, "fixed_price")),
+      prestige_factor: toNumberOrNull(firstScalar(node, "prestige_factor")) ?? 0,
+      traded_quantity: toNumberOrNull(firstScalar(node, "traded_quantity")) ?? 10,
+      convoy_cost_multiplier: toNumberOrNull(firstScalar(node, "convoy_cost_multiplier")) ?? 1,
+      obsession_chance: toNumberOrNull(firstScalar(node, "obsession_chance")) ?? 0,
+      consumption_tax_cost: toNumberOrNull(firstScalar(node, "consumption_tax_cost")),
+      pop_consumption_can_add_infrastructure: boolFromYesNo(firstScalar(node, "pop_consumption_can_add_infrastructure")),
+      icon: economyIcon(texture, "goods", key, "good"),
+      prestige_good_keys: [],
+      producing_buildings: [],
+      source_file: record.source_file,
+      source_files: record.source_files,
+      patch_directives: record.patch_directives,
+    });
   }
   return [...goods.values()].sort((left, right) => left.key.localeCompare(right.key, "en"));
 }
 
 function loadPrestigeGoods(dirs, loc) {
   const goods = new Map();
-  for (const file of listFiles(dirs)) {
-    const root = parseScript(readText(file), file);
-    for (const assignment of root.assignments) {
-      const key = scriptEntryKey(assignment.key);
-      const node = asNode(assignment.value);
-      if (!node || !key.startsWith("prestige_good_")) continue;
-      goods.set(key, {
-        key,
-        name_zh: locCleanName(loc, key),
-        description_zh: loc.has(`${key}_desc`) ? locCleanName(loc, `${key}_desc`) : "",
-        base_good_key: firstScalar(node, "base_good"),
-        icon: economyIcon(firstScalar(node, "texture"), "prestige-goods", key, "prestige good"),
-        source_file: normalizePath(file),
-      });
-    }
+  const definitions = loadPatchedDefinitions(
+    dirs,
+    (key, node) => Boolean(node && key.startsWith("prestige_good_")),
+  );
+  for (const record of definitions.values()) {
+    const { key, node } = record;
+    goods.set(key, {
+      key,
+      name_zh: locCleanName(loc, key),
+      description_zh: loc.has(`${key}_desc`) ? locCleanName(loc, `${key}_desc`) : "",
+      base_good_key: firstScalar(node, "base_good"),
+      icon: economyIcon(firstScalar(node, "texture"), "prestige-goods", key, "prestige good"),
+      source_file: record.source_file,
+      source_files: record.source_files,
+      patch_directives: record.patch_directives,
+    });
   }
   return [...goods.values()].sort((left, right) => left.key.localeCompare(right.key, "en"));
 }
@@ -2013,54 +2044,57 @@ function loadBuildings(dirs, buildingGroups, resourceBuildingKinds, loc) {
   const groupByKey = new Map(buildingGroups.map((group) => [group.key, group]));
   const buildings = [];
   const excludedGraphicalBuildings = [];
-  for (const file of listFiles(dirs)) {
-    const root = parseScript(readText(file), file);
-    for (const assignment of root.assignments) {
-      const key = scriptEntryKey(assignment.key);
-      const node = asNode(assignment.value);
-      if (!node || !key.startsWith("building_")) continue;
-      const buildingGroupKey = firstScalar(node, "building_group");
-      const iconSource = firstScalar(node, "icon");
-      if (buildingGroupKey === "bg_monuments_hidden" && !iconSource) {
-        excludedGraphicalBuildings.push({
-          key,
-          building_group: buildingGroupKey,
-          source_file: normalizePath(file),
-          reason: "missing_icon",
-        });
-        continue;
-      }
-      if (!iconSource) throw new Error(`building icon is missing: ${key}`);
-      const buildingGroup = groupByKey.get(buildingGroupKey);
-      if (!buildingGroup) throw new Error(`building group is missing: ${key} -> ${buildingGroupKey}`);
-      const boardGroup = economyBoardGroup(buildingGroupKey, key);
-      const rawName = locCleanName(loc, key);
-      const fallbackName = key === "building_machu_picchu" ? "马丘比丘" : "";
-      const displayName = rawName.includes("dummy building") ? "" : rawName;
-      buildings.push({
+  const definitions = loadPatchedDefinitions(
+    dirs,
+    (key, node) => Boolean(node && key.startsWith("building_")),
+  );
+  for (const record of definitions.values()) {
+    const { key, node } = record;
+    const buildingGroupKey = firstScalar(node, "building_group");
+    const iconSource = firstScalar(node, "icon");
+    if (buildingGroupKey === "bg_monuments_hidden" && !iconSource) {
+      excludedGraphicalBuildings.push({
         key,
-        name_zh: displayName,
-        name_fallback_zh: fallbackName,
-        description_zh: loc.has(`${key}_desc`) ? locCleanName(loc, `${key}_desc`) : "",
-        icon: economyIcon(iconSource, "buildings", key, "building"),
-        building_group: {
-          key: buildingGroup.key,
-          name_zh: buildingGroup.name_zh,
-          category_key: buildingGroup.category_key,
-          category_name_zh: buildingGroup.category_name_zh,
-          order: buildingGroup.order,
-        },
-        board_group: boardGroup,
-        city_type: firstScalar(node, "city_type"),
-        required_construction: firstScalar(node, "required_construction"),
-        unlocking_technologies: referenceList(asNode(firstValue(node, "unlocking_technologies")), loc, "technology"),
-        resource_map_available: resourceBuildingKinds.has(key),
-        resource_map_kind: resourceBuildingKinds.get(key) || "",
-        production_method_group_keys: nodeItems(asNode(firstValue(node, "production_method_groups")) || { items: [] }).map(scriptEntryKey).filter(Boolean),
-        combination_count: 0,
-        source_file: normalizePath(file),
+        building_group: buildingGroupKey,
+        source_file: record.source_file,
+        source_files: record.source_files,
+        patch_directives: record.patch_directives,
+        reason: "missing_icon",
       });
+      continue;
     }
+    if (!iconSource) throw new Error(`building icon is missing: ${key}`);
+    const buildingGroup = groupByKey.get(buildingGroupKey);
+    if (!buildingGroup) throw new Error(`building group is missing: ${key} -> ${buildingGroupKey}`);
+    const boardGroup = economyBoardGroup(buildingGroupKey, key);
+    const rawName = locCleanName(loc, key);
+    const fallbackName = key === "building_machu_picchu" ? "马丘比丘" : "";
+    const displayName = rawName.includes("dummy building") ? "" : rawName;
+    buildings.push({
+      key,
+      name_zh: displayName,
+      name_fallback_zh: fallbackName,
+      description_zh: loc.has(`${key}_desc`) ? locCleanName(loc, `${key}_desc`) : "",
+      icon: economyIcon(iconSource, "buildings", key, "building"),
+      building_group: {
+        key: buildingGroup.key,
+        name_zh: buildingGroup.name_zh,
+        category_key: buildingGroup.category_key,
+        category_name_zh: buildingGroup.category_name_zh,
+        order: buildingGroup.order,
+      },
+      board_group: boardGroup,
+      city_type: firstScalar(node, "city_type"),
+      required_construction: firstScalar(node, "required_construction"),
+      unlocking_technologies: referenceList(asNode(firstValue(node, "unlocking_technologies")), loc, "technology"),
+      resource_map_available: resourceBuildingKinds.has(key),
+      resource_map_kind: resourceBuildingKinds.get(key) || "",
+      production_method_group_keys: nodeItems(asNode(firstValue(node, "production_method_groups")) || { items: [] }).map(scriptEntryKey).filter(Boolean),
+      combination_count: 0,
+      source_file: record.source_file,
+      source_files: record.source_files,
+      patch_directives: record.patch_directives,
+    });
   }
   return {
     buildings: buildings.sort((left, right) => economyDisplayName(left).localeCompare(economyDisplayName(right), "zh-Hans-CN")),
@@ -2213,9 +2247,8 @@ function collectProductionMethodEffects(value, scope, scaling, conditionValue, l
 }
 
 function economyIcon(source, category, key, label) {
-  if (!source || !source.endsWith(".dds")) throw new Error(`${label} icon is missing: ${key}`);
-  const fileName = path.basename(source).replace(/\.dds$/i, ".png");
-  return { source, site_path: `assets/${category}/${fileName}` };
+  if (!source || !/\.(?:dds|png)$/i.test(source)) throw new Error(`${label} icon is missing: ${key}`);
+  return { source, site_path: `assets/${category}/${key}.webp` };
 }
 
 function referenceList(node, loc, idPrefix) {
