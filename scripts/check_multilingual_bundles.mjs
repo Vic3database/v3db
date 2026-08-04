@@ -11,7 +11,7 @@ assert(index.locales, "data-index.js lacks locales");
 assert.deepEqual(Array.from(index.locales.supported || []), ["zh-Hans", "en"]);
 
 for (const locale of index.locales.supported) {
-  for (const board of ["country", "culture", "region", "company", "ideology", "law", "technology", "achievement"]) {
+  for (const board of ["country", "culture", "region", "company", "ideology", "law", "technology", "achievement", "building", "goods"]) {
     const entry = index.locales.chunks?.[locale]?.[board];
     assert(entry?.files?.length, `missing ${locale}/${board} locale files`);
     for (const file of entry.files) {
@@ -40,7 +40,7 @@ function readGlobal(file, name) {
 }
 
 function hash(value) {
-  return crypto.createHash("sha256").update(String(value), "utf8").digest("hex");
+  return crypto.createHash("sha256").update(String(value).replace(/\r\n/g, "\n"), "utf8").digest("hex");
 }
 
 function parseArgs(argv) {

@@ -1,0 +1,2 @@
+site/announcement-data.js text eol=lf
+site/versions/*/*.js text eol=lf
