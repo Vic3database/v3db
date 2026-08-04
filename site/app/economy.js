@@ -223,15 +223,59 @@ function productionCombinationSummaryHtml(selected) {
   const modifiers = effects.filter((effect) => !classified.has(effect));
   if (conditional.length) modifiers.push(...conditional);
   const rows = [
-    ["雇用人群", employees],
-    ["投入商品", inputs],
-    ["产出商品", outputs],
-    ["标准产值", "待接入"],
-    ["修正", modifiers],
+    ["劳动力：", levelOneEmploymentText(employees), ""],
+    ["投入商品：", levelOneGoodsText(inputs, "goods_input_"), ""],
+    ["产出商品：", levelOneGoodsText(outputs, "goods_output_"), ""],
+    ["标准产值：", annualProfitPerWorker(employees, inputs, outputs), "data-production-standard-output"],
+    ["修正：", productionEffectListHtml(modifiers), ""],
   ];
-  return `<section class="production-combination-summary" data-production-summary><h3>当前生产方式组合</h3><dl>${rows.map(([label, value]) => `
-    <div><dt>${label}</dt><dd${label === "标准产值" ? " data-production-standard-output" : ""}>${typeof value === "string" ? escapeHtml(value) : productionEffectListHtml(value)}</dd></div>
+  return `<section class="production-combination-summary" data-production-summary><h3>当前生产方式组合 <small>1级建筑</small></h3><dl>${rows.map(([label, value, attribute]) => `
+    <div><dt>${label}</dt><dd${attribute ? ` ${attribute}` : ""}>${attribute || !String(value).startsWith("<") ? escapeHtml(value) : value}</dd></div>
   `).join("")}</dl></section>`;
+}
+
+function levelOneEmploymentText(effects) {
+  const rows = effects
+    .map((effect) => ({
+      name: effect.name_zh?.replace(/\/级$/, "") || effect.key.match(/^building_employment_(.+)_add$/)?.[1] || effect.key,
+      value: Number(effect.value || 0),
+    }))
+    .filter((row) => row.value > 0);
+  return rows.length ? rows.map((row) => `${formatProductionNumber(row.value)}${row.name}`).join("，") : "无";
+}
+
+function levelOneGoodsText(effects, prefix) {
+  const rows = effects
+    .map((effect) => {
+      const goodKey = effect.key.match(new RegExp(`^${prefix}([a-z0-9_]+)_add$`))?.[1] || "";
+      return { name: economyDisplayName(goodByKey.get(goodKey)) || goodKey, value: Number(effect.value || 0) };
+    })
+    .filter((row) => row.value > 0);
+  return rows.length ? rows.map((row) => `${formatProductionNumber(row.value)}${row.name}`).join("，") : "无";
+}
+
+function annualProfitPerWorker(employees, inputs, outputs) {
+  const workforce = employees.reduce((total, effect) => total + Number(effect.value || 0), 0);
+  if (workforce <= 0) return "无法计算（劳动力为0）";
+  const inputValue = goodsBaseValue(inputs, "goods_input_");
+  const outputValue = goodsBaseValue(outputs, "goods_output_");
+  if (inputValue === null || outputValue === null) return "无法计算（缺少商品基础价格）";
+  return `£${formatProductionNumber(((outputValue - inputValue) / workforce) * 52, 2)}/人/年`;
+}
+
+function goodsBaseValue(effects, prefix) {
+  let total = 0;
+  for (const effect of effects) {
+    const goodKey = effect.key.match(new RegExp(`^${prefix}([a-z0-9_]+)_add$`))?.[1] || "";
+    const price = Number(goodByKey.get(goodKey)?.price);
+    if (!Number.isFinite(price)) return null;
+    total += Number(effect.value || 0) * price;
+  }
+  return total;
+}
+
+function formatProductionNumber(value, maximumFractionDigits = 2) {
+  return new Intl.NumberFormat("zh-CN", { maximumFractionDigits, useGrouping: false }).format(Math.round(Number(value || 0) * 100) / 100);
 }
 
 function combinedProductionEffects(methods) {

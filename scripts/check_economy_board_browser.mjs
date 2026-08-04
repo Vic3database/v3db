@@ -49,8 +49,11 @@ try {
   assert.equal(oilRig.groupCount, 2, "oil rig must retain its two production-method groups");
   assert.equal(oilRig.pickers, 2, "oil rig must initially show one selected icon per group");
   assert.equal(oilRig.visibleChoices, 0, "other production methods must remain hidden until their selected icon is clicked");
-  assert.deepEqual(oilRig.combinationLabels, ["雇用人群", "投入商品", "产出商品", "标准产值", "修正"], "current combination must expose the five requested result categories");
-  assert.equal(await page.evaluate(() => document.querySelector("[data-production-standard-output]")?.textContent?.trim()), "待接入", "standard output must remain a reserved interface");
+  assert.deepEqual(oilRig.combinationLabels, ["劳动力：", "投入商品：", "产出商品：", "标准产值：", "修正："], "current combination must expose the five requested level-one result categories");
+  assert.match(oilRig.combinationText, /劳动力：500店主，3000劳工，1000技工，500工程师/, "level-one employment must use concise population counts");
+  assert.match(oilRig.combinationText, /投入商品：5发动机，10煤/, "level-one inputs must use concise goods counts");
+  assert.match(oilRig.combinationText, /产出商品：60油/, "level-one outputs must use concise goods counts");
+  assert.equal(await page.evaluate(() => document.querySelector("[data-production-standard-output]")?.textContent?.trim()), "£18.72/人/年", "standard output must use base prices and 52-week annual profit per worker");
   assert.equal(oilRig.methodDetailsClosed, true, "production method details must be closed by default");
   assert.equal(oilRig.allCombinationList, null, "building detail must not render a full combination list");
   assert.equal(oilRig.resourceButton, true, "oil rig must offer the resource map route");
@@ -62,6 +65,31 @@ try {
   assert.notEqual(await page.evaluate(() => document.querySelector("[data-production-summary]")?.textContent || ""), initialCombinationText, "current combination must recalculate after a production-method selection changes");
   assert.equal(await page.evaluate(() => document.querySelector(".selected-production-method-detail")?.textContent?.includes("内燃机")), true, "selected method detail must show its prerequisite technology");
   assert.equal(await page.evaluate(() => document.querySelector(".selected-production-method-detail h5")?.textContent?.trim()), "\u5177\u4f53\u5185\u5bb9\u4e0e\u4fee\u6b63", "selected method detail must label its effects");
+
+  await page.goto(`${baseUrl}#/building/building_rye_farm`);
+  await page.waitFor(() => location.hash === "#/building/building_rye_farm", "rye farm route");
+  const ryeFarm = await page.evaluate(() => ({
+    summary: document.querySelector("[data-production-summary]")?.textContent || "",
+    standardOutput: document.querySelector("[data-production-standard-output]")?.textContent?.trim() || "",
+  }));
+  assert.match(ryeFarm.summary, /劳动力：4000劳工，1000农民/, "rye farm must display level-one employment without modifier internals");
+  assert.match(ryeFarm.summary, /投入商品：无/, "rye farm must display an empty level-one input list");
+  assert.match(ryeFarm.summary, /产出商品：20谷物/, "rye farm must display level-one grain output");
+  assert.equal(ryeFarm.standardOutput, "£4.16/人/年", "rye farm standard output must match the reference workbook");
+  await page.evaluate(() => document.querySelector("[data-production-method-picker='pmg_harvesting_process_building_rye_farm']").click());
+  await page.waitFor(() => document.querySelector("[data-production-method-key='pm_tools']"), "rye farm harvesting alternatives");
+  await page.evaluate(() => document.querySelector("[data-production-method-key='pm_tools']").click());
+  await page.waitFor(() => document.querySelector("[data-production-method-picker='pmg_harvesting_process_building_rye_farm']")?.dataset.productionMethodKey === "pm_tools", "selected harvesting tools");
+  const automatedRyeFarm = await page.evaluate(() => ({
+    summary: document.querySelector("[data-production-summary]")?.textContent || "",
+    standardOutput: document.querySelector("[data-production-standard-output]")?.textContent?.trim() || "",
+  }));
+  assert.match(automatedRyeFarm.summary, /劳动力：3000劳工，1000农民/, "automation must reduce level-one employment before display");
+  assert.match(automatedRyeFarm.summary, /投入商品：2工具/, "automation must add level-one tool inputs");
+  assert.equal(automatedRyeFarm.standardOutput, "£4.16/人/年", "automation must recalculate annual profit with its reduced workforce");
+
+  await page.goto(`${baseUrl}#/building/building_oil_rig`);
+  await page.waitFor(() => location.hash === "#/building/building_oil_rig", "oil rig route before resource map");
   await page.evaluate(() => document.querySelector("[data-resource-map-building='building_oil_rig']").click());
   await page.waitFor(() => location.hash === "#/region/resource/building_oil_rig", "resource map route");
   await page.waitFor(() => document.querySelector("[data-resource-filter='building_oil_rig'][aria-pressed='true']"), "selected oil rig resource filter");

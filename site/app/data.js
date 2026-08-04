@@ -83,7 +83,7 @@ function dataChunksForView(view) {
   if (view === "law") return ["law", "ideology", "country"];
   if (view === "technology") return ["technology"];
   if (view === "achievement") return ["achievement"];
-  if (view === "building") return ["building"];
+  if (view === "building") return ["building", "goods"];
   if (view === "goods") return ["goods"];
   return [];
 }

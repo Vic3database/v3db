@@ -9,7 +9,7 @@ const buildScript = read("scripts/build_wiki.mjs");
 const appSource = readSiteAppSource(root);
 const styleSource = readSiteStyleSource(root);
 
-assert.match(indexHtml, /app\/economy\.js\?v=20260803-economy-production-summary1/, "economy script must use the production-summary cache version");
+assert.match(indexHtml, /app\/economy\.js\?v=20260804-building-level-one1/, "economy script must use the level-one production-summary cache version");
 
 for (const view of ["building", "goods"]) {
   assert(indexHtml.includes(`data-nav-view="${view}"`), `top navigation must include ${view}`);
@@ -18,6 +18,7 @@ for (const view of ["building", "goods"]) {
   assert(appSource.includes(`parts[0] === "${view}"`), `router must recognize ${view} route`);
   assert(appSource.includes(`render${view === "building" ? "Building" : "Goods"}Board()`), `${view} board must render`);
 }
+assert(appSource.includes('if (view === "building") return ["building", "goods"]'), "building routes must load goods names and base prices");
 
 for (const chunk of ["building", "goods"]) {
   assert(buildScript.includes(`${chunk}: [`), `site builder must publish ${chunk} chunk`);
@@ -31,6 +32,8 @@ for (const text of [
   "data-production-summary",
   "标准产值",
   "data-production-standard-output",
+  "annualProfitPerWorker",
+  "goodByKey.get(goodKey)?.price",
   "method.description_zh",
   "combined: true",
   "data-production-method-key",
@@ -45,7 +48,7 @@ for (const text of [
   assert(appSource.includes(text), `economy interaction must contain ${text}`);
 }
 assert(!appSource.includes("所有可能组合"), "building detail must not enumerate every production-method combination");
-assert(!appSource.includes("goodByKey.get(goodKey)?.price"), "standard output must remain an unconnected interface until its calculation rule is defined");
+assert(appSource.includes("* 52"), "annual profit per worker must convert weekly profit to yearly profit with 52 weeks");
 assert(styleSource.includes(".economy-wall-grid"), "economy wall needs responsive card layout");
 assert(styleSource.includes(".production-method-options"), "production-method options need horizontal layout");
 assert(styleSource.includes(".production-combination-summary"), "current production combination needs a dedicated summary layout");
