@@ -11,7 +11,7 @@ const configFile = path.join(siteRoot, "victorian-century-config.js");
 const dataIndexFile = path.join(siteRoot, "data-index.js");
 const mapFile = path.join(siteRoot, "map-data.js");
 const updateScriptFile = path.join(root, "scripts", "check_victorian_century_update.mjs");
-const expectedChunks = ["country", "culture", "region", "company", "ideology", "law", "technology", "achievement"];
+const expectedChunks = ["country", "culture", "region", "company", "ideology", "law", "technology", "achievement", "building", "goods"];
 const expectedModules = [
   "app/runtime.js",
   "app/i18n.js",
@@ -24,6 +24,8 @@ const expectedModules = [
   "app/map.js",
   "app/tag-tooltip-definitions.js",
   "app/components.js",
+  "app/achievements.js",
+  "app/economy.js",
   "app/bootstrap.js",
 ];
 
@@ -108,6 +110,7 @@ assert.equal(mapData?.height, 3616, "VC map height must be 3616");
 const runtime = fs.readFileSync(path.join(siteRoot, "app", "runtime.js"), "utf8");
 const dataLoader = fs.readFileSync(path.join(siteRoot, "app", "data.js"), "utf8");
 const components = fs.readFileSync(path.join(siteRoot, "app", "components.js"), "utf8");
+const economy = fs.readFileSync(path.join(siteRoot, "app", "economy.js"), "utf8");
 assert.match(runtime, /VICTORIAN_CENTURY_SITE_CONFIG/, "runtime must read the VC standalone configuration");
 assert.match(runtime, /standaloneLibrarySelect/, "runtime must expose the standalone library selector");
 assert.match(dataLoader, /standaloneSiteConfig/, "data loader must use the VC standalone configuration from runtime");
@@ -126,11 +129,15 @@ const companyIconPath = vm.runInNewContext(`(${companyIconPathSource})`, {
 });
 assert.equal(companyIconPath("gfx/interface/icons/joi_icons/benz_cie.png"), "assets/companies/benz_cie.png", "VC company PNG icons must resolve to page assets");
 assert.equal(companyIconPath("gfx/interface/icons/company_icons/sample.dds"), "assets/companies/sample.png", "base-game company DDS icons must resolve to page PNG assets");
+assert.match(economy, /economyChangeFiltersHtml/, "VC site must retain the economy change filters");
+assert.match(economy, /victorianCenturyBadge/, "VC site must retain economy change badges");
 
 const updateScript = fs.readFileSync(updateScriptFile, "utf8");
 assert.match(updateScript, /build_victorian_century_site\.mjs/, "VC update workflow must rebuild the standalone front end");
 assert.match(updateScript, /--baseline-database/, "VC update workflow must compare the mod data with the base-game database");
 assert.match(updateScript, /--target/, "VC update workflow must pass its standalone directory to the front-end build");
+assert.match(updateScript, /if \(!skipMap\) \{[\s\S]*?build_map_data\.ps1/, "--skip-map must leave map generation outside the update path");
+assert.match(updateScript, /map_rebuilt: !skipMap/, "--skip-map must record that the map was not rebuilt");
 assert.doesNotMatch(updateScript, /--legacy-data/, "VC update workflow must not rebuild the removed compatibility data bundle");
 
 console.log(JSON.stringify({
