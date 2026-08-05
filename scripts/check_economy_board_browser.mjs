@@ -163,11 +163,15 @@ try {
     methodHeading: document.querySelector(".production-method-section h3")?.textContent?.trim() || "",
     combinationLabels: Array.from(document.querySelectorAll("[data-production-summary] dt"), (label) => label.textContent.trim()),
     navLabel: document.querySelector("[data-nav-view='building']")?.textContent?.trim() || "",
+    groupNames: Array.from(document.querySelectorAll("[data-board-group] > h2"), (heading) => heading.childNodes[0]?.textContent?.trim()),
+    body: document.querySelector(".economy-detail")?.innerText || "",
   }));
   assert.equal(englishBuilding.title, "Rubber Plantations", "English building route must resolve the localized building name");
   assert.equal(englishBuilding.methodHeading, "Production Methods", "English building detail must localize its production-method heading");
   assert.deepEqual(englishBuilding.combinationLabels, ["Workforce:", "Input goods:", "Output goods:", "Standard output:", "Modifiers:"], "English building detail must localize the current-combination labels");
   assert.equal(englishBuilding.navLabel, "Buildings", "English navigation must label the building board");
+  assert.deepEqual(englishBuilding.groupNames, ["Agriculture", "Resources", "Industrial", "Military", "Infrastructure", "Ownership Buildings", "Monuments"], "English building wall must localize the confirmed group names");
+  assert.doesNotMatch(englishBuilding.body, /\$[^$]+\$|@[A-Za-z0-9_]+!|[\u3400-\u9fff]/, "English building detail contains unresolved localization");
 
   await page.goto(`${enBaseUrl}#/goods/rubber`);
   await page.waitFor(() => document.documentElement.lang === "en" && document.querySelector("[data-good-standard-price]"), "English rubber detail");
@@ -176,12 +180,14 @@ try {
     headings: Array.from(document.querySelectorAll(".economy-detail h3"), (heading) => heading.textContent.trim()),
     producer: document.querySelector("[data-good-building-relation='producer'] span")?.textContent?.trim() || "",
     navLabel: document.querySelector("[data-nav-view='goods']")?.textContent?.trim() || "",
+    body: document.querySelector(".economy-detail")?.innerText || "",
   }));
   assert.equal(englishGood.title, "Rubber", "English goods route must resolve the localized goods name");
   assert(englishGood.headings.includes("Basic properties"), "English goods detail must localize basic properties");
   assert(englishGood.headings.includes("Producing buildings"), "English goods detail must localize producer relations");
   assert.equal(englishGood.producer, "Rubber Plantations", "English goods detail must localize related buildings");
   assert.equal(englishGood.navLabel, "Goods", "English navigation must label the goods board");
+  assert.doesNotMatch(englishGood.body, /\$[^$]+\$|@[A-Za-z0-9_]+!|[\u3400-\u9fff]/, "English goods detail contains unresolved localization");
 
   const narrowPage = await openPage({ width: 390, height: 844 });
   await narrowPage.goto(`${zhBaseUrl}#/goods/meat`);

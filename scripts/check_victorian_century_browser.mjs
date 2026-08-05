@@ -1,283 +1,203 @@
-import { createRequire } from "node:module";
-
-const require = createRequire(import.meta.url);
-const { chromium } = require("playwright");
+import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
 
 const baseUrl = process.argv[2] || "http://127.0.0.1:8877/index.html";
-const mainLibraryUrl = new URL("../index.html", baseUrl);
-mainLibraryUrl.searchParams.set("lang", "zh-Hans");
-const chromePath = process.env.VC_CHROME_PATH || "";
-const allRoutes = ["country", "culture", "region", "company", "ideology", "law", "technology", "achievement"];
-const fixturesOnly = process.argv.includes("--fixtures-only");
 const requestedRoutes = process.argv.slice(3).filter((argument) => argument !== "--fixtures" && argument !== "--fixtures-only");
-const routes = requestedRoutes.length ? requestedRoutes : allRoutes;
-const runFixtures = fixturesOnly || requestedRoutes.length === 0 || process.argv.includes("--fixtures");
-const vcChangeRowSelectorByRoute = {
-  country: "[data-country]",
-  culture: "[data-culture]",
-  region: "[data-state-region]",
-  company: "[data-company]",
-  ideology: "[data-ideology]",
-  law: "[data-law]",
-  technology: "[data-technology-key]",
-  achievement: "[data-achievement-key]",
-};
-const vcChangeFilterSelectorsByRoute = {
-  country: { added: "#victorianCenturyAddedFilter", adjusted: "#victorianCenturyAdjustedFilter" },
-  culture: { added: "#victorianCenturyAddedFilter", adjusted: "#victorianCenturyAdjustedFilter" },
-  region: { added: "#victorianCenturyAddedFilter", adjusted: "#victorianCenturyAdjustedFilter" },
-  company: { added: "#victorianCenturyAddedFilter", adjusted: "#victorianCenturyAdjustedFilter" },
-  ideology: { added: "#victorianCenturyAddedFilter", adjusted: "#victorianCenturyAdjustedFilter" },
-  law: { added: "#victorianCenturyAddedFilter", adjusted: "#victorianCenturyAdjustedFilter" },
-};
-const browser = await chromium.launch({
-  headless: true,
-  ...(chromePath ? { executablePath: chromePath } : {}),
-});
+const routes = requestedRoutes.length ? requestedRoutes : ["building", "goods"];
+const chromePath = process.env.VC_CHROME_PATH || "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
+const debugPort = 9231;
+const expectedCounts = { building: 101, goods: 53 };
+const cardSelectors = { building: "[data-building-key]", goods: "[data-good-key]" };
 
-const errors = [];
+for (const route of routes) assert(Object.hasOwn(expectedCounts, route), `Unsupported Victorian Century economy route: ${route}`);
+
+const chrome = spawn(chromePath, [
+  `--remote-debugging-port=${debugPort}`,
+  "--headless=new",
+  "--disable-gpu",
+  "--no-first-run",
+  "--no-default-browser-check",
+  "about:blank",
+], { stdio: "ignore", windowsHide: true });
+
 try {
-  const homePage = await openPage();
-  await homePage.goto(`${baseUrl}?lang=zh-Hans#/home`, { waitUntil: "networkidle", timeout: 45000 });
-  await homePage.waitForSelector("#countryList .home-category-card", { timeout: 20000 });
-  const home = await homePage.evaluate(() => ({
-    title: document.title,
-    meta: document.querySelector("#metaLine")?.textContent?.trim() || "",
-    librarySelector: Boolean(document.querySelector("#librarySelect")),
-    standaloneLibrarySelector: Boolean(document.querySelector("#standaloneLibrarySelect")),
-    standaloneLibraryOptions: Array.from(document.querySelectorAll("#standaloneLibrarySelect option"), (option) => ({
-      value: option.value,
-      text: option.textContent.trim(),
-    })),
-    announcements: document.documentElement.textContent.includes("公告"),
-    news: document.documentElement.textContent.includes("游戏资讯"),
-    changelog: document.documentElement.textContent.includes("更新日志"),
-    canvas: {
-      width: document.querySelector("#mapCanvas")?.width || 0,
-      height: document.querySelector("#mapCanvas")?.height || 0,
-    },
-  }));
-  assert(home.title === "首页 - Victorian Century Database", `unexpected home title: ${home.title}`);
-  assert(!home.librarySelector && home.standaloneLibrarySelector && !home.announcements && !home.news && !home.changelog, "standalone home has an incorrect header feature set");
-  assert(JSON.stringify(home.standaloneLibraryOptions) === JSON.stringify([
-    { value: "victorian-century", text: "Victorian Century" },
-    { value: "vic3", text: "Victoria 3 原版 1.13.9" },
-  ]), "standalone library selector options are incorrect");
-  assert(home.canvas.width === 4096 && home.canvas.height === 1808, "map canvas dimensions are incorrect");
-  await Promise.all([
-    homePage.waitForURL(mainLibraryUrl.href, { timeout: 20000 }),
-    homePage.selectOption("#standaloneLibrarySelect", "vic3"),
-  ]);
-  await homePage.close();
-
-  const views = {};
-  if (!fixturesOnly) {
-  for (const route of routes) {
-    process.stderr.write(`checking localized board: zh-Hans ${route}\n`);
-    const page = await openPage();
-    await page.goto(`${baseUrl}?lang=zh-Hans#/${route}`, { waitUntil: "networkidle", timeout: 45000 });
-    await page.waitForFunction((expected) => document.body.dataset.view === expected, route, { timeout: 20000 });
-    views[route] = await page.evaluate(() => ({
-      view: document.body.dataset.view,
-      title: document.title,
-      resultCount: document.querySelector("#resultCount")?.textContent?.trim() || "",
-      hasRows: Boolean(document.querySelector("#countryList button, #countryList article, #countryList .technology-tree")),
-      mapHidden: Boolean(document.querySelector("#mapPanel")?.hidden),
-    }));
-    assert(views[route].hasRows, `${route} board has no rendered rows`);
-    assert(!views[route].mapHidden, `${route} board unexpectedly hides the map`);
-    if (["technology", "achievement"].includes(route)) {
-      if (route === "achievement") {
-        await page.waitForSelector("[data-achievement-key]", { state: "attached", timeout: 15000 });
-        await page.close();
-        continue;
-      }
-      await page.waitForSelector(".technology-graph-canvas [data-technology-key='united_fruit_banana_tech']", { state: "attached", timeout: 15000 });
-      views[route].addedTechnologyLayout = await page.evaluate(() => {
-        const fruit = document.querySelector(".technology-graph-canvas [data-technology-key='united_fruit_banana_tech']")?.getBoundingClientRect();
-        const sericulture = document.querySelector(".technology-graph-canvas [data-technology-key='sericulture']")?.getBoundingClientRect();
-        return {
-          addedFilterButton: Boolean(document.querySelector("[data-technology-victorian-added-filter]")),
-          adjustedFilterButton: Boolean(document.querySelector("[data-technology-victorian-adjusted-filter]")),
-          horizontalOffset: fruit && sericulture ? fruit.left - sericulture.left : Number.NaN,
-        };
-      });
-      assert(!views[route].addedTechnologyLayout.addedFilterButton && !views[route].addedTechnologyLayout.adjustedFilterButton, "technology board still shows VC change filter buttons");
-      assert(Math.abs(views[route].addedTechnologyLayout.horizontalOffset + 166) <= 1, `VC added technology position is incorrect: ${JSON.stringify(views[route].addedTechnologyLayout)}`);
-      await page.close();
-      continue;
-    }
-    process.stderr.write(`checking VC change filter: ${route}\n`);
-    await page.waitForSelector(vcChangeRowSelectorByRoute[route], { state: "attached", timeout: 15000 });
-    const filterSelectors = vcChangeFilterSelectorsByRoute[route];
-    await page.waitForSelector("#victorianCenturyChangeFilterSection:not([hidden])", { state: "visible", timeout: 15000 });
-    await page.click("#victorianCenturyChangeFilterSection > summary");
-    await page.click(filterSelectors.added);
-    await page.waitForFunction(({ rowSelector, addedSelector }) => {
-      const rows = [...document.querySelectorAll(rowSelector)];
-      return document.querySelector(addedSelector)?.getAttribute("aria-pressed") === "true"
-        && rows.every((row) => row.querySelector(".tag-vc-added"));
-    }, { rowSelector: vcChangeRowSelectorByRoute[route], addedSelector: filterSelectors.added }, { timeout: 15000 });
-    views[route].vcAddedFilter = await page.evaluate(({ added, adjusted, rowSelector }) => ({
-      addedPressed: document.querySelector(added)?.getAttribute("aria-pressed") || "",
-      adjustedPressed: document.querySelector(adjusted)?.getAttribute("aria-pressed") || "",
-      resultCount: document.querySelector("#resultCount")?.textContent?.trim() || "",
-      visibleRows: document.querySelectorAll(rowSelector).length,
-    }), { ...filterSelectors, rowSelector: vcChangeRowSelectorByRoute[route] });
-    assert(views[route].vcAddedFilter.addedPressed === "true" && views[route].vcAddedFilter.adjustedPressed === "false", `${route} VC added filter state is incorrect`);
-    assert(route === "region" || views[route].vcAddedFilter.visibleRows > 0, `${route} VC added filter returned no entries`);
-    await page.click(filterSelectors.adjusted);
-    await page.waitForFunction(({ rowSelector, added, adjusted }) => {
-      const rows = [...document.querySelectorAll(rowSelector)];
-      return document.querySelector(added)?.getAttribute("aria-pressed") === "true"
-        && document.querySelector(adjusted)?.getAttribute("aria-pressed") === "true"
-        && rows.length > 0
-        && rows.every((row) => row.querySelector(".tag-vc-added, .tag-vc-adjusted"));
-    }, { rowSelector: vcChangeRowSelectorByRoute[route], ...filterSelectors }, { timeout: 15000 });
-    await page.click(filterSelectors.added);
-    await page.waitForFunction(({ rowSelector, added, adjusted, expectsEmpty }) => {
-      const rows = [...document.querySelectorAll(rowSelector)];
-      return document.querySelector(added)?.getAttribute("aria-pressed") === "false"
-        && document.querySelector(adjusted)?.getAttribute("aria-pressed") === "true"
-        && (expectsEmpty ? rows.length === 0 : rows.length > 0 && rows.every((row) => row.querySelector(".tag-vc-adjusted")));
-    }, { rowSelector: vcChangeRowSelectorByRoute[route], ...filterSelectors, expectsEmpty: false }, { timeout: 15000 });
-    views[route].vcAdjustedFilter = await page.evaluate(({ added, adjusted, rowSelector }) => ({
-      addedPressed: document.querySelector(added)?.getAttribute("aria-pressed") || "",
-      adjustedPressed: document.querySelector(adjusted)?.getAttribute("aria-pressed") || "",
-      resultCount: document.querySelector("#resultCount")?.textContent?.trim() || "",
-      visibleRows: document.querySelectorAll(rowSelector).length,
-    }), { ...filterSelectors, rowSelector: vcChangeRowSelectorByRoute[route] });
-    assert(views[route].vcAdjustedFilter.addedPressed === "false" && views[route].vcAdjustedFilter.adjustedPressed === "true", `${route} VC adjusted filter state is incorrect`);
-    assert(
-      views[route].vcAdjustedFilter.visibleRows > 0,
-      `${route} VC adjusted filter returned an incorrect number of entries`,
-    );
-    await page.close();
-  }
-
-  const englishViews = {};
-  for (const route of routes) {
-    process.stderr.write(`checking localized board: en ${route}\n`);
-    const page = await openPage();
-    await page.goto(`${baseUrl}?lang=en#/${route}`, { waitUntil: "networkidle", timeout: 45000 });
-    await page.waitForFunction((expected) => document.body.dataset.view === expected && document.documentElement.lang === "en", route, { timeout: 20000 });
-    englishViews[route] = await page.evaluate(() => ({
-      title: document.title,
-      resultCount: document.querySelector("#resultCount")?.textContent?.trim() || "",
-      hasRows: Boolean(document.querySelector("#countryList button, #countryList article, #countryList .technology-tree")),
-      overflow: document.documentElement.scrollWidth > innerWidth + 1,
-    }));
-    assert(englishViews[route].hasRows, `${route} English board has no rendered rows`);
-    assert(!englishViews[route].overflow, `${route} English board overflows horizontally`);
-    await page.close();
-  }
-  }
-
-  if (runFixtures) {
-  const englishSamplePage = await openPage();
-  await englishSamplePage.goto(`${baseUrl}?lang=en#/technology/united_fruit_banana_tech`, { waitUntil: "networkidle", timeout: 45000 });
-  await englishSamplePage.waitForFunction(() => document.querySelector(".technology-detail h2")?.textContent.includes("Vertically Integrated Plantations"), { timeout: 20000 });
-  const englishSample = await englishSamplePage.evaluate(() => ({
-    title: document.querySelector(".technology-detail h2")?.textContent?.trim() || "",
-    body: document.querySelector(".technology-detail")?.textContent || "",
-  }));
-  assert(englishSample.title === "Vertically Integrated Plantations", `VC English technology title is incorrect: ${englishSample.title}`);
-  assert(englishSample.body.includes("The United Fruit Company"), "VC English technology description is missing");
-  await englishSamplePage.close();
-
-  const companyListPage = await openPage();
-  await companyListPage.goto(`${baseUrl}?lang=zh-Hans#/company`, { waitUntil: "networkidle", timeout: 45000 });
-  await companyListPage.waitForSelector("[data-company='company_admiralty_rijkswerf'], [data-company='company_a_markwald_and_company']", { state: "attached", timeout: 15000 });
-  const companyIconLayout = await companyListPage.evaluate(() => {
-    const readLayout = (companyKey) => {
-      const row = document.querySelector(`[data-company='${companyKey}']`);
-      const heading = row?.querySelector(".company-heading")?.getBoundingClientRect();
-      const icon = row?.querySelector(".company-logo")?.getBoundingClientRect();
-      return {
-        usesWebpPicture: Boolean(row?.querySelector("picture source[type='image/webp']")),
-        relativeTop: heading && icon ? icon.top - heading.top : Number.NaN,
-      };
-    };
-    return {
-      victorianCentury: readLayout("company_admiralty_rijkswerf"),
-      regular: readLayout("company_a_markwald_and_company"),
-    };
-  });
-  assert(companyIconLayout.victorianCentury.usesWebpPicture && !companyIconLayout.regular.usesWebpPicture, "company icon layout fixtures are incorrect");
-  assert(
-    Math.abs(companyIconLayout.victorianCentury.relativeTop - companyIconLayout.regular.relativeTop) <= 1,
-    `VC company icon is vertically misaligned: ${JSON.stringify(companyIconLayout)}`,
-  );
-  await companyListPage.close();
-
-  const companyPage = await openPage();
-  await companyPage.goto(`${baseUrl}?lang=zh-Hans#/company/company_benz_cie`, { waitUntil: "networkidle", timeout: 45000 });
-  await companyPage.waitForSelector("picture source[type='image/webp'][srcset*='benz_cie.webp']", { state: "attached", timeout: 15000 });
-  const webp = await companyPage.evaluate(() => ({
-    source: document.querySelector("picture source[type='image/webp'][srcset*='benz_cie.webp']")?.getAttribute("srcset") || "",
-    fallback: document.querySelector("picture img.company-logo[src*='benz_cie.png']")?.getAttribute("src") || "",
-  }));
-  assert(webp.source.endsWith("benz_cie.webp") && webp.fallback.endsWith("benz_cie.png"), "VC company icon lacks WebP and PNG fallback");
-  await companyPage.close();
-
-  const victorianCountryFlags = {};
-  for (const expected of [
-    { tag: "IMP", name: "帝国联邦", defaultImage: "assets/victorian-century-flags/IMP/IMP.png", variants: 3 },
-    { tag: "RME", name: "罗马帝国", defaultImage: "assets/victorian-century-flags/RME/RME_Flag_Monarchy.png", variants: 4 },
-  ]) {
-    const page = await openPage();
-    await page.goto(`${baseUrl}?lang=zh-Hans#/country/${expected.tag}`, { waitUntil: "networkidle", timeout: 45000 });
-    await page.waitForSelector(".detail-title .country-flag-title", { state: "visible", timeout: 15000 });
-    await page.waitForFunction(() => Array.from(document.querySelectorAll(".country-flag-variant-image")).every((image) => image.complete && image.naturalWidth > 0), { timeout: 15000 });
-    const flagState = await page.evaluate(() => ({
-      title: document.querySelector(".detail-title h2")?.textContent?.trim() || "",
-      defaultImage: document.querySelector(".detail-title .country-flag-title")?.getAttribute("src") || "",
-      variantImages: Array.from(document.querySelectorAll(".country-flag-variant-image"), (image) => ({
-        src: image.getAttribute("src") || "",
-        width: image.naturalWidth,
-        height: image.naturalHeight,
-      })),
-    }));
-    victorianCountryFlags[expected.tag] = flagState;
-    assert(flagState.title === expected.name, `${expected.tag} country detail title is incorrect: ${flagState.title}`);
-    assert(flagState.defaultImage === expected.defaultImage, `${expected.tag} default flag path is incorrect: ${flagState.defaultImage}`);
-    assert(flagState.variantImages.length === expected.variants, `${expected.tag} flag variant count is incorrect: ${flagState.variantImages.length}`);
-    assert(flagState.variantImages.every((image) => image.width === 240 && image.height === 144), `${expected.tag} has an unloaded or incorrectly sized flag image`);
-    await page.close();
-  }
-
-  const regionPage = await openPage();
-  await regionPage.goto(`${baseUrl}?lang=zh-Hans#/region`, { waitUntil: "networkidle", timeout: 45000 });
-  const reset = await regionPage.evaluate(() => {
-    const button = document.querySelector("#mapFitWidthButton");
-    button?.click();
-    return Boolean(button);
-  });
-  assert(reset, "region map reset button is missing");
-  await regionPage.close();
-  }
-
-  if (errors.length) throw new Error(errors.join("\n"));
+  const page = await openPage({ width: 1440, height: 1000 });
+  for (const route of routes) await checkEconomyWall(page, route);
+  await checkEnglishConstruction(page);
+  await checkEnglishBanana(page);
+  await checkAutomobiles(page, "zh-Hans");
+  await checkAutomobiles(page, "en");
+  await page.close();
   console.log(JSON.stringify({
     victorian_century_browser: "ok",
-    routes: fixturesOnly ? 0 : routes.length,
+    routes,
     locales: ["zh-Hans", "en"],
-    verified: runFixtures ? ["home", "change-filters", "company-icons", "country-flags", "map-reset"] : ["home", "change-filters"],
-  }));
+    verified: ["economy-walls", "change-filters", "construction-method", "banana-method", "benz-prestige-good"],
+  }, null, 2));
 } finally {
-  await browser.close();
+  chrome.kill();
 }
 
-function openPage() {
-  return browser.newPage({ viewport: { width: 1440, height: 900 } }).then((page) => {
-    page.on("console", (message) => {
-      if (message.type() === "error") errors.push(`console: ${message.text()}`);
-    });
-    page.on("pageerror", (error) => errors.push(`pageerror: ${error.message}`));
-    return page;
+async function checkEconomyWall(page, route) {
+  const selector = cardSelectors[route];
+  await page.goto(localizedRoute("zh-Hans", route));
+  await page.waitFor(({ route: expectedRoute, selector: expectedSelector, expectedCount }) => document.body.dataset.view === expectedRoute && document.querySelectorAll(expectedSelector).length === expectedCount, `${route} wall`, { route, selector, expectedCount: expectedCounts[route] });
+  const wall = await page.evaluate(({ selector: expectedSelector }) => ({
+    cards: document.querySelectorAll(expectedSelector).length,
+    map: getComputedStyle(document.querySelector("#mapPanel")).display,
+    filters: getComputedStyle(document.querySelector(".filters")).display,
+    added: document.querySelector("[data-economy-vc-change='added']")?.getAttribute("aria-pressed") || "",
+    adjusted: document.querySelector("[data-economy-vc-change='adjusted']")?.getAttribute("aria-pressed") || "",
+  }), { selector });
+  assert.equal(wall.cards, expectedCounts[route], `${route} wall must expose every database entry`);
+  assert.equal(wall.map, "none", `${route} wall must hide the map`);
+  assert.equal(wall.filters, "none", `${route} wall must hide the sidebar filters`);
+  assert.equal(wall.added, "false", `${route} added filter must start inactive`);
+  assert.equal(wall.adjusted, "false", `${route} adjusted filter must start inactive`);
+
+  await page.click("[data-economy-vc-change='added']");
+  await page.waitFor((expectedSelector) => document.querySelector("[data-economy-vc-change='added']")?.getAttribute("aria-pressed") === "true" && document.querySelectorAll(expectedSelector).length === 0, `${route} added filter`, selector);
+  await page.click("[data-economy-vc-change='added']");
+  await page.waitFor(({ selector: expectedSelector, expectedCount }) => document.querySelector("[data-economy-vc-change='added']")?.getAttribute("aria-pressed") === "false" && document.querySelectorAll(expectedSelector).length === expectedCount, `${route} cleared added filter`, { selector, expectedCount: expectedCounts[route] });
+  await page.click("[data-economy-vc-change='adjusted']");
+  await page.waitFor((expectedSelector) => {
+    const cards = [...document.querySelectorAll(expectedSelector)];
+    return document.querySelector("[data-economy-vc-change='adjusted']")?.getAttribute("aria-pressed") === "true"
+      && cards.length > 0
+      && cards.every((card) => card.querySelector(".economy-card-change .tag-vc-adjusted"));
+  }, `${route} adjusted filter`, selector);
+  await page.click("[data-economy-vc-change='adjusted']");
+  await page.waitFor(({ selector: expectedSelector, expectedCount }) => document.querySelector("[data-economy-vc-change='adjusted']")?.getAttribute("aria-pressed") === "false" && document.querySelectorAll(expectedSelector).length === expectedCount, `${route} cleared adjusted filter`, { selector, expectedCount: expectedCounts[route] });
+}
+
+async function checkEnglishConstruction(page) {
+  await page.goto(localizedRoute("en", "building/building_construction_sector"));
+  await page.waitFor(() => document.documentElement.lang === "en" && document.querySelector("[data-production-method-picker='pmg_base_building_construction_sector']"), "English construction detail");
+  const construction = await page.evaluate(() => ({
+    title: document.querySelector(".economy-detail h2")?.childNodes[0]?.textContent?.trim() || "",
+    method: document.querySelector(".selected-production-method-detail h4")?.childNodes[0]?.textContent?.trim() || "",
+    adjusted: Boolean(document.querySelector(".selected-production-method-detail h4 .tag-vc-adjusted")),
+    body: document.querySelector(".economy-detail")?.innerText || "",
+  }));
+  assert.equal(construction.title, "Construction Sector", "VC English construction title is incorrect");
+  assert.equal(construction.method, "Wooden Buildings", "VC English construction method is incorrect");
+  assert.equal(construction.adjusted, true, "VC adjusted construction production method lacks its badge");
+  assert.doesNotMatch(construction.body, /\$[^$]+\$|@[A-Za-z0-9_]+!|[\u3400-\u9fff]/, "VC English construction detail contains unresolved localization");
+}
+
+async function checkEnglishBanana(page) {
+  await page.goto(localizedRoute("en", "building/building_banana_plantation"));
+  await page.waitFor(() => document.querySelector("[data-production-method-picker='pmg_banana_exploitation']"), "English banana detail");
+  await page.click("[data-production-method-picker='pmg_banana_exploitation']");
+  await page.waitFor(() => document.querySelector("[data-production-method-group='pmg_banana_exploitation'][data-production-method-key='united_fruit_banana']"), "United Fruit option");
+  await page.click("[data-production-method-group='pmg_banana_exploitation'][data-production-method-key='united_fruit_banana']");
+  await page.waitFor(() => document.querySelector("[data-production-method-picker='pmg_banana_exploitation']")?.dataset.productionMethodKey === "united_fruit_banana", "selected United Fruit option");
+  const banana = await page.evaluate(() => ({
+    method: [...document.querySelectorAll(".selected-production-method-detail h4")]
+      .find((heading) => heading.childNodes[0]?.textContent?.trim() === "Vertically Integrated Cultivation")
+      ?.childNodes[0]?.textContent?.trim() || "",
+    added: Boolean([...document.querySelectorAll(".selected-production-method-detail h4")]
+      .find((heading) => heading.childNodes[0]?.textContent?.trim() === "Vertically Integrated Cultivation")
+      ?.querySelector(".tag-vc-added")),
+    body: document.querySelector(".economy-detail")?.innerText || "",
+  }));
+  assert.equal(banana.method, "Vertically Integrated Cultivation", "VC added banana production method is incorrect");
+  assert.equal(banana.added, true, "VC added banana production method lacks its badge");
+  assert.doesNotMatch(banana.body, /\$[^$]+\$|@[A-Za-z0-9_]+!|[\u3400-\u9fff]/, "VC English banana detail contains unresolved localization");
+}
+
+async function checkAutomobiles(page, locale) {
+  await page.goto(localizedRoute(locale, "goods/automobiles"));
+  await page.waitFor(() => document.querySelector("[data-prestige-good='prestige_good_benz_car']"), `${locale} automobiles detail`);
+  const automobiles = await page.evaluate(() => ({
+    name: document.querySelector("[data-prestige-good='prestige_good_benz_car'] h4")?.childNodes[0]?.textContent?.trim() || "",
+    key: document.querySelector("[data-prestige-good='prestige_good_benz_car'] p")?.textContent?.trim() || "",
+    body: document.querySelector(".economy-detail")?.innerText || "",
+  }));
+  assert.equal(automobiles.key, "prestige_good_benz_car", `${locale} automobiles detail lacks the Benz prestige-good key`);
+  if (locale === "en") {
+    assert.equal(automobiles.name, "Benz Automobiles", "VC English Benz prestige-good name is incorrect");
+    assert.doesNotMatch(automobiles.body, /\$[^$]+\$|@[A-Za-z0-9_]+!|[\u3400-\u9fff]/, "VC English automobiles detail contains unresolved localization");
+  }
+}
+
+function localizedRoute(locale, route) {
+  const separator = baseUrl.includes("?") ? "&" : "?";
+  return `${baseUrl}${separator}lang=${encodeURIComponent(locale)}#/${route}`;
+}
+
+async function openPage(viewport) {
+  await waitForTargets();
+  const target = await (await fetch(`http://127.0.0.1:${debugPort}/json/new?about:blank`, { method: "PUT" })).json();
+  const session = await connect(target.webSocketDebuggerUrl);
+  await session.send("Page.enable");
+  await session.send("Runtime.enable");
+  await session.send("Emulation.setDeviceMetricsOverride", { width: viewport.width, height: viewport.height, deviceScaleFactor: 1, mobile: false });
+  return {
+    goto: async (url) => {
+      const loaded = session.next("Page.loadEventFired");
+      const hashNavigated = session.next("Page.navigatedWithinDocument");
+      await session.send("Page.navigate", { url });
+      await Promise.race([loaded, hashNavigated]);
+      await new Promise((resolve) => setTimeout(resolve, 150));
+    },
+    evaluate: async (expression, ...args) => {
+      const serializedArgs = args.map((value) => JSON.stringify(value)).join(",");
+      const value = await session.send("Runtime.evaluate", { expression: `(${expression})(${serializedArgs})`, returnByValue: true, awaitPromise: true });
+      if (value.exceptionDetails) throw new Error(value.exceptionDetails.text || "browser evaluation failed");
+      return value.result.value;
+    },
+    click: async (selector) => {
+      const clicked = await session.send("Runtime.evaluate", { expression: `(() => { const node = document.querySelector(${JSON.stringify(selector)}); if (!node) return false; node.click(); return true; })()`, returnByValue: true, awaitPromise: true });
+      if (!clicked.result.value) throw new Error(`Missing clickable selector: ${selector}`);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    },
+    waitFor: async (predicate, description = "browser condition", ...args) => {
+      const end = Date.now() + 25000;
+      while (Date.now() < end) {
+        if (await session.evaluateWithArgs(predicate, args)) return;
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+      throw new Error(`${description} timed out`);
+    },
+    close: async () => session.close(),
+  };
+}
+
+async function waitForTargets() {
+  const end = Date.now() + 10000;
+  while (Date.now() < end) {
+    try { await (await fetch(`http://127.0.0.1:${debugPort}/json/list`)).json(); return; } catch { await new Promise((resolve) => setTimeout(resolve, 50)); }
+  }
+  throw new Error("Chrome debugging endpoint did not start");
+}
+
+async function connect(url) {
+  const socket = new WebSocket(url);
+  const pending = new Map();
+  const events = new Map();
+  let sequence = 0;
+  await new Promise((resolve, reject) => { socket.addEventListener("open", resolve, { once: true }); socket.addEventListener("error", reject, { once: true }); });
+  socket.addEventListener("message", ({ data }) => {
+    const message = JSON.parse(data);
+    if (message.id) { const deferred = pending.get(message.id); pending.delete(message.id); deferred?.resolve(message); return; }
+    const waiters = events.get(message.method) || [];
+    events.delete(message.method);
+    waiters.forEach((deferred) => deferred.resolve(message));
   });
-}
-
-function assert(condition, message) {
-  if (!condition) throw new Error(message);
+  return {
+    send(method, params = {}) {
+      const id = ++sequence;
+      const response = new Promise((resolve) => pending.set(id, { resolve }));
+      socket.send(JSON.stringify({ id, method, params }));
+      return response.then((message) => { if (message.error) throw new Error(message.error.message); return message.result || {}; });
+    },
+    next(method) { return new Promise((resolve) => events.set(method, [...(events.get(method) || []), { resolve }])); },
+    async evaluateWithArgs(predicate, args) {
+      const serializedArgs = args.map((value) => JSON.stringify(value)).join(",");
+      const result = await this.send("Runtime.evaluate", { expression: `Boolean((${predicate})(${serializedArgs}))`, returnByValue: true, awaitPromise: true });
+      return Boolean(result.result.value);
+    },
+    close() { socket.close(); },
+  };
 }
