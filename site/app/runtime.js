@@ -478,6 +478,12 @@ const resourceFilterGroups = [
     ],
   },
   {
+    key: "subsistence",
+    filters: [
+      { key: "subsistence_buildings", labelKey: "filter.subsistenceBuildings", mapMode: "subsistenceBuildings" },
+    ],
+  },
+  {
     key: "light_industry",
     companyOnly: true,
     filters: [

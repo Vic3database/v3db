@@ -256,6 +256,7 @@ window.VICDATA_UI_LOCALES.en = {
     "board.culture.mobileToolbar": "Culture mobile toolbar",
     "board.culture.mobileFilters": "Culture mobile filters",
     "filter.resources": "Resources",
+    "filter.subsistenceBuildings": "Subsistence buildings",
     "filter.stateTraits": "State traits",
     "filter.map": "Map",
     "filter.stateTrait.all": "All",

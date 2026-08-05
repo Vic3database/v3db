@@ -2727,16 +2727,18 @@ function dynamicStateNameSearchParts(variants) {
 
 function resourceOptionToken(filter) {
   const iconKey = (filter.resources || filter.arableResources || filter.companyBuildings || [])[0] || "";
-  const label = resourceFilterLabel(filter);
+  const label = filter.labelKey ? t(filter.labelKey) : resourceFilterLabel(filter);
   const checked = state.resourceFilters.has(filter.key);
+  const icon = buildingIconHtml(iconKey, label);
   return `
     <button class="filter-token filter-token-with-icon resource-filter-token" type="button" data-filter-token data-resource-filter="${escapeHtml(filter.key)}" aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}" aria-pressed="${checked ? "true" : "false"}">
-      ${buildingIconHtml(iconKey, label)}
+      ${icon || escapeHtml(label)}
     </button>
   `;
 }
 
 function resourceFilterLabel(filter) {
+  if (filter?.labelKey) return t(filter.labelKey);
   const resourceKey = (filter?.resources || filter?.arableResources || filter?.companyBuildings || [])[0] || filter?.key || "";
   return entityText(buildingByKey.get(resourceKey), "name", resourceKey) || resourceKey;
 }

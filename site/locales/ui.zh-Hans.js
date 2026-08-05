@@ -256,6 +256,7 @@ window.VICDATA_UI_LOCALES["zh-Hans"] = {
     "board.culture.mobileToolbar": "文化窄屏工具栏",
     "board.culture.mobileFilters": "文化窄屏筛选",
     "filter.resources": "资源",
+    "filter.subsistenceBuildings": "自给建筑",
     "filter.stateTraits": "地区特质",
     "filter.map": "地图",
     "filter.stateTrait.all": "所有",
