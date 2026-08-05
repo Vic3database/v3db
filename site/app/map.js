@@ -932,8 +932,6 @@ function renderSubsistenceBuildingMapLegend() {
   els.subsistenceBuildingMapLegend.hidden = !enabled;
   if (!enabled) return;
   els.subsistenceBuildingMapLegend.innerHTML = `
-    <span class="subsistence-building-map-legend-heading">${escapeHtml(t("map.subsistenceBuildingLegend", "自给建筑类型"))}</span>
-    <span class="subsistence-building-map-legend-description">${escapeHtml(t("map.subsistenceBuildingLegendArableLand", "同类建筑中颜色越深，耕地上限越高"))}</span>
     <span class="subsistence-building-map-legend-items">${[...SUBSISTENCE_BUILDING_GRADIENT_BY_KEY].map(([key, gradient]) => {
     const label = subsistenceBuildingLabel(key);
     return `<span class="subsistence-building-map-legend-item"><span class="subsistence-building-map-legend-swatch" style="--subsistence-building-map-color-low: ${escapeHtml(gradient.low)}; --subsistence-building-map-color-high: ${escapeHtml(gradient.high)}" aria-hidden="true"></span>${escapeHtml(label)}</span>`;

@@ -262,15 +262,6 @@
   white-space: nowrap;
 }
 
-.subsistence-building-map-legend-heading {
-  color: var(--ink);
-  font-weight: 700;
-}
-
-.subsistence-building-map-legend-description {
-  color: var(--muted);
-}
-
 .subsistence-building-map-legend-items {
   display: flex;
   flex: 1 1 100%;

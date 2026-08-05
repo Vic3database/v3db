@@ -58,7 +58,8 @@ function checkRegionMapListSyncContracts() {
   assert(!/filteredStateRegions\.slice\(0,\s*220\)/.test(renderRegionList), "region rows should not be capped at 220 items");
   assert(/selectedStateRegionFromMap/.test(renderRegionList), "region list should resolve the region selected from the map");
   assert(/region-map-selected/.test(stateRegionRowHtml), "filtered-out map selections should render a temporary highlighted card");
-  assert(!/scrollIntoView\(/.test(selectStateRegionFromMap), "region map selection should not scroll the list");
+  assert(/scrollStateRegionCardIntoView\(stateRegionKey\)/.test(selectStateRegionFromMap), "region map selection should move its selected list card into view");
+  assert(/scrollIntoView\(\{ block: "center", behavior: "smooth" \}\)/.test(functionSource("scrollStateRegionCardIntoView")), "region map list focus should center the selected card smoothly");
   assert(!/\brender\(\)/.test(selectStateRegionFromMap), "region map selection should not rebuild the board");
   assert(!/\brender\(\)/.test(functionSource("selectStateRegionCard")), "region card selection should not rebuild the board");
   assert(!/focusStateRegionOnMap\(/.test(selectStateRegionFromMap), "region map selection should preserve the map transform");
@@ -100,8 +101,8 @@ function checkTerrainViewContracts() {
 
 function checkRegionMapCacheVersionContracts() {
   assert(/app\/ui\.js\?v=20260805-subsistence-map1/.test(indexSource), "region map UI script should use the current release cache version");
-  assert(/app\/map\.js\?v=20260805-subsistence-gradient1/.test(indexSource), "region map script should use the current release cache version");
-  assert(/app\/presentation\.js\?v=20260804-vc-english-economy1/.test(indexSource), "fast region selection should use the current presentation cache version");
+  assert(/app\/map\.js\?v=20260806-subsistence-polish1/.test(indexSource), "region map script should use the current release cache version");
+  assert(/app\/presentation\.js\?v=20260806-subsistence-polish1/.test(indexSource), "fast region selection should use the current presentation cache version");
 }
 
 function checkPrimaryListEventContracts() {

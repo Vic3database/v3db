@@ -75,6 +75,10 @@ try {
         return Boolean(image?.complete && image.naturalWidth > 0);
       })(),
       filterText: document.querySelector("[data-resource-filter='subsistence_buildings']")?.innerText.trim() || "",
+      filterRowIndex: [...document.querySelectorAll("#resourceFilters .resource-filter-row")]
+        .findIndex((row) => row.querySelector("[data-resource-filter='subsistence_buildings']")),
+      agricultureRowIndex: [...document.querySelectorAll("#resourceFilters .resource-filter-row")]
+        .findIndex((row) => row.querySelector("[data-resource-filter='building_dye_plantation']")),
       legendCount: document.querySelectorAll(".subsistence-building-map-legend-item").length,
       legendText: document.querySelector("#subsistenceBuildingMapLegend")?.innerText || "",
       legendBox: (() => {
@@ -100,9 +104,9 @@ try {
   assert.equal(overview.filterIcon, "assets/pops/peasants.webp", "combined entry must display the peasant pop icon");
   assert.equal(overview.filterIconLoaded, true, "combined entry must load the peasant pop icon");
   assert.equal(overview.filterText, "", "combined entry must not render a text label in place of its icon");
+  assert.equal(overview.filterRowIndex, overview.agricultureRowIndex + 1, "combined entry must appear in its own row directly below agriculture buildings");
   assert.equal(overview.legendCount, 5, "legend must contain all five subsistence building categories");
-  assert.match(overview.legendText, /自给建筑类型/, "legend must label the five category colors");
-  assert.match(overview.legendText, /同类建筑中颜色越深，耕地上限越高/, "legend must explain the per-building arable-land color gradient");
+  assert.doesNotMatch(overview.legendText, /自给建筑类型|同类建筑中颜色越深，耕地上限越高/, "legend must omit the redundant heading and gradient explanation");
   assert(overview.legendBox.height > 0, "legend must occupy visible screen space");
   assert(overview.legendBox.top >= overview.mapViewportBox.bottom, "legend must sit below the map viewport rather than underneath its canvas");
   for (const [buildingKey, sample] of Object.entries(overview.gradientSamples)) {
@@ -141,16 +145,69 @@ try {
   await page.locator("#mapCanvas").dispatchEvent("pointermove", target.pointer);
   await page.waitForFunction(() => document.querySelector("#mapTooltip")?.hidden === false, { timeout: 10000 });
   const tooltipText = await page.locator("#mapTooltip").innerText();
-  assert.match(tooltipText, /自给水稻农场/, "tooltip must localize the subsistence building name");
+  assert.match(tooltipText, /自给稻田/, "tooltip must localize the subsistence building name");
   assert.match(tooltipText, new RegExp(`耕地\\s*${target.arableLand}`), "tooltip must show the state-region arable-land limit");
 
+  const transformBeforeMapSelection = await page.evaluate(() => ({ ...window.eval("mapRuntime.transform") }));
   await page.locator("#mapCanvas").dispatchEvent("pointerdown", target.pointer);
   await page.locator("#mapCanvas").dispatchEvent("pointerup", target.pointer);
   await page.waitForFunction((key) => window.eval("state.selectedStateRegion") === key, target.stateKey, { timeout: 10000 });
+  await page.waitForTimeout(700);
+  const listFocus = await page.evaluate((key) => {
+    const list = document.querySelector("#countryList");
+    const row = [...list.querySelectorAll("[data-state-region]")]
+      .find((item) => item.dataset.stateRegion === key && !item.classList.contains("region-map-selected"));
+    const rowRect = row?.getBoundingClientRect();
+    return {
+      selectedStateRegion: window.eval("state.selectedStateRegion"),
+      scrollY: window.scrollY,
+      rowExists: Boolean(row),
+      rowTop: rowRect?.top || null,
+      rowBottom: rowRect?.bottom || null,
+      viewportHeight: window.innerHeight,
+      focused: Boolean(row && rowRect.top >= 0 && rowRect.bottom <= window.innerHeight),
+    };
+  }, target.stateKey);
+  assert(listFocus.focused, `single map click must scroll the selected state-region card into the visible list area: ${JSON.stringify(listFocus)}`);
+  assert.deepEqual(await page.evaluate(() => ({ ...window.eval("mapRuntime.transform") })), transformBeforeMapSelection, "list focus must preserve the current map transform");
   assert.equal(await page.evaluate(() => location.hash), "#/region", "single click must preserve the region route");
-  await page.locator("#mapCanvas").dispatchEvent("dblclick", target.pointer);
+  await page.evaluate(() => {
+    const row = [...document.querySelectorAll("#countryList [data-state-region]")]
+      .find((item) => item.dataset.stateRegion === "STATE_SOUTHERN_MANCHURIA");
+    row?.scrollIntoView({ block: "start", behavior: "instant" });
+  });
+  const offscreenTarget = await findOffscreenListRiceFarmOnCanvas(page);
+  assert(offscreenTarget, "map needs an on-canvas rice-farm region whose list card is offscreen");
+  await page.locator("#mapCanvas").dispatchEvent("pointerdown", offscreenTarget.pointer);
+  await page.locator("#mapCanvas").dispatchEvent("pointerup", offscreenTarget.pointer);
+  await page.waitForFunction((key) => window.eval("state.selectedStateRegion") === key, offscreenTarget.stateKey, { timeout: 10000 });
+  await page.waitForTimeout(700);
+  const offscreenListFocus = await page.evaluate((key) => {
+    const row = [...document.querySelectorAll("#countryList [data-state-region]")]
+      .find((item) => item.dataset.stateRegion === key && !item.classList.contains("region-map-selected"));
+    const rowRect = row?.getBoundingClientRect();
+    return {
+      key,
+      rowExists: Boolean(row),
+      rowTop: rowRect?.top || null,
+      rowBottom: rowRect?.bottom || null,
+      viewportHeight: window.innerHeight,
+    };
+  }, offscreenTarget.stateKey);
+  assert(
+    offscreenListFocus.rowExists
+      && offscreenListFocus.rowTop >= 0
+      && offscreenListFocus.rowBottom <= offscreenListFocus.viewportHeight
+      && Math.abs(((offscreenListFocus.rowTop + offscreenListFocus.rowBottom) / 2) - (offscreenListFocus.viewportHeight / 2)) <= 120,
+    `map click must restore focus for a list card that starts offscreen: ${JSON.stringify({ before: offscreenTarget, after: offscreenListFocus })}`,
+  );
+  const offscreenSelection = { target: offscreenTarget, focused: offscreenListFocus };
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+  const detailTarget = await findOnCanvasState(page, "building_subsistence_rice_farm");
+  assert(detailTarget, "map needs an on-canvas subsistence rice-farm region after list focus");
+  await page.locator("#mapCanvas").dispatchEvent("dblclick", detailTarget.pointer);
   await page.waitForFunction(() => location.hash.startsWith("#/state-region/"), { timeout: 10000 });
-  assert.equal(await page.evaluate(() => location.hash), `#/state-region/${encodeURIComponent(target.stateKey)}`, "double click must open the sampled state-region detail");
+  assert.equal(await page.evaluate(() => location.hash), `#/state-region/${encodeURIComponent(detailTarget.stateKey)}`, "double click must open the sampled state-region detail");
   assert.deepEqual(errors, [], `page errors: ${errors.join(" | ")}`);
   await page.close();
 
@@ -175,7 +232,7 @@ try {
   assert.equal(await compact.locator("[data-resource-filter='subsistence_buildings']").getAttribute("aria-pressed"), "false", "second click must clear the combined map entry");
   await compact.close();
 
-  console.log(JSON.stringify({ subsistence_building_map_browser: "ok", target, overview, compactLayout, baseUrl: server.url }, null, 2));
+  console.log(JSON.stringify({ subsistence_building_map_browser: "ok", target, overview, offscreenSelection, compactLayout, baseUrl: server.url }, null, 2));
 } finally {
   await context.close();
   await browser.close();
@@ -202,6 +259,33 @@ async function findOnCanvasState(page, buildingKey) {
     }
     return null;
   }, buildingKey);
+}
+
+async function findOffscreenListRiceFarmOnCanvas(page) {
+  return page.evaluate(() => {
+    const runtime = window.eval("mapRuntime");
+    const rect = document.querySelector("#mapCanvas").getBoundingClientRect();
+    const stateRegionFromPointerEvent = window.eval("stateRegionFromPointerEvent");
+    for (const [stateKey, center] of runtime.stateCenters) {
+      const stateRegion = window.eval("byStateRegion").get(stateKey);
+      if (stateRegion?.subsistence_building !== "building_subsistence_rice_farm") continue;
+      const row = document.querySelector(`#countryList [data-state-region="${CSS.escape(stateKey)}"]`);
+      const rowRect = row?.getBoundingClientRect();
+      if (!rowRect || (rowRect.top >= 0 && rowRect.bottom <= window.innerHeight)) continue;
+      const clientX = rect.left + center.x * runtime.transform.scale + runtime.transform.x;
+      const clientY = rect.top + center.y * runtime.transform.scale + runtime.transform.y;
+      if (clientX < rect.left || clientX > rect.right || clientY < rect.top || clientY > rect.bottom) continue;
+      const mappedState = stateRegionFromPointerEvent({ clientX, clientY });
+      if (mappedState?.key !== stateKey) continue;
+      return {
+        stateKey,
+        rowTop: rowRect.top,
+        rowBottom: rowRect.bottom,
+        pointer: { clientX, clientY, pointerId: 1, pointerType: "mouse" },
+      };
+    }
+    return null;
+  });
 }
 
 function startPreviewServer(root) {

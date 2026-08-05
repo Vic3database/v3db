@@ -581,8 +581,6 @@ window.VICDATA_UI_LOCALES.en = {
     "ui.semicolon": "; ",
     "map.allStateTraits": "All state traits",
       "map.subsistenceBuilding": "Subsistence building",
-      "map.subsistenceBuildingLegend": "Subsistence building type",
-      "map.subsistenceBuildingLegendArableLand": "Within each building type, darker color means a higher arable-land limit",
       "map.subsistenceBuilding.building_subsistence_farm": "Subsistence farm",
     "map.subsistenceBuilding.building_subsistence_rice_farm": "Subsistence rice farm",
     "map.subsistenceBuilding.building_subsistence_pasture": "Subsistence pasture",

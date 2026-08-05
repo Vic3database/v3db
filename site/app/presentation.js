@@ -398,6 +398,14 @@ function syncMapSelectedStateRegionCard() {
   els.countryList.insertAdjacentHTML("afterbegin", stateRegionRowHtml(selected, { mapSelected: true }));
 }
 
+function scrollStateRegionCardIntoView(stateRegionKey) {
+  requestAnimationFrame(() => {
+    const rows = rowsForSelection("data-state-region", stateRegionKey);
+    const selectedRow = rows.find((row) => !row.classList.contains("region-map-selected")) || rows[0];
+    selectedRow?.scrollIntoView({ block: "center", behavior: "smooth" });
+  });
+}
+
 function commitStateRegionSelection(stateRegionKey, { fromMap }) {
   const previousKey = state.selectedStateRegion;
   const isVisibleListItem = rowsForSelection("data-state-region", stateRegionKey)
@@ -421,6 +429,7 @@ function selectStateRegionCard(stateRegionKey) {
 function selectStateRegionFromMap(stateRegionKey) {
   if (!stateRegionKey || !byStateRegion.has(stateRegionKey)) return;
   commitStateRegionSelection(stateRegionKey, { fromMap: true });
+  scrollStateRegionCardIntoView(stateRegionKey);
 }
 
 function openStateRegionDetail(stateRegionKey) {

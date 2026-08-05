@@ -716,9 +716,12 @@ function visibleResourceFilterGroups() {
   const groups = resourceFilterGroups.filter((group) => !group.companyOnly);
   const merged = [];
   const agricultureFilters = [];
+  let subsistenceGroup = null;
   for (const group of groups) {
     if (group.key.startsWith("agriculture")) {
       agricultureFilters.push(...(group.filters || []));
+    } else if (group.key === "subsistence") {
+      subsistenceGroup = group;
     } else {
       merged.push(group);
     }
@@ -726,6 +729,7 @@ function visibleResourceFilterGroups() {
   if (agricultureFilters.length) {
     merged.push({ key: "agriculture", filters: agricultureFilters });
   }
+  if (subsistenceGroup) merged.push(subsistenceGroup);
   return merged;
 }
 
