@@ -793,6 +793,7 @@ const els = {
   mapResourceContext: document.querySelector("#mapResourceContext"),
   terrainMapViewButton: document.querySelector("#terrainMapViewButton"),
   terrainMapLegend: document.querySelector("#terrainMapLegend"),
+  subsistenceBuildingMapLegend: document.querySelector("#subsistenceBuildingMapLegend"),
   mapViewport: document.querySelector("#mapViewport"),
   mapCanvas: document.querySelector("#mapCanvas"),
   mapTooltip: document.querySelector("#mapTooltip"),

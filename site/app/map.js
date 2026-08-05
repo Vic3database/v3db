@@ -8,11 +8,13 @@ function renderMapControls() {
   if (state.view === "ideology" || state.view === "law") {
     renderMapResourceContext();
     renderTerrainMapLegend();
+    renderSubsistenceBuildingMapLegend();
     return;
   }
   if (!els.mapModeSelect || !els.mapSubjectSelect) {
     renderMapResourceContext();
     renderTerrainMapLegend();
+    renderSubsistenceBuildingMapLegend();
     return;
   }
   els.mapModeSelect.value = state.mapMode;
@@ -25,6 +27,7 @@ function renderMapControls() {
   )).join("");
   renderMapResourceContext();
   renderTerrainMapLegend();
+  renderSubsistenceBuildingMapLegend();
 }
 
 function renderTerrainMapLegend() {
@@ -917,6 +920,18 @@ function resourceMapGradientColor(resourceKey, value, maxValue) {
   return interpolateColor(gradient.low, gradient.high, ratio);
 }
 
+function renderSubsistenceBuildingMapLegend() {
+  if (!els.subsistenceBuildingMapLegend) return;
+  const enabled = state.mapMode === "subsistenceBuildings";
+  els.subsistenceBuildingMapLegend.hidden = !enabled;
+  if (!enabled) return;
+  els.subsistenceBuildingMapLegend.innerHTML = [...SUBSISTENCE_BUILDING_COLORS].map(([key, color]) => {
+    const building = buildingByKey.get(key);
+    const label = entityText(building, "name", t(`map.subsistenceBuilding.${key}`, key));
+    return `<span class="subsistence-building-map-legend-item"><span class="subsistence-building-map-legend-swatch" style="--subsistence-building-map-color: ${escapeHtml(color)}" aria-hidden="true"></span>${escapeHtml(label)}</span>`;
+  }).join("");
+}
+
 function buildSubsistenceBuildingMapFeatures() {
   const features = new Map();
   for (const stateRegion of stateRegions) {
@@ -1486,15 +1501,15 @@ function normalizeMapTransformX(transform = mapRuntime.transform) {
 }
 
 function drawMapLabels(context, copyRange = { start: 0, end: 0 }, transform = mapRuntime.transform) {
-  if (!["resourceSelection", "company"].includes(state.mapMode) || !mapRuntime.stateCenters || !mapRuntime.featureByStateKey) return;
+  if (!["resourceSelection", "company", "subsistenceBuildings"].includes(state.mapMode) || !mapRuntime.stateCenters || !mapRuntime.featureByStateKey) return;
   const inverseScale = 1 / Math.max(transform.scale, 0.001);
-  const baseFontSize = state.mapMode === "resourceSelection" ? 14 : 16;
+  const baseFontSize = state.mapMode === "company" ? 16 : 14;
   context.save();
   context.font = `700 ${Math.round(baseFontSize * inverseScale)}px ${MAP_LABEL_FONT_FAMILY}`;
   context.textAlign = "center";
   context.textBaseline = "middle";
   context.lineJoin = "round";
-  context.lineWidth = (state.mapMode === "resourceSelection" ? 3.2 : 4.5) * inverseScale;
+  context.lineWidth = (state.mapMode === "company" ? 4.5 : 3.2) * inverseScale;
   const drawQueue = [];
   for (const [stateKey, feature] of mapRuntime.featureByStateKey) {
     if (!feature?.label) continue;
@@ -1756,6 +1771,16 @@ function mapTooltipRowsForView(stateRegion, feature, ownerTag = "", terrainKey =
     return compactTooltipRows([
       [t("board.region.strategicRegion", "战略区域"), refNames(stateRegion.strategic_regions)],
       [t("board.region.traits", "地区特质"), tooltipHtml(mapTooltipStateTraitHtml(feature?.traits || stateRegion.traits || []))],
+    ]);
+  }
+  if (state.mapMode === "subsistenceBuildings") {
+    const buildingKey = feature?.subsistenceBuildingKey || stateRegion.subsistence_building || "";
+    const building = buildingByKey.get(buildingKey);
+    return compactTooltipRows([
+      [t("board.region.strategicRegion", "战略区域"), refNames(stateRegion.strategic_regions)],
+      [t("map.subsistenceBuilding", "自给建筑"), entityText(building, "name", buildingKey)],
+      [t("board.region.arableLand", "耕地"), stateRegion.arable_land === null ? "" : String(stateRegion.arable_land)],
+      [t("board.region.traits", "地区特质"), tooltipHtml(mapTooltipStateTraitHtml(stateRegion.traits || []))],
     ]);
   }
   if (state.view === "country" || state.mapMode === "country") {

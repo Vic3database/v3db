@@ -7,6 +7,8 @@ const runtimeSource = read("site/app/runtime.js");
 const componentsSource = read("site/app/components.js");
 const mapSource = read("site/app/map.js");
 const filtersSource = read("site/app/filters.js");
+const indexSource = read("site/index.html");
+const mapStylesSource = read("site/styles/map.css");
 const zhSource = read("site/locales/ui.zh-Hans.js");
 const enSource = read("site/locales/ui.en.js");
 const dataSource = read("site/versions/1.13.9/data-regions.js");
@@ -45,6 +47,12 @@ assert.match(functionSource(mapSource, "buildMapFeatures"), /state\.mapMode === 
 assert.match(functionSource(mapSource, "buildSubsistenceBuildingMapFeatures"), /stateRegion\.subsistence_building/, "subsistence map features must read the region building key");
 assert.match(functionSource(mapSource, "buildSubsistenceBuildingMapFeatures"), /SUBSISTENCE_BUILDING_EMPTY_COLOR/, "missing subsistence data must use a neutral land color");
 assert.match(functionSource(filtersSource, "matchesResourceFilters"), /filter\?\.mapOnly/, "the map-only subsistence entry must not shrink the region list");
+assert.match(indexSource, /<div id="subsistenceBuildingMapLegend" class="subsistence-building-map-legend" hidden><\/div>/, "the map panel must include a hidden subsistence-building legend");
+assert.match(runtimeSource, /subsistenceBuildingMapLegend: document\.querySelector\("#subsistenceBuildingMapLegend"\)/, "runtime elements must expose the subsistence-building legend");
+assert.match(functionSource(mapSource, "renderSubsistenceBuildingMapLegend"), /SUBSISTENCE_BUILDING_COLORS/, "the legend must use the fixed subsistence-building palette");
+assert.match(functionSource(mapSource, "drawMapLabels"), /"subsistenceBuildings"/, "the subsistence map must draw arable-land labels");
+assert.match(functionSource(mapSource, "mapTooltipRowsForView"), /state\.mapMode === "subsistenceBuildings"/, "the subsistence map must use dedicated tooltip rows");
+assert.match(mapStylesSource, /\.subsistence-building-map-legend/, "the subsistence-building legend must have responsive styles");
 
 console.log(JSON.stringify({ subsistence_building_map: "entry-ok", buildingTypes: actualBuildingKeys }, null, 2));
 
