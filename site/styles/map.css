@@ -9,6 +9,10 @@
   box-shadow: var(--shadow);
 }
 
+.map-panel:has(.subsistence-building-map-legend:not([hidden])) .map-viewport {
+  bottom: 88px;
+}
+
 .map-toolbar {
   display: grid;
   grid-template-columns: minmax(110px, 1fr) auto;

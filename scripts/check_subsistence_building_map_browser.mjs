@@ -77,6 +77,14 @@ try {
       filterText: document.querySelector("[data-resource-filter='subsistence_buildings']")?.innerText.trim() || "",
       legendCount: document.querySelectorAll(".subsistence-building-map-legend-item").length,
       legendText: document.querySelector("#subsistenceBuildingMapLegend")?.innerText || "",
+      legendBox: (() => {
+        const rect = document.querySelector("#subsistenceBuildingMapLegend")?.getBoundingClientRect();
+        return rect ? { top: rect.top, bottom: rect.bottom, height: rect.height } : null;
+      })(),
+      mapViewportBox: (() => {
+        const rect = document.querySelector("#mapViewport")?.getBoundingClientRect();
+        return rect ? { top: rect.top, bottom: rect.bottom, height: rect.height } : null;
+      })(),
       gradientSamples,
       featureCount: features.length,
       landCount: landStateRegions.length,
@@ -95,6 +103,8 @@ try {
   assert.equal(overview.legendCount, 5, "legend must contain all five subsistence building categories");
   assert.match(overview.legendText, /自给建筑类型/, "legend must label the five category colors");
   assert.match(overview.legendText, /同类建筑中颜色越深，耕地上限越高/, "legend must explain the per-building arable-land color gradient");
+  assert(overview.legendBox.height > 0, "legend must occupy visible screen space");
+  assert(overview.legendBox.top >= overview.mapViewportBox.bottom, "legend must sit below the map viewport rather than underneath its canvas");
   for (const [buildingKey, sample] of Object.entries(overview.gradientSamples)) {
     assert(sample.lowValue < sample.highValue, `${buildingKey} needs distinct low and high arable-land samples`);
     assert.equal(sample.lowColor, sample.expectedLowColor, `${buildingKey} low arable-land color must use its gradient`);
@@ -154,9 +164,12 @@ try {
     viewportWidth: window.innerWidth,
     legendWidth: document.querySelector("#subsistenceBuildingMapLegend")?.getBoundingClientRect().width || 0,
     panelWidth: document.querySelector("#mapPanel")?.getBoundingClientRect().width || 0,
+    legendTop: document.querySelector("#subsistenceBuildingMapLegend")?.getBoundingClientRect().top || 0,
+    viewportBottom: document.querySelector("#mapViewport")?.getBoundingClientRect().bottom || 0,
   }));
   assert.equal(compactLayout.scrollWidth, compactLayout.viewportWidth, "narrow-screen legend must not create horizontal overflow");
   assert(compactLayout.legendWidth <= compactLayout.panelWidth, "narrow-screen legend must remain inside the map panel");
+  assert(compactLayout.legendTop >= compactLayout.viewportBottom, "narrow-screen legend must sit below the map viewport");
   await compact.locator("[data-resource-filter='subsistence_buildings']").click();
   await compact.waitForFunction(() => window.eval("state.mapMode") !== "subsistenceBuildings" && document.querySelector("#subsistenceBuildingMapLegend")?.hidden === true, { timeout: 10000 });
   assert.equal(await compact.locator("[data-resource-filter='subsistence_buildings']").getAttribute("aria-pressed"), "false", "second click must clear the combined map entry");

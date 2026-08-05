@@ -133,7 +133,10 @@ body {
 
 .map-viewport {
   position: absolute;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   height: auto;
   overflow: hidden;
   border: 1px solid rgba(205, 161, 95, 0.18);
@@ -165,6 +168,15 @@ body {
 }
 
 .terrain-map-legend {
+  position: absolute;
+  z-index: 4;
+  right: calc(12px + var(--results-panel-width) + 12px);
+  bottom: 18px;
+  left: calc(12px + var(--left-panel-width) + 12px);
+  transition: left 0.16s ease;
+}
+
+.subsistence-building-map-legend {
   position: absolute;
   z-index: 4;
   right: calc(12px + var(--results-panel-width) + 12px);
@@ -364,6 +376,10 @@ body.filters-collapsed .map-toolbar {
 }
 
 body.filters-collapsed .terrain-map-legend {
+  left: 12px;
+}
+
+body.filters-collapsed .subsistence-building-map-legend {
   left: 12px;
 }
 
@@ -1618,6 +1634,12 @@ body[data-view="law"][data-results-panel="collapsed"] .detail {
   }
 
   .terrain-map-legend {
+    right: 10px;
+    bottom: 10px;
+    left: 10px;
+  }
+
+  .subsistence-building-map-legend {
     right: 10px;
     bottom: 10px;
     left: 10px;
