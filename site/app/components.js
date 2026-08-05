@@ -2726,15 +2726,20 @@ function dynamicStateNameSearchParts(variants) {
 }
 
 function resourceOptionToken(filter) {
-  const iconKey = (filter.resources || filter.arableResources || filter.companyBuildings || [])[0] || "";
   const label = filter.labelKey ? t(filter.labelKey) : resourceFilterLabel(filter);
   const checked = state.resourceFilters.has(filter.key);
-  const icon = buildingIconHtml(iconKey, label);
+  const icon = resourceFilterIconHtml(filter, label);
   return `
     <button class="filter-token filter-token-with-icon resource-filter-token" type="button" data-filter-token data-resource-filter="${escapeHtml(filter.key)}" aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}" aria-pressed="${checked ? "true" : "false"}">
       ${icon || escapeHtml(label)}
     </button>
   `;
+}
+
+function resourceFilterIconHtml(filter, label) {
+  if (filter?.icon) return `<img class="resource-icon resource-filter-pop-icon" src="assets/${escapeHtml(filter.icon)}" alt="">`;
+  const iconKey = (filter?.resources || filter?.arableResources || filter?.companyBuildings || [])[0] || "";
+  return buildingIconHtml(iconKey, label);
 }
 
 function resourceFilterLabel(filter) {

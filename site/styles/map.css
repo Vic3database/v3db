@@ -258,13 +258,29 @@
   white-space: nowrap;
 }
 
+.subsistence-building-map-legend-heading {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.subsistence-building-map-legend-description {
+  color: var(--muted);
+}
+
+.subsistence-building-map-legend-items {
+  display: flex;
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+  gap: 5px 10px;
+}
+
 .subsistence-building-map-legend-swatch {
   width: 14px;
   height: 14px;
   flex: 0 0 auto;
   border: 1px solid rgba(255, 255, 255, 0.52);
   border-radius: 2px;
-  background: var(--subsistence-building-map-color);
+  background: linear-gradient(90deg, var(--subsistence-building-map-color-low), var(--subsistence-building-map-color-high));
 }
 
 .result-head {

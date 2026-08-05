@@ -27,20 +27,41 @@ try {
   await page.waitForFunction(() => document.querySelector("#subsistenceBuildingMapLegend")?.hidden === false, { timeout: 10000 });
 
   const overview = await page.evaluate(() => {
-    const expectedColors = {
-      building_subsistence_farm: "#c8893f",
-      building_subsistence_rice_farm: "#4c9f70",
-      building_subsistence_pasture: "#8b6f47",
-      building_subsistence_orchard: "#b5688b",
-      building_subsistence_fishing_village: "#4b87b6",
+    const gradientColor = (gradient, value, maxValue) => {
+      const ratio = Math.min(1, Math.max(0, Number(value || 0) / Math.max(Number(maxValue || 0), 1)));
+      const hexRgb = (hex) => {
+        const value = String(hex).replace("#", "");
+        return [0, 2, 4].map((index) => Number.parseInt(value.slice(index, index + 2), 16));
+      };
+      const from = hexRgb(gradient.low);
+      const to = hexRgb(gradient.high);
+      return `#${from.map((channel, index) => Math.round(channel + (to[index] - channel) * ratio).toString(16).padStart(2, "0")).join("")}`;
+    };
+    const expectedGradients = {
+      building_subsistence_farm: { low: "#f1dfb9", high: "#c8893f" },
+      building_subsistence_rice_farm: { low: "#c9e7d2", high: "#4c9f70" },
+      building_subsistence_pasture: { low: "#e2d3bc", high: "#8b6f47" },
+      building_subsistence_orchard: { low: "#e8c9df", high: "#b5688b" },
+      building_subsistence_fishing_village: { low: "#c7e1f2", high: "#4b87b6" },
     };
     const runtime = window.eval("mapRuntime");
     const landStateRegions = window.eval("landStateRegions");
     const features = [...runtime.featureByStateKey.values()];
-    const colorsByBuilding = Object.fromEntries(Object.keys(expectedColors).map((buildingKey) => [
-      buildingKey,
-      [...runtime.featureByStateKey.values()].find((feature) => feature.subsistenceBuildingKey === buildingKey)?.color || "",
-    ]));
+    const gradientSamples = Object.fromEntries(Object.keys(expectedGradients).map((buildingKey) => {
+      const samples = landStateRegions
+        .filter((stateRegion) => stateRegion.subsistence_building === buildingKey)
+        .sort((left, right) => Number(left.arable_land) - Number(right.arable_land));
+      const low = samples[0];
+      const high = samples.at(-1);
+      return [buildingKey, {
+        lowValue: Number(low?.arable_land),
+        highValue: Number(high?.arable_land),
+        lowColor: runtime.featureByStateKey.get(low?.key)?.color || "",
+        highColor: runtime.featureByStateKey.get(high?.key)?.color || "",
+        expectedLowColor: gradientColor(expectedGradients[buildingKey], low?.arable_land, high?.arable_land),
+        expectedHighColor: gradientColor(expectedGradients[buildingKey], high?.arable_land, high?.arable_land),
+      }];
+    }));
     const incorrectLabels = landStateRegions.filter((stateRegion) => {
       const feature = runtime.featureByStateKey.get(stateRegion.key);
       return String(feature?.label || "") !== String(stateRegion.arable_land);
@@ -48,9 +69,15 @@ try {
     return {
       pressed: document.querySelector("[data-resource-filter='subsistence_buildings']")?.getAttribute("aria-pressed"),
       mapMode: window.eval("state.mapMode"),
+      filterIcon: document.querySelector("[data-resource-filter='subsistence_buildings'] .resource-filter-pop-icon")?.getAttribute("src") || "",
+      filterIconLoaded: (() => {
+        const image = document.querySelector("[data-resource-filter='subsistence_buildings'] .resource-filter-pop-icon");
+        return Boolean(image?.complete && image.naturalWidth > 0);
+      })(),
+      filterText: document.querySelector("[data-resource-filter='subsistence_buildings']")?.innerText.trim() || "",
       legendCount: document.querySelectorAll(".subsistence-building-map-legend-item").length,
-      colorsByBuilding,
-      expectedColors,
+      legendText: document.querySelector("#subsistenceBuildingMapLegend")?.innerText || "",
+      gradientSamples,
       featureCount: features.length,
       landCount: landStateRegions.length,
       stateRegionCount: window.eval("stateRegions").length,
@@ -62,8 +89,18 @@ try {
   });
   assert.equal(overview.pressed, "true", "combined subsistence entry must become pressed");
   assert.equal(overview.mapMode, "subsistenceBuildings", "combined entry must select the dedicated map mode");
+  assert.equal(overview.filterIcon, "assets/pops/peasants.webp", "combined entry must display the peasant pop icon");
+  assert.equal(overview.filterIconLoaded, true, "combined entry must load the peasant pop icon");
+  assert.equal(overview.filterText, "", "combined entry must not render a text label in place of its icon");
   assert.equal(overview.legendCount, 5, "legend must contain all five subsistence building categories");
-  assert.deepEqual(overview.colorsByBuilding, overview.expectedColors, "every building category must use its fixed agreed color");
+  assert.match(overview.legendText, /自给建筑类型/, "legend must label the five category colors");
+  assert.match(overview.legendText, /同类建筑中颜色越深，耕地上限越高/, "legend must explain the per-building arable-land color gradient");
+  for (const [buildingKey, sample] of Object.entries(overview.gradientSamples)) {
+    assert(sample.lowValue < sample.highValue, `${buildingKey} needs distinct low and high arable-land samples`);
+    assert.equal(sample.lowColor, sample.expectedLowColor, `${buildingKey} low arable-land color must use its gradient`);
+    assert.equal(sample.highColor, sample.expectedHighColor, `${buildingKey} high arable-land color must use its gradient`);
+    assert.notEqual(sample.lowColor, sample.highColor, `${buildingKey} must visibly change color with arable-land capacity`);
+  }
   assert.equal(overview.featureCount, overview.stateRegionCount, "map must retain every state-region feature");
   assert.deepEqual(overview.incorrectLabels, [], "every land region must label its arable-land limit, including zero");
   assert.equal(overview.listCount, overview.expectedListCount, "map-only entry must not shrink the region list");

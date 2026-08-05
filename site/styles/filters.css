@@ -504,6 +504,10 @@ body[data-view="law"] .culture-filter {
   pointer-events: none;
 }
 
+.resource-filter-token .resource-filter-pop-icon {
+  object-fit: contain;
+}
+
 .resource-filter-token[aria-pressed="true"] {
   border-color: var(--accent);
   background: transparent;

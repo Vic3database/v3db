@@ -862,12 +862,12 @@ function hasCountryMapFilterSelection() {
 
 const RESOURCE_MAP_EMPTY_LAND_COLOR = "#e9edeb";
 const SUBSISTENCE_BUILDING_EMPTY_COLOR = "#e9edeb";
-const SUBSISTENCE_BUILDING_COLORS = new Map([
-  ["building_subsistence_farm", "#c8893f"],
-  ["building_subsistence_rice_farm", "#4c9f70"],
-  ["building_subsistence_pasture", "#8b6f47"],
-  ["building_subsistence_orchard", "#b5688b"],
-  ["building_subsistence_fishing_village", "#4b87b6"],
+const SUBSISTENCE_BUILDING_GRADIENT_BY_KEY = new Map([
+  ["building_subsistence_farm", { low: "#f1dfb9", high: "#c8893f" }],
+  ["building_subsistence_rice_farm", { low: "#c9e7d2", high: "#4c9f70" }],
+  ["building_subsistence_pasture", { low: "#e2d3bc", high: "#8b6f47" }],
+  ["building_subsistence_orchard", { low: "#e8c9df", high: "#b5688b" }],
+  ["building_subsistence_fishing_village", { low: "#c7e1f2", high: "#4b87b6" }],
 ]);
 const RESOURCE_MAP_COMBINED_GRADIENT = { low: "#c9d6de", high: "#58788a" };
 const RESOURCE_MAP_GRADIENT_BY_KEY = new Map([
@@ -920,15 +920,25 @@ function resourceMapGradientColor(resourceKey, value, maxValue) {
   return interpolateColor(gradient.low, gradient.high, ratio);
 }
 
+function subsistenceBuildingGradientColor(buildingKey, value, maxValue) {
+  const gradient = SUBSISTENCE_BUILDING_GRADIENT_BY_KEY.get(buildingKey);
+  if (!gradient) return SUBSISTENCE_BUILDING_EMPTY_COLOR;
+  return interpolateColor(gradient.low, gradient.high, Number(value || 0) / Math.max(Number(maxValue || 0), 1));
+}
+
 function renderSubsistenceBuildingMapLegend() {
   if (!els.subsistenceBuildingMapLegend) return;
   const enabled = state.mapMode === "subsistenceBuildings";
   els.subsistenceBuildingMapLegend.hidden = !enabled;
   if (!enabled) return;
-  els.subsistenceBuildingMapLegend.innerHTML = [...SUBSISTENCE_BUILDING_COLORS].map(([key, color]) => {
+  els.subsistenceBuildingMapLegend.innerHTML = `
+    <span class="subsistence-building-map-legend-heading">${escapeHtml(t("map.subsistenceBuildingLegend", "自给建筑类型"))}</span>
+    <span class="subsistence-building-map-legend-description">${escapeHtml(t("map.subsistenceBuildingLegendArableLand", "同类建筑中颜色越深，耕地上限越高"))}</span>
+    <span class="subsistence-building-map-legend-items">${[...SUBSISTENCE_BUILDING_GRADIENT_BY_KEY].map(([key, gradient]) => {
     const label = subsistenceBuildingLabel(key);
-    return `<span class="subsistence-building-map-legend-item"><span class="subsistence-building-map-legend-swatch" style="--subsistence-building-map-color: ${escapeHtml(color)}" aria-hidden="true"></span>${escapeHtml(label)}</span>`;
-  }).join("");
+    return `<span class="subsistence-building-map-legend-item"><span class="subsistence-building-map-legend-swatch" style="--subsistence-building-map-color-low: ${escapeHtml(gradient.low)}; --subsistence-building-map-color-high: ${escapeHtml(gradient.high)}" aria-hidden="true"></span>${escapeHtml(label)}</span>`;
+  }).join("")}</span>
+  `;
 }
 
 function subsistenceBuildingLabel(key) {
@@ -936,6 +946,13 @@ function subsistenceBuildingLabel(key) {
 }
 
 function buildSubsistenceBuildingMapFeatures() {
+  const maxArableLandByBuilding = new Map();
+  for (const stateRegion of landStateRegions) {
+    const buildingKey = stateRegion.subsistence_building || "";
+    const arableLand = Number(stateRegion.arable_land);
+    if (!buildingKey || !Number.isFinite(arableLand)) continue;
+    maxArableLandByBuilding.set(buildingKey, Math.max(maxArableLandByBuilding.get(buildingKey) || 0, arableLand));
+  }
   const features = new Map();
   for (const stateRegion of stateRegions) {
     const isSea = isSeaStateRegion(stateRegion);
@@ -943,7 +960,7 @@ function buildSubsistenceBuildingMapFeatures() {
     const arableLand = Number(stateRegion.arable_land);
     const color = isSea
       ? MAP_SEA_COLOR
-      : (SUBSISTENCE_BUILDING_COLORS.get(buildingKey) || SUBSISTENCE_BUILDING_EMPTY_COLOR);
+      : subsistenceBuildingGradientColor(buildingKey, arableLand, maxArableLandByBuilding.get(buildingKey));
     features.set(stateRegion.key, {
       color: mapFeatureColor(stateRegion, color),
       active: Boolean(buildingKey),

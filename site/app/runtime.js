@@ -480,7 +480,7 @@ const resourceFilterGroups = [
   {
     key: "subsistence",
     filters: [
-      { key: "subsistence_buildings", labelKey: "filter.subsistenceBuildings", mapMode: "subsistenceBuildings", mapOnly: true },
+      { key: "subsistence_buildings", labelKey: "filter.subsistenceBuildings", icon: "pops/peasants.webp", mapMode: "subsistenceBuildings", mapOnly: true },
     ],
   },
   {
