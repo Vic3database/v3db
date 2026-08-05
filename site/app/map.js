@@ -926,10 +926,13 @@ function renderSubsistenceBuildingMapLegend() {
   els.subsistenceBuildingMapLegend.hidden = !enabled;
   if (!enabled) return;
   els.subsistenceBuildingMapLegend.innerHTML = [...SUBSISTENCE_BUILDING_COLORS].map(([key, color]) => {
-    const building = buildingByKey.get(key);
-    const label = entityText(building, "name", t(`map.subsistenceBuilding.${key}`, key));
+    const label = subsistenceBuildingLabel(key);
     return `<span class="subsistence-building-map-legend-item"><span class="subsistence-building-map-legend-swatch" style="--subsistence-building-map-color: ${escapeHtml(color)}" aria-hidden="true"></span>${escapeHtml(label)}</span>`;
   }).join("");
+}
+
+function subsistenceBuildingLabel(key) {
+  return t(`map.subsistenceBuilding.${key}`, entityText(buildingByKey.get(key), "name", key));
 }
 
 function buildSubsistenceBuildingMapFeatures() {
@@ -1775,10 +1778,9 @@ function mapTooltipRowsForView(stateRegion, feature, ownerTag = "", terrainKey =
   }
   if (state.mapMode === "subsistenceBuildings") {
     const buildingKey = feature?.subsistenceBuildingKey || stateRegion.subsistence_building || "";
-    const building = buildingByKey.get(buildingKey);
     return compactTooltipRows([
       [t("board.region.strategicRegion", "战略区域"), refNames(stateRegion.strategic_regions)],
-      [t("map.subsistenceBuilding", "自给建筑"), entityText(building, "name", buildingKey)],
+      [t("map.subsistenceBuilding", "自给建筑"), subsistenceBuildingLabel(buildingKey)],
       [t("board.region.arableLand", "耕地"), stateRegion.arable_land === null ? "" : String(stateRegion.arable_land)],
       [t("board.region.traits", "地区特质"), tooltipHtml(mapTooltipStateTraitHtml(stateRegion.traits || []))],
     ]);

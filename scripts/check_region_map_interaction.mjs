@@ -99,8 +99,8 @@ function checkTerrainViewContracts() {
 }
 
 function checkRegionMapCacheVersionContracts() {
-  assert(/app\/ui\.js\?v=20260804-vc-english-economy1/.test(indexSource), "region map UI script should use the current release cache version");
-  assert(/app\/map\.js\?v=20260804-vc-english-economy1/.test(indexSource), "region map script should use the current release cache version");
+  assert(/app\/ui\.js\?v=20260805-subsistence-map1/.test(indexSource), "region map UI script should use the current release cache version");
+  assert(/app\/map\.js\?v=20260805-subsistence-map1/.test(indexSource), "region map script should use the current release cache version");
   assert(/app\/presentation\.js\?v=20260804-vc-english-economy1/.test(indexSource), "fast region selection should use the current presentation cache version");
 }
 

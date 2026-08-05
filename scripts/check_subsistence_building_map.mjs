@@ -53,6 +53,11 @@ assert.match(functionSource(mapSource, "renderSubsistenceBuildingMapLegend"), /S
 assert.match(functionSource(mapSource, "drawMapLabels"), /"subsistenceBuildings"/, "the subsistence map must draw arable-land labels");
 assert.match(functionSource(mapSource, "mapTooltipRowsForView"), /state\.mapMode === "subsistenceBuildings"/, "the subsistence map must use dedicated tooltip rows");
 assert.match(mapStylesSource, /\.subsistence-building-map-legend/, "the subsistence-building legend must have responsive styles");
+assert.match(indexSource, /styles\.css\?v=20260805-subsistence-map1/, "main entry must invalidate subsistence-map styles");
+assert.match(indexSource, /app\/runtime\.js\?v=20260805-subsistence-map1/, "main entry must invalidate subsistence-map runtime");
+assert.match(indexSource, /app\/components\.js\?v=20260805-subsistence-map1/, "main entry must invalidate subsistence-map components");
+assert.match(indexSource, /app\/ui\.js\?v=20260805-subsistence-map1/, "main entry must invalidate subsistence-map UI");
+assert.match(indexSource, /app\/map\.js\?v=20260805-subsistence-map1/, "main entry must invalidate subsistence-map script");
 
 console.log(JSON.stringify({ subsistence_building_map: "entry-ok", buildingTypes: actualBuildingKeys }, null, 2));
 
