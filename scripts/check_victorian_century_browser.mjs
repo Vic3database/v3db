@@ -27,6 +27,7 @@ try {
   await checkEnglishBanana(page);
   await checkAutomobiles(page, "zh-Hans");
   await checkAutomobiles(page, "en");
+  await checkAdjustedPrestigeGood(page);
   await page.close();
   console.log(JSON.stringify({
     victorian_century_browser: "ok",
@@ -73,15 +74,20 @@ async function checkEconomyWall(page, route) {
 async function checkEnglishConstruction(page) {
   await page.goto(localizedRoute("en", "building/building_construction_sector"));
   await page.waitFor(() => document.documentElement.lang === "en" && document.querySelector("[data-production-method-picker='pmg_base_building_construction_sector']"), "English construction detail");
+  await page.click("[data-production-method-picker='pmg_base_building_construction_sector']");
+  await page.waitFor(() => document.querySelector(".production-method-group-panel:not([hidden]) [data-production-method-key='pm_wooden_buildings']"), "English construction methods");
   const construction = await page.evaluate(() => ({
     title: document.querySelector(".economy-detail h2")?.childNodes[0]?.textContent?.trim() || "",
-    method: document.querySelector(".selected-production-method-detail h4")?.childNodes[0]?.textContent?.trim() || "",
-    adjusted: Boolean(document.querySelector(".selected-production-method-detail h4 .tag-vc-adjusted")),
+    method: document.querySelector(".production-method-row.is-selected strong")?.textContent?.trim() || "",
+    adjusted: Boolean(document.querySelector(".production-method-row.is-selected .tag-vc-adjusted")),
+    changedFields: document.querySelector(".production-method-row.is-selected .economy-vc-change")?.textContent?.trim() || "",
     body: document.querySelector(".economy-detail")?.innerText || "",
   }));
   assert.equal(construction.title, "Construction Sector", "VC English construction title is incorrect");
   assert.equal(construction.method, "Wooden Buildings", "VC English construction method is incorrect");
   assert.equal(construction.adjusted, true, "VC adjusted construction production method lacks its badge");
+  assert.match(construction.changedFields, /^VC changed fields:/, "VC adjusted construction method must identify its changed fields");
+  assert.doesNotMatch(construction.changedFields, /patch_directives/, "VC changed fields must not expose patch metadata");
   assert.doesNotMatch(construction.body, /\$[^$]+\$|@[A-Za-z0-9_]+!|[\u3400-\u9fff]/, "VC English construction detail contains unresolved localization");
 }
 
@@ -93,12 +99,8 @@ async function checkEnglishBanana(page) {
   await page.click("[data-production-method-group='pmg_banana_exploitation'][data-production-method-key='united_fruit_banana']");
   await page.waitFor(() => document.querySelector("[data-production-method-picker='pmg_banana_exploitation']")?.dataset.productionMethodKey === "united_fruit_banana", "selected United Fruit option");
   const banana = await page.evaluate(() => ({
-    method: [...document.querySelectorAll(".selected-production-method-detail h4")]
-      .find((heading) => heading.childNodes[0]?.textContent?.trim() === "Vertically Integrated Cultivation")
-      ?.childNodes[0]?.textContent?.trim() || "",
-    added: Boolean([...document.querySelectorAll(".selected-production-method-detail h4")]
-      .find((heading) => heading.childNodes[0]?.textContent?.trim() === "Vertically Integrated Cultivation")
-      ?.querySelector(".tag-vc-added")),
+    method: document.querySelector(".production-method-group-panel:not([hidden]) .production-method-row.is-selected strong")?.textContent?.trim() || "",
+    added: Boolean(document.querySelector(".production-method-group-panel:not([hidden]) .production-method-row.is-selected .tag-vc-added")),
     body: document.querySelector(".economy-detail")?.innerText || "",
   }));
   assert.equal(banana.method, "Vertically Integrated Cultivation", "VC added banana production method is incorrect");
@@ -119,6 +121,13 @@ async function checkAutomobiles(page, locale) {
     assert.equal(automobiles.name, "Benz Automobiles", "VC English Benz prestige-good name is incorrect");
     assert.doesNotMatch(automobiles.body, /\$[^$]+\$|@[A-Za-z0-9_]+!|[\u3400-\u9fff]/, "VC English automobiles detail contains unresolved localization");
   }
+}
+
+async function checkAdjustedPrestigeGood(page) {
+  await page.goto(localizedRoute("en", "goods/artillery"));
+  await page.waitFor(() => document.querySelector("[data-prestige-good='prestige_good_generic_artillery']"), "English artillery detail");
+  const changedFields = await page.evaluate(() => document.querySelector("[data-prestige-good='prestige_good_generic_artillery'] .economy-vc-change")?.textContent?.trim() || "");
+  assert.match(changedFields, /^VC changed fields: associated companies$/, "adjusted prestige goods must identify their changed companies");
 }
 
 function localizedRoute(locale, route) {

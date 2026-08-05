@@ -9,8 +9,8 @@ const buildScript = read("scripts/build_wiki.mjs");
 const appSource = readSiteAppSource(root);
 const styleSource = readSiteStyleSource(root);
 
-assert.match(indexHtml, /app\/economy\.js\?v=20260804-vc-english-economy1/, "economy script must use the VC English economy cache version");
-assert.match(indexHtml, /styles\.css\?v=20260804-vc-english-economy1/, "site styles must use the VC English economy cache version");
+assert.match(indexHtml, /app\/economy\.js\?v=20260805-production-method-list1/, "economy script must use the production-method list cache version");
+assert.match(indexHtml, /styles\.css\?v=20260805-production-method-list1/, "site styles must use the production-method list cache version");
 
 for (const view of ["building", "goods"]) {
   assert(indexHtml.includes(`data-nav-view="${view}"`), `top navigation must include ${view}`);
@@ -33,18 +33,28 @@ for (const field of ["consuming_buildings", "pop_needs", "obsessed_cultures", "t
 }
 for (const text of [
   "productionCombinationSummaryHtml",
+  "productionMethodGroupStripHtml",
+  "productionMethodGroupPanelHtml",
+  "productionMethodGoodsHtml",
+  "productionMethodWorkforceHtml",
+  "productionMethodExtraHtml",
   "data-production-method-picker",
+  "production-method-group-strip",
+  "production-method-group-panel",
+  "production-method-goods-row",
+  "production-method-workforce-row",
+  "production-method-extra-row",
   "data-production-summary",
   "board.economy.standardOutputLabel",
   "data-production-standard-output",
   "annualProfitPerWorker",
   "goodByKey.get(goodKey)?.price",
-  'entityText(method, "description"',
   "combined: true",
   "data-production-method-key",
   "economyAsset(\"production-methods\"",
   "economyAsset(\"buildings\"",
   "economyAsset(\"goods\"",
+  "economyAsset(\"pops\"",
   "economyAsset(\"prestige-goods\"",
   "/region/resource/",
   "board_group",
@@ -59,11 +69,16 @@ for (const text of [
 }
 assert(!appSource.includes("所有可能组合"), "building detail must not enumerate every production-method combination");
 assert(appSource.includes("* 52"), "annual profit per worker must convert weekly profit to yearly profit with 52 weeks");
+assert(!appSource.includes("selected-production-method-detail"), "legacy production-method details accordion must be removed");
+assert(!appSource.includes("renderSelectedProductionMethodDetail"), "legacy production-method details renderer must be removed");
+assert(!appSource.includes("当前选中") && !appSource.includes("当前选择"), "selected production methods must be indicated by their border only");
 assert(styleSource.includes(".economy-wall-grid"), "economy wall needs responsive card layout");
-assert(styleSource.includes(".production-method-options"), "production-method options need horizontal layout");
+assert(styleSource.includes(".production-method-group-strip"), "production-method group strip needs horizontal layout");
+assert(styleSource.includes(".production-method-row"), "production-method list needs a selectable row layout");
 assert(styleSource.includes(".production-combination-summary"), "current production combination needs a dedicated summary layout");
 assert(styleSource.includes(".economy-change-filters"), "economy boards need Victorian Century change filters");
 assert(styleSource.includes(".economy-card-change"), "economy cards need a dedicated change-badge slot");
+assert.match(read("site/locales/ui.zh-Hans.js"), /"enum\.popType\.clergymen": "教士"/, "clergymen must use the game Chinese term");
 
 console.log(JSON.stringify({ economy_board_contract: "ok" }, null, 2));
 

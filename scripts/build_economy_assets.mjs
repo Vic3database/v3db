@@ -45,6 +45,25 @@ for (const [fileKey, category] of collections) {
   }
 }
 
+const productionMethods = readJson(path.join(databaseDir, index.files?.production_methods || ""));
+for (const key of workforcePopKeys(productionMethods)) {
+  const relative = `gfx/interface/icons/pops_icons/${key}.dds`;
+  const resolved = resolveIconSource(relative);
+  entries.push({
+    key,
+    source: resolved.source,
+    destination: path.join(siteRoot, "assets", "pops", `${key}.webp`),
+    category: "pops",
+    public: {
+      category: "pops",
+      key,
+      source_kind: resolved.source_kind,
+      source: relative,
+      target: `assets/pops/${key}.webp`,
+    },
+  });
+}
+
 const uniqueDestinations = new Set();
 for (const entry of entries) {
   if (uniqueDestinations.has(entry.destination)) throw new Error(`Duplicate economy asset destination: ${entry.destination}`);
@@ -143,6 +162,12 @@ function assertOutputs(rows) {
   for (const row of rows) {
     if (!fs.statSync(row.destination, { throwIfNoEntry: false })?.isFile()) throw new Error(`Missing converted economy icon: ${row.destination}`);
   }
+}
+
+function workforcePopKeys(methods) {
+  return [...new Set((methods || []).flatMap((method) => method.effects || []).map((effect) => (
+    String(effect?.key || "").match(/^building_employment_(.+)_add$/)?.[1] || ""
+  )).filter(Boolean))].sort();
 }
 
 function readJson(file) {

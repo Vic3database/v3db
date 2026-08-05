@@ -4,7 +4,7 @@
 
 **Goal:** 将建筑详情的生产方式改为游戏式单组列表，使用商品与职业图标，并修正中文职业术语和 Victorian Century 调整标签。
 
-**Architecture:** `site/app/economy.js` 根据当前打开的生产方式组渲染纯图标入口和独立三层列表；组合汇总继续从各组当前选择计算。`scripts/build_economy_assets.mjs` 增加职业图标构建，`scripts/build_wiki.mjs` 与 VC 校验共同排除补丁元数据，避免没有实际数据差异的调整标签。
+**Architecture:** `site/app/economy.js` 根据当前打开的生产方式组渲染纯图标入口和独立三层列表；组合汇总继续从各组当前选择计算。`scripts/build_economy_assets.mjs` 增加职业图标构建，`scripts/build_wiki.mjs` 与 VC 校验共同排除补丁元数据，避免没有实际数据差异的调整标签，并为保留调整写入字段清单。
 
 **Tech Stack:** Node.js ESM、原生浏览器 JavaScript/CSS、Pillow 图标转换、Chrome DevTools Protocol 回归脚本。
 
@@ -21,7 +21,7 @@
 | `scripts/check_economy_assets.mjs` | 校验职业图标清单和文件。 |
 | `scripts/check_economy_board_contract.mjs` | 校验生产方式页面契约和中文术语。 |
 | `scripts/check_economy_board_browser.mjs` | 校验油井页面的单组展开、三层信息和选择重算。 |
-| `scripts/build_wiki.mjs` | 忽略 VC 比较中的 `patch_directives`。 |
+| `scripts/build_wiki.mjs` | 忽略 VC 比较中的 `patch_directives`，生成调整字段清单。 |
 | `scripts/check_victorian_century_change_tags.mjs` | 验证比较规则与实际标签一致。 |
 | `site/index.html` | 更新样式和应用缓存版本。 |
 
@@ -207,6 +207,7 @@ Expected: FAIL because `patch_directives` remains part of the comparison.
 const victorianCenturyChangeIgnoredFields = new Set([
   "id", "source", "source_file", "source_files", "sourceFile",
   "definition_file", "definitionFile", "patch_directives", "vc_change_kind",
+  "vc_change_fields",
 ]);
 ```
 

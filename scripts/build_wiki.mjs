@@ -35,7 +35,9 @@ const victorianCenturyChangeIgnoredFields = new Set([
   "sourceFile",
   "definition_file",
   "definitionFile",
+  "patch_directives",
   "vc_change_kind",
+  "vc_change_fields",
 ]);
 
 const args = parseArgs(process.argv.slice(2));
@@ -359,7 +361,8 @@ function markVictorianCenturyChanges(items, baselineItems, keyField, ignoreTechn
     const key = item?.[keyField];
     const baseline = baselineByKey.get(key);
     const kind = !baseline ? "added" : victorianCenturyContentDiffers(item, baseline, ignoreTechnologyReferences) ? "adjusted" : "";
-    return kind ? { ...item, vc_change_kind: kind } : item;
+    const fields = kind === "adjusted" ? victorianCenturyChangedFields(item, baseline, ignoreTechnologyReferences) : [];
+    return kind ? { ...item, vc_change_kind: kind, ...(fields.length ? { vc_change_fields: fields } : {}) } : item;
   });
 }
 
@@ -423,6 +426,14 @@ function markVictorianCenturyReference(item, changeKinds) {
 
 function victorianCenturyContentDiffers(current, baseline, ignoreTechnologyReferences = false) {
   return stableJson(victorianCenturyComparableValue(current, ignoreTechnologyReferences)) !== stableJson(victorianCenturyComparableValue(baseline, ignoreTechnologyReferences));
+}
+
+function victorianCenturyChangedFields(current, baseline, ignoreTechnologyReferences = false) {
+  const currentComparable = victorianCenturyComparableValue(current, ignoreTechnologyReferences);
+  const baselineComparable = victorianCenturyComparableValue(baseline, ignoreTechnologyReferences);
+  return [...new Set([...Object.keys(currentComparable || {}), ...Object.keys(baselineComparable || {})])]
+    .filter((key) => stableJson(currentComparable?.[key]) !== stableJson(baselineComparable?.[key]))
+    .sort((left, right) => left.localeCompare(right));
 }
 
 function victorianCenturyComparableValue(value, ignoreTechnologyReferences = false) {

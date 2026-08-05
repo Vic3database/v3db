@@ -36,6 +36,21 @@ for (const [fileKey, category] of collections) {
   }
   counts[category] = withIcons.length;
 }
+const popKeys = workforcePopKeys(readJson(path.join(databaseDir, index.files.production_methods)));
+for (const key of popKeys) {
+  const source = `gfx/interface/icons/pops_icons/${key}.dds`;
+  const resolved = resolveIconSource(source);
+  const file = path.join(siteRoot, "assets", "pops", `${key}.webp`);
+  assert(fs.statSync(file, { throwIfNoEntry: false })?.isFile(), `missing pops asset: ${key}`);
+  expectedAssets.push({
+    category: "pops",
+    key,
+    source_kind: resolved.kind,
+    source,
+    target: `assets/pops/${key}.webp`,
+  });
+}
+counts.pops = popKeys.length;
 expectedAssets.sort(compareAsset);
 const manifest = readJson(path.join(siteRoot, "assets", "economy-assets.json"));
 assert.equal(manifest.schema_version, 1, "economy asset manifest schema must be 1");
@@ -75,6 +90,12 @@ function normalizeRelative(value) {
 
 function compareAsset(left, right) {
   return left.category.localeCompare(right.category) || left.key.localeCompare(right.key);
+}
+
+function workforcePopKeys(methods) {
+  return [...new Set((methods || []).flatMap((method) => method.effects || []).map((effect) => (
+    String(effect?.key || "").match(/^building_employment_(.+)_add$/)?.[1] || ""
+  )).filter(Boolean))].sort();
 }
 
 function readJson(file) {

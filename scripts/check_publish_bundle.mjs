@@ -214,6 +214,12 @@ function dataAssetReferences(data, helpers) {
       if (item?.key && item.icon?.source) out.push(`assets/${category}/${item.key}.webp`);
     }
   }
+  for (const method of data.productionMethods || []) {
+    for (const effect of method.effects || []) {
+      const popKey = String(effect?.key || "").match(/^building_employment_(.+)_add$/)?.[1];
+      if (popKey) out.push(`assets/pops/${popKey}.webp`);
+    }
+  }
 
   return [...new Set(out)];
 }

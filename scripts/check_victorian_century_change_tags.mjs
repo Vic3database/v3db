@@ -30,6 +30,13 @@ const changeFields = Object.freeze({
   prestigeGoods: "key",
 });
 
+const onlyPatchMetadata = { key: "fixture", patch_directives: ["DEFINE"] };
+assert.equal(
+  stableJson(normalizeForComparison(onlyPatchMetadata)),
+  stableJson(normalizeForComparison({ key: "fixture" })),
+  "patch directives must not create an adjusted VC tag",
+);
+
 try {
   buildDataset(baselineDatabase, baselineOut);
   buildDataset(victorianCenturyDatabase, victorianCenturyOut, baselineDatabase);
@@ -40,9 +47,9 @@ try {
   const actual = taggedSummary(victorianCentury);
 
   for (const field of Object.keys(changeFields)) {
-    assert(expected[field].added + expected[field].adjusted > 0, `${field} should contain Victorian Century changes`);
     assert.deepEqual(actual[field], expected[field], `${field} change tags do not match the baseline comparison`);
   }
+  assert(Object.values(actual).some((summary) => summary.added + summary.adjusted > 0), "Victorian Century should retain substantive change tags");
   assert.deepEqual(actual.technologies, { added: 1, adjusted: 0 }, "technology change tags should retain only the added VC technology");
 
   const sourceFiles = {
@@ -71,7 +78,13 @@ try {
   assert.match(sourceFiles.economy, /matchesVictorianCenturyChange/, "economy boards must apply the VC change filter");
   assert.match(sourceFiles.economy, /victorianCenturyBadge/, "economy boards must render VC change badges");
   assert.match(sourceFiles.economy, /data-economy-vc-change/, "economy boards must expose local VC filter buttons");
-  assert(actual.buildings.adjusted >= 43, "VC must mark every patched building as adjusted");
+  assert.match(sourceFiles.economy, /vc_change_fields/, "economy details must identify substantive VC change fields");
+  for (const field of ["buildings", "productionMethodGroups", "productionMethods", "goods", "prestigeGoods"]) {
+    for (const item of victorianCentury[field] || []) {
+      if (item.vc_change_kind === "adjusted") assert(item.vc_change_fields?.length > 0, `${field}:${item.key} must identify its changed fields`);
+    }
+  }
+  assert(actual.buildings.adjusted > 0, "VC must retain buildings with substantive changes");
   assert.equal(actual.prestigeGoods.added, 26, "VC must mark the 26 new prestige goods as added");
 
   console.log(JSON.stringify({
@@ -151,7 +164,7 @@ function normalizeForComparison(value, ignoreTechnologyReferences = false) {
   if (Array.isArray(value)) return value.map((item) => normalizeForComparison(item, ignoreTechnologyReferences));
   if (!value || typeof value !== "object") return value;
   return Object.fromEntries(Object.entries(value)
-    .filter(([key]) => !["id", "source", "source_file", "source_files", "sourceFile", "definition_file", "definitionFile", "vc_change_kind"].includes(key) && !(ignoreTechnologyReferences && key === "references"))
+    .filter(([key]) => !["id", "source", "source_file", "source_files", "sourceFile", "definition_file", "definitionFile", "patch_directives", "vc_change_kind", "vc_change_fields"].includes(key) && !(ignoreTechnologyReferences && key === "references"))
     .sort(([left], [right]) => left.localeCompare(right))
     .map(([key, item]) => [key, normalizeForComparison(item, ignoreTechnologyReferences)]));
 }

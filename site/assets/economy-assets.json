@@ -1080,6 +1080,104 @@
       "target": "assets/goods/wood.webp"
     },
     {
+      "category": "pops",
+      "key": "academics",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/pops_icons/academics.dds",
+      "target": "assets/pops/academics.webp"
+    },
+    {
+      "category": "pops",
+      "key": "aristocrats",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/pops_icons/aristocrats.dds",
+      "target": "assets/pops/aristocrats.webp"
+    },
+    {
+      "category": "pops",
+      "key": "bureaucrats",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/pops_icons/bureaucrats.dds",
+      "target": "assets/pops/bureaucrats.webp"
+    },
+    {
+      "category": "pops",
+      "key": "capitalists",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/pops_icons/capitalists.dds",
+      "target": "assets/pops/capitalists.webp"
+    },
+    {
+      "category": "pops",
+      "key": "clergymen",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/pops_icons/clergymen.dds",
+      "target": "assets/pops/clergymen.webp"
+    },
+    {
+      "category": "pops",
+      "key": "clerks",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/pops_icons/clerks.dds",
+      "target": "assets/pops/clerks.webp"
+    },
+    {
+      "category": "pops",
+      "key": "engineers",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/pops_icons/engineers.dds",
+      "target": "assets/pops/engineers.webp"
+    },
+    {
+      "category": "pops",
+      "key": "farmers",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/pops_icons/farmers.dds",
+      "target": "assets/pops/farmers.webp"
+    },
+    {
+      "category": "pops",
+      "key": "laborers",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/pops_icons/laborers.dds",
+      "target": "assets/pops/laborers.webp"
+    },
+    {
+      "category": "pops",
+      "key": "machinists",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/pops_icons/machinists.dds",
+      "target": "assets/pops/machinists.webp"
+    },
+    {
+      "category": "pops",
+      "key": "officers",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/pops_icons/officers.dds",
+      "target": "assets/pops/officers.webp"
+    },
+    {
+      "category": "pops",
+      "key": "peasants",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/pops_icons/peasants.dds",
+      "target": "assets/pops/peasants.webp"
+    },
+    {
+      "category": "pops",
+      "key": "shopkeepers",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/pops_icons/shopkeepers.dds",
+      "target": "assets/pops/shopkeepers.webp"
+    },
+    {
+      "category": "pops",
+      "key": "soldiers",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/pops_icons/soldiers.dds",
+      "target": "assets/pops/soldiers.webp"
+    },
+    {
       "category": "prestige-goods",
       "key": "prestige_good_acorn_fed_pork",
       "source_kind": "game",

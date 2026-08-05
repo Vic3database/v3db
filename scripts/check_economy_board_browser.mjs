@@ -40,34 +40,59 @@ try {
   await page.evaluate(() => document.querySelector("[data-building-key='building_oil_rig']").click());
   await page.waitFor(() => location.hash === "#/building/building_oil_rig", "oil rig route");
   const oilRig = await page.evaluate(() => ({
-    groupCount: document.querySelectorAll(".production-method-group").length,
-    pickers: document.querySelectorAll("[data-production-method-picker]").length,
-    visibleChoices: document.querySelectorAll("[data-production-method-key]:not([data-production-method-picker])").length,
+    strip: document.querySelectorAll(".production-method-group-strip [data-production-method-picker]").length,
+    stripText: document.querySelector(".production-method-group-strip")?.textContent?.trim() || "",
+    openPanels: document.querySelectorAll(".production-method-group-panel:not([hidden])").length,
+    legacyDetails: document.querySelector(".selected-production-method-detail"),
     combinationLabels: Array.from(document.querySelectorAll("[data-production-summary] dt"), (label) => label.textContent.trim()),
     combinationText: document.querySelector("[data-production-summary]")?.textContent || "",
-    methodDetailsClosed: document.querySelector(".selected-production-method-detail")?.open === false,
     allCombinationList: document.querySelector(".production-combination-list"),
     resourceButton: Boolean(document.querySelector("[data-resource-map-building='building_oil_rig']")),
   }));
-  assert.equal(oilRig.groupCount, 2, "oil rig must retain its two production-method groups");
-  assert.equal(oilRig.pickers, 2, "oil rig must initially show one selected icon per group");
-  assert.equal(oilRig.visibleChoices, 0, "other production methods must remain hidden until their selected icon is clicked");
+  assert.equal(oilRig.strip, 2, "oil rig must show one current icon for each production-method group");
+  assert.equal(oilRig.stripText, "", "top production-method strip must contain icons only");
+  assert.equal(oilRig.openPanels, 0, "production-method groups must start collapsed");
+  assert.equal(oilRig.legacyDetails, null, "legacy production-method accordion must not be rendered");
   assert.deepEqual(oilRig.combinationLabels, ["劳动力：", "投入商品：", "产出商品：", "标准产值：", "修正："], "current combination must expose the five requested level-one result categories");
   assert.match(oilRig.combinationText, /劳动力：500店主，3000劳工，1000技工，500工程师/, "level-one employment must use concise population counts");
   assert.match(oilRig.combinationText, /投入商品：5发动机，10煤/, "level-one inputs must use concise goods counts");
   assert.match(oilRig.combinationText, /产出商品：60油/, "level-one outputs must use concise goods counts");
   assert.equal(await page.evaluate(() => document.querySelector("[data-production-standard-output]")?.textContent?.trim()), "£18.72/人/年", "standard output must use base prices and 52-week annual profit per worker");
-  assert.equal(oilRig.methodDetailsClosed, true, "production method details must be closed by default");
   assert.equal(oilRig.allCombinationList, null, "building detail must not render a full combination list");
   assert.equal(oilRig.resourceButton, true, "oil rig must offer the resource map route");
   const initialCombinationText = oilRig.combinationText;
   await page.evaluate(() => document.querySelector("[data-production-method-picker='pmg_base_building_oil_rig']").click());
-  await page.waitFor(() => document.querySelectorAll("[data-production-method-group='pmg_base_building_oil_rig'][data-production-method-key]").length === 1, "other base drilling option");
+  await page.waitFor(() => document.querySelectorAll(".production-method-group-panel:not([hidden])").length === 1, "base drilling panel");
+  const basePanel = await page.evaluate(() => ({
+    title: document.querySelector(".production-method-group-panel:not([hidden]) > h4")?.textContent?.trim() || "",
+    rows: document.querySelectorAll(".production-method-group-panel:not([hidden]) [data-production-method-group='pmg_base_building_oil_rig']").length,
+    otherGroups: document.querySelectorAll(".production-method-group-panel:not([hidden]) [data-production-method-group]:not([data-production-method-group='pmg_base_building_oil_rig'])").length,
+    goodsRows: document.querySelectorAll(".production-method-group-panel:not([hidden]) .production-method-goods-row").length,
+    workforceRows: document.querySelectorAll(".production-method-group-panel:not([hidden]) .production-method-workforce-row").length,
+    goodsIcons: Array.from(document.querySelectorAll(".production-method-group-panel:not([hidden]) .production-method-goods-row img"), (icon) => icon.getAttribute("src") || ""),
+    workforceIcons: Array.from(document.querySelectorAll(".production-method-group-panel:not([hidden]) .production-method-workforce-row img"), (icon) => icon.getAttribute("src") || ""),
+    goodsText: document.querySelector(".production-method-group-panel:not([hidden]) .production-method-goods-row")?.textContent || "",
+    rowOrder: (() => {
+      const row = document.querySelector(".production-method-group-panel:not([hidden]) .production-method-row");
+      if (!row) return [];
+      return [".production-method-goods-row", ".production-method-workforce-row", ".production-method-extra-row"]
+        .map((selector) => row.querySelector(selector)?.getBoundingClientRect().top ?? -1);
+    })(),
+  }));
+  assert(basePanel.title, "opened group must show its group name");
+  assert.equal(basePanel.rows, 2, "opened group must list all methods from the selected group");
+  assert.equal(basePanel.otherGroups, 0, "opened group must not mix options from another group");
+  assert.equal(basePanel.goodsRows, basePanel.rows, "each listed method must have a goods row");
+  assert.equal(basePanel.workforceRows, basePanel.rows, "each listed method must have a workforce row");
+  assert(basePanel.goodsIcons.every((src) => src.startsWith("assets/goods/")), "goods rows must use goods icons");
+  assert(basePanel.workforceIcons.every((src) => src.startsWith("assets/pops/")), "workforce rows must use pop icons");
+  assert.match(basePanel.goodsText, /[−+]/, "goods rows must distinguish inputs and outputs with signs");
+  assert(basePanel.rowOrder[0] <= basePanel.rowOrder[1] && (basePanel.rowOrder[2] < 0 || basePanel.rowOrder[1] <= basePanel.rowOrder[2]), "goods, workforce, and extra information must stay in vertical order");
   await page.evaluate(() => document.querySelector("[data-production-method-group='pmg_base_building_oil_rig'][data-production-method-key='pm_combustion_derricks']").click());
   await page.waitFor(() => document.querySelector("[data-production-method-picker='pmg_base_building_oil_rig']")?.dataset.productionMethodKey === "pm_combustion_derricks", "changed oil rig method");
+  assert.equal(await page.evaluate(() => document.querySelectorAll(".production-method-group-panel:not([hidden])").length), 1, "selected group must remain open after choosing a method");
   assert.notEqual(await page.evaluate(() => document.querySelector("[data-production-summary]")?.textContent || ""), initialCombinationText, "current combination must recalculate after a production-method selection changes");
-  assert.equal(await page.evaluate(() => document.querySelector(".selected-production-method-detail")?.textContent?.includes("内燃机")), true, "selected method detail must show its prerequisite technology");
-  assert.equal(await page.evaluate(() => document.querySelector(".selected-production-method-detail h5")?.textContent?.trim()), "\u5177\u4f53\u5185\u5bb9\u4e0e\u4fee\u6b63", "selected method detail must label its effects");
+  assert.equal(await page.evaluate(() => document.querySelector(".production-method-row.is-selected .production-method-extra-row")?.textContent?.includes("内燃机")), true, "selected method row must show its prerequisite technology");
 
   await page.goto(`${zhBaseUrl}#/building/building_rye_farm`);
   await page.waitFor(() => location.hash === "#/building/building_rye_farm", "rye farm route");
@@ -80,7 +105,7 @@ try {
   assert.match(ryeFarm.summary, /产出商品：20谷物/, "rye farm must display level-one grain output");
   assert.equal(ryeFarm.standardOutput, "£4.16/人/年", "rye farm standard output must match the reference workbook");
   await page.evaluate(() => document.querySelector("[data-production-method-picker='pmg_harvesting_process_building_rye_farm']").click());
-  await page.waitFor(() => document.querySelector("[data-production-method-key='pm_tools']"), "rye farm harvesting alternatives");
+  await page.waitFor(() => document.querySelector(".production-method-group-panel:not([hidden]) [data-production-method-key='pm_tools']"), "rye farm harvesting alternatives");
   await page.evaluate(() => document.querySelector("[data-production-method-key='pm_tools']").click());
   await page.waitFor(() => document.querySelector("[data-production-method-picker='pmg_harvesting_process_building_rye_farm']")?.dataset.productionMethodKey === "pm_tools", "selected harvesting tools");
   const automatedRyeFarm = await page.evaluate(() => ({
@@ -90,6 +115,17 @@ try {
   assert.match(automatedRyeFarm.summary, /劳动力：3000劳工，1000农民/, "automation must reduce level-one employment before display");
   assert.match(automatedRyeFarm.summary, /投入商品：2工具/, "automation must add level-one tool inputs");
   assert.equal(automatedRyeFarm.standardOutput, "£4.16/人/年", "automation must recalculate annual profit with its reduced workforce");
+
+  await page.goto(`${zhBaseUrl}#/building/building_subsistence_fishing_village`);
+  await page.waitFor(() => location.hash === "#/building/building_subsistence_fishing_village", "subsistence fishing village route");
+  await page.evaluate(() => document.querySelector("[data-production-method-picker='pmg_base_building_subsistence_fishing_village']").click());
+  await page.waitFor(() => document.querySelector(".production-method-group-panel:not([hidden]) [data-production-method-key='default_building_subsistence_fishing_village']"), "subsistence fishing base method");
+  const woodOutput = await page.evaluate(() => ({
+    label: document.querySelector(".production-method-group-panel:not([hidden]) .production-method-good--output:has(img[src='assets/goods/wood.webp'])")?.getAttribute("aria-label") || "",
+    icon: document.querySelector(".production-method-group-panel:not([hidden]) .production-method-good--output img[src='assets/goods/wood.webp']")?.getAttribute("src") || "",
+  }));
+  assert.equal(woodOutput.label, "+0.25 木材", "wood goods must use the Chinese goods name");
+  assert.equal(woodOutput.icon, "assets/goods/wood.webp", "wood goods must use the wood icon");
 
   await page.goto(`${zhBaseUrl}#/building/building_oil_rig`);
   await page.waitFor(() => location.hash === "#/building/building_oil_rig", "oil rig route before resource map");
@@ -190,15 +226,19 @@ try {
   assert.doesNotMatch(englishGood.body, /\$[^$]+\$|@[A-Za-z0-9_]+!|[\u3400-\u9fff]/, "English goods detail contains unresolved localization");
 
   const narrowPage = await openPage({ width: 390, height: 844 });
-  await narrowPage.goto(`${zhBaseUrl}#/goods/meat`);
-  await narrowPage.waitFor(() => location.hash === "#/goods/meat" && document.querySelector(".economy-detail"), "narrow meat detail");
+  await narrowPage.goto(`${zhBaseUrl}#/building/building_oil_rig`);
+  await narrowPage.waitFor(() => location.hash === "#/building/building_oil_rig" && document.querySelector(".economy-detail"), "narrow oil rig detail");
+  await narrowPage.evaluate(() => document.querySelector("[data-production-method-picker='pmg_base_building_oil_rig']").click());
+  await narrowPage.waitFor(() => document.querySelector(".production-method-group-panel:not([hidden])"), "narrow oil rig method panel");
   const narrow = await narrowPage.evaluate(() => ({
     scrollWidth: document.documentElement.scrollWidth,
     clientWidth: document.documentElement.clientWidth,
     detailRight: document.querySelector(".economy-detail")?.getBoundingClientRect().right || 0,
+    panelRight: document.querySelector(".production-method-group-panel:not([hidden])")?.getBoundingClientRect().right || 0,
   }));
-  assert(narrow.scrollWidth <= narrow.clientWidth, "goods detail must not overflow the narrow viewport");
-  assert(narrow.detailRight <= narrow.clientWidth, "goods detail content must remain inside the narrow viewport");
+  assert(narrow.scrollWidth <= narrow.clientWidth, "production-method detail must not overflow the narrow viewport");
+  assert(narrow.detailRight <= narrow.clientWidth, "production-method detail content must remain inside the narrow viewport");
+  assert(narrow.panelRight <= narrow.clientWidth, "production-method panel must remain inside the narrow viewport");
   await narrowPage.close();
   await page.close();
   console.log(JSON.stringify({ economy_board_browser: "ok", base_url: baseUrl }, null, 2));

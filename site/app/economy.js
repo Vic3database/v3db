@@ -166,15 +166,15 @@ function renderBuildingDetail(building) {
   const selectedMethods = selectedProductionMethodsForGroups(methodGroups);
   els.detail.innerHTML = `<article class="economy-detail">
     ${economyDetailHead(building, "buildings", "building")}
+    ${economyVictorianCenturyChangeHtml(building)}
     <section><h3>${escapeHtml(economyDisplayName(building.building_group) || t("nav.building"))}</h3><p>${building.resource_map_available ? escapeHtml(t("board.economy.resourceDescription")) : ""}</p></section>
     ${building.unlocking_technologies?.length ? `<section><h3>${escapeHtml(t("board.economy.unlockingTechnologies"))}</h3><p>${referenceNames(building.unlocking_technologies)}</p></section>` : ""}
     ${building.resource_map_available ? `<button class="economy-resource-map" type="button" data-resource-map-building="${escapeHtml(building.key)}">${escapeHtml(t("board.economy.openResourceMap"))}</button>` : ""}
     <section class="production-method-section">
       <h3>${escapeHtml(t("board.economy.productionMethods"))}</h3>
-      ${methodGroups.map((group) => productionMethodGroupHtml(group, selectedMethods.get(group.key)?.key || "")).join("") || `<p>${escapeHtml(t("board.economy.noProductionMethods"))}</p>`}
+      ${methodGroups.length ? `${productionMethodGroupStripHtml(methodGroups, selectedMethods)}${methodGroups.map((group) => productionMethodGroupPanelHtml(group, selectedMethods.get(group.key)?.key || "")).join("")}` : `<p>${escapeHtml(t("board.economy.noProductionMethods"))}</p>`}
     </section>
     ${productionCombinationSummaryHtml(selectedMethods)}
-    ${renderSelectedProductionMethodDetail(selectedMethods)}
   </article>`;
   bindBuildingDetailEvents(building, methodGroups);
 }
@@ -187,21 +187,30 @@ function economyDetailHead(item, category, kind) {
   </header>`;
 }
 
-function productionMethodGroupHtml(group, selectedKey) {
+function economyVictorianCenturyChangeHtml(item) {
+  if (item?.vc_change_kind !== "adjusted" || !item.vc_change_fields?.length) return "";
+  const fields = item.vc_change_fields.map((field) => economyVictorianCenturyChangeFieldName(field)).join(t("board.economy.listSeparator"));
+  return `<p class="economy-vc-change"><strong>${escapeHtml(t("board.economy.vcChangeFieldsLabel"))}</strong>${escapeHtml(fields)}</p>`;
+}
+
+function economyVictorianCenturyChangeFieldName(field) {
+  return translateMessage(`board.economy.vcChangeField.${field}`, field);
+}
+
+function productionMethodGroupStripHtml(groups, selected) {
+  return `<div class="production-method-group-strip">${groups.map((group) => {
+    const method = selected.get(group.key);
+    return method ? `<button class="production-method-current" type="button" data-production-method-picker="${escapeHtml(group.key)}" data-production-method-key="${escapeHtml(method.key)}" aria-expanded="${String(state.openProductionMethodGroup === group.key)}" aria-label="${escapeHtml(economyDisplayName(group))}" title="${escapeHtml(economyDisplayName(group))}">${productionMethodIconHtml(method)}</button>` : "";
+  }).join("")}</div>`;
+}
+
+function productionMethodGroupPanelHtml(group, selectedKey) {
   const methods = group.production_method_keys.map((key) => productionMethodByKey.get(key)).filter(Boolean);
-  const selected = methods.find((method) => method.key === selectedKey) || methods[0] || null;
   const open = state.openProductionMethodGroup === group.key;
-  const alternatives = methods.filter((method) => method.key !== selected?.key);
-  return `<section class="production-method-group">
+  return `<section class="production-method-group-panel" data-production-method-panel="${escapeHtml(group.key)}"${open ? "" : " hidden"}>
     <h4>${escapeHtml(economyDisplayName(group))}${victorianCenturyBadge(group)}</h4>
-    <div class="production-method-options">
-      ${selected ? `<button class="production-method-current" type="button" data-production-method-picker="${escapeHtml(group.key)}" data-production-method-key="${escapeHtml(selected.key)}" aria-expanded="${String(open)}" aria-label="${escapeHtml(`${economyDisplayName(group)}：${economyDisplayName(selected)}`)}" title="${escapeHtml(economyDisplayName(selected))}">${productionMethodIconHtml(selected)}</button>` : ""}
-      ${open && alternatives.length ? `<div class="production-method-picker" role="group" aria-label="${escapeHtml(t("board.economy.otherMethodOptions", { group: economyDisplayName(group) }))}">${alternatives.map((method) => `
-        <button type="button" data-production-method-key="${escapeHtml(method.key)}" data-production-method-group="${escapeHtml(group.key)}" aria-label="${escapeHtml(economyDisplayName(method))}" title="${escapeHtml(economyDisplayName(method))}">
-          ${productionMethodIconHtml(method)}
-        </button>
-      `).join("")}</div>` : ""}
-    </div>
+    ${economyVictorianCenturyChangeHtml(group)}
+    ${methods.map((method) => productionMethodRowHtml(group, method, method.key === selectedKey)).join("")}
   </section>`;
 }
 
@@ -221,19 +230,82 @@ function selectedProductionMethodsForGroups(groups) {
   return selected;
 }
 
-function renderSelectedProductionMethodDetail(selected) {
-  const methods = [...selected.values()].filter(Boolean);
-  if (!methods.length) return "";
-  return `<details class="selected-production-method-detail"><summary>${escapeHtml(t("board.economy.productionMethodDetails"))}</summary><div class="selected-production-method-detail-content">${methods.map((method) => `
-    <article>
-      <h4>${escapeHtml(economyDisplayName(method))}${victorianCenturyBadge(method)}</h4>
-      ${entityText(method, "description", "") ? `<p><strong>${escapeHtml(t("board.economy.descriptionLabel"))}</strong>${escapeHtml(entityText(method, "description", ""))}</p>` : ""}
-      ${method.unlocking_technologies?.length ? `<p><strong>${escapeHtml(t("board.economy.prerequisiteTechnologiesLabel"))}</strong>${referenceNames(method.unlocking_technologies)}</p>` : ""}
-      ${method.availability_conditions?.length ? `<p><strong>${escapeHtml(t("board.economy.availabilityLabel"))}</strong>${method.availability_conditions.map((condition) => escapeHtml(entityText(condition, "summary", condition.raw))).join(t("ui.semicolon"))}</p>` : ""}
-      <h5>${escapeHtml(t("board.economy.effectsHeading"))}</h5>
-      ${method.effects?.length ? `<ul>${method.effects.map((effect) => `<li>${escapeHtml(productionEffectText(effect))}</li>`).join("")}</ul>` : `<p>${escapeHtml(t("board.economy.noNumericModifiers"))}</p>`}
-    </article>
-  `).join("")}</div></details>`;
+function productionMethodRowHtml(group, method, selected) {
+  const effects = method.effects || [];
+  const inputs = effects.filter((effect) => /^goods_input_[a-z0-9_]+_add$/.test(effect.key));
+  const outputs = effects.filter((effect) => /^goods_output_[a-z0-9_]+_add$/.test(effect.key));
+  const workforce = effects.filter((effect) => /^building_employment_.+_add$/.test(effect.key));
+  const classified = new Set([...inputs, ...outputs, ...workforce]);
+  const extras = effects.filter((effect) => !classified.has(effect));
+  return `<article class="production-method-row${selected ? " is-selected" : ""}">
+    <button class="production-method-row-select" type="button" data-production-method-key="${escapeHtml(method.key)}" data-production-method-group="${escapeHtml(group.key)}" aria-pressed="${String(selected)}" title="${escapeHtml(economyDisplayName(method))}">
+      ${productionMethodIconHtml(method)}<strong>${escapeHtml(economyDisplayName(method))}</strong>${victorianCenturyBadge(method)}
+    </button>
+    ${productionMethodGoodsHtml(inputs, outputs)}
+    ${productionMethodWorkforceHtml(workforce)}
+    ${productionMethodExtraHtml(method, extras)}
+    ${economyVictorianCenturyChangeHtml(method)}
+  </article>`;
+}
+
+function productionMethodGoodsHtml(inputs, outputs) {
+  const items = [
+    ...inputs.map((effect) => productionMethodGoodTokenHtml(effect, "input")),
+    ...outputs.map((effect) => productionMethodGoodTokenHtml(effect, "output")),
+  ].join("");
+  return `<div class="production-method-goods-row">${items}</div>`;
+}
+
+function productionMethodGoodTokenHtml(effect, direction) {
+  const goodKey = effect.key.match(/^goods_(?:input|output)_([a-z0-9_]+)_add$/)?.[1] || "";
+  const good = goodByKey.get(goodKey);
+  const name = economyDisplayName(good) || goodKey;
+  const value = Math.abs(Number(effect.value || 0));
+  const sign = direction === "input" ? "−" : "+";
+  return `<span class="production-method-good production-method-good--${direction}" aria-label="${escapeHtml(`${sign}${formatProductionNumber(value)} ${name}`)}" title="${escapeHtml(`${sign}${formatProductionNumber(value)} ${name}`)}"><b>${sign}</b><img src="${economyAsset("goods", goodKey)}" alt="" aria-hidden="true"><span>${escapeHtml(formatProductionNumber(value))}</span></span>`;
+}
+
+function productionMethodWorkforceHtml(effects) {
+  const items = effects.map((effect) => {
+    const key = effect.key.match(/^building_employment_(.+)_add$/)?.[1] || "";
+    const name = productionPopulationName(effect);
+    const value = Number(effect.value || 0);
+    const text = `${value < 0 ? "−" : ""}${formatProductionNumber(Math.abs(value))}`;
+    return `<span class="production-method-workforce" aria-label="${escapeHtml(`${text} ${name}`)}" title="${escapeHtml(`${text} ${name}`)}"><img src="${economyAsset("pops", key)}" alt="" aria-hidden="true"><span>${escapeHtml(text)}</span></span>`;
+  }).join("");
+  return `<div class="production-method-workforce-row">${items}</div>`;
+}
+
+function productionMethodExtraHtml(method, effects) {
+  const technologies = productionMethodTechnologyHtml(method.unlocking_technologies || []);
+  const conditions = (method.availability_conditions || [])
+    .filter((condition) => condition.kind !== "technology")
+    .map((condition) => entityText(condition, "summary", condition.raw || ""))
+    .filter(Boolean)
+    .join(t("ui.semicolon"));
+  const unscaled = effects.filter((effect) => effect.scaling !== "level_scaled");
+  const levelScaled = effects.filter((effect) => effect.scaling === "level_scaled");
+  const items = [
+    technologies ? productionMethodExtraItemHtml(t("board.economy.prerequisiteTechnologiesLabel"), technologies) : "",
+    conditions ? productionMethodExtraItemHtml(t("board.economy.availabilityLabel"), escapeHtml(conditions)) : "",
+    unscaled.length ? productionMethodExtraItemHtml(t("board.economy.unscaledModifiersLabel"), productionEffectListHtml(unscaled)) : "",
+    levelScaled.length ? productionMethodExtraItemHtml(t("board.economy.levelScaledModifiersLabel"), productionEffectListHtml(levelScaled)) : "",
+  ].join("");
+  return items ? `<div class="production-method-extra-row">${items}</div>` : "";
+}
+
+function productionMethodTechnologyHtml(references) {
+  return references.map((reference) => {
+    const key = reference?.key || reference;
+    const technology = technologyByKey.get(key);
+    const name = entityText(technology || reference, "name", key);
+    const icon = technology?.icon?.split("/").pop()?.replace(/\.dds$/i, ".webp") || "";
+    return `<span class="production-method-technology" title="${escapeHtml(name)}">${icon ? `<img src="assets/technologies/${encodeURIComponent(icon)}" alt="" aria-hidden="true">` : ""}<span>${escapeHtml(name)}</span></span>`;
+  }).join(t("board.economy.listSeparator"));
+}
+
+function productionMethodExtraItemHtml(label, value) {
+  return `<span class="production-method-extra-item"><strong>${escapeHtml(label)}</strong>${value}</span>`;
 }
 
 function productionCombinationSummaryHtml(selected) {
@@ -361,7 +433,6 @@ function bindBuildingDetailEvents(building, groups) {
     if (button.dataset.productionMethodPicker) return;
     button.addEventListener("click", () => {
       state.selectedProductionMethods.set(button.dataset.productionMethodGroup, button.dataset.productionMethodKey);
-      state.openProductionMethodGroup = "";
       renderBuildingDetail(building);
     });
   });
@@ -408,6 +479,7 @@ function renderGoodsDetail(good) {
   const variants = (good.prestige_good_keys || []).map((key) => prestigeGoodByKey.get(key)).filter(Boolean);
   els.detail.innerHTML = `<article class="economy-detail">
     ${economyDetailHead(good, "goods", "goods")}
+    ${economyVictorianCenturyChangeHtml(good)}
     ${entityText(good, "description", "") ? `<p>${escapeHtml(entityText(good, "description", ""))}</p>` : ""}
     ${goodDefinitionHtml(good)}
     ${goodBuildingRelationsHtml(t("board.economy.producingBuildings"), good.producing_buildings, "producer")}
@@ -522,6 +594,7 @@ function goodPrestigeVariantsHtml(variants) {
   return `<section><h3>${escapeHtml(t("board.economy.prestigeGoods"))}</h3>${variants.length ? `<div class="goods-prestige-list">${variants.map((variant) => `
     <article class="goods-prestige-card" data-prestige-good="${escapeHtml(variant.key)}">
       <header><img src="${economyAsset("prestige-goods", variant.key)}" alt=""><div><h4>${escapeHtml(economyDisplayName(variant))}${victorianCenturyBadge(variant)}</h4><p>${escapeHtml(variant.key)}</p></div></header>
+      ${economyVictorianCenturyChangeHtml(variant)}
       <h5>${escapeHtml(t("board.economy.producingCompanies"))}</h5>
       ${(variant.companies || []).length ? `<div class="goods-company-list">${variant.companies.map((company) => `<button type="button" data-prestige-company="${escapeHtml(company.key)}">${companyIconHtml(company)}<span>${escapeHtml(economyDisplayName(company))}</span></button>`).join("")}</div>` : `<p class="goods-empty">${escapeHtml(t("ui.none"))}</p>`}
     </article>
