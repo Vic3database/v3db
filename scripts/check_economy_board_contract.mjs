@@ -9,7 +9,7 @@ const buildScript = read("scripts/build_wiki.mjs");
 const appSource = readSiteAppSource(root);
 const styleSource = readSiteStyleSource(root);
 
-assert.match(indexHtml, /app\/economy\.js\?v=20260805-production-method-list1/, "economy script must use the production-method list cache version");
+assert.match(indexHtml, /app\/economy\.js\?v=20260805-production-method-list2/, "economy script must use the production-method list cache version");
 assert.match(indexHtml, /styles\.css\?v=20260805-production-method-list1/, "site styles must use the production-method list cache version");
 
 for (const view of ["building", "goods"]) {

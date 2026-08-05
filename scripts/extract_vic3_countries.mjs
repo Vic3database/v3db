@@ -2218,7 +2218,8 @@ function economyBoardItemOrder(clusterKey, buildingKey) {
 function productionMethodAvailabilityConditions(node, loc) {
   const fields = [
     ["unlocking_technologies", "technology"],
-    ["disallowing_laws", "law"],
+    ["unlocking_laws", "required_law"],
+    ["disallowing_laws", "disallowed_law"],
     ["required_input_goods", "good"],
     ["replacement_if_valid", "script"],
   ];

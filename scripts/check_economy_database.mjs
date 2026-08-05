@@ -38,6 +38,7 @@ assert(productionMethods.length > 0, "production methods must be published");
 const buildingByKey = new Map(buildings.map((item) => [item.key, item]));
 const groupByKey = new Map(productionMethodGroups.map((item) => [item.key, item]));
 const methodByKey = new Map(productionMethods.map((item) => [item.key, item]));
+const conditionPairs = (key) => required(methodByKey, key, "production method").availability_conditions.map((condition) => [condition.kind, condition.raw]);
 const boardOrderedBuildings = [...buildings].sort((left, right) => (
   Number(left.board_group?.order || 999) - Number(right.board_group?.order || 999)
   || Number(left.board_group?.cluster_order || 999) - Number(right.board_group?.cluster_order || 999)
@@ -76,6 +77,21 @@ for (const key of ["building_arms_industry", "building_munition_plant", "buildin
 assert.equal(required(groupByKey, "pmg_dummy", "dummy production-method group").icon, null, "the iconless dummy group must remain explicit");
 assert.equal(required(methodByKey, "pm_dummy", "dummy production method").icon, null, "the iconless dummy method must remain explicit");
 assert(typeof required(methodByKey, "pm_combustion_derricks", "combustion derricks").loc?.description === "string", "production methods must reference a localized description field");
+assert.deepEqual(
+  conditionPairs("pm_company_headquarter_government_run"),
+  [["required_law", "law_command_economy"]],
+  "government-run company headquarters must require command economy",
+);
+assert.deepEqual(
+  conditionPairs("pm_company_headquarter_worker_cooperative"),
+  [["required_law", "law_cooperative_ownership"]],
+  "worker-cooperative company headquarters must require cooperative ownership",
+);
+assert.deepEqual(
+  conditionPairs("pm_company_headquarter_privately_owned"),
+  [["disallowed_law", "law_command_economy"], ["disallowed_law", "law_cooperative_ownership"]],
+  "privately owned company headquarters must be unavailable under command economy and cooperative ownership",
+);
 const oilRig = required(buildingByKey, "building_oil_rig", "oil rig building");
 assert.deepEqual(
   oilRig.production_method_group_keys.map((key) => [key, required(groupByKey, key, `oil rig group ${key}`).production_method_keys.length]),

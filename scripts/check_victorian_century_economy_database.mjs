@@ -30,6 +30,10 @@ const effect = (method, key) => methodByKey
   ?.effects
   .find((item) => item.key === key)
   ?.value;
+const conditionPairs = (key) => methodByKey
+  .get(key)
+  ?.availability_conditions
+  .map((condition) => [condition.kind, condition.raw]);
 
 assert.equal(buildings.length, 101);
 assert.equal(new Set(buildings.map((item) => item.key)).size, buildings.length);
@@ -43,6 +47,18 @@ assert.equal(effect("pm_wooden_buildings", "goods_input_wood_add"), 90);
 assert.equal(effect("pm_wooden_buildings", "state_construction_mult"), 0.001);
 assert.equal(effect("pm_dye_production", "goods_input_fertilizer_add"), 25);
 assert.equal(effect("pm_telephones", "goods_input_rubber_add"), 10);
+assert.deepEqual(
+  conditionPairs("pm_company_headquarter_government_run"),
+  [["required_law", "law_command_economy"]],
+);
+assert.deepEqual(
+  conditionPairs("pm_company_headquarter_worker_cooperative"),
+  [["required_law", "law_cooperative_ownership"]],
+);
+assert.deepEqual(
+  conditionPairs("pm_company_headquarter_privately_owned"),
+  [["disallowed_law", "law_command_economy"], ["disallowed_law", "law_cooperative_ownership"]],
+);
 assert.deepEqual(
   groupByKey.get("pmg_banana_exploitation").production_method_keys,
   [

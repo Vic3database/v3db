@@ -278,8 +278,11 @@ function productionMethodWorkforceHtml(effects) {
 
 function productionMethodExtraHtml(method, effects) {
   const technologies = productionMethodTechnologyHtml(method.unlocking_technologies || []);
-  const conditions = (method.availability_conditions || [])
-    .filter((condition) => condition.kind !== "technology")
+  const conditions = method.availability_conditions || [];
+  const requiredLaws = productionMethodConditionText(conditions, "required_law");
+  const disallowedLaws = productionMethodConditionText(conditions, "disallowed_law");
+  const otherConditions = conditions
+    .filter((condition) => !["technology", "required_law", "disallowed_law"].includes(condition.kind))
     .map((condition) => entityText(condition, "summary", condition.raw || ""))
     .filter(Boolean)
     .join(t("ui.semicolon"));
@@ -287,11 +290,21 @@ function productionMethodExtraHtml(method, effects) {
   const levelScaled = effects.filter((effect) => effect.scaling === "level_scaled");
   const items = [
     technologies ? productionMethodExtraItemHtml(t("board.economy.prerequisiteTechnologiesLabel"), technologies) : "",
-    conditions ? productionMethodExtraItemHtml(t("board.economy.availabilityLabel"), escapeHtml(conditions)) : "",
+    requiredLaws ? productionMethodExtraItemHtml(t("board.economy.requiredLawsLabel"), escapeHtml(requiredLaws)) : "",
+    disallowedLaws ? productionMethodExtraItemHtml(t("board.economy.disallowedLawsLabel"), escapeHtml(disallowedLaws)) : "",
+    otherConditions ? productionMethodExtraItemHtml(t("board.economy.availabilityLabel"), escapeHtml(otherConditions)) : "",
     unscaled.length ? productionMethodExtraItemHtml(t("board.economy.unscaledModifiersLabel"), productionEffectListHtml(unscaled)) : "",
     levelScaled.length ? productionMethodExtraItemHtml(t("board.economy.levelScaledModifiersLabel"), productionEffectListHtml(levelScaled)) : "",
   ].join("");
   return items ? `<div class="production-method-extra-row">${items}</div>` : "";
+}
+
+function productionMethodConditionText(conditions, kind) {
+  return conditions
+    .filter((condition) => condition.kind === kind)
+    .map((condition) => entityText(condition, "summary", condition.raw || ""))
+    .filter(Boolean)
+    .join(t("ui.semicolon"));
 }
 
 function productionMethodTechnologyHtml(references) {
@@ -406,11 +419,12 @@ function productionScalingText(scaling) {
 }
 
 function productionEffectText(effect) {
-  const scale = effect.scaling ? productionScalingText(effect.scaling) : "";
+  const showScaling = Boolean(effect.scaling && effect.scaling !== "workforce_scaled");
+  const scale = showScaling ? productionScalingText(effect.scaling) : "";
   const conditionText = effect.condition ? entityText(effect.condition, "summary", effect.condition.raw || "") : "";
   const condition = conditionText ? t("board.economy.effectCondition", { condition: conditionText }) : "";
   const value = effect.combined ? combinedProductionValue(effect) : entityText(effect, "value", `${effect.value > 0 ? "+" : ""}${effect.value}`);
-  return t("board.economy.effectText", { scope: translateMessage(`board.economy.scope.${effect.scope}`, effect.scope), name: entityText(effect, "name", effect.key), value, scale, condition });
+  return t(showScaling ? "board.economy.effectText" : "board.economy.effectTextWithoutScaling", { scope: translateMessage(`board.economy.scope.${effect.scope}`, effect.scope), name: entityText(effect, "name", effect.key), value, scale, condition });
 }
 
 function combinedProductionValue(effect) {

@@ -60,6 +60,7 @@ try {
   assert.equal(await page.evaluate(() => document.querySelector("[data-production-standard-output]")?.textContent?.trim()), "£18.72/人/年", "standard output must use base prices and 52-week annual profit per worker");
   assert.equal(oilRig.allCombinationList, null, "building detail must not render a full combination list");
   assert.equal(oilRig.resourceButton, true, "oil rig must offer the resource map route");
+  assert.doesNotMatch(oilRig.combinationText, /（按劳动力）/, "current combination must omit the redundant workforce-scaling suffix");
   const initialCombinationText = oilRig.combinationText;
   await page.evaluate(() => document.querySelector("[data-production-method-picker='pmg_base_building_oil_rig']").click());
   await page.waitFor(() => document.querySelectorAll(".production-method-group-panel:not([hidden])").length === 1, "base drilling panel");
@@ -72,6 +73,7 @@ try {
     goodsIcons: Array.from(document.querySelectorAll(".production-method-group-panel:not([hidden]) .production-method-goods-row img"), (icon) => icon.getAttribute("src") || ""),
     workforceIcons: Array.from(document.querySelectorAll(".production-method-group-panel:not([hidden]) .production-method-workforce-row img"), (icon) => icon.getAttribute("src") || ""),
     goodsText: document.querySelector(".production-method-group-panel:not([hidden]) .production-method-goods-row")?.textContent || "",
+    extraText: document.querySelector(".production-method-group-panel:not([hidden]) .production-method-extra-row")?.textContent || "",
     rowOrder: (() => {
       const row = document.querySelector(".production-method-group-panel:not([hidden]) .production-method-row");
       if (!row) return [];
@@ -87,6 +89,7 @@ try {
   assert(basePanel.goodsIcons.every((src) => src.startsWith("assets/goods/")), "goods rows must use goods icons");
   assert(basePanel.workforceIcons.every((src) => src.startsWith("assets/pops/")), "workforce rows must use pop icons");
   assert.match(basePanel.goodsText, /[−+]/, "goods rows must distinguish inputs and outputs with signs");
+  assert.doesNotMatch(basePanel.extraText, /（按劳动力）/, "method rows must omit the redundant workforce-scaling suffix");
   assert(basePanel.rowOrder[0] <= basePanel.rowOrder[1] && (basePanel.rowOrder[2] < 0 || basePanel.rowOrder[1] <= basePanel.rowOrder[2]), "goods, workforce, and extra information must stay in vertical order");
   await page.evaluate(() => document.querySelector("[data-production-method-group='pmg_base_building_oil_rig'][data-production-method-key='pm_combustion_derricks']").click());
   await page.waitFor(() => document.querySelector("[data-production-method-picker='pmg_base_building_oil_rig']")?.dataset.productionMethodKey === "pm_combustion_derricks", "changed oil rig method");
@@ -126,6 +129,19 @@ try {
   }));
   assert.equal(woodOutput.label, "+0.25 木材", "wood goods must use the Chinese goods name");
   assert.equal(woodOutput.icon, "assets/goods/wood.webp", "wood goods must use the wood icon");
+
+  await page.goto(`${zhBaseUrl}#/building/building_company_headquarter`);
+  await page.waitFor(() => location.hash === "#/building/building_company_headquarter", "company headquarters route");
+  await page.evaluate(() => document.querySelector("[data-production-method-picker='pmg_ownership_building_company_headquarter']").click());
+  await page.waitFor(() => document.querySelector(".production-method-group-panel:not([hidden]) [data-production-method-key='pm_company_headquarter_worker_cooperative']"), "company headquarters ownership methods");
+  const ownershipConditions = await page.evaluate(() => Object.fromEntries([
+    "pm_company_headquarter_privately_owned",
+    "pm_company_headquarter_government_run",
+    "pm_company_headquarter_worker_cooperative",
+  ].map((key) => [key, document.querySelector(`.production-method-group-panel:not([hidden]) [data-production-method-key='${key}']`)?.closest(".production-method-row")?.querySelector(".production-method-extra-row")?.textContent || ""])));
+  assert.match(ownershipConditions.pm_company_headquarter_privately_owned, /禁用法律：计划经济；合作社所有制/, "private ownership must present both laws as disallowing conditions");
+  assert.match(ownershipConditions.pm_company_headquarter_government_run, /需要法律：计划经济/, "government run must present command economy as a requirement");
+  assert.match(ownershipConditions.pm_company_headquarter_worker_cooperative, /需要法律：合作社所有制/, "worker cooperative must present cooperative ownership as a requirement");
 
   await page.goto(`${zhBaseUrl}#/building/building_oil_rig`);
   await page.waitFor(() => location.hash === "#/building/building_oil_rig", "oil rig route before resource map");
