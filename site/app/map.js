@@ -99,6 +99,12 @@ function syncMapModeForView() {
     return;
   }
   if (state.view === "region" && state.resourceFilters.size > 0) {
+    const filter = resourceFilterByKey.get([...state.resourceFilters][0]);
+    if (filter?.mapMode === "subsistenceBuildings") {
+      state.mapMode = "subsistenceBuildings";
+      state.mapSubject = "";
+      return;
+    }
     state.mapMode = "resourceSelection";
     state.mapSubject = [...state.resourceFilters][0] || "";
     return;
@@ -113,7 +119,7 @@ function syncMapModeForView() {
 }
 
 function mapSubjectOptions(mode) {
-  if (mode === "country" || mode === "company" || mode === "cultureFilter" || mode === "resourceSelection" || mode === "strategicRegion" || mode === "terrain") {
+  if (mode === "country" || mode === "company" || mode === "cultureFilter" || mode === "resourceSelection" || mode === "strategicRegion" || mode === "terrain" || mode === "subsistenceBuildings") {
     return [{ value: state.mapSubject || "", label: automaticMapSubjectLabel(mode) }];
   }
   if (mode === "culture") {
@@ -364,6 +370,7 @@ function buildMapFeatures() {
   if (state.mapMode === "strategicRegion") return buildStrategicRegionMapFeatures();
   if (state.mapMode === "traitIcons") return buildTraitIconMapFeatures();
   if (state.mapMode === "terrain") return buildTerrainMapFeatures();
+  if (state.mapMode === "subsistenceBuildings") return buildSubsistenceBuildingMapFeatures();
   if (state.mapMode === "company") return buildCompanyMapFeatures();
   if (state.mapMode === "resourceSelection") return buildSelectedResourceMapFeatures();
   if (state.mapMode === "cultureFilter") return buildCultureFilterMapFeatures();
@@ -851,6 +858,14 @@ function hasCountryMapFilterSelection() {
 }
 
 const RESOURCE_MAP_EMPTY_LAND_COLOR = "#e9edeb";
+const SUBSISTENCE_BUILDING_EMPTY_COLOR = "#e9edeb";
+const SUBSISTENCE_BUILDING_COLORS = new Map([
+  ["building_subsistence_farm", "#c8893f"],
+  ["building_subsistence_rice_farm", "#4c9f70"],
+  ["building_subsistence_pasture", "#8b6f47"],
+  ["building_subsistence_orchard", "#b5688b"],
+  ["building_subsistence_fishing_village", "#4b87b6"],
+]);
 const RESOURCE_MAP_COMBINED_GRADIENT = { low: "#c9d6de", high: "#58788a" };
 const RESOURCE_MAP_GRADIENT_BY_KEY = new Map([
   ["building_coal_mine", { low: "#c6ced1", high: "#596166" }],
@@ -900,6 +915,26 @@ function resourceMapGradientColor(resourceKey, value, maxValue) {
   const ratio = Number(value || 0) / Math.max(Number(maxValue || 0), 1);
   const gradient = resourceMapGradient(resourceKey);
   return interpolateColor(gradient.low, gradient.high, ratio);
+}
+
+function buildSubsistenceBuildingMapFeatures() {
+  const features = new Map();
+  for (const stateRegion of stateRegions) {
+    const isSea = isSeaStateRegion(stateRegion);
+    const buildingKey = stateRegion.subsistence_building || "";
+    const arableLand = Number(stateRegion.arable_land);
+    const color = isSea
+      ? MAP_SEA_COLOR
+      : (SUBSISTENCE_BUILDING_COLORS.get(buildingKey) || SUBSISTENCE_BUILDING_EMPTY_COLOR);
+    features.set(stateRegion.key, {
+      color: mapFeatureColor(stateRegion, color),
+      active: Boolean(buildingKey),
+      value: Number.isFinite(arableLand) ? arableLand : 0,
+      label: !isSea && Number.isFinite(arableLand) ? formatMapLabelValue(arableLand) : "",
+      subsistenceBuildingKey: buildingKey,
+    });
+  }
+  return features;
 }
 
 function buildSelectedResourceMapFeatures() {

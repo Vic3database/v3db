@@ -480,7 +480,7 @@ const resourceFilterGroups = [
   {
     key: "subsistence",
     filters: [
-      { key: "subsistence_buildings", labelKey: "filter.subsistenceBuildings", mapMode: "subsistenceBuildings" },
+      { key: "subsistence_buildings", labelKey: "filter.subsistenceBuildings", mapMode: "subsistenceBuildings", mapOnly: true },
     ],
   },
   {

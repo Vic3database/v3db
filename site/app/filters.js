@@ -208,6 +208,7 @@ function matchesResourceFilters(stateRegion) {
   if (state.resourceFilters.size === 0) return true;
   for (const key of state.resourceFilters) {
     const filter = resourceFilterByKey.get(key);
+    if (filter?.mapOnly) return true;
     if (filter && stateRegionMatchesResourceFilter(stateRegion, filter)) return true;
   }
   return false;
