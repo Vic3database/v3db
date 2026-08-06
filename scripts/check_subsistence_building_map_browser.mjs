@@ -6,6 +6,7 @@ import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
 const { chromium } = require("playwright");
+const entryPath = process.argv.includes("--vc") ? "vc/index.html" : "index.html";
 const server = await startPreviewServer(path.join(process.cwd(), "site"));
 const chromePath = process.env.VC_CHROME_PATH || "";
 const browser = await chromium.launch({
@@ -21,7 +22,7 @@ try {
     if (message.type() === "error") errors.push(`console: ${message.text()}`);
   });
   page.on("pageerror", (error) => errors.push(`pageerror: ${error.message}`));
-  await page.goto(`${server.url}/index.html#/region`, { waitUntil: "networkidle", timeout: 45000 });
+  await page.goto(`${server.url}/${entryPath}#/region`, { waitUntil: "networkidle", timeout: 45000 });
   await page.locator("[data-resource-filter='subsistence_buildings']").click();
   await page.waitForFunction(() => window.eval("state.mapMode") === "subsistenceBuildings", { timeout: 30000 });
   await page.waitForFunction(() => document.querySelector("#subsistenceBuildingMapLegend")?.hidden === false, { timeout: 10000 });
@@ -213,7 +214,7 @@ try {
 
   const compact = await context.newPage();
   await compact.setViewportSize({ width: 390, height: 844 });
-  await compact.goto(`${server.url}/index.html#/region`, { waitUntil: "networkidle", timeout: 45000 });
+  await compact.goto(`${server.url}/${entryPath}#/region`, { waitUntil: "networkidle", timeout: 45000 });
   await compact.locator("[data-resource-filter='subsistence_buildings']").click();
   await compact.waitForFunction(() => document.querySelector("#subsistenceBuildingMapLegend")?.hidden === false, { timeout: 10000 });
   const compactLayout = await compact.evaluate(() => ({
