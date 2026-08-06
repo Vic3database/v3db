@@ -2412,7 +2412,7 @@ function collectProductionMethodEffects(value, scope, scaling, conditionValue, l
   if (!node) return [];
   const effects = [];
   for (const assignment of node.assignments) {
-    if (assignment.key === "workforce_scaled" || assignment.key === "level_scaled") {
+    if (["unscaled", "workforce_scaled", "level_scaled"].includes(assignment.key)) {
       effects.push(...collectProductionMethodEffects(assignment.value, scope, assignment.key, conditionValue, loc));
       continue;
     }

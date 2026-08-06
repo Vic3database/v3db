@@ -20,7 +20,7 @@
 
 - [ ] **Step 1: 写入失败断言**
 
-在原版检查中统计所有生产方式效果的 `scaling`，断言 `workforce_scaled` 为974项、`level_scaled` 为766项、`unscaled` 为195项，并断言 `pm_fertilization` 包含 `state_harvest_condition_drought_impact_mult = 0.05` 的 `unscaled` 效果。Victorian Century 检查使用相同的 `unscaled` 样本，并要求三类缩放方式都存在。
+在原版检查中统计所有生效生产方式定义的 `scaling`，断言 `workforce_scaled` 为974项、`level_scaled` 为761项、`unscaled` 为182项，并断言 `pm_fertilization` 包含 `state_harvest_condition_drought_impact_mult = 0.05` 的 `unscaled` 效果。Victorian Century 检查使用相同的 `unscaled` 样本，并要求三类缩放方式都存在。
 
 - [ ] **Step 2: 运行检查并确认失败原因**
 
@@ -43,8 +43,8 @@ git commit -m "test: cover production effect scaling"
 
 **Files:**
 - Modify: `scripts/extract_vic3_countries.mjs:2410-2425`
-- Modify: `database/vic3_1.13.9/production_methods.json`
-- Modify: `database/victorian_century/production_methods.json`
+- Generate locally: `database/vic3_1.13.9/production_methods.json`
+- Generate locally: `database/victorian_century/production_methods.json`
 - Test: `scripts/check_economy_database.mjs`
 - Test: `scripts/check_victorian_century_economy_database.mjs`
 
@@ -61,7 +61,7 @@ node scripts/extract_vic3_countries.mjs --game-path "D:\SteamLibrary\steamapps\c
 node scripts/check_economy_database.mjs
 ```
 
-Expected: PASS，三类效果数量分别为974、766、195。
+Expected: PASS，三类效果数量分别为974、761、182。原始文件中的缩放区块可能被同键的后续定义或补丁覆盖，数据库合同只统计最终生效定义。
 
 - [ ] **Step 3: 串行重建 Victorian Century 数据库**
 
@@ -77,7 +77,7 @@ Expected: PASS，Victorian Century 数据中也存在三类缩放方式。
 - [ ] **Step 4: 提交提取器和生成数据**
 
 ```powershell
-git add -- scripts/extract_vic3_countries.mjs database/vic3_1.13.9 database/victorian_century
+git add -- scripts/extract_vic3_countries.mjs
 git commit -m "fix: extract unscaled production effects"
 ```
 

@@ -44,7 +44,7 @@ const productionEffectScalingCounts = productionMethods
   }, {});
 assert.deepEqual(
   productionEffectScalingCounts,
-  { workforce_scaled: 974, level_scaled: 766, unscaled: 195 },
+  { workforce_scaled: 974, level_scaled: 761, unscaled: 182 },
   "all production effects must preserve their game-defined scaling mode",
 );
 
