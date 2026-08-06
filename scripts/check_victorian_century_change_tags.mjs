@@ -164,7 +164,7 @@ function normalizeForComparison(value, ignoreTechnologyReferences = false) {
   if (Array.isArray(value)) return value.map((item) => normalizeForComparison(item, ignoreTechnologyReferences));
   if (!value || typeof value !== "object") return value;
   return Object.fromEntries(Object.entries(value)
-    .filter(([key]) => !["id", "source", "source_file", "source_files", "sourceFile", "definition_file", "definitionFile", "patch_directives", "vc_change_kind", "vc_change_fields"].includes(key) && !(ignoreTechnologyReferences && key === "references"))
+    .filter(([key]) => !["id", "source", "source_file", "source_files", "sourceFile", "definition_file", "definitionFile", "patch_directives", "static_obsessions", "starting_obsessions", "starting_obsessed_cultures", "vc_change_kind", "vc_change_fields"].includes(key) && !(ignoreTechnologyReferences && key === "references"))
     .sort(([left], [right]) => left.localeCompare(right))
     .map(([key, item]) => [key, normalizeForComparison(item, ignoreTechnologyReferences)]));
 }
