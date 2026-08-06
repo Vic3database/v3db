@@ -53,7 +53,7 @@ try {
       tokens: Array.from(row.querySelectorAll(".production-summary-token"), (token) => ({
         label: token.getAttribute("aria-label") || "",
         title: token.getAttribute("title") || "",
-        text: token.textContent?.trim() || "",
+        text: token.innerText?.trim() || "",
         icon: token.querySelector("img")?.getAttribute("src") || "",
       })),
     })),
@@ -73,11 +73,27 @@ try {
   assert.deepEqual(workforceSummary?.tokens.map((token) => token.title), ["店主", "劳工", "技工", "工程师"], "workforce icons must retain localized names as tooltips");
   assert(workforceSummary?.tokens.every((token) => token.label.includes(token.title) && token.icon.startsWith("assets/pops/")), "workforce summary tokens must expose accessible names and pop icons");
   assert.deepEqual(inputSummary?.tokens.map((token) => token.text), ["5", "10"], "input summary must keep quantities without visible goods names");
-  assert.deepEqual(inputSummary?.tokens.map((token) => token.title), ["发动机", "煤"], "input icons must retain localized names as tooltips");
+  assert.deepEqual(inputSummary?.tokens.map((token) => token.title), ["发动机", "煤炭"], "input icons must retain localized names as tooltips");
   assert(inputSummary?.tokens.every((token) => token.label.includes(token.title) && token.icon.startsWith("assets/goods/")), "input summary tokens must expose accessible names and goods icons");
   assert.deepEqual(outputSummary?.tokens.map((token) => token.text), ["60"], "output summary must keep quantities without visible goods names");
   assert.deepEqual(outputSummary?.tokens.map((token) => token.title), ["油"], "output icon must retain its localized name as a tooltip");
   assert(outputSummary?.tokens.every((token) => token.label.includes(token.title) && token.icon.startsWith("assets/goods/")), "output summary token must expose an accessible name and goods icon");
+  const missingSummaryIcon = await page.evaluate(() => {
+    const template = document.createElement("template");
+    template.innerHTML = levelOneIconTokensHtml([{ key: "missing_good", name: "缺失商品", value: 2 }], "goods");
+    const token = template.content.firstElementChild;
+    document.body.append(token);
+    const icon = token.querySelector("img");
+    icon.dispatchEvent(new Event("error"));
+    const result = {
+      text: token.innerText?.replace(/\s+/g, "").trim() || "",
+      iconHidden: icon.hidden,
+      fallbackHidden: token.querySelector(".production-summary-token-fallback")?.hidden,
+    };
+    token.remove();
+    return result;
+  });
+  assert.deepEqual(missingSummaryIcon, { text: "2缺失商品", iconHidden: true, fallbackHidden: false }, "a missing summary icon must fall back to its localized name");
   assert.equal(await page.evaluate(() => document.querySelector("[data-production-standard-output]")?.textContent?.trim()), "£18.72/人/年", "standard output must use base prices and 52-week annual profit per worker");
   assert.equal(oilRig.allCombinationList, null, "building detail must not render a full combination list");
   assert.equal(oilRig.resourceButton, true, "oil rig must offer the resource map route");
@@ -132,11 +148,13 @@ try {
   await page.waitFor(() => location.hash === "#/building/building_rye_farm", "rye farm route");
   const ryeFarm = await page.evaluate(() => ({
     summary: document.querySelector("[data-production-summary]")?.textContent || "",
+    workforceLabels: Array.from(document.querySelectorAll("[data-production-summary] dl > div:first-child .production-summary-token"), (token) => token.getAttribute("aria-label") || ""),
+    outputLabels: Array.from(document.querySelectorAll("[data-production-summary] dl > div:nth-child(3) .production-summary-token"), (token) => token.getAttribute("aria-label") || ""),
     standardOutput: document.querySelector("[data-production-standard-output]")?.textContent?.trim() || "",
   }));
-  assert.match(ryeFarm.summary, /劳动力：4000劳工，1000农民/, "rye farm must display level-one employment without modifier internals");
+  assert.deepEqual(ryeFarm.workforceLabels, ["4000劳工", "1000农民"], "rye farm workforce icons must retain accessible profession names");
   assert.match(ryeFarm.summary, /投入商品：无/, "rye farm must display an empty level-one input list");
-  assert.match(ryeFarm.summary, /产出商品：20谷物/, "rye farm must display level-one grain output");
+  assert.deepEqual(ryeFarm.outputLabels, ["20谷物"], "rye farm output icon must retain an accessible goods name");
   assert.equal(ryeFarm.standardOutput, "£4.16/人/年", "rye farm standard output must match the reference workbook");
   await page.evaluate(() => document.querySelector("[data-production-method-picker='pmg_harvesting_process_building_rye_farm']").click());
   await page.waitFor(() => document.querySelector(".production-method-group-panel:not([hidden]) [data-production-method-key='pm_tools']"), "rye farm harvesting alternatives");
@@ -144,10 +162,12 @@ try {
   await page.waitFor(() => document.querySelector("[data-production-method-picker='pmg_harvesting_process_building_rye_farm']")?.dataset.productionMethodKey === "pm_tools", "selected harvesting tools");
   const automatedRyeFarm = await page.evaluate(() => ({
     summary: document.querySelector("[data-production-summary]")?.textContent || "",
+    workforceLabels: Array.from(document.querySelectorAll("[data-production-summary] dl > div:first-child .production-summary-token"), (token) => token.getAttribute("aria-label") || ""),
+    inputLabels: Array.from(document.querySelectorAll("[data-production-summary] dl > div:nth-child(2) .production-summary-token"), (token) => token.getAttribute("aria-label") || ""),
     standardOutput: document.querySelector("[data-production-standard-output]")?.textContent?.trim() || "",
   }));
-  assert.match(automatedRyeFarm.summary, /劳动力：3000劳工，1000农民/, "automation must reduce level-one employment before display");
-  assert.match(automatedRyeFarm.summary, /投入商品：2工具/, "automation must add level-one tool inputs");
+  assert.deepEqual(automatedRyeFarm.workforceLabels, ["3000劳工", "1000农民"], "automation must reduce level-one employment before icon display");
+  assert.deepEqual(automatedRyeFarm.inputLabels, ["2工具"], "automation must add the tool input icon with an accessible name");
   assert.equal(automatedRyeFarm.standardOutput, "£4.16/人/年", "automation must recalculate annual profit with its reduced workforce");
 
   await page.evaluate(() => document.querySelector("[data-production-method-picker='pmg_secondary_building_rye_farm']").click());
@@ -218,6 +238,24 @@ try {
   }));
   assert.equal(woodOutput.label, "+0.25 木材", "wood goods must use the Chinese goods name");
   assert.equal(woodOutput.icon, "assets/goods/wood.webp", "wood goods must use the wood icon");
+
+  await page.goto(`${zhBaseUrl}#/building/building_tobacco_plantation`);
+  await page.waitFor(() => document.querySelector("[data-production-method-picker='pmg_working_conditions_tobacco']"), "tobacco plantation detail");
+  await page.evaluate(() => document.querySelector("[data-production-method-picker='pmg_working_conditions_tobacco']").click());
+  await page.waitFor(() => document.querySelector(".production-method-group-panel:not([hidden]) [data-production-method-key='lectors_tobacco']"), "tobacco working-condition methods");
+  await page.evaluate(() => document.querySelector("[data-production-method-key='lectors_tobacco']").click());
+  await page.waitFor(() => document.querySelector("[data-production-method-picker='pmg_working_conditions_tobacco']")?.dataset.productionMethodKey === "lectors_tobacco", "selected tobacco lectors");
+  const tobaccoScaling = await page.evaluate(() => {
+    const row = document.querySelector(".production-method-group-panel:not([hidden]) [data-production-method-key='lectors_tobacco']")?.closest(".production-method-row");
+    return {
+      outputAfter: Array.from(document.querySelectorAll("[data-production-summary] dl > div:nth-child(3) .production-summary-token"), (token) => token.getAttribute("aria-label") || ""),
+      goodsRow: row?.querySelector(".production-method-goods-row")?.textContent?.trim() || "",
+      extraRow: row?.querySelector(".production-method-extra-row")?.textContent || "",
+    };
+  });
+  assert.deepEqual(tobaccoScaling.outputAfter, ["30烟草"], "unscaled tobacco output must not be added to the per-level combination summary");
+  assert.equal(tobaccoScaling.goodsRow, "", "unscaled tobacco output must not appear in the staffing-scaled goods row");
+  assert.match(tobaccoScaling.extraRow, /无等级修正：[^]*烟草产出[^]*\+2/, "unscaled tobacco output must remain visible in the unscaled-modifier group");
 
   await page.goto(`${zhBaseUrl}#/building/building_company_headquarter`);
   await page.waitFor(() => location.hash === "#/building/building_company_headquarter", "company headquarters route");

@@ -232,9 +232,9 @@ function selectedProductionMethodsForGroups(groups) {
 
 function productionMethodRowHtml(group, method, selected) {
   const effects = method.effects || [];
-  const inputs = effects.filter((effect) => /^goods_input_[a-z0-9_]+_add$/.test(effect.key));
-  const outputs = effects.filter((effect) => /^goods_output_[a-z0-9_]+_add$/.test(effect.key));
-  const workforce = effects.filter((effect) => /^building_employment_.+_add$/.test(effect.key));
+  const inputs = effects.filter((effect) => effect.scaling === "workforce_scaled" && /^goods_input_[a-z0-9_]+_add$/.test(effect.key));
+  const outputs = effects.filter((effect) => effect.scaling === "workforce_scaled" && /^goods_output_[a-z0-9_]+_add$/.test(effect.key));
+  const workforce = effects.filter((effect) => effect.scaling === "level_scaled" && /^building_employment_.+_add$/.test(effect.key));
   const classified = new Set([...inputs, ...outputs, ...workforce]);
   const extras = effects.filter((effect) => !classified.has(effect));
   return `<article class="production-method-row${selected ? " is-selected" : ""}">
@@ -289,15 +289,17 @@ function productionMethodExtraHtml(method, effects) {
     .map((condition) => entityText(condition, "summary", condition.raw || ""))
     .filter(Boolean)
     .join(t("ui.semicolon"));
-  const unscaled = effects.filter((effect) => effect.scaling !== "level_scaled");
+  const unscaled = effects.filter((effect) => effect.scaling === "unscaled");
+  const workforceScaled = effects.filter((effect) => effect.scaling === "workforce_scaled");
   const levelScaled = effects.filter((effect) => effect.scaling === "level_scaled");
   const items = [
     technologies ? productionMethodExtraItemHtml(t("board.economy.prerequisiteTechnologiesLabel"), technologies) : "",
     requiredLaws ? productionMethodExtraItemHtml(t("board.economy.requiredLawsLabel"), escapeHtml(requiredLaws)) : "",
     disallowedLaws ? productionMethodExtraItemHtml(t("board.economy.disallowedLawsLabel"), escapeHtml(disallowedLaws)) : "",
     otherConditions ? productionMethodExtraItemHtml(t("board.economy.availabilityLabel"), escapeHtml(otherConditions)) : "",
-    unscaled.length ? productionMethodExtraItemHtml(t("board.economy.unscaledModifiersLabel"), productionEffectListHtml(unscaled)) : "",
-    levelScaled.length ? productionMethodExtraItemHtml(t("board.economy.levelScaledModifiersLabel"), productionEffectListHtml(levelScaled)) : "",
+    unscaled.length ? productionMethodExtraItemHtml(t("board.economy.unscaledModifiersLabel"), productionEffectListHtml(unscaled, false)) : "",
+    workforceScaled.length ? productionMethodExtraItemHtml(t("board.economy.workforceScaledModifiersLabel"), productionEffectListHtml(workforceScaled, false)) : "",
+    levelScaled.length ? productionMethodExtraItemHtml(t("board.economy.levelScaledModifiersLabel"), productionEffectListHtml(levelScaled, false)) : "",
   ].join("");
   return items ? `<div class="production-method-extra-row">${items}</div>` : "";
 }
@@ -328,9 +330,9 @@ function productionCombinationSummaryHtml(selected) {
   const methods = [...selected.values()].filter(Boolean);
   const { totals, conditional } = combinedProductionEffects(methods);
   const effects = [...totals.values()];
-  const employees = effects.filter((effect) => /^building_employment_.+_add$/.test(effect.key));
-  const inputs = effects.filter((effect) => /^goods_input_[a-z0-9_]+_add$/.test(effect.key));
-  const outputs = effects.filter((effect) => /^goods_output_[a-z0-9_]+_add$/.test(effect.key));
+  const employees = effects.filter((effect) => effect.scaling === "level_scaled" && /^building_employment_.+_add$/.test(effect.key));
+  const inputs = effects.filter((effect) => effect.scaling === "workforce_scaled" && /^goods_input_[a-z0-9_]+_add$/.test(effect.key));
+  const outputs = effects.filter((effect) => effect.scaling === "workforce_scaled" && /^goods_output_[a-z0-9_]+_add$/.test(effect.key));
   const classified = new Set([...employees, ...inputs, ...outputs]);
   const modifiers = effects.filter((effect) => !classified.has(effect));
   if (conditional.length) modifiers.push(...conditional);
@@ -341,7 +343,7 @@ function productionCombinationSummaryHtml(selected) {
     [t("board.economy.standardOutputLabel"), annualProfitPerWorker(employees, inputs, outputs), "data-production-standard-output"],
     [t("board.economy.modifiersLabel"), productionEffectListHtml(modifiers), ""],
   ];
-  return `<section class="production-combination-summary" data-production-summary><h3>${escapeHtml(t("board.economy.currentCombination"))} <small>${escapeHtml(t("board.economy.levelOneBuilding"))}</small></h3><dl>${rows.map(([label, value, attribute]) => `
+  return `<section class="production-combination-summary" data-production-summary><h3>${escapeHtml(t("board.economy.currentCombination"))}</h3><dl>${rows.map(([label, value, attribute]) => `
     <div><dt>${label}</dt><dd${attribute ? ` ${attribute}` : ""}>${attribute || !String(value).startsWith("<") ? escapeHtml(value) : value}</dd></div>
   `).join("")}</dl></section>`;
 }
@@ -349,11 +351,12 @@ function productionCombinationSummaryHtml(selected) {
 function levelOneEmploymentText(effects) {
   const rows = effects
     .map((effect) => ({
+      key: effect.key.match(/^building_employment_(.+)_add$/)?.[1] || "",
       name: productionPopulationName(effect),
       value: Number(effect.value || 0),
     }))
     .filter((row) => row.value > 0);
-  return rows.length ? rows.map((row) => t("board.economy.quantityName", { value: formatProductionNumber(row.value), name: row.name })).join(t("board.economy.listSeparator")) : t("ui.none");
+  return levelOneIconTokensHtml(rows, "pops");
 }
 
 function productionPopulationName(effect) {
@@ -366,10 +369,20 @@ function levelOneGoodsText(effects, prefix) {
   const rows = effects
     .map((effect) => {
       const goodKey = effect.key.match(new RegExp(`^${prefix}([a-z0-9_]+)_add$`))?.[1] || "";
-      return { name: economyDisplayName(goodByKey.get(goodKey)) || goodKey, value: Number(effect.value || 0) };
+      return { key: goodKey, name: economyDisplayName(goodByKey.get(goodKey)) || goodKey, value: Number(effect.value || 0) };
     })
     .filter((row) => row.value > 0);
-  return rows.length ? rows.map((row) => t("board.economy.quantityName", { value: formatProductionNumber(row.value), name: row.name })).join(t("board.economy.listSeparator")) : t("ui.none");
+  return levelOneIconTokensHtml(rows, "goods");
+}
+
+function levelOneIconTokensHtml(rows, category) {
+  if (!rows.length) return t("ui.none");
+  return rows.map((row) => {
+    const value = formatProductionNumber(row.value);
+    const label = t("board.economy.quantityName", { value, name: row.name });
+    if (!row.key) return `<span class="production-summary-token production-summary-token--fallback" aria-label="${escapeHtml(label)}">${escapeHtml(label)}</span>`;
+    return `<span class="production-summary-token" aria-label="${escapeHtml(label)}" title="${escapeHtml(row.name)}"><span>${escapeHtml(value)}</span><img src="${economyAsset(category, row.key)}" alt="" aria-hidden="true" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="production-summary-token-fallback" hidden>${escapeHtml(row.name)}</span></span>`;
+  }).join(t("board.economy.listSeparator"));
 }
 
 function annualProfitPerWorker(employees, inputs, outputs) {
@@ -412,22 +425,22 @@ function combinedProductionEffects(methods) {
   return { totals, conditional };
 }
 
-function productionEffectListHtml(effects) {
+function productionEffectListHtml(effects, showScaling = true) {
   if (!effects.length) return t("ui.none");
-  return `<ul>${effects.map((effect) => `<li>${escapeHtml(productionEffectText(effect))}</li>`).join("")}</ul>`;
+  return `<ul>${effects.map((effect) => `<li>${escapeHtml(productionEffectText(effect, showScaling))}</li>`).join("")}</ul>`;
 }
 
 function productionScalingText(scaling) {
   return t(`board.economy.scaling.${scaling || "fixed"}`);
 }
 
-function productionEffectText(effect) {
-  const showScaling = Boolean(effect.scaling && effect.scaling !== "workforce_scaled");
-  const scale = showScaling ? productionScalingText(effect.scaling) : "";
+function productionEffectText(effect, showScaling = true) {
+  const includeScaling = Boolean(showScaling && effect.scaling && effect.scaling !== "workforce_scaled");
+  const scale = includeScaling ? productionScalingText(effect.scaling) : "";
   const conditionText = effect.condition ? entityText(effect.condition, "summary", effect.condition.raw || "") : "";
   const condition = conditionText ? t("board.economy.effectCondition", { condition: conditionText }) : "";
   const value = effect.combined ? combinedProductionValue(effect) : entityText(effect, "value", `${effect.value > 0 ? "+" : ""}${effect.value}`);
-  return t(showScaling ? "board.economy.effectText" : "board.economy.effectTextWithoutScaling", { scope: translateMessage(`board.economy.scope.${effect.scope}`, effect.scope), name: entityText(effect, "name", effect.key), value, scale, condition });
+  return t(includeScaling ? "board.economy.effectText" : "board.economy.effectTextWithoutScaling", { scope: translateMessage(`board.economy.scope.${effect.scope}`, effect.scope), name: entityText(effect, "name", effect.key), value, scale, condition });
 }
 
 function combinedProductionValue(effect) {

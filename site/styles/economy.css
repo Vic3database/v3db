@@ -84,6 +84,8 @@ body.detail-page[data-view="building"] .economy-wall-grid, body.detail-page[data
 .production-combination-summary dl > div { display: flex; align-items: baseline; gap: 4px; }
 .production-combination-summary dt { flex: none; color: var(--muted); font-size: var(--text-sm); }
 .production-combination-summary dd { margin: 0; font-size: var(--text-sm); }
+.production-summary-token { display: inline-flex; align-items: center; gap: 3px; vertical-align: middle; white-space: nowrap; }
+.production-summary-token img { width: 20px; height: 20px; object-fit: contain; }
 .production-combination-summary ul { display: grid; gap: 4px; margin: 0; padding-left: 20px; }
 .economy-detail details { border-top: 1px solid rgba(200, 164, 91, .3); padding-top: 10px; }
 .economy-detail summary { cursor: pointer; color: var(--accent); }
