@@ -9,8 +9,8 @@ const buildScript = read("scripts/build_wiki.mjs");
 const appSource = readSiteAppSource(root);
 const styleSource = readSiteStyleSource(root);
 
-assert.match(indexHtml, /app\/economy\.js\?v=20260806-production-summary-icons1/, "economy script must use the production-summary icon cache version");
-assert.match(indexHtml, /styles\.css\?v=20260806-production-summary-icons1/, "site styles must use the production-summary icon cache version");
+assert.match(indexHtml, /app\/economy\.js\?v=20260806-production-goods-flow1/, "economy script must use the production-goods flow cache version");
+assert.match(indexHtml, /styles\.css\?v=20260806-production-goods-flow1/, "site styles must use the production-goods flow cache version");
 
 for (const view of ["building", "goods"]) {
   assert(indexHtml.includes(`data-nav-view="${view}"`), `top navigation must include ${view}`);
@@ -42,6 +42,9 @@ for (const text of [
   "production-method-group-strip",
   "production-method-group-panel",
   "production-method-goods-row",
+  "production-method-goods-inputs",
+  "production-method-goods-arrow",
+  "production-method-goods-outputs",
   "production-method-workforce-row",
   "production-method-extra-row",
   "data-production-summary",
@@ -81,6 +84,10 @@ assert(styleSource.includes(".economy-card-change"), "economy cards need a dedic
 assert.match(read("site/locales/ui.zh-Hans.js"), /"enum\.popType\.clergymen": "教士"/, "clergymen must use the game Chinese term");
 assert(styleSource.includes(".production-method-good--negative"), "negative goods changes need a negative color");
 assert(styleSource.includes(".production-method-good--positive"), "positive goods changes need a positive color");
+assert.match(read("site/locales/ui.zh-Hans.js"), /"board\.economy\.productionGoodInputAria": "投入：\{value\} \{name\}"/, "Chinese input goods need a directional accessible label");
+assert.match(read("site/locales/ui.zh-Hans.js"), /"board\.economy\.productionGoodOutputAria": "产出：\{value\} \{name\}"/, "Chinese output goods need a directional accessible label");
+assert.match(read("site/locales/ui.en.js"), /"board\.economy\.productionGoodInputAria": "Input: \{value\} \{name\}"/, "English input goods need a directional accessible label");
+assert.match(read("site/locales/ui.en.js"), /"board\.economy\.productionGoodOutputAria": "Output: \{value\} \{name\}"/, "English output goods need a directional accessible label");
 assert(styleSource.includes(".production-summary-token"), "production summaries need inline icon tokens");
 assert(appSource.includes('effect.scaling === "unscaled"'), "unscaled effects need a dedicated production-method group");
 assert(appSource.includes('effect.scaling === "workforce_scaled"'), "staffing-scaled effects need a dedicated production-method group");

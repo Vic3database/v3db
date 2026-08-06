@@ -36,7 +36,7 @@ try {
     victorian_century_browser: "ok",
     routes,
     locales: ["zh-Hans", "en"],
-    verified: ["economy-walls", "change-filters", "construction-method", "banana-method", "benz-prestige-good", "starting-culture-obsessions", "production-goods-signs", "production-summary-icons", "production-scaling-groups"],
+    verified: ["economy-walls", "change-filters", "construction-method", "banana-method", "benz-prestige-good", "starting-culture-obsessions", "production-goods-flow", "production-summary-icons", "production-scaling-groups"],
   }, null, 2));
 } finally {
   chrome.kill();
@@ -167,12 +167,19 @@ async function checkProductionGoodsSigns(page) {
         if (input && Number(effect.value) < 0) negativeInputs += 1;
         if (output && Number(effect.value) < 0) negativeOutputs += 1;
         const template = document.createElement("template");
-        template.innerHTML = productionMethodGoodTokenHtml(effect, input ? "input" : "output");
-        const token = template.content.firstElementChild;
-        const netValue = (input ? -1 : 1) * Number(effect.value || 0);
-        const expectedSign = netValue < 0 ? "−" : "+";
-        const expectedClass = netValue < 0 ? "production-method-good--negative" : "production-method-good--positive";
-        if (!token?.getAttribute("aria-label")?.startsWith(expectedSign) || !token?.classList.contains(expectedClass)) {
+        template.innerHTML = productionMethodGoodsHtml(input ? [effect] : [], output ? [effect] : []);
+        const row = template.content.firstElementChild;
+        const rawValue = Number(effect.value || 0);
+        const expectedValue = input
+          ? `${rawValue < 0 ? "−" : ""}${formatProductionNumber(Math.abs(rawValue))}`
+          : `${rawValue < 0 ? "−" : "+"}${formatProductionNumber(Math.abs(rawValue))}`;
+        const expectedClass = input
+          ? (rawValue < 0 ? "production-method-good--positive" : "production-method-good--negative")
+          : (rawValue < 0 ? "production-method-good--negative" : "production-method-good--positive");
+        const expectedSide = input ? ".production-method-goods-inputs" : ".production-method-goods-outputs";
+        const wrongSide = input ? ".production-method-goods-outputs" : ".production-method-goods-inputs";
+        const token = row?.querySelector(`${expectedSide} .production-method-good`);
+        if (!token?.getAttribute("aria-label")?.includes(expectedValue) || !token?.classList.contains(expectedClass) || row?.querySelector(wrongSide)) {
           failures.push(`${method.key}:${effect.key}:${effect.value}`);
         }
       }
@@ -183,6 +190,24 @@ async function checkProductionGoodsSigns(page) {
   assert.equal(audit.effects, 725, "VC audit must cover every goods effect, including unscaled goods changes");
   assert.equal(audit.negativeInputs, 8, "VC audit must cover every negative input effect");
   assert.equal(audit.negativeOutputs, 21, "VC audit must cover every negative output effect");
+
+  await page.goto(localizedRoute("zh-Hans", "building/building_food_industry"));
+  await page.waitFor(() => document.querySelector("[data-production-method-picker='pmg_distillery']"), "VC food industry detail");
+  await page.click("[data-production-method-picker='pmg_distillery']");
+  await page.waitFor(() => document.querySelector(".production-method-group-panel:not([hidden]) [data-production-method-key='pm_pot_stills']"), "VC distillery methods");
+  const potStills = await page.evaluate(() => {
+    const row = document.querySelector(".production-method-group-panel:not([hidden]) [data-production-method-key='pm_pot_stills']")?.closest(".production-method-row");
+    return {
+      inputs: Array.from(row?.querySelectorAll(".production-method-goods-inputs .production-method-good") || [], (token) => token.getAttribute("aria-label") || ""),
+      arrow: row?.querySelector(".production-method-goods-arrow")?.textContent?.trim() || "",
+      outputs: Array.from(row?.querySelectorAll(".production-method-goods-outputs .production-method-good") || [], (token) => token.getAttribute("aria-label") || ""),
+    };
+  });
+  assert.deepEqual(potStills, {
+    inputs: ["投入：25 糖"],
+    arrow: "→",
+    outputs: ["产出：−30 加工食品", "产出：+60 烈酒"],
+  }, "VC pot stills must preserve the same input-to-output flow as the main site");
 }
 
 async function checkProductionSummaryAndScaling(page) {

@@ -174,13 +174,19 @@ try {
   await page.waitFor(() => document.querySelector(".production-method-group-panel:not([hidden]) [data-production-method-key='pm_apple_orchards']"), "rye farm secondary methods");
   const appleOrchards = await page.evaluate(() => {
     const row = document.querySelector(".production-method-group-panel:not([hidden]) [data-production-method-key='pm_apple_orchards']")?.closest(".production-method-row");
-    return Array.from(row?.querySelectorAll(".production-method-good") || [], (token) => ({
-      label: token.getAttribute("aria-label") || "",
-      classes: token.className,
-    }));
+    return {
+      inputs: Array.from(row?.querySelectorAll(".production-method-goods-inputs .production-method-good") || [], (token) => token.getAttribute("aria-label") || ""),
+      outputs: Array.from(row?.querySelectorAll(".production-method-goods-outputs .production-method-good") || [], (token) => ({
+        label: token.getAttribute("aria-label") || "",
+        classes: token.className,
+      })),
+      arrow: row?.querySelector(".production-method-goods-arrow")?.textContent?.trim() || "",
+    };
   });
-  assert(appleOrchards.some((item) => item.label === "−8 谷物" && item.classes.includes("production-method-good--negative")), "apple orchards must show reduced grain as a negative goods change");
-  assert(appleOrchards.some((item) => item.label === "+7 水果" && item.classes.includes("production-method-good--positive")), "apple orchards must show increased fruit as a positive goods change");
+  assert.deepEqual(appleOrchards.inputs, [], "apple orchards must not invent an input side");
+  assert.equal(appleOrchards.arrow, "", "output-only secondary methods must not show an arrow");
+  assert(appleOrchards.outputs.some((item) => item.label === "产出：−8 谷物" && item.classes.includes("production-method-good--negative")), "apple orchards must show reduced grain on the output side");
+  assert(appleOrchards.outputs.some((item) => item.label === "产出：+7 水果" && item.classes.includes("production-method-good--positive")), "apple orchards must show increased fruit on the output side");
 
   await page.goto(`${zhBaseUrl}#/building/building_textile_mill`);
   await page.waitFor(() => location.hash === "#/building/building_textile_mill", "textile mill route");
@@ -188,13 +194,53 @@ try {
   await page.waitFor(() => document.querySelector(".production-method-group-panel:not([hidden]) [data-production-method-key='pm_craftsman_sewing']"), "textile luxury methods");
   const craftsmanSewing = await page.evaluate(() => {
     const row = document.querySelector(".production-method-group-panel:not([hidden]) [data-production-method-key='pm_craftsman_sewing']")?.closest(".production-method-row");
-    return Array.from(row?.querySelectorAll(".production-method-good") || [], (token) => ({
+    return Array.from(row?.querySelectorAll(".production-method-goods-inputs .production-method-good") || [], (token) => ({
       label: token.getAttribute("aria-label") || "",
       classes: token.className,
     }));
   });
-  assert(craftsmanSewing.some((item) => item.label === "+15 织物" && item.classes.includes("production-method-good--positive")), "craftsman sewing must show reduced fabric consumption as a positive goods change");
-  assert(craftsmanSewing.some((item) => item.label === "−30 衣物" && item.classes.includes("production-method-good--negative")), "craftsman sewing must show reduced clothes output as a negative goods change");
+  assert(craftsmanSewing.some((item) => item.label === "投入：−15 织物" && item.classes.includes("production-method-good--positive")), "craftsman sewing must show reduced fabric consumption on the input side");
+
+  await page.goto(`${zhBaseUrl}#/building/building_food_industry`);
+  await page.waitFor(() => document.querySelector("[data-production-method-picker='pmg_distillery']"), "food industry detail");
+  await page.evaluate(() => document.querySelector("[data-production-method-picker='pmg_distillery']").click());
+  await page.waitFor(() => document.querySelector(".production-method-group-panel:not([hidden]) [data-production-method-key='pm_pot_stills']"), "distillery methods");
+  const potStills = await page.evaluate(() => {
+    const row = document.querySelector(".production-method-group-panel:not([hidden]) [data-production-method-key='pm_pot_stills']")?.closest(".production-method-row");
+    const tokens = (selector) => Array.from(row?.querySelectorAll(selector) || [], (token) => ({
+      label: token.getAttribute("aria-label") || "",
+      classes: token.className,
+    }));
+    return {
+      inputs: tokens(".production-method-goods-inputs .production-method-good"),
+      arrow: row?.querySelector(".production-method-goods-arrow")?.textContent?.trim() || "",
+      outputs: tokens(".production-method-goods-outputs .production-method-good"),
+      visible: row?.querySelector(".production-method-goods-row")?.textContent?.replace(/\s+/g, "").trim() || "",
+    };
+  });
+  assert.deepEqual(potStills.inputs.map((item) => item.label), ["投入：25 糖"], "pot stills must keep sugar on the input side without a plus sign");
+  assert.equal(potStills.arrow, "→", "pot stills must separate inputs and outputs with an arrow");
+  assert.deepEqual(potStills.outputs.map((item) => item.label), ["产出：−30 加工食品", "产出：+60 烈酒"], "pot stills must show reduced primary output before increased byproduct output");
+  assert(potStills.inputs[0].classes.includes("production-method-good--negative"), "added sugar consumption must use the negative economic-effect color");
+  assert(potStills.outputs[0].classes.includes("production-method-good--negative"), "reduced groceries output must use the negative economic-effect color");
+  assert(potStills.outputs[1].classes.includes("production-method-good--positive"), "increased liquor output must use the positive economic-effect color");
+  assert.equal(potStills.visible, "25→−30+60", "pot stills must present the requested compact visible flow");
+
+  const oneSidedGoods = await page.evaluate(() => {
+    const input = { key: "goods_input_sugar_add", value: 25 };
+    const inputTemplate = document.createElement("template");
+    inputTemplate.innerHTML = productionMethodGoodsHtml([input], []);
+    const emptyTemplate = document.createElement("template");
+    emptyTemplate.innerHTML = productionMethodGoodsHtml([], []);
+    return {
+      inputArrow: inputTemplate.content.querySelector(".production-method-goods-arrow")?.textContent || "",
+      inputCount: inputTemplate.content.querySelectorAll(".production-method-goods-inputs .production-method-good").length,
+      inputOutputs: inputTemplate.content.querySelectorAll(".production-method-goods-outputs .production-method-good").length,
+      emptyText: emptyTemplate.content.firstElementChild?.textContent?.trim() || "",
+      emptyChildren: emptyTemplate.content.firstElementChild?.children.length ?? -1,
+    };
+  });
+  assert.deepEqual(oneSidedGoods, { inputArrow: "", inputCount: 1, inputOutputs: 0, emptyText: "", emptyChildren: 0 }, "single-sided and empty goods rows must not show an orphan arrow");
 
   const productionGoodsAudit = await page.evaluate(() => {
     const failures = [];
@@ -211,12 +257,19 @@ try {
         if (output && Number(effect.value) < 0) negativeOutputs += 1;
         const direction = input ? "input" : "output";
         const template = document.createElement("template");
-        template.innerHTML = productionMethodGoodTokenHtml(effect, direction);
+        template.innerHTML = productionMethodGoodsHtml(input ? [effect] : [], output ? [effect] : []);
         const token = template.content.firstElementChild;
-        const netValue = (input ? -1 : 1) * Number(effect.value || 0);
-        const expectedSign = netValue < 0 ? "−" : "+";
-        const expectedClass = netValue < 0 ? "production-method-good--negative" : "production-method-good--positive";
-        if (!token?.getAttribute("aria-label")?.startsWith(expectedSign) || !token?.classList.contains(expectedClass)) {
+        const rawValue = Number(effect.value || 0);
+        const expectedValue = input
+          ? `${rawValue < 0 ? "−" : ""}${formatProductionNumber(Math.abs(rawValue))}`
+          : `${rawValue < 0 ? "−" : "+"}${formatProductionNumber(Math.abs(rawValue))}`;
+        const expectedClass = input
+          ? (rawValue < 0 ? "production-method-good--positive" : "production-method-good--negative")
+          : (rawValue < 0 ? "production-method-good--negative" : "production-method-good--positive");
+        const expectedSide = input ? ".production-method-goods-inputs" : ".production-method-goods-outputs";
+        const wrongSide = input ? ".production-method-goods-outputs" : ".production-method-goods-inputs";
+        const goodToken = token?.querySelector(`${expectedSide} .production-method-good`);
+        if (!goodToken?.getAttribute("aria-label")?.includes(expectedValue) || !goodToken?.classList.contains(expectedClass) || token?.querySelector(wrongSide)) {
           failures.push(`${method.key}:${effect.key}:${effect.value}`);
         }
       }
