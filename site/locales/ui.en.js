@@ -83,6 +83,8 @@ window.VICDATA_UI_LOCALES.en = {
     "board.economy.workforceLabel": "Workforce:",
     "board.economy.inputGoodsLabel": "Input goods:",
     "board.economy.outputGoodsLabel": "Output goods:",
+    "board.economy.productionGoodInputAria": "Input: {value} {name}",
+    "board.economy.productionGoodOutputAria": "Output: {value} {name}",
     "board.economy.standardOutputLabel": "Standard output:",
     "board.economy.modifiersLabel": "Modifiers:",
     "board.economy.quantityName": "{value} {name}",

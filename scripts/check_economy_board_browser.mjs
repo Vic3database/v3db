@@ -289,7 +289,7 @@ try {
     label: document.querySelector(".production-method-group-panel:not([hidden]) .production-method-good--output:has(img[src='assets/goods/wood.webp'])")?.getAttribute("aria-label") || "",
     icon: document.querySelector(".production-method-group-panel:not([hidden]) .production-method-good--output img[src='assets/goods/wood.webp']")?.getAttribute("src") || "",
   }));
-  assert.equal(woodOutput.label, "+0.25 木材", "wood goods must use the Chinese goods name");
+  assert.equal(woodOutput.label, "产出：+0.25 木材", "wood goods must use the Chinese goods name and output direction");
   assert.equal(woodOutput.icon, "assets/goods/wood.webp", "wood goods must use the wood icon");
 
   await page.goto(`${zhBaseUrl}#/building/building_tobacco_plantation`);
@@ -434,19 +434,49 @@ try {
   assert.doesNotMatch(englishGood.body, /\$[^$]+\$|@[A-Za-z0-9_]+!|[\u3400-\u9fff]/, "English goods detail contains unresolved localization");
 
   const narrowPage = await openPage({ width: 390, height: 844 });
-  await narrowPage.goto(`${zhBaseUrl}#/building/building_oil_rig`);
-  await narrowPage.waitFor(() => location.hash === "#/building/building_oil_rig" && document.querySelector(".economy-detail"), "narrow oil rig detail");
-  await narrowPage.evaluate(() => document.querySelector("[data-production-method-picker='pmg_base_building_oil_rig']").click());
-  await narrowPage.waitFor(() => document.querySelector(".production-method-group-panel:not([hidden])"), "narrow oil rig method panel");
+  await narrowPage.goto(`${zhBaseUrl}#/building/building_food_industry`);
+  await narrowPage.waitFor(() => location.hash === "#/building/building_food_industry" && document.querySelector(".economy-detail"), "narrow food industry detail");
+  await narrowPage.evaluate(() => document.querySelector("[data-production-method-picker='pmg_distillery']").click());
+  await narrowPage.waitFor(() => document.querySelector(".production-method-group-panel:not([hidden]) [data-production-method-key='pm_pot_stills']"), "narrow distillery method panel");
   const narrow = await narrowPage.evaluate(() => ({
     scrollWidth: document.documentElement.scrollWidth,
     clientWidth: document.documentElement.clientWidth,
     detailRight: document.querySelector(".economy-detail")?.getBoundingClientRect().right || 0,
     panelRight: document.querySelector(".production-method-group-panel:not([hidden])")?.getBoundingClientRect().right || 0,
+    flow: (() => {
+      const row = document.querySelector(".production-method-group-panel:not([hidden]) [data-production-method-key='pm_pot_stills']")?.closest(".production-method-row");
+      const inputs = row?.querySelector(".production-method-goods-inputs")?.getBoundingClientRect();
+      const arrow = row?.querySelector(".production-method-goods-arrow")?.getBoundingClientRect();
+      const outputs = row?.querySelector(".production-method-goods-outputs")?.getBoundingClientRect();
+      const goods = row?.querySelector(".production-method-goods-row")?.getBoundingClientRect();
+      return inputs && arrow && outputs && goods ? {
+        inputTop: inputs.top,
+        inputRight: inputs.right,
+        inputBottom: inputs.bottom,
+        arrowTop: arrow.top,
+        arrowLeft: arrow.left,
+        arrowRight: arrow.right,
+        arrowBottom: arrow.bottom,
+        outputTop: outputs.top,
+        outputLeft: outputs.left,
+        outputBottom: outputs.bottom,
+        goodsLeft: goods.left,
+        goodsRight: goods.right,
+        inputsLeft: inputs.left,
+        outputsRight: outputs.right,
+      } : null;
+    })(),
   }));
   assert(narrow.scrollWidth <= narrow.clientWidth, "production-method detail must not overflow the narrow viewport");
   assert(narrow.detailRight <= narrow.clientWidth, "production-method detail content must remain inside the narrow viewport");
   assert(narrow.panelRight <= narrow.clientWidth, "production-method panel must remain inside the narrow viewport");
+  assert(narrow.flow, "narrow production flow must retain both sides and its arrow");
+  const overlaps = (left, right) => left.left < right.right && right.left < left.right && left.top < right.bottom && right.top < left.bottom;
+  const inputRect = { left: narrow.flow.inputsLeft, right: narrow.flow.inputRight, top: narrow.flow.inputTop, bottom: narrow.flow.inputBottom };
+  const arrowRect = { left: narrow.flow.arrowLeft, right: narrow.flow.arrowRight, top: narrow.flow.arrowTop, bottom: narrow.flow.arrowBottom };
+  const outputRect = { left: narrow.flow.outputLeft, right: narrow.flow.outputsRight, top: narrow.flow.outputTop, bottom: narrow.flow.outputBottom };
+  assert(!overlaps(inputRect, arrowRect) && !overlaps(arrowRect, outputRect), `narrow production flow arrow must not overlap either goods side: ${JSON.stringify(narrow.flow)}`);
+  assert(narrow.flow.goodsLeft <= narrow.flow.inputsLeft && narrow.flow.outputsRight <= narrow.flow.goodsRight, "narrow production flow sides must remain inside the goods row");
   await narrowPage.close();
   await page.close();
   console.log(JSON.stringify({ economy_board_browser: "ok", base_url: baseUrl }, null, 2));

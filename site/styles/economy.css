@@ -62,6 +62,8 @@ body.detail-page[data-view="building"] .economy-wall-grid, body.detail-page[data
 .production-method-goods-row, .production-method-workforce-row, .production-method-extra-row { grid-column: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 5px 9px; min-width: 0; }
 .production-method-goods-row:empty, .production-method-workforce-row:empty { display: none; }
 .production-method-goods-row { min-height: 26px; justify-content: flex-end; }
+.production-method-goods-side { display: inline-flex; flex-wrap: wrap; justify-content: flex-end; gap: 5px 9px; min-width: 0; }
+.production-method-goods-arrow { flex: none; color: var(--muted); font-size: var(--text-lg); line-height: 1; }
 .production-method-workforce-row { min-height: 24px; justify-content: flex-end; }
 .production-method-good, .production-method-workforce, .production-method-technology { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
 .production-method-good { font-size: var(--text-sm); }
@@ -117,4 +119,4 @@ body.detail-page[data-view="building"] .economy-wall-grid, body.detail-page[data
 .goods-source-details .goods-facts { grid-template-columns: 1fr; }
 
 @media (max-width: 1100px) { .economy-wall-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); } body.detail-page[data-view="building"] .results, body.detail-page[data-view="goods"] .results { display: none; } body.detail-page[data-view="building"] .detail, body.detail-page[data-view="goods"] .detail { position: relative; inset: auto; width: auto; } }
-@media (max-width: 640px) { .economy-shell { padding: 14px 12px 32px; } .economy-toolbar { align-items: stretch; flex-direction: column; gap: 8px; } .economy-search, .economy-search-controls, .economy-search input { width: 100%; min-width: 0; } .economy-wall-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; } .economy-card-name { padding: 5px 4px; font-size: 11px; } .goods-facts, .goods-needs dl { grid-template-columns: 1fr; } .economy-related-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .economy-detail-head { grid-template-columns: 64px minmax(0, 1fr) auto; } .economy-detail-head > img { width: 64px; height: 64px; } }
+@media (max-width: 640px) { .economy-shell { padding: 14px 12px 32px; } .economy-toolbar { align-items: stretch; flex-direction: column; gap: 8px; } .economy-search, .economy-search-controls, .economy-search input { width: 100%; min-width: 0; } .economy-wall-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; } .economy-card-name { padding: 5px 4px; font-size: 11px; } .goods-facts, .goods-needs dl { grid-template-columns: 1fr; } .economy-related-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .economy-detail-head { grid-template-columns: 64px minmax(0, 1fr) auto; } .economy-detail-head > img { width: 64px; height: 64px; } .production-method-goods-row, .production-method-goods-side { gap: 4px 6px; } }

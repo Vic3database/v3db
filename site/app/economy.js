@@ -249,11 +249,27 @@ function productionMethodRowHtml(group, method, selected) {
 }
 
 function productionMethodGoodsHtml(inputs, outputs) {
-  const items = [
-    ...inputs.map((effect) => productionMethodGoodTokenHtml(effect, "input")),
-    ...outputs.map((effect) => productionMethodGoodTokenHtml(effect, "output")),
-  ].join("");
-  return `<div class="production-method-goods-row">${items}</div>`;
+  if (!inputs.length && !outputs.length) return '<div class="production-method-goods-row"></div>';
+  const inputItems = productionMethodGoodsSideHtml(inputs, "input");
+  const outputItems = productionMethodGoodsSideHtml(outputs, "output");
+  return `<div class="production-method-goods-row">
+    ${inputItems ? `<span class="production-method-goods-side production-method-goods-inputs">${inputItems}</span>` : ""}
+    ${inputItems && outputItems ? '<span class="production-method-goods-arrow" aria-hidden="true">→</span>' : ""}
+    ${outputItems ? `<span class="production-method-goods-side production-method-goods-outputs">${outputItems}</span>` : ""}
+  </div>`;
+}
+
+function productionMethodGoodsSideHtml(effects, direction) {
+  return effects
+    .map((effect, index) => ({ effect, index }))
+    .sort((left, right) => productionMethodGoodOrder(left.effect, direction) - productionMethodGoodOrder(right.effect, direction) || left.index - right.index)
+    .map(({ effect }) => productionMethodGoodTokenHtml(effect, direction))
+    .join("");
+}
+
+function productionMethodGoodOrder(effect, direction) {
+  const negative = Number(effect.value || 0) < 0;
+  return direction === "input" ? Number(negative) : Number(!negative);
 }
 
 function productionMethodGoodTokenHtml(effect, direction) {
@@ -262,10 +278,11 @@ function productionMethodGoodTokenHtml(effect, direction) {
   const name = economyDisplayName(good) || goodKey;
   const rawValue = Number(effect.value || 0);
   const netValue = (direction === "input" ? -1 : 1) * rawValue;
-  const sign = netValue < 0 ? "−" : "+";
+  const sign = rawValue < 0 ? "−" : direction === "output" ? "+" : "";
   const change = netValue < 0 ? "negative" : "positive";
-  const value = Math.abs(rawValue);
-  return `<span class="production-method-good production-method-good--${direction} production-method-good--${change}" aria-label="${escapeHtml(`${sign}${formatProductionNumber(value)} ${name}`)}" title="${escapeHtml(`${sign}${formatProductionNumber(value)} ${name}`)}"><b>${sign}</b><img src="${economyAsset("goods", goodKey)}" alt="" aria-hidden="true"><span>${escapeHtml(formatProductionNumber(value))}</span></span>`;
+  const value = `${sign}${formatProductionNumber(Math.abs(rawValue))}`;
+  const label = t(`board.economy.productionGood${direction === "input" ? "Input" : "Output"}Aria`, { value, name });
+  return `<span class="production-method-good production-method-good--${direction} production-method-good--${change}" aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}"><b>${sign}</b><img src="${economyAsset("goods", goodKey)}" alt="" aria-hidden="true"><span>${escapeHtml(formatProductionNumber(Math.abs(rawValue)))}</span></span>`;
 }
 
 function productionMethodWorkforceHtml(effects) {

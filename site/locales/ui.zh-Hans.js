@@ -83,6 +83,8 @@ window.VICDATA_UI_LOCALES["zh-Hans"] = {
     "board.economy.workforceLabel": "劳动力：",
     "board.economy.inputGoodsLabel": "投入商品：",
     "board.economy.outputGoodsLabel": "产出商品：",
+    "board.economy.productionGoodInputAria": "投入：{value} {name}",
+    "board.economy.productionGoodOutputAria": "产出：{value} {name}",
     "board.economy.standardOutputLabel": "标准产值：",
     "board.economy.modifiersLabel": "修正：",
     "board.economy.quantityName": "{value}{name}",
