@@ -1072,7 +1072,8 @@ function renderCultureDetail(culture) {
 
     <h3>${t("board.culture.section.consumption", "消费")}</h3>
     <dl class="field-grid">
-      ${field(t("board.culture.obsessions", "痴迷"), goodsList(culture.obsessions))}
+      ${field(t("board.culture.obsessions", "痴迷"), `<span data-culture-obsessions>${goodsList(culture.obsessions)}</span>`)}
+      ${field(t("board.culture.startingObsessions", "1836年开局追加痴迷"), startingCultureObsessionsList(culture.starting_obsessions))}
       ${field(t("board.culture.taboos", "禁忌"), goodsList(culture.taboos))}
     </dl>
 
@@ -1087,6 +1088,26 @@ function renderCultureDetail(culture) {
     </dl>
     </section>
   `;
+}
+
+function startingCultureObsessionsList(obsessions) {
+  const items = (obsessions || []).map((obsession) => conceptPill({
+    label: entityText(obsession),
+    kind: "goods",
+    key: obsession.key,
+    title: obsession.key,
+    secondaryDescription: startingCultureObsessionSourceText(obsession.sources),
+  }));
+  return items.length ? `<span class="link-list" data-culture-starting-obsessions>${items.join("")}</span>` : "";
+}
+
+function startingCultureObsessionSourceText(sources) {
+  const labels = (sources || []).map((source) => {
+    const countries = (source.country_tags || []).map((tag) => entityText(byTag.get(tag) || { tag })).filter(Boolean).join(t("ui.listSeparator"));
+    const journal = entityText(source);
+    return [countries, journal].filter(Boolean).join(t("ui.listSeparator"));
+  }).filter(Boolean);
+  return labels.join(t("ui.listSeparator"));
 }
 function renderStateRegionDetail(stateRegion) {
   const relatedCompanies = companiesForStateRegion(stateRegion);
