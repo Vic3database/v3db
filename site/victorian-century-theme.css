@@ -64,8 +64,7 @@ body {
 }
 
 .topbar {
-  background:
-    linear-gradient(100deg, var(--vc-evergreen-deep), var(--vc-wine-deep) 52%, var(--vc-evergreen-deep));
+  background: linear-gradient(180deg, var(--vc-wine), var(--vc-wine-deep));
 }
 
 :root {
@@ -76,7 +75,7 @@ body {
 .topbar-nav-item:hover,
 .topbar-nav-item[aria-current="true"] {
   border-color: rgba(var(--vc-gold-rgb), 0.48);
-  background: linear-gradient(90deg, var(--vc-evergreen), var(--vc-plum));
+  background: var(--vc-evergreen);
   color: var(--vc-gold-pale);
 }
 
@@ -141,7 +140,7 @@ body[data-view="goods"] .results {
 }
 
 .production-method-row.is-selected {
-  background: linear-gradient(90deg, rgba(113, 55, 72, 0.34), rgba(30, 75, 66, 0.16));
+  background: rgba(113, 55, 72, 0.34);
   box-shadow: inset 3px 0 0 var(--accent), inset 0 0 0 1px rgba(var(--vc-gold-rgb), 0.32);
 }
 

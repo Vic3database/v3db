@@ -22,6 +22,7 @@ assert.match(theme, /--gold:\s*var\(--vc-gold\)/, "VC theme must define the tech
 assert.match(theme, /--bg:\s*var\(--vc-bg\)/, "VC base background must use the dedicated theme token");
 assert.match(theme, /--accent-blue:\s*var\(--vc-evergreen\)/, "VC controls must use evergreen rather than blue");
 assert.match(theme, /body\[data-view="goods"\][\s\S]*?var\(--vc-evergreen\)/, "VC economy panel must use evergreen instead of the main-site blue literal");
+assert.doesNotMatch(theme, /linear-gradient\([^;]*(?:--vc-evergreen[^;]*--vc-(?:wine|plum)|--vc-(?:wine|plum)[^;]*--vc-evergreen)/, "VC theme must keep evergreen controls separate from wine and plum surfaces");
 assert.doesNotMatch(theme, /#1d3040|#243e4e|#c8a45b|#a77022/, "VC theme must not reintroduce the previous navy or orange palette");
 assert.doesNotMatch(theme, /(?:\.map-|#map)/, "VC theme must not override map data colors");
 assert.match(builder, /victorian-century-theme\.css/, "VC builder must copy the dedicated theme");
