@@ -1,6 +1,6 @@
-/* Victorian Century only: wine red, plum, muted gold, and evergreen. */
+/* Victorian Century only: wine red, plum, muted gold, and cool gray olive. */
 :root {
-  --vc-bg: #181216;
+  --vc-bg: #161014;
   --vc-surface: #251d22;
   --vc-surface-raised: #34262f;
   --vc-line: #6a535d;
@@ -9,27 +9,27 @@
   --vc-wine: #542734;
   --vc-wine-deep: #2d1620;
   --vc-plum: #713748;
-  --vc-evergreen: #1e4b42;
-  --vc-evergreen-deep: #122c29;
-  --vc-evergreen-light: #4b806d;
+  --vc-evergreen: #2c302f;
+  --vc-evergreen-deep: #2c302f;
+  --vc-evergreen-light: #356754;
   --vc-gold: #b89963;
   --vc-gold-pale: #d8bf88;
-  --vc-bg-rgb: 24, 18, 22;
+  --vc-bg-rgb: 22, 16, 20;
   --vc-surface-rgb: 37, 29, 34;
-  --vc-evergreen-rgb: 30, 75, 66;
+  --vc-evergreen-rgb: 44, 48, 47;
   --vc-gold-rgb: 184, 153, 99;
   --gold: var(--vc-gold);
   --bg: var(--vc-bg);
   --surface: var(--vc-surface);
   --surface-raised: var(--vc-surface-raised);
-  --panel: var(--vc-evergreen);
+  --panel: var(--vc-evergreen-deep);
   --line: var(--vc-line);
   --ink: var(--vc-ink);
   --muted: var(--vc-muted);
   --accent: var(--vc-gold);
   --accent-2: var(--vc-plum);
   --accent-blue: var(--vc-evergreen);
-  --good: #8eb79c;
+  --good: #6f987d;
   --warn: var(--vc-gold-pale);
   --chip-bg: rgba(var(--vc-gold-rgb), 0.14);
   --panel-glass: rgba(var(--vc-surface-rgb), 0.94);
@@ -47,19 +47,15 @@
 
 *::-webkit-scrollbar-thumb {
   border-color: rgba(18, 44, 41, 0.42);
-  background: linear-gradient(180deg, rgba(216, 191, 136, 0.78), rgba(75, 128, 109, 0.72));
+  background: linear-gradient(180deg, rgba(216, 191, 136, 0.78), rgba(53, 103, 84, 0.72));
 }
 
 *::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, rgba(232, 211, 164, 0.88), rgba(94, 146, 125, 0.82));
+  background: linear-gradient(180deg, rgba(232, 211, 164, 0.88), rgba(66, 118, 95, 0.82));
 }
 
 body {
-  background:
-    radial-gradient(circle at 88% 0%, rgba(113, 55, 72, 0.2), transparent 32%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.018), rgba(0, 0, 0, 0.1)),
-    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.012) 0 1px, transparent 1px 8px),
-    var(--bg);
+  background: var(--bg);
 }
 
 .topbar {
@@ -152,5 +148,5 @@ body[data-view="goods"] .results {
 
 .technology-graph-viewport {
   border-color: rgba(var(--vc-gold-rgb), 0.34);
-  background: radial-gradient(circle at 50% 20%, rgba(var(--vc-evergreen-rgb), 0.22), transparent 52%), var(--panel-glass-strong);
+  background: var(--panel-glass-strong);
 }

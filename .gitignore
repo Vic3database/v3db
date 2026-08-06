@@ -44,6 +44,8 @@ site/assets/dlc/
 site/assets/ideologies/
 site/assets/interest-groups/
 site/assets/map/
+!site/assets/map/
+!site/assets/map/flatmap__2.png
 site/assets/prestige-goods/
 !site/assets/prestige-goods/
 site/assets/prestige-goods/*

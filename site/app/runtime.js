@@ -92,7 +92,7 @@ let pendingConceptTooltipPoint = null;
 const mapRuntime = {
   imageUrl: "assets/map/provinces.png",
   image: null,
-  paperMapUrl: "assets/map/flatmap_votp.png",
+  paperMapUrl: "assets/map/flatmap__2.png",
   paperMapImage: null,
   provinceMapImage: null,
   provinceSampleContext: null,

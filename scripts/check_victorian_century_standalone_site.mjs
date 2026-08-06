@@ -33,10 +33,11 @@ assert(fs.existsSync(htmlFile), "missing Victorian Century index.html");
 assert(fs.existsSync(configFile), "missing Victorian Century standalone configuration");
 assert(fs.existsSync(dataIndexFile), "missing Victorian Century data index");
 assert(fs.existsSync(mapFile), "missing Victorian Century map index");
+assert(fs.existsSync(path.join(siteRoot, "assets", "map", "flatmap__2.png")), "missing VC game paper map");
 assert(fs.existsSync(path.join(siteRoot, "assets", "production-methods", "united_fruit_banana.webp")), "missing VC production-method asset");
 assert(fs.existsSync(path.join(siteRoot, "assets", "prestige-goods", "prestige_good_benz_car.webp")), "missing VC prestige-good asset");
 assert(!fs.existsSync(path.join(siteRoot, "data.js")), "VC site must not retain the removed compatibility data bundle");
-for (const relative of ["index.html", "data-index.js", "map-data.js", "victorian-century-config.js", "vc-theme.css", "assets/map/provinces.png"]) {
+for (const relative of ["index.html", "data-index.js", "map-data.js", "victorian-century-config.js", "vc-theme.css", "assets/map/provinces.png", "assets/map/flatmap__2.png"]) {
   const standaloneFile = path.join(siteRoot, relative);
   const publishedFile = path.join(publishedRoot, relative);
   assert(fs.existsSync(publishedFile), `missing published VC file: site/vc/${relative}`);
@@ -49,7 +50,7 @@ for (const relative of ["index.html", "data-index.js", "map-data.js", "victorian
 
 const html = fs.readFileSync(htmlFile, "utf8");
 assert.match(html, /<title>Victorian Century Database<\/title>/, "page title must identify Victorian Century");
-assert.match(html, /href="vc-theme\.css\?v=20260806-wine-plum-evergreen1"/, "standalone page must load the VC theme after base styles");
+assert.match(html, /href="vc-theme\.css\?v=20260807-wine-plum-evergreen4"/, "standalone page must load the solid cool-olive theme after base styles");
 assert.match(html, /src="victorian-century-config\.js/, "page must load the standalone configuration");
 assert.doesNotMatch(html, /id="versionSelect"/, "standalone page must not render a version selector");
 assert.match(html, /id="standaloneLibrarySelect"/, "standalone page must offer a library return selector");
