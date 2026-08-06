@@ -21,6 +21,7 @@ copyDirectory(path.join(sourceSite, "app"), path.join(targetSite, "app"), copied
 copyDirectory(path.join(sourceSite, "styles"), path.join(targetSite, "styles"), copied);
 copyDirectory(path.join(sourceSite, "locales"), path.join(targetSite, "locales"), copied);
 copyFile(path.join(sourceSite, "styles.css"), path.join(targetSite, "styles.css"), copied);
+copyFile(path.join(sourceSite, "victorian-century-theme.css"), path.join(targetSite, "vc-theme.css"), copied);
 copyAssets(path.join(sourceSite, "assets"), path.join(targetSite, "assets"), copied);
 runEconomyAssetBuild(args.python, args.vcDatabase);
 if (!args.skipVcAssets) runVcAssetSync(args.python, args.vcDatabase);
@@ -115,6 +116,10 @@ function buildStandaloneHtml(sourceHtml) {
   let html = sourceHtml
     .replace("<title>Vicdata</title>", "<title>Victorian Century Database</title>")
     .replaceAll("Vicdata", "Victorian Century")
+    .replace(
+      '<link rel="stylesheet" href="styles.css?v=20260806-production-goods-flow1">',
+      '<link rel="stylesheet" href="styles.css?v=20260806-production-goods-flow1">\n    <link rel="stylesheet" href="vc-theme.css?v=20260806-wine-plum-evergreen1">',
+    )
     .replace(/\s*<label class="version-menu topbar-icon-select">[\s\S]*?<\/label>/, `
         <label class="version-menu topbar-icon-select">
           <img class="lucide-icon" src="assets/lucide/icons/milestone.svg" alt="" aria-hidden="true">

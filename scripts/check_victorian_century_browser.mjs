@@ -46,6 +46,21 @@ async function checkEconomyWall(page, route) {
   const selector = cardSelectors[route];
   await page.goto(localizedRoute("zh-Hans", route));
   await page.waitFor(({ route: expectedRoute, selector: expectedSelector, expectedCount }) => document.body.dataset.view === expectedRoute && document.querySelectorAll(expectedSelector).length === expectedCount, `${route} wall`, { route, selector, expectedCount: expectedCounts[route] });
+  const theme = await page.evaluate(() => {
+    const style = getComputedStyle(document.documentElement);
+    return {
+      bg: style.getPropertyValue("--bg").trim(),
+      accent: style.getPropertyValue("--accent").trim(),
+      evergreen: style.getPropertyValue("--accent-blue").trim(),
+      gold: style.getPropertyValue("--gold").trim(),
+      themeHref: Array.from(document.styleSheets, (sheet) => sheet.href || "").find((href) => href.includes("vc-theme.css")) || "",
+    };
+  });
+  assert.equal(theme.bg, "#181216", `${route} must use the wine-plum base background`);
+  assert.equal(theme.accent, "#b89963", `${route} must use muted gold`);
+  assert.equal(theme.evergreen, "#1e4b42", `${route} must use evergreen controls`);
+  assert.equal(theme.gold, "#b89963", `${route} must provide muted gold to the technology graph`);
+  assert.match(theme.themeHref, /vc-theme\.css\?v=20260806-wine-plum-evergreen1/, `${route} must load the dedicated VC theme`);
   const wall = await page.evaluate(({ selector: expectedSelector }) => ({
     cards: document.querySelectorAll(expectedSelector).length,
     map: getComputedStyle(document.querySelector("#mapPanel")).display,

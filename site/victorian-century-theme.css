@@ -1,0 +1,157 @@
+/* Victorian Century only: wine red, plum, muted gold, and evergreen. */
+:root {
+  --vc-bg: #181216;
+  --vc-surface: #251d22;
+  --vc-surface-raised: #34262f;
+  --vc-line: #6a535d;
+  --vc-ink: #eee5df;
+  --vc-muted: #bdadb2;
+  --vc-wine: #542734;
+  --vc-wine-deep: #2d1620;
+  --vc-plum: #713748;
+  --vc-evergreen: #1e4b42;
+  --vc-evergreen-deep: #122c29;
+  --vc-evergreen-light: #4b806d;
+  --vc-gold: #b89963;
+  --vc-gold-pale: #d8bf88;
+  --vc-bg-rgb: 24, 18, 22;
+  --vc-surface-rgb: 37, 29, 34;
+  --vc-evergreen-rgb: 30, 75, 66;
+  --vc-gold-rgb: 184, 153, 99;
+  --gold: var(--vc-gold);
+  --bg: var(--vc-bg);
+  --surface: var(--vc-surface);
+  --surface-raised: var(--vc-surface-raised);
+  --panel: var(--vc-evergreen);
+  --line: var(--vc-line);
+  --ink: var(--vc-ink);
+  --muted: var(--vc-muted);
+  --accent: var(--vc-gold);
+  --accent-2: var(--vc-plum);
+  --accent-blue: var(--vc-evergreen);
+  --good: #8eb79c;
+  --warn: var(--vc-gold-pale);
+  --chip-bg: rgba(var(--vc-gold-rgb), 0.14);
+  --panel-glass: rgba(var(--vc-surface-rgb), 0.94);
+  --panel-glass-strong: rgba(52, 38, 47, 0.98);
+}
+
+* {
+  scrollbar-color: rgba(var(--vc-gold-rgb), 0.62) rgba(18, 44, 41, 0.42);
+}
+
+*::-webkit-scrollbar-track,
+*::-webkit-scrollbar-corner {
+  background: rgba(18, 44, 41, 0.42);
+}
+
+*::-webkit-scrollbar-thumb {
+  border-color: rgba(18, 44, 41, 0.42);
+  background: linear-gradient(180deg, rgba(216, 191, 136, 0.78), rgba(75, 128, 109, 0.72));
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(232, 211, 164, 0.88), rgba(94, 146, 125, 0.82));
+}
+
+body {
+  background:
+    radial-gradient(circle at 12% 0%, rgba(var(--vc-evergreen-rgb), 0.26), transparent 34%),
+    radial-gradient(circle at 88% 0%, rgba(113, 55, 72, 0.2), transparent 32%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.018), rgba(0, 0, 0, 0.1)),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.012) 0 1px, transparent 1px 8px),
+    var(--bg);
+}
+
+.topbar {
+  background:
+    linear-gradient(100deg, var(--vc-evergreen-deep), var(--vc-wine-deep) 52%, var(--vc-evergreen-deep));
+}
+
+:root {
+  --panel-glass: rgba(var(--vc-surface-rgb), 0.94);
+  --panel-glass-strong: rgba(52, 38, 47, 0.98);
+}
+
+.topbar-nav-item:hover,
+.topbar-nav-item[aria-current="true"] {
+  border-color: rgba(var(--vc-gold-rgb), 0.48);
+  background: linear-gradient(90deg, var(--vc-evergreen), var(--vc-plum));
+  color: var(--vc-gold-pale);
+}
+
+.topbar-icon-button:hover,
+.dialog-close-button:hover,
+.detail-back-button:hover,
+.topbar-link:hover {
+  border-color: rgba(var(--vc-gold-rgb), 0.58);
+  color: var(--vc-gold-pale);
+}
+
+.country-row[aria-current="true"],
+.culture-row[aria-current="true"],
+.global-search-dialog-results .country-row[aria-selected="true"] {
+  box-shadow: 0 0 0 2px rgba(var(--vc-evergreen-rgb), 0.26);
+}
+
+.home-news-tab[aria-pressed="true"],
+.news-board-tab[aria-pressed="true"],
+.list-mode-button[aria-pressed="true"] {
+  border-color: rgba(var(--vc-gold-rgb), 0.64);
+  background: var(--vc-evergreen);
+  color: var(--vc-gold-pale);
+}
+
+.mobile-country-filter-category[aria-selected="true"],
+.mobile-country-filter-option[aria-pressed="true"],
+.mobile-culture-filter-category[aria-selected="true"],
+.mobile-culture-filter-option[aria-pressed="true"] {
+  background: var(--vc-plum);
+  color: var(--vc-ink);
+}
+
+body[data-view="goods"] .results {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--vc-evergreen) 24%, transparent), transparent 34%), var(--surface);
+}
+
+.economy-toolbar {
+  background: linear-gradient(180deg, var(--surface) 76%, rgba(var(--vc-surface-rgb), 0));
+}
+
+.economy-search input {
+  border-color: rgba(var(--vc-gold-rgb), 0.4);
+  background: rgba(var(--vc-bg-rgb), 0.78);
+}
+
+.economy-search button,
+.economy-resource-map {
+  border-color: rgba(var(--vc-gold-rgb), 0.58);
+  background: rgba(var(--vc-evergreen-rgb), 0.9);
+}
+
+.economy-change-filters button[aria-pressed="true"] {
+  background: rgba(113, 55, 72, 0.48);
+  color: var(--vc-gold-pale);
+}
+
+.economy-card:hover,
+.economy-card:focus-visible,
+.economy-card[aria-pressed="true"] {
+  box-shadow: 0 0 0 1px rgba(var(--vc-gold-rgb), 0.42), 0 12px 24px rgba(0, 0, 0, 0.34);
+}
+
+.production-method-row.is-selected {
+  background: linear-gradient(90deg, rgba(113, 55, 72, 0.34), rgba(30, 75, 66, 0.16));
+  box-shadow: inset 3px 0 0 var(--accent), inset 0 0 0 1px rgba(var(--vc-gold-rgb), 0.32);
+}
+
+.technology-controls button[aria-pressed="true"],
+.technology-node[aria-pressed="true"] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(var(--vc-gold-rgb), 0.2);
+}
+
+.technology-graph-viewport {
+  border-color: rgba(var(--vc-gold-rgb), 0.34);
+  background: radial-gradient(circle at 50% 20%, rgba(var(--vc-evergreen-rgb), 0.22), transparent 52%), var(--panel-glass-strong);
+}
