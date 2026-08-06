@@ -30,12 +30,13 @@ try {
   await checkStartingCultureObsessions(page);
   await checkAdjustedPrestigeGood(page);
   await checkProductionGoodsSigns(page);
+  await checkProductionSummaryAndScaling(page);
   await page.close();
   console.log(JSON.stringify({
     victorian_century_browser: "ok",
     routes,
     locales: ["zh-Hans", "en"],
-    verified: ["economy-walls", "change-filters", "construction-method", "banana-method", "benz-prestige-good", "starting-culture-obsessions", "production-goods-signs"],
+    verified: ["economy-walls", "change-filters", "construction-method", "banana-method", "benz-prestige-good", "starting-culture-obsessions", "production-goods-signs", "production-summary-icons", "production-scaling-groups"],
   }, null, 2));
 } finally {
   chrome.kill();
@@ -179,9 +180,47 @@ async function checkProductionGoodsSigns(page) {
     return { failures, effects, negativeInputs, negativeOutputs };
   });
   assert.equal(audit.failures.length, 0, `all VC production-method goods effects must use their net-change sign: ${audit.failures.slice(0, 10).join(", ")}`);
-  assert.equal(audit.effects, 724, "VC audit must cover every goods effect");
+  assert.equal(audit.effects, 725, "VC audit must cover every goods effect, including unscaled goods changes");
   assert.equal(audit.negativeInputs, 8, "VC audit must cover every negative input effect");
   assert.equal(audit.negativeOutputs, 21, "VC audit must cover every negative output effect");
+}
+
+async function checkProductionSummaryAndScaling(page) {
+  await page.goto(localizedRoute("zh-Hans", "building/building_oil_rig"));
+  await page.waitFor(() => document.querySelector("[data-production-summary]"), "VC Chinese production summary");
+  const chinese = await page.evaluate(() => ({
+    title: document.querySelector("[data-production-summary] h3")?.textContent?.trim() || "",
+    tokenCount: document.querySelectorAll("[data-production-summary] .production-summary-token img").length,
+    scalingLabels: (() => {
+      const template = document.createElement("template");
+      template.innerHTML = productionMethodExtraHtml({ unlocking_technologies: [], availability_conditions: [] }, [
+        { scope: "building", scaling: "unscaled", key: "building_laborers_mortality_mult", value: 0.1 },
+        { scope: "state", scaling: "workforce_scaled", key: "state_pollution_generation_add", value: 5 },
+        { scope: "building", scaling: "level_scaled", key: "building_training_rate_add", value: 10 },
+      ]);
+      return Array.from(template.content.querySelectorAll(".production-method-extra-item > strong"), (label) => label.textContent?.trim() || "");
+    })(),
+  }));
+  assert.equal(chinese.title, "当前生产方式组合（每级）", "VC Chinese production summary must state the per-level scope");
+  assert.equal(chinese.tokenCount, 7, "VC oil-rig summary must render four workforce, two input, and one output icon");
+  assert.deepEqual(chinese.scalingLabels, ["无等级修正：", "按就业水平修正：", "每级修正："], "VC Chinese production effects must use three scaling groups");
+
+  await page.goto(localizedRoute("en", "building/building_oil_rig"));
+  await page.waitFor(() => document.documentElement.lang === "en" && document.querySelector("[data-production-summary]"), "VC English production summary");
+  const english = await page.evaluate(() => ({
+    title: document.querySelector("[data-production-summary] h3")?.textContent?.trim() || "",
+    scalingLabels: (() => {
+      const template = document.createElement("template");
+      template.innerHTML = productionMethodExtraHtml({ unlocking_technologies: [], availability_conditions: [] }, [
+        { scope: "building", scaling: "unscaled", key: "building_laborers_mortality_mult", value: 0.1 },
+        { scope: "state", scaling: "workforce_scaled", key: "state_pollution_generation_add", value: 5 },
+        { scope: "building", scaling: "level_scaled", key: "building_training_rate_add", value: 10 },
+      ]);
+      return Array.from(template.content.querySelectorAll(".production-method-extra-item > strong"), (label) => label.textContent?.trim() || "");
+    })(),
+  }));
+  assert.equal(english.title, "Current production method combination (per level)", "VC English production summary must state the per-level scope");
+  assert.deepEqual(english.scalingLabels, ["Unscaled modifiers:", "Staffing-scaled modifiers:", "Per-level modifiers:"], "VC English production effects must use three scaling groups");
 }
 
 function localizedRoute(locale, route) {

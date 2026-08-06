@@ -46,6 +46,17 @@ try {
     legacyDetails: document.querySelector(".selected-production-method-detail"),
     combinationLabels: Array.from(document.querySelectorAll("[data-production-summary] dt"), (label) => label.textContent.trim()),
     combinationText: document.querySelector("[data-production-summary]")?.textContent || "",
+    combinationTitle: document.querySelector("[data-production-summary] h3")?.textContent?.trim() || "",
+    combinationRows: Array.from(document.querySelectorAll("[data-production-summary] dl > div"), (row) => ({
+      label: row.querySelector("dt")?.textContent?.trim() || "",
+      valueText: row.querySelector("dd")?.textContent?.trim() || "",
+      tokens: Array.from(row.querySelectorAll(".production-summary-token"), (token) => ({
+        label: token.getAttribute("aria-label") || "",
+        title: token.getAttribute("title") || "",
+        text: token.textContent?.trim() || "",
+        icon: token.querySelector("img")?.getAttribute("src") || "",
+      })),
+    })),
     allCombinationList: document.querySelector(".production-combination-list"),
     resourceButton: Boolean(document.querySelector("[data-resource-map-building='building_oil_rig']")),
   }));
@@ -54,9 +65,19 @@ try {
   assert.equal(oilRig.openPanels, 0, "production-method groups must start collapsed");
   assert.equal(oilRig.legacyDetails, null, "legacy production-method accordion must not be rendered");
   assert.deepEqual(oilRig.combinationLabels, ["劳动力：", "投入商品：", "产出商品：", "标准产值：", "修正："], "current combination must expose the five requested level-one result categories");
-  assert.match(oilRig.combinationText, /劳动力：500店主，3000劳工，1000技工，500工程师/, "level-one employment must use concise population counts");
-  assert.match(oilRig.combinationText, /投入商品：5发动机，10煤/, "level-one inputs must use concise goods counts");
-  assert.match(oilRig.combinationText, /产出商品：60油/, "level-one outputs must use concise goods counts");
+  assert.equal(oilRig.combinationTitle, "当前生产方式组合（每级）", "current combination title must state that values are per level");
+  const workforceSummary = oilRig.combinationRows.find((row) => row.label === "劳动力：");
+  const inputSummary = oilRig.combinationRows.find((row) => row.label === "投入商品：");
+  const outputSummary = oilRig.combinationRows.find((row) => row.label === "产出商品：");
+  assert.deepEqual(workforceSummary?.tokens.map((token) => token.text), ["500", "3000", "1000", "500"], "workforce summary must keep quantities without visible profession names");
+  assert.deepEqual(workforceSummary?.tokens.map((token) => token.title), ["店主", "劳工", "技工", "工程师"], "workforce icons must retain localized names as tooltips");
+  assert(workforceSummary?.tokens.every((token) => token.label.includes(token.title) && token.icon.startsWith("assets/pops/")), "workforce summary tokens must expose accessible names and pop icons");
+  assert.deepEqual(inputSummary?.tokens.map((token) => token.text), ["5", "10"], "input summary must keep quantities without visible goods names");
+  assert.deepEqual(inputSummary?.tokens.map((token) => token.title), ["发动机", "煤"], "input icons must retain localized names as tooltips");
+  assert(inputSummary?.tokens.every((token) => token.label.includes(token.title) && token.icon.startsWith("assets/goods/")), "input summary tokens must expose accessible names and goods icons");
+  assert.deepEqual(outputSummary?.tokens.map((token) => token.text), ["60"], "output summary must keep quantities without visible goods names");
+  assert.deepEqual(outputSummary?.tokens.map((token) => token.title), ["油"], "output icon must retain its localized name as a tooltip");
+  assert(outputSummary?.tokens.every((token) => token.label.includes(token.title) && token.icon.startsWith("assets/goods/")), "output summary token must expose an accessible name and goods icon");
   assert.equal(await page.evaluate(() => document.querySelector("[data-production-standard-output]")?.textContent?.trim()), "£18.72/人/年", "standard output must use base prices and 52-week annual profit per worker");
   assert.equal(oilRig.allCombinationList, null, "building detail must not render a full combination list");
   assert.equal(oilRig.resourceButton, true, "oil rig must offer the resource map route");
@@ -91,6 +112,16 @@ try {
   assert.match(basePanel.goodsText, /[−+]/, "goods rows must distinguish inputs and outputs with signs");
   assert.doesNotMatch(basePanel.extraText, /（按劳动力）/, "method rows must omit the redundant workforce-scaling suffix");
   assert(basePanel.rowOrder[0] <= basePanel.rowOrder[1] && (basePanel.rowOrder[2] < 0 || basePanel.rowOrder[1] <= basePanel.rowOrder[2]), "goods, workforce, and extra information must stay in vertical order");
+  const scalingGroupsZh = await page.evaluate(() => {
+    const template = document.createElement("template");
+    template.innerHTML = productionMethodExtraHtml({ unlocking_technologies: [], availability_conditions: [] }, [
+      { scope: "building", scaling: "unscaled", key: "building_laborers_mortality_mult", value: 0.1 },
+      { scope: "state", scaling: "workforce_scaled", key: "state_pollution_generation_add", value: 5 },
+      { scope: "building", scaling: "level_scaled", key: "building_training_rate_add", value: 10 },
+    ]);
+    return Array.from(template.content.querySelectorAll(".production-method-extra-item > strong"), (label) => label.textContent?.trim() || "");
+  });
+  assert.deepEqual(scalingGroupsZh, ["无等级修正：", "按就业水平修正：", "每级修正："], "Chinese production effects must use the three game-defined scaling groups");
   await page.evaluate(() => document.querySelector("[data-production-method-group='pmg_base_building_oil_rig'][data-production-method-key='pm_combustion_derricks']").click());
   await page.waitFor(() => document.querySelector("[data-production-method-picker='pmg_base_building_oil_rig']")?.dataset.productionMethodKey === "pm_combustion_derricks", "changed oil rig method");
   assert.equal(await page.evaluate(() => document.querySelectorAll(".production-method-group-panel:not([hidden])").length), 1, "selected group must remain open after choosing a method");
@@ -173,7 +204,7 @@ try {
     return { failures, effects, negativeInputs, negativeOutputs };
   });
   assert.equal(productionGoodsAudit.failures.length, 0, `all production-method goods effects must use their net-change sign: ${productionGoodsAudit.failures.slice(0, 10).join(", ")}`);
-  assert.equal(productionGoodsAudit.effects, 722, "base-game audit must cover every goods effect");
+  assert.equal(productionGoodsAudit.effects, 723, "base-game audit must cover every goods effect, including unscaled goods changes");
   assert.equal(productionGoodsAudit.negativeInputs, 8, "full base-game audit must cover all negative input effects");
   assert.equal(productionGoodsAudit.negativeOutputs, 21, "full base-game audit must cover all negative output effects");
 
@@ -272,6 +303,7 @@ try {
     title: document.querySelector(".economy-detail h2")?.textContent?.trim() || "",
     methodHeading: document.querySelector(".production-method-section h3")?.textContent?.trim() || "",
     combinationLabels: Array.from(document.querySelectorAll("[data-production-summary] dt"), (label) => label.textContent.trim()),
+    combinationTitle: document.querySelector("[data-production-summary] h3")?.textContent?.trim() || "",
     navLabel: document.querySelector("[data-nav-view='building']")?.textContent?.trim() || "",
     groupNames: Array.from(document.querySelectorAll("[data-board-group] > h2"), (heading) => heading.childNodes[0]?.textContent?.trim()),
     body: document.querySelector(".economy-detail")?.innerText || "",
@@ -279,9 +311,20 @@ try {
   assert.equal(englishBuilding.title, "Rubber Plantations", "English building route must resolve the localized building name");
   assert.equal(englishBuilding.methodHeading, "Production Methods", "English building detail must localize its production-method heading");
   assert.deepEqual(englishBuilding.combinationLabels, ["Workforce:", "Input goods:", "Output goods:", "Standard output:", "Modifiers:"], "English building detail must localize the current-combination labels");
+  assert.equal(englishBuilding.combinationTitle, "Current production method combination (per level)", "English combination title must state the per-level scope");
   assert.equal(englishBuilding.navLabel, "Buildings", "English navigation must label the building board");
   assert.deepEqual(englishBuilding.groupNames, ["Agriculture", "Resources", "Industrial", "Military", "Infrastructure", "Ownership Buildings", "Monuments"], "English building wall must localize the confirmed group names");
   assert.doesNotMatch(englishBuilding.body, /\$[^$]+\$|@[A-Za-z0-9_]+!|[\u3400-\u9fff]/, "English building detail contains unresolved localization");
+  const scalingGroupsEn = await page.evaluate(() => {
+    const template = document.createElement("template");
+    template.innerHTML = productionMethodExtraHtml({ unlocking_technologies: [], availability_conditions: [] }, [
+      { scope: "building", scaling: "unscaled", key: "building_laborers_mortality_mult", value: 0.1 },
+      { scope: "state", scaling: "workforce_scaled", key: "state_pollution_generation_add", value: 5 },
+      { scope: "building", scaling: "level_scaled", key: "building_training_rate_add", value: 10 },
+    ]);
+    return Array.from(template.content.querySelectorAll(".production-method-extra-item > strong"), (label) => label.textContent?.trim() || "");
+  });
+  assert.deepEqual(scalingGroupsEn, ["Unscaled modifiers:", "Staffing-scaled modifiers:", "Per-level modifiers:"], "English production effects must use the three game-defined scaling groups");
 
   await page.goto(`${enBaseUrl}#/goods/rubber`);
   await page.waitFor(() => document.documentElement.lang === "en" && document.querySelector("[data-good-standard-price]"), "English rubber detail");

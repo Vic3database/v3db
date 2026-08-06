@@ -9,8 +9,8 @@ const buildScript = read("scripts/build_wiki.mjs");
 const appSource = readSiteAppSource(root);
 const styleSource = readSiteStyleSource(root);
 
-assert.match(indexHtml, /app\/economy\.js\?v=20260806-production-goods-sign1/, "economy script must use the production-goods sign cache version");
-assert.match(indexHtml, /styles\.css\?v=20260806-production-goods-sign1/, "site styles must use the production-goods sign cache version");
+assert.match(indexHtml, /app\/economy\.js\?v=20260806-production-summary-icons1/, "economy script must use the production-summary icon cache version");
+assert.match(indexHtml, /styles\.css\?v=20260806-production-summary-icons1/, "site styles must use the production-summary icon cache version");
 
 for (const view of ["building", "goods"]) {
   assert(indexHtml.includes(`data-nav-view="${view}"`), `top navigation must include ${view}`);
@@ -81,6 +81,12 @@ assert(styleSource.includes(".economy-card-change"), "economy cards need a dedic
 assert.match(read("site/locales/ui.zh-Hans.js"), /"enum\.popType\.clergymen": "教士"/, "clergymen must use the game Chinese term");
 assert(styleSource.includes(".production-method-good--negative"), "negative goods changes need a negative color");
 assert(styleSource.includes(".production-method-good--positive"), "positive goods changes need a positive color");
+assert(styleSource.includes(".production-summary-token"), "production summaries need inline icon tokens");
+assert(appSource.includes('effect.scaling === "unscaled"'), "unscaled effects need a dedicated production-method group");
+assert(appSource.includes('effect.scaling === "workforce_scaled"'), "staffing-scaled effects need a dedicated production-method group");
+assert.match(read("site/locales/ui.zh-Hans.js"), /"board\.economy\.workforceScaledModifiersLabel": "按就业水平修正："/, "Chinese staffing-scaled effects need an accurate label");
+assert.match(read("site/locales/ui.zh-Hans.js"), /"board\.economy\.levelScaledModifiersLabel": "每级修正："/, "Chinese level-scaled effects need the game terminology");
+assert.match(read("site/locales/ui.en.js"), /"board\.economy\.workforceScaledModifiersLabel": "Staffing-scaled modifiers: "/, "English staffing-scaled effects need a dedicated label");
 
 console.log(JSON.stringify({ economy_board_contract: "ok" }, null, 2));
 
