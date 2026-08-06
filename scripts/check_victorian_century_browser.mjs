@@ -29,12 +29,13 @@ try {
   await checkAutomobiles(page, "en");
   await checkStartingCultureObsessions(page);
   await checkAdjustedPrestigeGood(page);
+  await checkProductionGoodsSigns(page);
   await page.close();
   console.log(JSON.stringify({
     victorian_century_browser: "ok",
     routes,
     locales: ["zh-Hans", "en"],
-    verified: ["economy-walls", "change-filters", "construction-method", "banana-method", "benz-prestige-good", "starting-culture-obsessions"],
+    verified: ["economy-walls", "change-filters", "construction-method", "banana-method", "benz-prestige-good", "starting-culture-obsessions", "production-goods-signs"],
   }, null, 2));
 } finally {
   chrome.kill();
@@ -146,6 +147,41 @@ async function checkAdjustedPrestigeGood(page) {
   await page.waitFor(() => document.querySelector("[data-prestige-good='prestige_good_generic_artillery']"), "English artillery detail");
   const changedFields = await page.evaluate(() => document.querySelector("[data-prestige-good='prestige_good_generic_artillery'] .economy-vc-change")?.textContent?.trim() || "");
   assert.match(changedFields, /^VC changed fields: associated companies$/, "adjusted prestige goods must identify their changed companies");
+}
+
+async function checkProductionGoodsSigns(page) {
+  await page.goto(localizedRoute("zh-Hans", "building/building_rye_farm"));
+  await page.waitFor(() => document.querySelector("[data-production-method-picker='pmg_secondary_building_rye_farm']"), "VC rye farm detail");
+  const audit = await page.evaluate(() => {
+    const failures = [];
+    let effects = 0;
+    let negativeInputs = 0;
+    let negativeOutputs = 0;
+    for (const method of productionMethods) {
+      for (const effect of method.effects || []) {
+        const input = /^goods_input_[a-z0-9_]+_add$/.test(effect.key);
+        const output = /^goods_output_[a-z0-9_]+_add$/.test(effect.key);
+        if (!input && !output) continue;
+        effects += 1;
+        if (input && Number(effect.value) < 0) negativeInputs += 1;
+        if (output && Number(effect.value) < 0) negativeOutputs += 1;
+        const template = document.createElement("template");
+        template.innerHTML = productionMethodGoodTokenHtml(effect, input ? "input" : "output");
+        const token = template.content.firstElementChild;
+        const netValue = (input ? -1 : 1) * Number(effect.value || 0);
+        const expectedSign = netValue < 0 ? "−" : "+";
+        const expectedClass = netValue < 0 ? "production-method-good--negative" : "production-method-good--positive";
+        if (!token?.getAttribute("aria-label")?.startsWith(expectedSign) || !token?.classList.contains(expectedClass)) {
+          failures.push(`${method.key}:${effect.key}:${effect.value}`);
+        }
+      }
+    }
+    return { failures, effects, negativeInputs, negativeOutputs };
+  });
+  assert.equal(audit.failures.length, 0, `all VC production-method goods effects must use their net-change sign: ${audit.failures.slice(0, 10).join(", ")}`);
+  assert.equal(audit.effects, 724, "VC audit must cover every goods effect");
+  assert.equal(audit.negativeInputs, 8, "VC audit must cover every negative input effect");
+  assert.equal(audit.negativeOutputs, 21, "VC audit must cover every negative output effect");
 }
 
 function localizedRoute(locale, route) {

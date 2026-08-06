@@ -66,8 +66,8 @@ body.detail-page[data-view="building"] .economy-wall-grid, body.detail-page[data
 .production-method-good, .production-method-workforce, .production-method-technology { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
 .production-method-good { font-size: var(--text-sm); }
 .production-method-good b { font-size: var(--text-lg); font-weight: normal; line-height: 1; }
-.production-method-good--input { color: #de8d7b; }
-.production-method-good--output { color: #8fcf93; }
+.production-method-good--negative { color: #de8d7b; }
+.production-method-good--positive { color: #8fcf93; }
 .production-method-good img, .production-method-workforce img, .production-method-technology img { width: 20px; height: 20px; object-fit: contain; }
 .production-method-workforce { color: var(--muted); font-size: var(--text-sm); }
 .production-method-extra-row { align-items: flex-start; padding-top: 4px; color: var(--muted); font-size: var(--text-xs); line-height: 1.45; }

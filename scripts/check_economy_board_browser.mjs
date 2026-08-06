@@ -119,6 +119,64 @@ try {
   assert.match(automatedRyeFarm.summary, /投入商品：2工具/, "automation must add level-one tool inputs");
   assert.equal(automatedRyeFarm.standardOutput, "£4.16/人/年", "automation must recalculate annual profit with its reduced workforce");
 
+  await page.evaluate(() => document.querySelector("[data-production-method-picker='pmg_secondary_building_rye_farm']").click());
+  await page.waitFor(() => document.querySelector(".production-method-group-panel:not([hidden]) [data-production-method-key='pm_apple_orchards']"), "rye farm secondary methods");
+  const appleOrchards = await page.evaluate(() => {
+    const row = document.querySelector(".production-method-group-panel:not([hidden]) [data-production-method-key='pm_apple_orchards']")?.closest(".production-method-row");
+    return Array.from(row?.querySelectorAll(".production-method-good") || [], (token) => ({
+      label: token.getAttribute("aria-label") || "",
+      classes: token.className,
+    }));
+  });
+  assert(appleOrchards.some((item) => item.label === "−8 谷物" && item.classes.includes("production-method-good--negative")), "apple orchards must show reduced grain as a negative goods change");
+  assert(appleOrchards.some((item) => item.label === "+7 水果" && item.classes.includes("production-method-good--positive")), "apple orchards must show increased fruit as a positive goods change");
+
+  await page.goto(`${zhBaseUrl}#/building/building_textile_mill`);
+  await page.waitFor(() => location.hash === "#/building/building_textile_mill", "textile mill route");
+  await page.evaluate(() => document.querySelector("[data-production-method-picker='pmg_luxury_building_textile_mill']").click());
+  await page.waitFor(() => document.querySelector(".production-method-group-panel:not([hidden]) [data-production-method-key='pm_craftsman_sewing']"), "textile luxury methods");
+  const craftsmanSewing = await page.evaluate(() => {
+    const row = document.querySelector(".production-method-group-panel:not([hidden]) [data-production-method-key='pm_craftsman_sewing']")?.closest(".production-method-row");
+    return Array.from(row?.querySelectorAll(".production-method-good") || [], (token) => ({
+      label: token.getAttribute("aria-label") || "",
+      classes: token.className,
+    }));
+  });
+  assert(craftsmanSewing.some((item) => item.label === "+15 织物" && item.classes.includes("production-method-good--positive")), "craftsman sewing must show reduced fabric consumption as a positive goods change");
+  assert(craftsmanSewing.some((item) => item.label === "−30 衣物" && item.classes.includes("production-method-good--negative")), "craftsman sewing must show reduced clothes output as a negative goods change");
+
+  const productionGoodsAudit = await page.evaluate(() => {
+    const failures = [];
+    let effects = 0;
+    let negativeInputs = 0;
+    let negativeOutputs = 0;
+    for (const method of productionMethods) {
+      for (const effect of method.effects || []) {
+        const input = /^goods_input_[a-z0-9_]+_add$/.test(effect.key);
+        const output = /^goods_output_[a-z0-9_]+_add$/.test(effect.key);
+        if (!input && !output) continue;
+        effects += 1;
+        if (input && Number(effect.value) < 0) negativeInputs += 1;
+        if (output && Number(effect.value) < 0) negativeOutputs += 1;
+        const direction = input ? "input" : "output";
+        const template = document.createElement("template");
+        template.innerHTML = productionMethodGoodTokenHtml(effect, direction);
+        const token = template.content.firstElementChild;
+        const netValue = (input ? -1 : 1) * Number(effect.value || 0);
+        const expectedSign = netValue < 0 ? "−" : "+";
+        const expectedClass = netValue < 0 ? "production-method-good--negative" : "production-method-good--positive";
+        if (!token?.getAttribute("aria-label")?.startsWith(expectedSign) || !token?.classList.contains(expectedClass)) {
+          failures.push(`${method.key}:${effect.key}:${effect.value}`);
+        }
+      }
+    }
+    return { failures, effects, negativeInputs, negativeOutputs };
+  });
+  assert.equal(productionGoodsAudit.failures.length, 0, `all production-method goods effects must use their net-change sign: ${productionGoodsAudit.failures.slice(0, 10).join(", ")}`);
+  assert.equal(productionGoodsAudit.effects, 722, "base-game audit must cover every goods effect");
+  assert.equal(productionGoodsAudit.negativeInputs, 8, "full base-game audit must cover all negative input effects");
+  assert.equal(productionGoodsAudit.negativeOutputs, 21, "full base-game audit must cover all negative output effects");
+
   await page.goto(`${zhBaseUrl}#/building/building_subsistence_fishing_village`);
   await page.waitFor(() => location.hash === "#/building/building_subsistence_fishing_village", "subsistence fishing village route");
   await page.evaluate(() => document.querySelector("[data-production-method-picker='pmg_base_building_subsistence_fishing_village']").click());

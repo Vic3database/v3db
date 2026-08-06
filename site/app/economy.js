@@ -260,9 +260,12 @@ function productionMethodGoodTokenHtml(effect, direction) {
   const goodKey = effect.key.match(/^goods_(?:input|output)_([a-z0-9_]+)_add$/)?.[1] || "";
   const good = goodByKey.get(goodKey);
   const name = economyDisplayName(good) || goodKey;
-  const value = Math.abs(Number(effect.value || 0));
-  const sign = direction === "input" ? "−" : "+";
-  return `<span class="production-method-good production-method-good--${direction}" aria-label="${escapeHtml(`${sign}${formatProductionNumber(value)} ${name}`)}" title="${escapeHtml(`${sign}${formatProductionNumber(value)} ${name}`)}"><b>${sign}</b><img src="${economyAsset("goods", goodKey)}" alt="" aria-hidden="true"><span>${escapeHtml(formatProductionNumber(value))}</span></span>`;
+  const rawValue = Number(effect.value || 0);
+  const netValue = (direction === "input" ? -1 : 1) * rawValue;
+  const sign = netValue < 0 ? "−" : "+";
+  const change = netValue < 0 ? "negative" : "positive";
+  const value = Math.abs(rawValue);
+  return `<span class="production-method-good production-method-good--${direction} production-method-good--${change}" aria-label="${escapeHtml(`${sign}${formatProductionNumber(value)} ${name}`)}" title="${escapeHtml(`${sign}${formatProductionNumber(value)} ${name}`)}"><b>${sign}</b><img src="${economyAsset("goods", goodKey)}" alt="" aria-hidden="true"><span>${escapeHtml(formatProductionNumber(value))}</span></span>`;
 }
 
 function productionMethodWorkforceHtml(effects) {

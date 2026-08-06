@@ -9,8 +9,8 @@ const buildScript = read("scripts/build_wiki.mjs");
 const appSource = readSiteAppSource(root);
 const styleSource = readSiteStyleSource(root);
 
-assert.match(indexHtml, /app\/economy\.js\?v=20260805-production-method-list2/, "economy script must use the production-method list cache version");
-assert.match(indexHtml, /styles\.css\?v=20260805-production-method-list1/, "site styles must use the production-method list cache version");
+assert.match(indexHtml, /app\/economy\.js\?v=20260806-production-goods-sign1/, "economy script must use the production-goods sign cache version");
+assert.match(indexHtml, /styles\.css\?v=20260806-production-goods-sign1/, "site styles must use the production-goods sign cache version");
 
 for (const view of ["building", "goods"]) {
   assert(indexHtml.includes(`data-nav-view="${view}"`), `top navigation must include ${view}`);
@@ -79,6 +79,8 @@ assert(styleSource.includes(".production-combination-summary"), "current product
 assert(styleSource.includes(".economy-change-filters"), "economy boards need Victorian Century change filters");
 assert(styleSource.includes(".economy-card-change"), "economy cards need a dedicated change-badge slot");
 assert.match(read("site/locales/ui.zh-Hans.js"), /"enum\.popType\.clergymen": "教士"/, "clergymen must use the game Chinese term");
+assert(styleSource.includes(".production-method-good--negative"), "negative goods changes need a negative color");
+assert(styleSource.includes(".production-method-good--positive"), "positive goods changes need a positive color");
 
 console.log(JSON.stringify({ economy_board_contract: "ok" }, null, 2));
 
