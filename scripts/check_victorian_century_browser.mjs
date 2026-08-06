@@ -65,12 +65,16 @@ async function checkEconomyWall(page, route) {
     cards: document.querySelectorAll(expectedSelector).length,
     map: getComputedStyle(document.querySelector("#mapPanel")).display,
     filters: getComputedStyle(document.querySelector(".filters")).display,
+    resultsBackgroundColor: getComputedStyle(document.querySelector(".results")).backgroundColor,
+    resultsBackgroundImage: getComputedStyle(document.querySelector(".results")).backgroundImage,
     added: document.querySelector("[data-economy-vc-change='added']")?.getAttribute("aria-pressed") || "",
     adjusted: document.querySelector("[data-economy-vc-change='adjusted']")?.getAttribute("aria-pressed") || "",
   }), { selector });
   assert.equal(wall.cards, expectedCounts[route], `${route} wall must expose every database entry`);
   assert.equal(wall.map, "none", `${route} wall must hide the map`);
   assert.equal(wall.filters, "none", `${route} wall must hide the sidebar filters`);
+  assert.equal(wall.resultsBackgroundColor, "rgb(37, 29, 34)", `${route} content background must use the VC surface color`);
+  assert.equal(wall.resultsBackgroundImage, "none", `${route} content background must not retain the base blue-green gradient`);
   assert.equal(wall.added, "false", `${route} added filter must start inactive`);
   assert.equal(wall.adjusted, "false", `${route} adjusted filter must start inactive`);
 

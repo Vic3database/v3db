@@ -108,8 +108,9 @@ body {
   color: var(--vc-ink);
 }
 
+body[data-view="building"] .results,
 body[data-view="goods"] .results {
-  background: linear-gradient(135deg, color-mix(in srgb, var(--vc-evergreen) 24%, transparent), transparent 34%), var(--surface);
+  background: var(--surface);
 }
 
 .economy-toolbar {
