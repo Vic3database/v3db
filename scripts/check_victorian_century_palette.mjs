@@ -12,6 +12,7 @@ const theme = fs.readFileSync(themeFile, "utf8");
 const builder = fs.readFileSync(builderFile, "utf8");
 const standaloneChecker = fs.readFileSync(standaloneCheckerFile, "utf8");
 const browserChecker = fs.readFileSync(browserCheckerFile, "utf8");
+const bodyRule = theme.match(/body\s*\{([\s\S]*?)\n\}/)?.[1] || "";
 
 assert.match(theme, /--vc-bg:\s*#181216/, "VC theme must define the wine-plum base background");
 assert.match(theme, /--vc-wine:\s*#542734/, "VC theme must define the wine header color");
@@ -22,6 +23,7 @@ assert.match(theme, /--gold:\s*var\(--vc-gold\)/, "VC theme must define the tech
 assert.match(theme, /--bg:\s*var\(--vc-bg\)/, "VC base background must use the dedicated theme token");
 assert.match(theme, /--accent-blue:\s*var\(--vc-evergreen\)/, "VC controls must use evergreen rather than blue");
 assert.match(theme, /body\[data-view="goods"\][\s\S]*?var\(--vc-evergreen\)/, "VC economy panel must use evergreen instead of the main-site blue literal");
+assert.doesNotMatch(bodyRule, /radial-gradient\([^;]*--vc-evergreen/, "VC page background must not diffuse evergreen behind content");
 assert.doesNotMatch(theme, /linear-gradient\([^;]*(?:--vc-evergreen[^;]*--vc-(?:wine|plum)|--vc-(?:wine|plum)[^;]*--vc-evergreen)/, "VC theme must keep evergreen controls separate from wine and plum surfaces");
 assert.doesNotMatch(theme, /#1d3040|#243e4e|#c8a45b|#a77022/, "VC theme must not reintroduce the previous navy or orange palette");
 assert.doesNotMatch(theme, /(?:\.map-|#map)/, "VC theme must not override map data colors");
