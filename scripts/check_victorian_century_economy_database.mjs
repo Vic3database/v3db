@@ -42,6 +42,28 @@ assert.equal(productionMethodGroups.length, 197);
 assert.equal(goods.length, 53);
 assert.equal(prestigeGoods.length, 98);
 assert.equal(productionMethods.length, 437);
+const productionEffectScalingCounts = productionMethods
+  .flatMap((method) => method.effects || [])
+  .reduce((counts, item) => {
+    const scaling = item.scaling || "missing";
+    counts[scaling] = (counts[scaling] || 0) + 1;
+    return counts;
+  }, {});
+for (const scaling of ["unscaled", "workforce_scaled", "level_scaled"]) {
+  assert(productionEffectScalingCounts[scaling] > 0, `Victorian Century production effects must include ${scaling}`);
+}
+const fertilizationDroughtEffect = methodByKey
+  .get("pm_fertilization")
+  ?.effects
+  .find((item) => item.key === "state_harvest_condition_drought_impact_mult");
+assert.deepEqual(
+  fertilizationDroughtEffect && {
+    scope: fertilizationDroughtEffect.scope,
+    scaling: fertilizationDroughtEffect.scaling,
+    value: fertilizationDroughtEffect.value,
+  },
+  { scope: "state", scaling: "unscaled", value: 0.05 },
+);
 assert.equal(effect("pm_wooden_buildings", "goods_input_fabric_add"), 30);
 assert.equal(effect("pm_wooden_buildings", "goods_input_wood_add"), 90);
 assert.equal(effect("pm_wooden_buildings", "state_construction_mult"), 0.001);

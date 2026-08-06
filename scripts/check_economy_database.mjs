@@ -35,6 +35,19 @@ assert(groups.length > 0, "building groups must be published");
 assert(productionMethodGroups.length > 0, "production method groups must be published");
 assert(productionMethods.length > 0, "production methods must be published");
 
+const productionEffectScalingCounts = productionMethods
+  .flatMap((method) => method.effects || [])
+  .reduce((counts, effect) => {
+    const scaling = effect.scaling || "missing";
+    counts[scaling] = (counts[scaling] || 0) + 1;
+    return counts;
+  }, {});
+assert.deepEqual(
+  productionEffectScalingCounts,
+  { workforce_scaled: 974, level_scaled: 766, unscaled: 195 },
+  "all production effects must preserve their game-defined scaling mode",
+);
+
 const buildingByKey = new Map(buildings.map((item) => [item.key, item]));
 const groupByKey = new Map(productionMethodGroups.map((item) => [item.key, item]));
 const methodByKey = new Map(productionMethods.map((item) => [item.key, item]));
@@ -77,6 +90,18 @@ for (const key of ["building_arms_industry", "building_munition_plant", "buildin
 assert.equal(required(groupByKey, "pmg_dummy", "dummy production-method group").icon, null, "the iconless dummy group must remain explicit");
 assert.equal(required(methodByKey, "pm_dummy", "dummy production method").icon, null, "the iconless dummy method must remain explicit");
 assert(typeof required(methodByKey, "pm_combustion_derricks", "combustion derricks").loc?.description === "string", "production methods must reference a localized description field");
+const fertilizationDroughtEffect = required(methodByKey, "pm_fertilization", "fertilization")
+  .effects
+  .find((effect) => effect.key === "state_harvest_condition_drought_impact_mult");
+assert.deepEqual(
+  fertilizationDroughtEffect && {
+    scope: fertilizationDroughtEffect.scope,
+    scaling: fertilizationDroughtEffect.scaling,
+    value: fertilizationDroughtEffect.value,
+  },
+  { scope: "state", scaling: "unscaled", value: 0.05 },
+  "fertilization must retain its unscaled drought effect",
+);
 assert.deepEqual(
   conditionPairs("pm_company_headquarter_government_run"),
   [["required_law", "law_command_economy"]],
