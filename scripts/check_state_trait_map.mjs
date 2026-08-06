@@ -77,11 +77,17 @@ for (const [label, rows] of [["main", states], ["Victorian Century", victorianCe
 
 assert.ok(/<summary data-i18n="filter\.stateTraits">地区特质<\/summary>[\s\S]*id="stateTraitFilters"/.test(indexSource), "region filters should expose a localized state-trait filter section");
 assert.doesNotMatch(indexSource, /id="stateTraitMapViewButton"/, "the standalone trait-view button should be removed");
-assert.ok(/styles\.css\?v=20260803-multilingual-map1/.test(indexSource), "trait tooltip styles should refresh the main stylesheet URL");
-for (const script of ["runtime", "ui", "filters", "map", "components"]) {
-  assert.ok(new RegExp(`app/${script}\\.js\\?v=20260803-multilingual-map1`).test(indexSource), `${script} should use the current combined cache URL`);
+assert.ok(/styles\.css\?v=20260806-subsistence-polish1/.test(indexSource), "trait tooltip styles should use the current stylesheet cache URL");
+for (const [script, version] of Object.entries({
+  runtime: "20260806-subsistence-polish1",
+  ui: "20260805-subsistence-map1",
+  filters: "20260806-subsistence-polish1",
+  map: "20260806-subsistence-polish1",
+  components: "20260805-subsistence-gradient1",
+})) {
+  assert.ok(new RegExp(`app/${script}\\.js\\?v=${version}`).test(indexSource), `${script} should use its current cache URL`);
 }
-assert.ok(/app\/data\.js\?v=20260803-multilingual-map1/.test(indexSource), "data code should use the current combined cache URL");
+assert.ok(/app\/data\.js\?v=20260804-vc-english-economy1/.test(indexSource), "data code should use its current cache URL");
 assert.ok(/stateTraitFilters:\s*new Set\(\)/.test(runtimeSource), "runtime should store selected state-trait filters");
 assert.ok(/stateTraitFilters:\s*document\.querySelector\("#stateTraitFilters"\)/.test(runtimeSource), "runtime should expose the filter container");
 for (const key of ["all", "waterways", "land", "resources", "colonialEnvironment", "mapi"]) {
@@ -103,8 +109,8 @@ assert.ok(/matchingTraits/.test(functionSource(mapSource, "buildTraitIconMapFeat
 assert.ok(/stateTraitFilters/.test(functionSource(mapSource, "mapLayerSignature")), "trait filters should invalidate cached map layers");
 assert.ok(/state\.stateTraitFilters\.size > 0/.test(functionSource(mapSource, "regionMapStateRegions")), "trait filters should constrain visible map regions");
 assert.ok(/state\.stateTraitFilters\.size === 0/.test(functionSource(presentationSource, "renderRegionList")), "filtered map selections should not be reinserted into a trait-filtered list");
-assert.ok(/app\/presentation\.js\?v=20260803-multilingual-map1/.test(indexSource), "changed presentation code should use the combined cache key");
-assert.ok(/styles\/map\.css\?v=20260803-multilingual-map1/.test(readText("site/styles.css")), "map tooltip styles should use the current cache URL");
+assert.ok(/app\/presentation\.js\?v=20260806-subsistence-polish1/.test(indexSource), "presentation code should use the current cache URL");
+assert.ok(/styles\/map\.css\?v=20260806-subsistence-polish1/.test(readText("site/styles.css")), "map tooltip styles should use the current cache URL");
 assert.ok(/replace\(\/\\\.dds\$\/i, "\.png"\)/.test(functionSource(mapSource, "stateTraitIconFileName")), "icon names should derive from DDS icon paths");
 assert.ok(/stateTraitIconImages: new Map\(\)/.test(runtimeSource), "map runtime should cache trait icon images");
 assert.ok(/Promise\.all/.test(functionSource(mapSource, "loadStateTraitIconImages")), "trait icon images should preload before paint");

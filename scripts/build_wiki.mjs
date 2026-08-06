@@ -36,6 +36,9 @@ const victorianCenturyChangeIgnoredFields = new Set([
   "definition_file",
   "definitionFile",
   "patch_directives",
+  "static_obsessions",
+  "starting_obsessions",
+  "starting_obsessed_cultures",
   "vc_change_kind",
   "vc_change_fields",
 ]);

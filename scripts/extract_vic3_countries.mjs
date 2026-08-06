@@ -157,6 +157,13 @@ function main() {
     );
   }
   const cultures = loadCultures(contentPath("common", "cultures"));
+  applyStartingCultureObsessions(cultures, loadStartingCultureObsessions({
+    historyDirs: contentPath("common", "history", "countries"),
+    journalEntryDirs: contentPath("common", "journal_entries"),
+    scriptedEffectDirs: contentPath("common", "scripted_effects"),
+    cultures,
+    loc,
+  }));
   const cultureTraits = loadCultureTraits(contentPath("common", "discrimination_traits"), loc);
   const cultureTraitGroups = loadCultureTraitGroups(contentPath("common", "discrimination_trait_groups"), loc);
   const religions = loadReligions(contentPath("common", "religions"), loc);
@@ -576,6 +583,18 @@ function listFiles(targets, suffix = ".txt") {
   return list.flatMap((target) => listFilesFromPath(target, suffix));
 }
 
+function listEffectiveFiles(targets, suffix = ".txt") {
+  const files = new Map();
+  for (const target of Array.isArray(targets) ? targets : [targets]) {
+    if (!target || !fs.existsSync(target)) continue;
+    const base = fs.statSync(target).isDirectory() ? target : path.dirname(target);
+    for (const file of listFilesFromPath(target, suffix)) {
+      files.set(normalizePath(path.relative(base, file)), file);
+    }
+  }
+  return [...files.values()].sort();
+}
+
 function listFilesFromPath(target, suffix = ".txt") {
   if (!target || !fs.existsSync(target)) return [];
   const stat = fs.statSync(target);
@@ -658,6 +677,7 @@ function loadCultures(dir) {
       const obsessionsNode = asNode(firstValue(node, "obsessions"));
       const taboosNode = asNode(firstValue(node, "taboos"));
       const color = parseColorValue(firstValue(node, "color"));
+      const obsessions = obsessionsNode ? nodeItems(obsessionsNode).map(stripPrefix).sort() : [];
       cultures.set(key, {
         key,
         color,
@@ -665,7 +685,9 @@ function loadCultures(dir) {
         heritage,
         language,
         traditions: traditionsNode ? nodeItems(traditionsNode).map(stripPrefix).sort() : [],
-        obsessions: obsessionsNode ? nodeItems(obsessionsNode).map(stripPrefix).sort() : [],
+        static_obsessions: obsessions,
+        starting_obsessions: [],
+        obsessions,
         taboos: taboosNode ? nodeItems(taboosNode).map(stripPrefix).sort() : [],
         trait_keys: [heritage, language, ...(traditionsNode ? nodeItems(traditionsNode).map(stripPrefix) : [])].filter(Boolean).sort(),
         file: normalizePath(file),
@@ -673,6 +695,138 @@ function loadCultures(dir) {
     }
   }
   return cultures;
+}
+
+function loadStartingCultureObsessions({ historyDirs, journalEntryDirs, scriptedEffectDirs, cultures, loc }) {
+  const journalSources = collectStartingJournalSources(historyDirs);
+  const journalDefinitions = loadPatchedDefinitions(
+    journalEntryDirs,
+    (key, node) => journalSources.has(key) && Boolean(node),
+  );
+  const scriptedEffects = loadPatchedDefinitions(scriptedEffectDirs, (_, node) => Boolean(node));
+  const byCulture = new Map();
+
+  function addEffect(cultureKey, goodKey, context) {
+    if (!cultures.has(cultureKey) || !goodKey) return;
+    if (!byCulture.has(cultureKey)) byCulture.set(cultureKey, new Map());
+    const effectsByGood = byCulture.get(cultureKey);
+    if (!effectsByGood.has(goodKey)) effectsByGood.set(goodKey, {
+      good_key: goodKey,
+      sources: [],
+    });
+    const entry = effectsByGood.get(goodKey);
+    const source = {
+      id: `starting_culture_obsession_source:${context.journal_key}:${cultureKey}:${goodKey}:${context.script_key || "journal"}`,
+      journal_key: context.journal_key,
+      journal_name_zh: locName(loc, context.journal_key),
+      country_tags: context.country_tags,
+      journal_file: context.journal_file,
+      script_key: context.script_key || "",
+      script_file: context.script_file || "",
+    };
+    if (!entry.sources.some((item) => item.id === source.id)) entry.sources.push(source);
+  }
+
+  function collectEffects(value, context, cultureKey = "", scriptStack = []) {
+    const node = asNode(value);
+    if (!node) return;
+    for (const item of node.items) collectEffects(item, context, cultureKey, scriptStack);
+    for (const assignment of node.assignments) {
+      const key = scriptEntryKey(assignment.key);
+      const scopedCulture = key.startsWith("cu:") ? stripPrefix(key) : cultureKey;
+      if (key === "add_cultural_obsession" && cultureKey) {
+        addEffect(cultureKey, stripPrefix(scalarFromValue(assignment.value)), context);
+        continue;
+      }
+      if (key.startsWith("cu:")) {
+        collectEffects(assignment.value, context, scopedCulture, scriptStack);
+        continue;
+      }
+      const scriptedEffect = scriptedEffects.get(key);
+      if (scriptedEffect && scalarFromValue(assignment.value) === "yes" && !scriptStack.includes(key)) {
+        collectEffects(scriptedEffect.node, {
+          ...context,
+          script_key: key,
+          script_file: scriptedEffect.source_file,
+        }, cultureKey, [...scriptStack, key]);
+        continue;
+      }
+      collectEffects(assignment.value, context, cultureKey, scriptStack);
+    }
+  }
+
+  for (const [journalKey, source] of journalSources) {
+    const journal = journalDefinitions.get(journalKey);
+    const immediate = journal?.node ? asNode(firstValue(journal.node, "immediate")) : null;
+    if (!immediate) continue;
+    collectEffects(immediate, {
+      journal_key: journalKey,
+      country_tags: source.country_tags,
+      journal_file: journal.source_file,
+      script_key: "",
+      script_file: "",
+    });
+  }
+
+  return new Map([...byCulture].map(([cultureKey, effectsByGood]) => [
+    cultureKey,
+    [...effectsByGood.values()]
+      .map((entry) => ({
+        ...entry,
+        sources: entry.sources.sort((left, right) => left.id.localeCompare(right.id)),
+      }))
+      .sort((left, right) => left.good_key.localeCompare(right.good_key)),
+  ]));
+}
+
+function collectStartingJournalSources(historyDirs) {
+  const sources = new Map();
+  for (const file of listEffectiveFiles(historyDirs)) {
+    const root = parseScript(readText(file), file);
+    const countries = asNode(firstValue(root, "COUNTRIES")) || root;
+    for (const assignment of countries.assignments) {
+      const tag = stripPrefix(scriptEntryKey(assignment.key)).toUpperCase();
+      if (!/^[A-Z0-9]{3}$/.test(tag)) continue;
+      for (const journalKey of collectAddedJournalEntryRefs(assignment.value)) {
+        if (!sources.has(journalKey)) sources.set(journalKey, {
+          country_tags: new Set(),
+          history_files: new Set(),
+        });
+        const source = sources.get(journalKey);
+        source.country_tags.add(tag);
+        source.history_files.add(normalizePath(file));
+      }
+    }
+  }
+  return new Map([...sources].map(([journalKey, source]) => [journalKey, {
+    country_tags: [...source.country_tags].sort(),
+    history_files: [...source.history_files].sort(),
+  }]));
+}
+
+function collectAddedJournalEntryRefs(value, out = new Set()) {
+  const node = asNode(value);
+  if (!node) return out;
+  for (const item of node.items) collectAddedJournalEntryRefs(item, out);
+  for (const assignment of node.assignments) {
+    if (assignment.key === "add_journal_entry") {
+      const entry = asNode(assignment.value);
+      const journalKey = entry ? stripPrefix(firstScalar(entry, "type")) : stripPrefix(scalarFromValue(assignment.value));
+      if (journalKey) out.add(journalKey);
+    }
+    collectAddedJournalEntryRefs(assignment.value, out);
+  }
+  return out;
+}
+
+function applyStartingCultureObsessions(cultures, startingObsessionsByCulture) {
+  for (const culture of cultures.values()) {
+    culture.starting_obsessions = startingObsessionsByCulture.get(culture.key) || [];
+    culture.obsessions = unique([
+      ...(culture.static_obsessions || []),
+      ...culture.starting_obsessions.map((entry) => entry.good_key),
+    ]).sort();
+  }
 }
 
 function loadCultureTraits(dir, loc) {
@@ -1902,6 +2056,16 @@ function loadEconomyData({
     good.obsessed_cultures = [...cultures.values()]
       .filter((culture) => culture.obsessions.includes(good.key))
       .map((culture) => ({ key: culture.key, name_zh: locCleanName(loc, culture.key) }))
+      .sort(sortByNameZh);
+    good.starting_obsessed_cultures = [...cultures.values()]
+      .filter((culture) => culture.starting_obsessions.some((entry) => entry.good_key === good.key))
+      .map((culture) => ({
+        key: culture.key,
+        name_zh: locCleanName(loc, culture.key),
+        sources: culture.starting_obsessions
+          .find((entry) => entry.good_key === good.key)
+          ?.sources || [],
+      }))
       .sort(sortByNameZh);
     good.taboo_cultures = [...cultures.values()]
       .filter((culture) => culture.taboos.includes(good.key))
@@ -3251,6 +3415,21 @@ function buildCultureRows(cultures, cultureTraits, cultureTraitGroups, relatedCo
         traditions: (culture.traditions || []).map((traitKey) => cultureTraitRef(traitKey, cultureTraits)),
         traits: traitObjects,
         trait_groups: groupKeys.map((groupKey) => cultureTraitGroupRef(groupKey, cultureTraitGroups)),
+        static_obsessions: (culture.static_obsessions || []).map((goodsKey) => goodsRef(goodsKey, loc)),
+        starting_obsessions: (culture.starting_obsessions || []).map((entry) => ({
+          id: `starting_culture_obsession:${culture.key}:${entry.good_key}`,
+          key: entry.good_key,
+          name_zh: locName(loc, entry.good_key),
+          sources: entry.sources.map((source) => ({
+            id: source.id,
+            key: source.journal_key,
+            name_zh: source.journal_name_zh,
+            country_tags: source.country_tags,
+            journal_file: source.journal_file,
+            script_key: source.script_key,
+            script_file: source.script_file,
+          })),
+        })),
         obsessions: (culture.obsessions || []).map((goodsKey) => goodsRef(goodsKey, loc)),
         taboos: (culture.taboos || []).map((goodsKey) => goodsRef(goodsKey, loc)),
         related_countries: relatedCountriesByCulture.get(culture.key) || [],

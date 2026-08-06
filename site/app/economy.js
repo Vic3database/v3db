@@ -595,10 +595,11 @@ function wealthLevelRanges(levels) {
 }
 
 function goodPopulationRelationsHtml(good) {
-  const cultures = (title, rows, relation) => `<section><h3>${escapeHtml(title)}</h3>${rows.length ? `<div class="goods-relation-tags">${rows.map((item) => `<button type="button" data-good-culture="${escapeHtml(item.key)}" data-good-culture-relation="${relation}">${escapeHtml(economyDisplayName(item))}</button>`).join("")}</div>` : `<p class="goods-empty">${escapeHtml(t("ui.none"))}</p>`}</section>`;
+  const cultures = (title, rows, relation, attributes = "") => `<section${attributes}><h3>${escapeHtml(title)}</h3>${rows.length ? `<div class="goods-relation-tags">${rows.map((item) => `<button type="button" data-good-culture="${escapeHtml(item.key)}" data-good-culture-relation="${relation}">${escapeHtml(economyDisplayName(item))}</button>`).join("")}</div>` : `<p class="goods-empty">${escapeHtml(t("ui.none"))}</p>`}</section>`;
   const religions = good.taboo_religions || [];
   return `<div class="goods-population-relations">
     ${cultures(t("board.economy.obsessedCultures"), good.obsessed_cultures || [], "obsession")}
+    ${cultures(t("board.economy.startingObsessedCultures"), good.starting_obsessed_cultures || [], "starting-obsession", " data-good-starting-obsessions")}
     ${cultures(t("board.economy.tabooCultures"), good.taboo_cultures || [], "taboo")}
     <section><h3>${escapeHtml(t("board.economy.tabooReligions"))}</h3>${religions.length ? `<div class="goods-relation-tags">${religions.map((item) => `<span data-good-taboo-religion="${escapeHtml(item.key)}">${conceptPill({ label: economyDisplayName(item), className: "tag-religion", kind: "religion", key: item.key })}</span>`).join("")}</div>` : `<p class="goods-empty">${escapeHtml(t("ui.none"))}</p>`}</section>
   </div>`;

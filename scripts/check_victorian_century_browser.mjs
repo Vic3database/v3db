@@ -27,13 +27,14 @@ try {
   await checkEnglishBanana(page);
   await checkAutomobiles(page, "zh-Hans");
   await checkAutomobiles(page, "en");
+  await checkStartingCultureObsessions(page);
   await checkAdjustedPrestigeGood(page);
   await page.close();
   console.log(JSON.stringify({
     victorian_century_browser: "ok",
     routes,
     locales: ["zh-Hans", "en"],
-    verified: ["economy-walls", "change-filters", "construction-method", "banana-method", "benz-prestige-good"],
+    verified: ["economy-walls", "change-filters", "construction-method", "banana-method", "benz-prestige-good", "starting-culture-obsessions"],
   }, null, 2));
 } finally {
   chrome.kill();
@@ -121,6 +122,23 @@ async function checkAutomobiles(page, locale) {
     assert.equal(automobiles.name, "Benz Automobiles", "VC English Benz prestige-good name is incorrect");
     assert.doesNotMatch(automobiles.body, /\$[^$]+\$|@[A-Za-z0-9_]+!|[\u3400-\u9fff]/, "VC English automobiles detail contains unresolved localization");
   }
+}
+
+async function checkStartingCultureObsessions(page) {
+  await page.goto(localizedRoute("en", "culture/north_german"));
+  await page.waitFor(() => document.querySelector("[data-culture-starting-obsessions]"), "North German starting obsessions");
+  const northGerman = await page.evaluate(() => ({
+    obsessions: document.querySelector("[data-culture-obsessions]")?.innerText || "",
+    starting: document.querySelector("[data-culture-starting-obsessions]")?.innerText || "",
+  }));
+  assert.match(northGerman.obsessions, /Meat/, "North German must retain its definition obsession");
+  assert.match(northGerman.obsessions, /Liquor/, "North German must show its 1836 liquor obsession");
+  assert.match(northGerman.obsessions, /Porcelain/, "North German must show its 1836 porcelain obsession");
+  assert.match(northGerman.starting, /Liquor/, "North German starting obsessions must identify liquor");
+  assert.match(northGerman.starting, /Porcelain/, "North German starting obsessions must identify porcelain");
+
+  await page.goto(localizedRoute("en", "goods/liquor"));
+  await page.waitFor(() => document.querySelector("[data-good-starting-obsessions] [data-good-culture='north_german']"), "liquor starting obsession culture");
 }
 
 async function checkAdjustedPrestigeGood(page) {
