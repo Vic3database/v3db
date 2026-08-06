@@ -1,5 +1,10 @@
 window.VICDATA_ANNOUNCEMENTS = [
   {
+    "date": "2026-08-06",
+    "title": "更新",
+    "body": "新增建筑板块和商品板块。\n修复了一些bug。"
+  },
+  {
     "date": "2026-08-01",
     "title": "更新",
     "body": "新增了英语选项；调整了地域板块的资源表现。"
