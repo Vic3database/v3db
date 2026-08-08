@@ -82,7 +82,7 @@ function readText(relativePath) {
 
 async function checkBrowser() {
   const { chromium } = require("playwright");
-  const server = await startPreviewServer(path.join(root, "site"));
+  const server = await startPreviewServer(root);
   const browser = await chromium.launch({
     headless: true,
     ...(process.env.VC_CHROME_PATH ? { executablePath: process.env.VC_CHROME_PATH } : {}),
@@ -91,53 +91,62 @@ async function checkBrowser() {
     const desktop = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
     const browserErrors = [];
     desktop.on("pageerror", (error) => browserErrors.push(error.message));
-    await desktop.goto(`${server.url}/index.html#/country`, { waitUntil: "networkidle" });
-    const economy = desktop.locator('[data-nav-group="economy"]');
-    await economy.hover();
-    await assertVisible(economy.locator(".topbar-nav-popover"), "desktop hover should reveal the economy submenu");
-    assert.equal(await economy.getAttribute("open"), "", "desktop hover should open the economy menu");
-    const menuGeometry = await economy.evaluate((node) => {
-      const summary = node.querySelector("summary").getBoundingClientRect();
-      const popover = node.querySelector(".topbar-nav-popover").getBoundingClientRect();
-      return { summary, popover };
-    });
-    assert.ok(menuGeometry.popover.top > menuGeometry.summary.bottom, "desktop submenu should retain a visible gap below its summary");
-    await desktop.mouse.move(menuGeometry.summary.left + (menuGeometry.summary.width / 2), menuGeometry.summary.top + (menuGeometry.summary.height / 2));
-    await desktop.mouse.move(menuGeometry.summary.left + (menuGeometry.summary.width / 2), menuGeometry.summary.bottom + 3);
-    await desktop.waitForTimeout(20);
-    assert.equal(await economy.getAttribute("open"), "", "crossing the submenu gap should keep the economy menu open");
-    const goodsGeometry = await economy.locator('[data-nav-view="goods"]').evaluate((node) => node.getBoundingClientRect());
-    await desktop.mouse.move(goodsGeometry.left + (goodsGeometry.width / 2), goodsGeometry.top + (goodsGeometry.height / 2));
-    assert.equal(await economy.getAttribute("open"), "", "entering a submenu item after crossing the gap should keep the economy menu open");
-    await economy.locator('[data-nav-view="goods"]').click();
-    await desktop.waitForFunction(() => location.hash === "#/goods" && document.body.dataset.view === "goods");
-    assert.equal(await economy.evaluate((node) => node.classList.contains("is-current")), true, "goods route should highlight the economy category");
-    await desktop.locator('[data-nav-group="technology"] > summary').focus();
-    await desktop.waitForFunction(() => document.querySelector('[data-nav-group="technology"]')?.open === true);
-    await desktop.locator('[data-nav-group="technology"] [data-nav-view="technology"]').click();
-    await desktop.waitForFunction(() => location.hash === "#/technology" && document.body.dataset.view === "technology");
-    assert.deepEqual(browserErrors, [], `desktop navigation errors: ${browserErrors.join(" | ")}`);
-    await desktop.close();
-
-    const mobile = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true });
-    await mobile.goto(`${server.url}/index.html#/country`, { waitUntil: "networkidle" });
-    const mobileEconomy = mobile.locator('[data-nav-group="economy"]');
-    assert.equal(await mobileEconomy.getAttribute("open"), null, "narrow screen menus should start closed");
-    await mobileEconomy.locator("summary").click();
-    await mobile.waitForFunction(() => document.querySelector('[data-nav-group="economy"]')?.open === true);
-    const mobileLayout = await mobileEconomy.locator(".topbar-nav-popover").evaluate((node) => ({
-      position: getComputedStyle(node).position,
-      width: node.getBoundingClientRect().width,
-      parentWidth: node.closest(".topbar-nav-group").getBoundingClientRect().width,
-    }));
-    assert.equal(mobileLayout.position, "static", "narrow screen submenu should remain in the topbar flow");
-    assert.ok(mobileLayout.width <= mobileLayout.parentWidth + 1, "narrow screen submenu should not overflow its category row");
-    await mobile.close();
+    await checkBrowserSite(browser, `${server.url}/site/index.html`, "main");
+    await checkBrowserSite(browser, `${server.url}/Victorian%20Century%20Database/index.html`, "victorian-century-standalone");
+    await checkBrowserSite(browser, `${server.url}/site/vc/index.html`, "victorian-century-published");
     console.log(JSON.stringify({ two_level_navigation_browser: "ok", base_url: server.url }, null, 2));
   } finally {
     await browser.close();
     await server.close();
   }
+}
+
+async function checkBrowserSite(browser, indexUrl, name) {
+  const desktop = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+  const browserErrors = [];
+  desktop.on("pageerror", (error) => browserErrors.push(error.message));
+  await desktop.goto(`${indexUrl}#/country`, { waitUntil: "networkidle" });
+  const economy = desktop.locator('[data-nav-group="economy"]');
+  await economy.hover();
+  await assertVisible(economy.locator(".topbar-nav-popover"), `${name}: desktop hover should reveal the economy submenu`);
+  assert.equal(await economy.getAttribute("open"), "", `${name}: desktop hover should open the economy menu`);
+  const menuGeometry = await economy.evaluate((node) => {
+    const summary = node.querySelector("summary").getBoundingClientRect();
+    const popover = node.querySelector(".topbar-nav-popover").getBoundingClientRect();
+    return { summary, popover };
+  });
+  assert.ok(menuGeometry.popover.top > menuGeometry.summary.bottom, `${name}: desktop submenu should retain a visible gap below its summary`);
+  await desktop.mouse.move(menuGeometry.summary.left + (menuGeometry.summary.width / 2), menuGeometry.summary.top + (menuGeometry.summary.height / 2));
+  await desktop.mouse.move(menuGeometry.summary.left + (menuGeometry.summary.width / 2), menuGeometry.summary.bottom + 3);
+  await desktop.waitForTimeout(20);
+  assert.equal(await economy.getAttribute("open"), "", `${name}: crossing the submenu gap should keep the economy menu open`);
+  const goodsGeometry = await economy.locator('[data-nav-view="goods"]').evaluate((node) => node.getBoundingClientRect());
+  await desktop.mouse.move(goodsGeometry.left + (goodsGeometry.width / 2), goodsGeometry.top + (goodsGeometry.height / 2));
+  assert.equal(await economy.getAttribute("open"), "", `${name}: entering a submenu item after crossing the gap should keep the economy menu open`);
+  await economy.locator('[data-nav-view="goods"]').click();
+  await desktop.waitForFunction(() => location.hash === "#/goods" && document.body.dataset.view === "goods");
+  assert.equal(await economy.evaluate((node) => node.classList.contains("is-current")), true, `${name}: goods route should highlight the economy category`);
+  await desktop.locator('[data-nav-group="technology"] > summary').focus();
+  await desktop.waitForFunction(() => document.querySelector('[data-nav-group="technology"]')?.open === true);
+  await desktop.locator('[data-nav-group="technology"] [data-nav-view="technology"]').click();
+  await desktop.waitForFunction(() => location.hash === "#/technology" && document.body.dataset.view === "technology");
+  assert.deepEqual(browserErrors, [], `${name}: desktop navigation errors: ${browserErrors.join(" | ")}`);
+  await desktop.close();
+
+  const mobile = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true });
+  await mobile.goto(`${indexUrl}#/country`, { waitUntil: "networkidle" });
+  const mobileEconomy = mobile.locator('[data-nav-group="economy"]');
+  assert.equal(await mobileEconomy.getAttribute("open"), null, `${name}: narrow screen menus should start closed`);
+  await mobileEconomy.locator("summary").click();
+  await mobile.waitForFunction(() => document.querySelector('[data-nav-group="economy"]')?.open === true);
+  const mobileLayout = await mobileEconomy.locator(".topbar-nav-popover").evaluate((node) => ({
+    position: getComputedStyle(node).position,
+    width: node.getBoundingClientRect().width,
+    parentWidth: node.closest(".topbar-nav-group").getBoundingClientRect().width,
+  }));
+  assert.equal(mobileLayout.position, "static", `${name}: narrow screen submenu should remain in the topbar flow`);
+  assert.ok(mobileLayout.width <= mobileLayout.parentWidth + 1, `${name}: narrow screen submenu should not overflow its category row`);
+  await mobile.close();
 }
 
 async function assertVisible(locator, message) {
