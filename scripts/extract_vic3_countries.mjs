@@ -4,6 +4,7 @@ import extractorEn from "./locales/extractor.en.mjs";
 import extractorZhHans from "./locales/extractor.zh-Hans.mjs";
 import economyLocalizationAliases from "./locales/victorian-century-aliases.mjs";
 import { sha256Text, splitLocalizedTrees } from "./lib/localization-schema.mjs";
+import { withBaseGameLocalization } from "./lib/localization-overrides.mjs";
 import {
   applyDefinitionAssignment,
   parseDefinitionDirective,
@@ -156,6 +157,14 @@ function main() {
       "en",
     );
   }
+  const economyLoc = modContentRoot
+    ? withBaseGameLocalization(
+      loc,
+      loadLocalization(path.join(gameDir, "localization", "simp_chinese")),
+      economyLocalizationAliases.victorianCenturyBaseGame["zh-Hans"],
+      "zh-Hans",
+    )
+    : loc;
   const cultures = loadCultures(contentPath("common", "cultures"));
   applyStartingCultureObsessions(cultures, loadStartingCultureObsessions({
     historyDirs: contentPath("common", "history", "countries"),
@@ -220,7 +229,7 @@ function main() {
     companies,
     popNeeds,
     buyPackages,
-    loc,
+    loc: economyLoc,
   });
   const achievements = loadAchievements(
     contentPath("common", "achievements"),
@@ -297,7 +306,7 @@ function main() {
   const existingAtStartTags = new Set(countryRows
     .filter((row) => row.exists_at_start === "是")
     .map((row) => row.tag));
-  const cultureRows = buildCultureRows(cultures, cultureTraits, cultureTraitGroups, relatedCountriesByCulture, stateRegionRows, loc);
+  const cultureRows = buildCultureRows(cultures, cultureTraits, cultureTraitGroups, relatedCountriesByCulture, stateRegionRows, loc, economyLoc);
   const cultureTraitRows = [...cultureTraits.values()].sort((a, b) => a.key.localeCompare(b.key));
   const cultureTraitGroupRows = [...cultureTraitGroups.values()].sort((a, b) => a.key.localeCompare(b.key));
 
@@ -3369,7 +3378,7 @@ function buildRelatedCountriesByCulture(definitions, loc) {
   return result;
 }
 
-function buildCultureRows(cultures, cultureTraits, cultureTraitGroups, relatedCountriesByCulture, stateRegionRows, loc) {
+function buildCultureRows(cultures, cultureTraits, cultureTraitGroups, relatedCountriesByCulture, stateRegionRows, loc, goodsLoc = loc) {
   const cultureKeysByTrait = new Map();
   const cultureKeysByTraitGroup = new Map();
   const stateRegionByKey = new Map(stateRegionRows.map((stateRegion) => [stateRegion.key, stateRegion]));
@@ -3415,11 +3424,11 @@ function buildCultureRows(cultures, cultureTraits, cultureTraitGroups, relatedCo
         traditions: (culture.traditions || []).map((traitKey) => cultureTraitRef(traitKey, cultureTraits)),
         traits: traitObjects,
         trait_groups: groupKeys.map((groupKey) => cultureTraitGroupRef(groupKey, cultureTraitGroups)),
-        static_obsessions: (culture.static_obsessions || []).map((goodsKey) => goodsRef(goodsKey, loc)),
+        static_obsessions: (culture.static_obsessions || []).map((goodsKey) => goodsRef(goodsKey, goodsLoc)),
         starting_obsessions: (culture.starting_obsessions || []).map((entry) => ({
           id: `starting_culture_obsession:${culture.key}:${entry.good_key}`,
           key: entry.good_key,
-          name_zh: locName(loc, entry.good_key),
+          name_zh: locName(goodsLoc, entry.good_key),
           sources: entry.sources.map((source) => ({
             id: source.id,
             key: source.journal_key,
@@ -3430,8 +3439,8 @@ function buildCultureRows(cultures, cultureTraits, cultureTraitGroups, relatedCo
             script_file: source.script_file,
           })),
         })),
-        obsessions: (culture.obsessions || []).map((goodsKey) => goodsRef(goodsKey, loc)),
-        taboos: (culture.taboos || []).map((goodsKey) => goodsRef(goodsKey, loc)),
+        obsessions: (culture.obsessions || []).map((goodsKey) => goodsRef(goodsKey, goodsLoc)),
+        taboos: (culture.taboos || []).map((goodsKey) => goodsRef(goodsKey, goodsLoc)),
         related_countries: relatedCountriesByCulture.get(culture.key) || [],
         homeland_state_regions: [...(stateRegionKeysByCulture.get(culture.key) || [])]
           .sort((a, b) => stateRegionOrderValue(a, stateRegionByKey) - stateRegionOrderValue(b, stateRegionByKey) || a.localeCompare(b))

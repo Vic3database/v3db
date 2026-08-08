@@ -121,6 +121,7 @@ assert.equal(
 );
 assert.equal(localizedName(buildingByKey.get("building_machu_picchu"), "en"), "Machu Picchu");
 assert.equal(localizedName(buildingByKey.get("building_machu_picchu"), "zh-Hans"), "马丘比丘");
+assert.equal(localizedName(goodByKey.get("wood"), "zh-Hans"), "木材");
 
 for (const group of productionMethodGroups) {
   for (const key of group.production_method_keys) {

@@ -31,12 +31,13 @@ try {
   await checkAdjustedPrestigeGood(page);
   await checkProductionGoodsSigns(page);
   await checkProductionSummaryAndScaling(page);
+  await checkWoodLocalization(page);
   await page.close();
   console.log(JSON.stringify({
     victorian_century_browser: "ok",
     routes,
     locales: ["zh-Hans", "en"],
-    verified: ["economy-walls", "change-filters", "construction-method", "banana-method", "benz-prestige-good", "starting-culture-obsessions", "production-goods-flow", "production-summary-icons", "production-scaling-groups"],
+    verified: ["economy-walls", "change-filters", "construction-method", "banana-method", "benz-prestige-good", "starting-culture-obsessions", "production-goods-flow", "production-summary-icons", "production-scaling-groups", "wood-localization"],
   }, null, 2));
 } finally {
   chrome.kill();
@@ -265,6 +266,17 @@ async function checkProductionSummaryAndScaling(page) {
   }));
   assert.equal(english.title, "Current production method combination (per level)", "VC English production summary must state the per-level scope");
   assert.deepEqual(english.scalingLabels, ["Unscaled modifiers:", "Staffing-scaled modifiers:", "Per-level modifiers:"], "VC English production effects must use three scaling groups");
+}
+
+async function checkWoodLocalization(page) {
+  await page.goto(localizedRoute("zh-Hans", "building/building_subsistence_fishing_village"));
+  await page.waitFor(() => document.querySelector("[data-production-method-picker='pmg_base_building_subsistence_fishing_village']"), "VC subsistence fishing detail");
+  await page.click("[data-production-method-picker='pmg_base_building_subsistence_fishing_village']");
+  await page.waitFor(() => document.querySelector(".production-method-group-panel:not([hidden]) [data-production-method-key='default_building_subsistence_fishing_village']"), "VC subsistence fishing methods");
+  const woodOutput = await page.evaluate(() => document
+    .querySelector(".production-method-group-panel:not([hidden]) .production-method-good--output:has(img[src='assets/goods/wood.webp'])")
+    ?.getAttribute("aria-label") || "");
+  assert.equal(woodOutput, "产出：+0.25 木材", "VC wood goods must retain the base-game Chinese goods name");
 }
 
 function localizedRoute(locale, route) {

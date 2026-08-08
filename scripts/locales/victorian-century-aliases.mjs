@@ -14,4 +14,7 @@ export default Object.freeze({
     }),
     "zh-Hans": Object.freeze({}),
   }),
+  victorianCenturyBaseGame: Object.freeze({
+    "zh-Hans": Object.freeze(["wood"]),
+  }),
 });
