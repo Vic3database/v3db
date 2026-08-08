@@ -29,7 +29,7 @@ function localeLabel(locale) {
 function loadScript(src) {
   return new Promise((resolve, reject) => {
     const script = document.createElement("script");
-    script.src = `${src}${src.includes("?") ? "&" : "?"}v=20260806-subsistence-polish1`;
+    script.src = `${src}${src.includes("?") ? "&" : "?"}v=20260808-two-level-navigation1`;
     script.async = true;
     script.onload = () => { script.remove(); resolve(); };
     script.onerror = () => { script.remove(); reject(new Error(`Unable to load ${src}`)); };

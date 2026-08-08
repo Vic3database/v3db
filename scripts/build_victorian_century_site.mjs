@@ -117,8 +117,8 @@ function buildStandaloneHtml(sourceHtml) {
     .replace("<title>Vicdata</title>", "<title>Victorian Century Database</title>")
     .replaceAll("Vicdata", "Victorian Century")
     .replace(
-      '<link rel="stylesheet" href="styles.css?v=20260806-production-goods-flow1">',
-      '<link rel="stylesheet" href="styles.css?v=20260806-production-goods-flow1">\n    <link rel="stylesheet" href="vc-theme.css?v=20260807-wine-plum-evergreen4">',
+      /<link rel="stylesheet" href="styles\.css\?v=[^"]+"\s*\/?>/,
+      (baseStylesheet) => `${baseStylesheet}\n    <link rel="stylesheet" href="vc-theme.css?v=20260807-wine-plum-evergreen4">`,
     )
     .replace(/\s*<label class="version-menu topbar-icon-select">[\s\S]*?<\/label>/, `
         <label class="version-menu topbar-icon-select">

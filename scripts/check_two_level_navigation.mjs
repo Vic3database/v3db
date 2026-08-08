@@ -1,0 +1,179 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import http from "node:http";
+import { createRequire } from "node:module";
+import path from "node:path";
+
+const require = createRequire(import.meta.url);
+
+const root = process.cwd();
+const indexSource = readText("site/index.html");
+const uiSource = readText("site/app/ui.js");
+const i18nSource = readText("site/app/i18n.js");
+const foundationSource = readText("site/styles/foundation.css");
+const shellSource = readText("site/styles/shell.css");
+const vcBuildSource = readText("scripts/build_victorian_century_site.mjs");
+const zhSource = readText("site/locales/ui.zh-Hans.js");
+const enSource = readText("site/locales/ui.en.js");
+
+const groups = {
+  domestic: ["country", "law", "ideology"],
+  society: ["culture"],
+  economy: ["region", "company", "building", "goods"],
+  technology: ["technology"],
+  game: ["achievement"],
+};
+
+for (const [group, views] of Object.entries(groups)) {
+  const menu = groupSource(group);
+  assert.ok(menu, `missing ${group} topbar navigation group`);
+  assert.ok(/<summary\b[^>]*class="[^"]*\btopbar-nav-summary\b/.test(menu), `${group} group needs a menu summary`);
+  assert.ok(/class="[^"]*\btopbar-nav-popover\b/.test(menu), `${group} group needs a submenu container`);
+  for (const view of views) {
+    assert.ok(new RegExp(`data-nav-view="${view}"`).test(menu), `${group} group is missing ${view}`);
+  }
+}
+
+for (const group of ["diplomacy", "military"]) {
+  assert.ok(!new RegExp(`data-nav-group="${group}"`).test(indexSource), `${group} should remain hidden until it has records`);
+}
+
+for (const [key, zh, en] of [
+  ["nav.domestic", "内政", "Domestic"],
+  ["nav.society", "社会", "Society"],
+  ["nav.economy", "经济", "Economy"],
+  ["nav.gameContent", "游戏内容", "Game content"],
+]) {
+  assert.ok(zhSource.includes(`"${key}": "${zh}"`), `missing Simplified Chinese label for ${key}`);
+  assert.ok(enSource.includes(`"${key}": "${en}"`), `missing English label for ${key}`);
+}
+
+assert.ok(/function\s+bindTopbarNavigationMenus\s*\(/.test(uiSource), "topbar menu behavior binder is missing");
+assert.ok(/function\s+closeTopbarNavigationMenus\s*\(/.test(uiSource), "topbar menu close helper is missing");
+assert.ok(/function\s+syncTopbarNavigationGroups\s*\(/.test(uiSource), "topbar active-group synchronizer is missing");
+assert.ok(/matchMedia\("\(hover: hover\) and \(pointer: fine\)"\)/.test(uiSource), "desktop hover behavior must be pointer-aware");
+assert.ok(/closeTopbarNavigationMenus\s*\(\)/.test(uiSource), "selecting a route should close open menus");
+assert.ok(/syncTopbarNavigationGroups\s*\(\)/.test(uiSource), "rendering should synchronize active topbar groups");
+assert.ok(/\.topbar-nav-group\s*\{[\s\S]*position:\s*relative/.test(foundationSource), "topbar category group needs a positioned desktop anchor");
+assert.ok(/\.topbar-nav-popover\s*\{[\s\S]*position:\s*absolute/.test(foundationSource), "desktop submenu needs a popover layout");
+assert.ok(/\.topbar-nav-group\.is-current\s*>\s*\.topbar-nav-summary/.test(foundationSource), "active topbar category needs a visible state");
+assert.ok(/@media\s*\(max-width:\s*760px\)[\s\S]*\.topbar-nav-popover\s*\{[\s\S]*position:\s*static/.test(shellSource), "narrow screens need inline click-disclosure submenus");
+assert.ok(/styles\.css\?v=20260808-two-level-navigation1/.test(indexSource), "topbar stylesheet cache version is stale");
+assert.ok(/app\/ui\.js\?v=20260808-two-level-navigation1/.test(indexSource), "topbar UI script cache version is stale");
+assert.ok(/app\/i18n\.js\?v=20260808-two-level-navigation1/.test(indexSource), "topbar localization runtime cache version is stale");
+assert.ok(/v=20260808-two-level-navigation1/.test(i18nSource), "dynamic locale loading cache version is stale");
+assert.ok(vcBuildSource.includes('/<link rel="stylesheet" href="styles\\.css\\?v=[^"]+"\\s*\\/?>/'), "Victorian Century builder must match the base stylesheet independently of its cache version");
+
+console.log(JSON.stringify({
+  two_level_navigation: "ok",
+  groups: Object.keys(groups),
+}, null, 2));
+
+if (process.argv.includes("--browser")) await checkBrowser();
+
+function groupSource(group) {
+  const match = indexSource.match(new RegExp(`<details\\b[^>]*data-nav-group="${group}"[\\s\\S]*?<\\/details>`));
+  return match?.[0] || "";
+}
+
+function readText(relativePath) {
+  return fs.readFileSync(path.join(root, relativePath), "utf8").replace(/^\uFEFF/, "");
+}
+
+async function checkBrowser() {
+  const { chromium } = require("playwright");
+  const server = await startPreviewServer(path.join(root, "site"));
+  const browser = await chromium.launch({
+    headless: true,
+    ...(process.env.VC_CHROME_PATH ? { executablePath: process.env.VC_CHROME_PATH } : {}),
+  });
+  try {
+    const desktop = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+    const browserErrors = [];
+    desktop.on("pageerror", (error) => browserErrors.push(error.message));
+    await desktop.goto(`${server.url}/index.html#/country`, { waitUntil: "networkidle" });
+    const economy = desktop.locator('[data-nav-group="economy"]');
+    await economy.hover();
+    await assertVisible(economy.locator(".topbar-nav-popover"), "desktop hover should reveal the economy submenu");
+    assert.equal(await economy.getAttribute("open"), "", "desktop hover should open the economy menu");
+    await economy.locator('[data-nav-view="goods"]').click();
+    await desktop.waitForFunction(() => location.hash === "#/goods" && document.body.dataset.view === "goods");
+    assert.equal(await economy.evaluate((node) => node.classList.contains("is-current")), true, "goods route should highlight the economy category");
+    await desktop.locator('[data-nav-group="technology"] > summary').focus();
+    await desktop.waitForFunction(() => document.querySelector('[data-nav-group="technology"]')?.open === true);
+    await desktop.locator('[data-nav-group="technology"] [data-nav-view="technology"]').click();
+    await desktop.waitForFunction(() => location.hash === "#/technology" && document.body.dataset.view === "technology");
+    assert.deepEqual(browserErrors, [], `desktop navigation errors: ${browserErrors.join(" | ")}`);
+    await desktop.close();
+
+    const mobile = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true });
+    await mobile.goto(`${server.url}/index.html#/country`, { waitUntil: "networkidle" });
+    const mobileEconomy = mobile.locator('[data-nav-group="economy"]');
+    assert.equal(await mobileEconomy.getAttribute("open"), null, "narrow screen menus should start closed");
+    await mobileEconomy.locator("summary").click();
+    await mobile.waitForFunction(() => document.querySelector('[data-nav-group="economy"]')?.open === true);
+    const mobileLayout = await mobileEconomy.locator(".topbar-nav-popover").evaluate((node) => ({
+      position: getComputedStyle(node).position,
+      width: node.getBoundingClientRect().width,
+      parentWidth: node.closest(".topbar-nav-group").getBoundingClientRect().width,
+    }));
+    assert.equal(mobileLayout.position, "static", "narrow screen submenu should remain in the topbar flow");
+    assert.ok(mobileLayout.width <= mobileLayout.parentWidth + 1, "narrow screen submenu should not overflow its category row");
+    await mobile.close();
+    console.log(JSON.stringify({ two_level_navigation_browser: "ok", base_url: server.url }, null, 2));
+  } finally {
+    await browser.close();
+    await server.close();
+  }
+}
+
+async function assertVisible(locator, message) {
+  const visible = await locator.evaluate((node) => {
+    const style = getComputedStyle(node);
+    const rect = node.getBoundingClientRect();
+    return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
+  });
+  assert.equal(visible, true, message);
+}
+
+function startPreviewServer(siteRoot) {
+  const mime = {
+    ".css": "text/css; charset=utf-8",
+    ".html": "text/html; charset=utf-8",
+    ".js": "text/javascript; charset=utf-8",
+    ".json": "application/json; charset=utf-8",
+    ".png": "image/png",
+    ".svg": "image/svg+xml",
+    ".webp": "image/webp",
+  };
+  const server = http.createServer((request, response) => {
+    const pathname = decodeURIComponent(new URL(request.url || "/", "http://localhost").pathname);
+    const requested = path.resolve(siteRoot, pathname.slice(1));
+    if (requested !== siteRoot && !requested.startsWith(`${siteRoot}${path.sep}`)) {
+      response.writeHead(403);
+      response.end("Forbidden");
+      return;
+    }
+    const target = fs.statSync(requested, { throwIfNoEntry: false })?.isDirectory()
+      ? path.join(requested, "index.html")
+      : requested;
+    fs.readFile(target, (error, body) => {
+      if (error) {
+        response.writeHead(404);
+        response.end("Not found");
+        return;
+      }
+      response.writeHead(200, { "Cache-Control": "no-store", "Content-Type": mime[path.extname(target).toLowerCase()] || "application/octet-stream" });
+      response.end(body);
+    });
+  });
+  return new Promise((resolve) => {
+    server.listen(0, "127.0.0.1", () => {
+      const address = server.address();
+      resolve({
+        url: `http://127.0.0.1:${address.port}`,
+        close: () => new Promise((done) => server.close(done)),
+      });
+    });
+  });
+}

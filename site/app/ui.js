@@ -1,4 +1,57 @@
+function bindTopbarNavigationMenus() {
+  const desktopHover = window.matchMedia("(hover: hover) and (pointer: fine)");
+  const groups = [...document.querySelectorAll(".topbar-nav-group")];
+  const closeOthers = (current) => groups.forEach((group) => {
+    if (group !== current) group.open = false;
+  });
+  const syncHoverState = () => {
+    groups.forEach((group) => {
+      group.onpointerenter = null;
+      group.onpointerleave = null;
+    });
+    if (!desktopHover.matches) return;
+    groups.forEach((group) => {
+      group.onpointerenter = () => {
+        closeOthers(group);
+        group.open = true;
+      };
+      group.onpointerleave = () => {
+        group.open = false;
+      };
+    });
+  };
+  syncHoverState();
+  desktopHover.addEventListener?.("change", syncHoverState);
+  groups.forEach((group) => {
+    group.addEventListener("focusin", () => {
+      closeOthers(group);
+      group.open = true;
+    });
+    group.addEventListener("focusout", (event) => {
+      if (!group.contains(event.relatedTarget)) group.open = false;
+    });
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeTopbarNavigationMenus();
+  });
+}
+
+function closeTopbarNavigationMenus() {
+  document.querySelectorAll(".topbar-nav-group[open]").forEach((group) => {
+    group.open = false;
+  });
+}
+
+function syncTopbarNavigationGroups() {
+  document.querySelectorAll(".topbar-nav-group").forEach((group) => {
+    const current = [...group.querySelectorAll("[data-nav-view]")]
+      .some((button) => button.dataset.navView === state.view);
+    group.classList.toggle("is-current", current);
+  });
+}
+
 function bindEvents() {
+  bindTopbarNavigationMenus();
   els.languageMenuButton?.addEventListener("click", () => {
     const open = els.languageMenu?.hidden !== false;
     if (els.languageMenu) els.languageMenu.hidden = !open;
@@ -16,6 +69,7 @@ function bindEvents() {
   });
   document.querySelectorAll("[data-nav-view]").forEach((button) => {
     button.addEventListener("click", async () => {
+      closeTopbarNavigationMenus();
       await setView(button.dataset.navView);
       render();
     });
@@ -1282,6 +1336,7 @@ async function applyHash() {
 
 async function setView(view) {
   hideTransientOverlays();
+  closeTopbarNavigationMenus();
   changeBoard(view, view === "region" ? "stateRegion" : view);
   if (view === "region") state.regionListMode = "state";
   replaceHash(`/${view}`);
@@ -1331,6 +1386,9 @@ function updatePageChrome() {
   document.querySelectorAll('[data-nav-view="goods"]').forEach((button) => { button.hidden = !goodsAvailable; });
   document.querySelector('#viewSelect option[value="building"]')?.toggleAttribute("hidden", !buildingAvailable);
   document.querySelector('#viewSelect option[value="goods"]')?.toggleAttribute("hidden", !goodsAvailable);
+  document.querySelectorAll(".topbar-nav-group").forEach((group) => {
+    group.hidden = [...group.querySelectorAll("[data-nav-view]")].every((button) => button.hidden);
+  });
   if (els.viewSelect) {
     els.viewSelect.value = state.view;
   }
@@ -1394,6 +1452,7 @@ function render() {
   document.querySelectorAll("[data-nav-view]").forEach((button) => {
     button.setAttribute("aria-current", String(button.dataset.navView === state.view));
   });
+  syncTopbarNavigationGroups();
   setTokenPressed(els.filteredCountryMapToggle, state.dimUnfilteredCountries);
   els.strategicRegionFilterTitle.textContent = state.view === "culture"
     ? t("filter.homelandStrategicRegions")

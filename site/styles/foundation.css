@@ -90,6 +90,7 @@ body {
 .topbar-actions,
 .topbar-nav,
 .topbar-brand,
+.topbar-nav-summary,
 .topbar-nav-item,
 .topbar-icon-select {
   display: flex;
@@ -141,6 +142,74 @@ body {
 
 .topbar-nav {
   gap: 4px;
+}
+
+.topbar-nav-group {
+  position: relative;
+}
+
+.topbar-nav-summary {
+  min-height: var(--control-height);
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  color: var(--ink);
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+  font-weight: 800;
+  line-height: var(--line-ui);
+  list-style: none;
+  white-space: nowrap;
+}
+
+.topbar-nav-summary::-webkit-details-marker {
+  display: none;
+}
+
+.topbar-nav-summary::after {
+  width: 6px;
+  height: 6px;
+  margin-left: 8px;
+  border-right: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
+  content: "";
+  transform: translateY(-2px) rotate(45deg);
+}
+
+.topbar-nav-group[open] > .topbar-nav-summary::after {
+  transform: translateY(2px) rotate(225deg);
+}
+
+.topbar-nav-group.is-current > .topbar-nav-summary,
+.topbar-nav-summary:hover,
+.topbar-nav-group[open] > .topbar-nav-summary {
+  border-color: rgba(200, 164, 91, 0.34);
+  background: var(--accent-blue);
+  color: var(--accent);
+}
+
+.topbar-nav-popover {
+  position: absolute;
+  z-index: 80;
+  top: calc(100% + 7px);
+  left: 0;
+  display: grid;
+  min-width: max-content;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-glass-strong);
+  box-shadow: 0 9px 22px rgba(0, 0, 0, 0.34);
+}
+
+.topbar-nav-group:not([open]) > .topbar-nav-popover {
+  display: none;
+}
+
+.topbar-nav-popover .topbar-nav-item {
+  width: 100%;
+  justify-content: flex-start;
 }
 
 .topbar-nav-item {
