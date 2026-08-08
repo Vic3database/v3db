@@ -51,7 +51,7 @@ for (const [key, zh, en] of [
 assert.ok(/function\s+bindTopbarNavigationMenus\s*\(/.test(uiSource), "topbar menu behavior binder is missing");
 assert.ok(/function\s+closeTopbarNavigationMenus\s*\(/.test(uiSource), "topbar menu close helper is missing");
 assert.ok(/function\s+syncTopbarNavigationGroups\s*\(/.test(uiSource), "topbar active-group synchronizer is missing");
-assert.ok(/matchMedia\("\(hover: hover\) and \(pointer: fine\)"\)/.test(uiSource), "desktop hover behavior must be pointer-aware");
+assert.ok(/matchMedia\("\(min-width: 761px\) and \(hover: hover\) and \(pointer: fine\)"\)/.test(uiSource), "desktop hover behavior must remain limited to the desktop layout");
 assert.ok(/closeTopbarNavigationMenus\s*\(\)/.test(uiSource), "selecting a route should close open menus");
 assert.ok(/syncTopbarNavigationGroups\s*\(\)/.test(uiSource), "rendering should synchronize active topbar groups");
 assert.ok(/\.topbar-nav-group\s*\{[\s\S]*position:\s*relative/.test(foundationSource), "topbar category group needs a positioned desktop anchor");
@@ -96,6 +96,19 @@ async function checkBrowser() {
     await economy.hover();
     await assertVisible(economy.locator(".topbar-nav-popover"), "desktop hover should reveal the economy submenu");
     assert.equal(await economy.getAttribute("open"), "", "desktop hover should open the economy menu");
+    const menuGeometry = await economy.evaluate((node) => {
+      const summary = node.querySelector("summary").getBoundingClientRect();
+      const popover = node.querySelector(".topbar-nav-popover").getBoundingClientRect();
+      return { summary, popover };
+    });
+    assert.ok(menuGeometry.popover.top > menuGeometry.summary.bottom, "desktop submenu should retain a visible gap below its summary");
+    await desktop.mouse.move(menuGeometry.summary.left + (menuGeometry.summary.width / 2), menuGeometry.summary.top + (menuGeometry.summary.height / 2));
+    await desktop.mouse.move(menuGeometry.summary.left + (menuGeometry.summary.width / 2), menuGeometry.summary.bottom + 3);
+    await desktop.waitForTimeout(20);
+    assert.equal(await economy.getAttribute("open"), "", "crossing the submenu gap should keep the economy menu open");
+    const goodsGeometry = await economy.locator('[data-nav-view="goods"]').evaluate((node) => node.getBoundingClientRect());
+    await desktop.mouse.move(goodsGeometry.left + (goodsGeometry.width / 2), goodsGeometry.top + (goodsGeometry.height / 2));
+    assert.equal(await economy.getAttribute("open"), "", "entering a submenu item after crossing the gap should keep the economy menu open");
     await economy.locator('[data-nav-view="goods"]').click();
     await desktop.waitForFunction(() => location.hash === "#/goods" && document.body.dataset.view === "goods");
     assert.equal(await economy.evaluate((node) => node.classList.contains("is-current")), true, "goods route should highlight the economy category");

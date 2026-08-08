@@ -1,22 +1,37 @@
 function bindTopbarNavigationMenus() {
-  const desktopHover = window.matchMedia("(hover: hover) and (pointer: fine)");
+  const desktopHover = window.matchMedia("(min-width: 761px) and (hover: hover) and (pointer: fine)");
   const groups = [...document.querySelectorAll(".topbar-nav-group")];
+  const closeTimers = new Map();
   const closeOthers = (current) => groups.forEach((group) => {
     if (group !== current) group.open = false;
   });
+  const cancelClose = (group) => {
+    const timer = closeTimers.get(group);
+    if (timer) clearTimeout(timer);
+    closeTimers.delete(group);
+  };
+  const scheduleClose = (group) => {
+    cancelClose(group);
+    closeTimers.set(group, setTimeout(() => {
+      group.open = false;
+      closeTimers.delete(group);
+    }, 180));
+  };
   const syncHoverState = () => {
     groups.forEach((group) => {
       group.onpointerenter = null;
       group.onpointerleave = null;
+      cancelClose(group);
     });
     if (!desktopHover.matches) return;
     groups.forEach((group) => {
       group.onpointerenter = () => {
+        cancelClose(group);
         closeOthers(group);
         group.open = true;
       };
       group.onpointerleave = () => {
-        group.open = false;
+        scheduleClose(group);
       };
     });
   };
@@ -24,10 +39,12 @@ function bindTopbarNavigationMenus() {
   desktopHover.addEventListener?.("change", syncHoverState);
   groups.forEach((group) => {
     group.addEventListener("focusin", () => {
+      if (!desktopHover.matches) return;
       closeOthers(group);
       group.open = true;
     });
     group.addEventListener("focusout", (event) => {
+      if (!desktopHover.matches) return;
       if (!group.contains(event.relatedTarget)) group.open = false;
     });
   });
