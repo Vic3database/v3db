@@ -126,6 +126,7 @@ function renderHomeBoard() {
     { category: "diplomacy", label: "home.entry.diplomacy", pending: true, icon: "assets/home/international_diplomacy.png" },
     { category: "politics", label: "nav.law", view: "law", icon: "assets/home/law_enforcement.png" },
     { category: "politics", label: "nav.ideology", view: "ideology", icon: "assets/home/democracy.png" },
+    { category: "politics", label: "nav.interestGroup", view: "interest-group", icon: "assets/technologies/corporatism.webp" },
     { category: "politics", label: "home.entry.journal", pending: true, icon: "assets/home/event_default.png" },
     { category: "society", label: "nav.culture", view: "culture", icon: "assets/home/nationalism.png" },
     { category: "society", label: "nav.technology", view: "technology", icon: "assets/home/academia.png" },
@@ -187,6 +188,787 @@ function renderHomeBoard() {
     ${renderHomeNewsHtml()}
   `;
   if (!isStandaloneSite) bindHomeNewsControls();
+  renderMap([]);
+}
+
+const interestGroupBoardOrder = [
+  "ig_landowners",
+  "ig_petty_bourgeoisie",
+  "ig_devout",
+  "ig_rural_folk",
+  "ig_intelligentsia",
+  "ig_industrialists",
+  "ig_armed_forces",
+  "ig_trade_unions",
+];
+
+const interestGroupBoardPresentationPalette = {
+  ig_landowners: { standard: "#6A6AB0", background: "#1B1B2C", text: "#6A6AB0" },
+  ig_petty_bourgeoisie: { standard: "#3D26B7", background: "#0F0A2E", text: "#B8A8F2" },
+  ig_devout: { standard: "#4AAAB3", background: "#132B2D", text: "#4AAAB3" },
+  ig_rural_folk: { standard: "#449977", background: "#11261E", text: "#449977" },
+  ig_intelligentsia: { standard: "#E48B0A", background: "#392303", text: "#E48B0A" },
+  ig_industrialists: { standard: "#E47639", background: "#391E0E", text: "#E47639" },
+  ig_armed_forces: { standard: "#634740", background: "#191210", text: "#C6A988" },
+  ig_trade_unions: { standard: "#942828", background: "#250A0A", text: "#D68A8A" },
+};
+
+function interestGroupBoardPalette(group) {
+  return interestGroupBoardPresentationPalette[group.key] || {
+    standard: group.color?.hex || "var(--accent)",
+    background: "var(--surface)",
+    text: group.color?.hex || "var(--accent)",
+  };
+}
+
+function interestGroupBoardColorStyle(group) {
+  const palette = interestGroupBoardPalette(group);
+  return `--interest-group-color:${palette.standard};--interest-group-background:${palette.background};--interest-group-text-color:${palette.text}`;
+}
+
+function interestGroupBoardCard(group) {
+  const description = cleanDescriptionText(entityText(group, "description", ""));
+  return `
+    <button class="interest-group-board-card" type="button" data-interest-group-key="${escapeHtml(group.key)}" style="${escapeHtml(interestGroupBoardColorStyle(group))}">
+      <span class="interest-group-board-identity">
+        ${interestGroupIconHtml(group, "interest-group-board-icon")}
+        <span class="interest-group-board-title"><strong>${escapeHtml(entityText(group))}</strong><small>${escapeHtml(group.key)}</small></span>
+      </span>
+      <span class="interest-group-board-description">${escapeHtml(description)}</span>
+    </button>
+  `;
+}
+
+function interestGroupRuleSignature(rule) {
+  return JSON.stringify({
+    condition: rule?.condition_raw || "",
+    names: (rule?.names || []).map((item) => item?.key || ""),
+    traits: (rule?.traits || []).map((item) => item?.key || ""),
+    added: (rule?.added_ideologies || []).map((item) => item?.key || ""),
+    removed: (rule?.removed_ideologies || []).map((item) => item?.key || ""),
+  });
+}
+
+function interestGroupTraitSignature(traits) {
+  return (traits || []).map((trait) => trait?.key || "").filter(Boolean).sort().join("|");
+}
+
+function interestGroupIdeologySignature(ideologies) {
+  return (ideologies || []).map((ideology) => ideology?.key || "").filter(Boolean).sort().join("|");
+}
+
+function interestGroupConditionSignature(condition) {
+  return String(condition || "").replace(/\s+/g, "").toLowerCase();
+}
+
+const interestGroupConditionFlavorDefinition = {
+  "ig_armed_forces:latin_spanish": { name: "军队（拉美西语）", order: 10 },
+  "ig_armed_forces:caudillo_cultures": { name: "军队（普拉塔/南安第斯/北安第斯/中美/墨西哥）", order: 20 },
+  "ig_landowners:latin_spanish": { name: "地主（拉美西语）", order: 10 },
+  "ig_landowners:boer": { name: "地主（布尔）", order: 20 },
+  "ig_landowners:polish": { name: "地主（波兰）", order: 30 },
+  "ig_intelligentsia:constitutionalists": { name: "知识分子（立宪派）", order: 10 },
+  "ig_industrialists:colonial": { name: "实业家（殖民）", order: 10 },
+  "ig_petty_bourgeoisie:mercantile": { name: "小市民（重商派）", order: 10 },
+};
+
+const interestGroupCountryVariantDefinition = {
+  "ig_armed_forces:ig_trait_el_buen_jefe|ig_trait_materiel_waste|ig_trait_veteran_consultation:ideology_caudillismo|ideology_jingoist|ideology_loyalist|ideology_patriotic": {
+    name: "interestGroup.variant.armedForces.latinSpanish",
+    order: 10,
+    replacesConditionVariant: "latin_spanish",
+  },
+  "ig_armed_forces:ig_trait_clube_militar|ig_trait_coronelismo|ig_trait_el_buen_jefe:ideology_jingoist|ideology_loyalist|ideology_patriotic": {
+    name: "interestGroup.variant.armedForces.brazilSpain",
+    order: 20,
+  },
+  "ig_armed_forces:ig_trait_do_his_duty|ig_trait_heart_of_oak|ig_trait_refuse_imperialism:ideology_jingoist|ideology_loyalist|ideology_patriotic": {
+    name: "interestGroup.variant.armedForces.englandBritain",
+    order: 30,
+  },
+  "ig_armed_forces:ig_trait_elan_vital|ig_trait_materiel_waste|ig_trait_veteran_consultation:ideology_jingoist|ideology_loyalist|ideology_patriotic": {
+    name: "interestGroup.variant.armedForces.franceParisCommune",
+    order: 40,
+  },
+  "ig_armed_forces:ig_trait_army_hasastate|ig_trait_ironcross|ig_trait_shadow_government:ideology_jingoist|ideology_loyalist|ideology_patriotic": {
+    name: "interestGroup.variant.armedForces.northGermanGermany",
+    order: 50,
+  },
+  "ig_armed_forces:ig_trait_loyal_to_nations|ig_trait_mountain_hunter|ig_trait_unavis:ideology_jingoist|ideology_loyalist|ideology_patriotic": {
+    name: "interestGroup.variant.armedForces.italy",
+    order: 60,
+  },
+  "ig_industrialists:ig_trait_chinese_boycott|ig_trait_government_cooperation|ig_trait_national_industry:ideology_individualist|ideology_laissez_faire|ideology_plutocratic": {
+    name: "interestGroup.variant.industrialists.china",
+    order: 10,
+  },
+  "ig_industrialists:ig_trait_made_in_germany|ig_trait_national_enterprise|ig_trait_tax_avoidance:ideology_economic_statism|ideology_individualist|ideology_plutocratic": {
+    name: "interestGroup.variant.industrialists.german",
+    order: 20,
+  },
+  "ig_industrialists:ig_trait_free_trade_policy|ig_trait_technological_laziness|ig_trait_textile_monopoly:ideology_british_capitalism|ideology_laissez_faire|ideology_malthusian": {
+    name: "interestGroup.variant.industrialists.englandBritain",
+    order: 30,
+  },
+  "ig_industrialists:ig_shipping_magnates|ig_trait_job_creators|ig_trait_tax_avoidance:ideology_individualist|ideology_laissez_faire|ideology_plutocratic": {
+    name: "interestGroup.variant.industrialists.greeceNorway",
+    order: 40,
+  },
+  "ig_industrialists:ig_trait_engines_of_risorgimento|ig_trait_land_of_chimneys|ig_trait_tax_avoidance:ideology_individualist|ideology_laissez_faire|ideology_plutocratic": {
+    name: "interestGroup.variant.industrialists.italy",
+    order: 50,
+  },
+  "ig_industrialists:ig_trait_capital_in_chains|ig_trait_forges_of_tigris|ig_trait_modernists_of_sublime:ideology_individualist|ideology_laissez_faire|ideology_plutocratic": {
+    name: "interestGroup.variant.industrialists.turkeyRome",
+    order: 60,
+  },
+  "ig_intelligentsia:ig_trait_avant_garde|ig_trait_propagandists|ig_trait_social_criticism:ideology_anti_clerical|ideology_anti_slavery|ideology_constitutionalist|ideology_liberal": {
+    name: "interestGroup.variant.intelligentsia.constitutionalists",
+    order: 5,
+    conditionVariant: "constitutionalists",
+  },
+  "ig_intelligentsia:ig_trait_leopoldina|ig_trait_rationalismus|ig_trait_revolutionsfuhrer:ideology_anti_clerical|ideology_anti_slavery|ideology_constitutionalist|ideology_liberal": {
+    name: "interestGroup.variant.intelligentsia.germanConstitutionalists",
+    order: 20,
+  },
+  "ig_intelligentsia:ig_trait_leopoldina|ig_trait_rationalismus|ig_trait_revolutionsfuhrer:ideology_anti_clerical|ideology_anti_slavery|ideology_liberal|ideology_republican": {
+    name: "interestGroup.variant.intelligentsia.german",
+    order: 10,
+  },
+  "ig_intelligentsia:ig_trait_crisis_of_language|ig_trait_liberal_sovereignty|ig_trait_popular_writers:ideology_anti_clerical|ideology_anti_slavery|ideology_constitutionalist|ideology_liberal": {
+    name: "interestGroup.variant.intelligentsia.belgiumNetherlands",
+    order: 30,
+  },
+  "ig_intelligentsia:ig_trait_camicie_rosse|ig_trait_realists|ig_trait_risorgimento:ideology_anti_clerical|ideology_anti_slavery|ideology_liberal|ideology_republican": {
+    name: "interestGroup.variant.intelligentsia.italy",
+    order: 40,
+  },
+  "ig_landowners:ig_trait_benevolence_and_righteousness|ig_trait_local_emperor|ig_trait_wise_ruler:ideology_hierarchic|ideology_paternalistic|ideology_patriarchal": {
+    name: "interestGroup.variant.landowners.hanCulture",
+    order: 10,
+  },
+  "ig_landowners:ig_trait_adm_expert|ig_trait_bad_boyars|ig_trait_owner_of_land:ideology_hierarchic|ideology_paternalistic|ideology_patriarchal": {
+    name: "interestGroup.variant.landowners.russian",
+    order: 20,
+  },
+  "ig_landowners:ig_trait_family_ties|ig_trait_noble_privileges|ig_trait_noblesse_oblige:ideology_german_nobles|ideology_paternalistic|ideology_patriarchal": {
+    name: "interestGroup.variant.landowners.german",
+    order: 30,
+  },
+  "ig_landowners:ig_trait_family_ties|ig_trait_noble_privileges|ig_trait_patrician_philanthropy:ideology_hierarchic|ideology_paternalistic|ideology_patriarchal": {
+    name: "interestGroup.variant.landowners.yankee",
+    order: 40,
+  },
+  "ig_landowners:ig_trait_junkerdom|ig_trait_offizierskorps|ig_trait_reactionary_enthusiasm:ideology_german_nobles|ideology_paternalistic|ideology_patriarchal": {
+    name: "interestGroup.variant.landowners.northGermanGermany",
+    order: 50,
+  },
+  "ig_petty_bourgeoisie:ig_trait_middle_managers|ig_trait_treasury_bonds|ig_trait_xenophobia:ideology_meritocratic|ideology_modernizer|ideology_patriotic": {
+    name: "interestGroup.variant.pettyBourgeoisie.southAsian",
+    order: 10,
+  },
+  "ig_petty_bourgeoisie:ig_trait_conning_commoner|ig_trait_following_its_natural|ig_trait_pragmatism:ideology_meritocratic|ideology_patriotic|ideology_reactionary": {
+    name: "interestGroup.variant.pettyBourgeoisie.china",
+    order: 20,
+  },
+  "ig_petty_bourgeoisie:ig_trait_master_of_city|ig_trait_rus_westernlism|ig_trait_spread_of_dissent:ideology_meritocratic|ideology_patriotic|ideology_reactionary": {
+    name: "interestGroup.variant.pettyBourgeoisie.russian",
+    order: 30,
+  },
+  "ig_petty_bourgeoisie:ig_trait_municipality|ig_trait_patriot|ig_trait_xenophobia:ideology_meritocratic|ideology_patriotic|ideology_reactionary": {
+    name: "interestGroup.variant.pettyBourgeoisie.belgiumNetherlands",
+    order: 40,
+  },
+  "ig_petty_bourgeoisie:ig_trait_civic_watchmen|ig_trait_people_of_procedure|ig_trait_stabbed_in_the_back:ideology_meritocratic|ideology_reactionary|ideology_revivalism": {
+    name: "interestGroup.variant.pettyBourgeoisie.italy",
+    order: 50,
+  },
+  "ig_rural_folk:ig_trait_catch_a_fire|ig_trait_peaceful_times|ig_trait_rule_of_etiquette:ideology_agrarian|ideology_isolationist|ideology_particularist": {
+    name: "interestGroup.variant.ruralFolk.china",
+    order: 10,
+  },
+  "ig_rural_folk:ig_trait_efficient_cultivation|ig_trait_old_ways|ig_trait_urban_suppliers:ideology_agrarian|ideology_isolationist|ideology_particularist": {
+    name: "interestGroup.variant.ruralFolk.lowCountries",
+    order: 20,
+  },
+  "ig_trade_unions:ig_trait_worker_forces|ig_trait_worker_revolution|ig_trait_worker_soviet:ideology_anti_slavery|ideology_egalitarian|ideology_populist|ideology_proletarian": {
+    name: "interestGroup.variant.tradeUnions.russian",
+    order: 10,
+  },
+  "ig_trade_unions:ig_trait_organize_strike|ig_trait_rigorous_work|ig_trait_social_justice:ideology_anti_slavery|ideology_egalitarian|ideology_populist|ideology_proletarian": {
+    name: "interestGroup.variant.tradeUnions.german",
+    order: 20,
+  },
+  "ig_trade_unions:ig_trait_labor_value|ig_trait_work_to_rule|ig_trait_workers_community:ideology_anti_slavery|ideology_egalitarian|ideology_populist|ideology_proletarian": {
+    name: "interestGroup.variant.tradeUnions.englandBritain",
+    order: 30,
+  },
+};
+
+function interestGroupCountryVariantKey(groupKey, traits, ideologies) {
+  return `${groupKey}:${interestGroupTraitSignature(traits)}:${interestGroupIdeologySignature(ideologies)}`;
+}
+
+const interestGroupDevoutReligionOrder = [
+  "东方正统教会",
+  "东正教",
+  "天主教",
+  "新教",
+  "逊尼派",
+  "什叶派",
+  "伊巴德派",
+  "犹太教",
+  "佛教",
+  "印度教",
+  "儒教",
+  "神道教",
+  "泛灵论",
+  "锡克教",
+];
+
+const interestGroupDevoutReligion = {
+  jewish: "犹太教",
+  animist: "泛灵论",
+  ig_oriental_orthodox_church: "东方正统教会",
+  ig_orthodox_church: "东正教",
+  ig_catholic_church: "天主教",
+  ig_roman_curia: "天主教",
+  ig_anglican_church: "新教",
+  ig_church_of_denmark: "新教",
+  ig_church_of_norway: "新教",
+  ig_church_of_finland: "新教",
+  ig_church_of_sweden: "新教",
+  ig_evangelicals: "新教",
+  ig_evangelical_church: "新教",
+  ig_christian_missionaries: "新教",
+  ig_london_missionary_society: "新教",
+  ig_sunni_madrasahs: "逊尼派",
+  ig_shia_madrasahs: "什叶派",
+  ig_ibadi_madrasahs: "伊巴德派",
+  ig_hindu_priesthood: "印度教",
+  ig_confucian: "儒教",
+  ig_shinto_monks: "神道教",
+  ig_jisha: "佛教",
+  ig_mahayana_monks: "佛教",
+  ig_theravada_monks: "佛教",
+  ig_vajrayana_monks: "佛教",
+  ig_granthis: "锡克教",
+};
+
+function interestGroupFlavorCategory(groupKey, variant) {
+  if (groupKey === "ig_devout" && interestGroupDevoutReligion[variant.key]) return "religion";
+  if (variant.isConditionVariant) return "condition";
+  if (variant.isTraitOnly) return "country";
+  if (interestGroupUsesScriptedRenameCategory() && interestGroupIsScriptedRename(variant)) return "scripted";
+  if (groupKey === "ig_devout") return interestGroupDevoutReligion[variant.key] ? "religion" : "named";
+  return "named";
+}
+
+function interestGroupIsScriptedRename(variant) {
+  const ruleFiles = (variant.rules || []).map((rule) => String(rule.source_file || "").replaceAll("\\", "/"));
+  return ruleFiles.some((file) => !file.includes("/common/interest_groups/"))
+    && !ruleFiles.some((file) => file.includes("/common/interest_groups/"));
+}
+
+function interestGroupUsesScriptedRenameCategory() {
+  return data?.meta?.dataset_name === "Victorian Century";
+}
+
+function interestGroupFlavorOrder(groupKey, variant) {
+  if (groupKey === "ig_devout") {
+    const religion = interestGroupDevoutReligion[variant.key] || "";
+    const religionOrder = interestGroupDevoutReligionOrder.indexOf(religion);
+    return religionOrder < 0 ? Number.MAX_SAFE_INTEGER : religionOrder;
+  }
+  if (variant.isConditionVariant) return interestGroupConditionFlavorDefinition[`${groupKey}:${variant.key}`]?.order || Number.MAX_SAFE_INTEGER;
+  if (variant.isTraitOnly) return interestGroupCountryVariantDefinition[variant.definitionKey]?.order || Number.MAX_SAFE_INTEGER;
+  return Number.MAX_SAFE_INTEGER;
+}
+
+function interestGroupVariants(group) {
+  const groupKey = group?.key || "";
+  const baseTraitSignature = interestGroupTraitSignature(group?.base_traits);
+  const baseIdeologySignature = interestGroupIdeologySignature(group?.ideologies);
+  const variants = new Map();
+  const ensureVariant = (source) => {
+    const key = source?.key || "";
+    if (!key) return null;
+    const variant = variants.get(key) || {
+      key,
+      name: entityText(source),
+      countries: new Set(),
+      rules: new Map(),
+      traits: new Map(),
+      ideologies: new Map(),
+      isPotential: false,
+      isTraitOnly: false,
+      isConditionVariant: false,
+      hasCompleteTraits: false,
+    };
+    variants.set(key, variant);
+    return variant;
+  };
+  const conditionVariantsBySignature = new Map();
+  for (const conditionVariant of group?.condition_variants || []) {
+    const variant = ensureVariant(conditionVariant);
+    if (!variant) continue;
+    variant.isConditionVariant = true;
+    variant.name = conditionVariant.name_zh
+      || interestGroupConditionFlavorDefinition[`${groupKey}:${conditionVariant.key}`]?.name
+      || variant.name
+      || conditionVariant.key;
+    const rule = {
+      condition_summary_zh: conditionVariant.condition_summary_zh || "",
+      condition_raw: conditionVariant.condition_raw || "",
+      source_file: group.source_file || "",
+      names: [],
+      traits: conditionVariant.traits || [],
+      added_ideologies: conditionVariant.added_ideologies || [],
+      removed_ideologies: conditionVariant.removed_ideologies || [],
+    };
+    variant.rules.set(interestGroupRuleSignature(rule), rule);
+    for (const trait of conditionVariant.traits || []) {
+      if (!trait?.key) continue;
+      variant.traits.set(trait.key, { trait, countries: new Set() });
+    }
+    const signature = interestGroupConditionSignature(conditionVariant.condition_raw);
+    if (signature) conditionVariantsBySignature.set(signature, variant);
+  }
+  for (const country of countries || []) {
+    for (const group of country.interestGroups || []) {
+      const display = group.display_name;
+      if (group.key !== groupKey) continue;
+      const activeTraits = group.active_traits || [];
+      const activeIdeologies = group.active_ideologies || [];
+      const appliedRules = group.applied_rules || [];
+      const matchedConditionVariants = new Set(appliedRules
+        .map((rule) => conditionVariantsBySignature.get(interestGroupConditionSignature(rule.condition_raw)))
+        .filter(Boolean));
+      const hasOtherExplicitRule = appliedRules.some((rule) => {
+        const signature = interestGroupConditionSignature(rule.condition_raw);
+        return signature && signature !== "else" && !conditionVariantsBySignature.has(signature);
+      });
+      for (const variant of matchedConditionVariants) variant.countries.add(country.tag);
+      const definitionKey = interestGroupCountryVariantKey(groupKey, activeTraits, activeIdeologies);
+      const definition = interestGroupCountryVariantDefinition[definitionKey];
+      const conditionVariant = definition?.conditionVariant && variants.get(definition.conditionVariant);
+      if (conditionVariant) {
+        conditionVariant.countries.add(country.tag);
+        continue;
+      }
+      if (!display?.is_flavored && matchedConditionVariants.size && !hasOtherExplicitRule) {
+        continue;
+      }
+      const isTraitOnly = !display?.is_flavored && interestGroupTraitSignature(activeTraits) !== baseTraitSignature;
+      const isIdeologyOnly = !display?.is_flavored
+        && !isTraitOnly
+        && interestGroupIdeologySignature(activeIdeologies) !== baseIdeologySignature;
+      if (!display?.is_flavored && !isTraitOnly && !isIdeologyOnly) continue;
+      const variant = ensureVariant(display?.is_flavored
+        ? display
+        : {
+          key: `country-variant:${interestGroupCountryVariantKey(groupKey, activeTraits, activeIdeologies)}`,
+          name: "",
+        });
+      if (!variant) continue;
+      variant.isTraitOnly ||= isTraitOnly || isIdeologyOnly;
+      variant.definitionKey ||= definitionKey;
+      if (definition?.replacesConditionVariant) variants.delete(definition.replacesConditionVariant);
+      variant.hasCompleteTraits = true;
+      variant.countries.add(country.tag);
+      for (const rule of appliedRules) variant.rules.set(interestGroupRuleSignature(rule), rule);
+      for (const trait of activeTraits) {
+        if (!trait?.key) continue;
+        const traitUse = variant.traits.get(trait.key) || { trait, countries: new Set() };
+        traitUse.countries.add(country.tag);
+        variant.traits.set(trait.key, traitUse);
+      }
+      for (const ideology of activeIdeologies) {
+        if (ideology?.key) variant.ideologies.set(ideology.key, ideology);
+      }
+    }
+  }
+  for (const flavor of group?.potential_flavors || []) {
+    const variant = ensureVariant(flavor);
+    if (!variant) continue;
+    variant.isPotential = true;
+    for (const rule of flavor.rules || []) variant.rules.set(interestGroupRuleSignature(rule), rule);
+    for (const trait of flavor.traits || []) {
+      if (!trait?.key) continue;
+      const traitUse = variant.traits.get(trait.key) || { trait, countries: new Set() };
+      variant.traits.set(trait.key, traitUse);
+    }
+  }
+  return [...variants.values()]
+    .map((variant) => ({
+      ...variant,
+      countries: interestGroupCountryTags(variant.countries),
+      rules: [...variant.rules.values()],
+      ideologies: [...variant.ideologies.values()],
+      traits: [...variant.traits.values()].map((traitUse) => ({
+        ...traitUse,
+        countries: interestGroupCountryTags(traitUse.countries),
+      })),
+    }))
+    .map((variant) => ({
+      ...variant,
+      name: variant.isConditionVariant && groupKey !== "ig_devout"
+        ? (interestGroupConditionFlavorDefinition[`${groupKey}:${variant.key}`]?.name || variant.name || variant.key)
+        : variant.isTraitOnly
+        ? (interestGroupCountryVariantDefinition[variant.definitionKey]?.name
+          ? t(interestGroupCountryVariantDefinition[variant.definitionKey].name)
+          : variant.countries.length === 1
+            ? t("interestGroup.singleCountryTraitVariant", {
+              group: entityText(group) || groupKey,
+              country: entityText(byTag.get(variant.countries[0]) || { tag: variant.countries[0] }) || variant.countries[0],
+            })
+            : `${countryRefLabel(byTag.get(variant.countries[0]) || { tag: variant.countries[0] })}${t("interestGroup.traitFlavor")}`)
+        : (variant.name || variant.key),
+    }))
+    .sort((left, right) => (
+      interestGroupFlavorOrder(groupKey, left) - interestGroupFlavorOrder(groupKey, right)
+      || localizedCompare(left.name || left.key, right.name || right.key)
+    ));
+}
+
+function interestGroupCountryTags(tags) {
+  return [...new Set(tags || [])]
+    .filter(Boolean)
+    .sort((left, right) => {
+      const leftCountry = byTag.get(left) || { tag: left };
+      const rightCountry = byTag.get(right) || { tag: right };
+      return (
+        orderValueByList(tierOrder, leftCountry.tier) - orderValueByList(tierOrder, rightCountry.tier)
+        || localizedCompare(entityText(leftCountry) || left, entityText(rightCountry) || right)
+        || left.localeCompare(right)
+      );
+    });
+}
+
+function interestGroupCountryList(tags) {
+  const countryTags = interestGroupCountryTags(tags);
+  if (!countryTags.length) return `<span class="interest-group-country-empty">${escapeHtml(t("interestGroup.noStartingCountries"))}</span>`;
+  return `
+    <div class="interest-group-country-list">
+      <div class="interest-group-country-tags">${countryLinks(countryTags)}</div>
+    </div>
+  `;
+}
+
+const interestGroupTraitSlotDefinitions = [
+  { key: "unhappy", minimum: "", maximum: "unhappy" },
+  { key: "happy", minimum: "happy", maximum: "" },
+  { key: "loyal", minimum: "loyal", maximum: "" },
+];
+
+function interestGroupTraitSlotKey(trait) {
+  if (trait?.max_approval === "unhappy") return "unhappy";
+  if (trait?.min_approval === "happy") return "happy";
+  if (trait?.min_approval === "loyal") return "loyal";
+  return "";
+}
+
+function interestGroupTraitSlots(traits) {
+  const slots = new Map(interestGroupTraitSlotDefinitions.map((slot) => [slot.key, {
+    ...slot,
+    traits: [],
+  }]));
+  for (const trait of traits || []) {
+    const slotKey = interestGroupTraitSlotKey(trait);
+    const slot = slots.get(slotKey);
+    if (!slot || !trait?.key) return;
+    slot.traits.push(trait);
+  }
+  return interestGroupTraitSlotDefinitions.map((definition) => {
+    const slot = slots.get(definition.key);
+    const trait = slot.traits
+      .slice()
+      .sort((left, right) => localizedCompare(entityText(left), entityText(right)))[0] || null;
+    return { ...definition, trait };
+  });
+}
+
+function interestGroupTraitSlotHtml(slot) {
+  return `
+    <section class="interest-group-trait-slot is-${escapeHtml(slot.key)}" data-interest-group-trait-slot="${escapeHtml(slot.key)}" aria-label="${escapeHtml(t(`interestGroup.approval.${slot.key}`))}">
+      ${slot.trait ? interestGroupTraitDetailCard(slot.trait, false) : `<p class="empty compact">${escapeHtml(t("interestGroup.noTraitForSlot"))}</p>`}
+    </section>
+  `;
+}
+
+function interestGroupTraitSlotListHtml(traits) {
+  return `<div class="interest-group-trait-slot-list">${interestGroupTraitSlots(traits).map(interestGroupTraitSlotHtml).join("")}</div>`;
+}
+
+function interestGroupFlavorOptions(group, variants) {
+  const traitSetForVariant = (variant) => {
+    const traitsBySlot = new Map();
+    for (const trait of group.base_traits || []) {
+      const slotKey = interestGroupTraitSlotKey(trait);
+      if (slotKey && !traitsBySlot.has(slotKey)) traitsBySlot.set(slotKey, trait);
+    }
+    for (const traitUse of variant.traits || []) {
+      const slotKey = interestGroupTraitSlotKey(traitUse.trait);
+      if (slotKey && traitUse.trait) traitsBySlot.set(slotKey, traitUse.trait);
+    }
+    return interestGroupTraitSlotDefinitions.map((slot) => traitsBySlot.get(slot.key)).filter(Boolean);
+  };
+  return [
+    {
+      key: "base",
+      name: t("interestGroup.baseTraitOption"),
+      traits: group.base_traits || [],
+      countries: [],
+      rules: [],
+      ideologies: group.ideologies || [],
+      category: "base",
+      isBase: true,
+    },
+    ...(variants || []).map((variant) => ({
+      key: variant.key,
+      name: variant.name || variant.key,
+      traits: traitSetForVariant(variant),
+      countries: variant.countries || [],
+      rules: variant.rules || [],
+      ideologies: variant.ideologies || [],
+      isTraitOnly: Boolean(variant.isTraitOnly),
+      isConditionVariant: Boolean(variant.isConditionVariant),
+      isPotential: Boolean(variant.isPotential),
+      category: interestGroupFlavorCategory(group.key, variant),
+      religion: group.key === "ig_devout" ? interestGroupDevoutReligion[variant.key] || "" : "",
+      isBase: false,
+    })),
+  ];
+}
+
+function interestGroupFlavorGroupLabel(key) {
+  if (key.startsWith("religion:")) return key.slice("religion:".length);
+  if (key === "country") return t("interestGroup.specialCountryVariants");
+  if (key === "condition") return t("interestGroup.conditionVariants");
+  if (key === "scripted") return t("interestGroup.scriptedVariants");
+  return t("interestGroup.namedVariants");
+}
+
+function interestGroupFlavorOptionGroups(flavors) {
+  const groupOrder = ["named", "condition", "country"];
+  const groups = new Map();
+  for (const flavor of flavors.filter((item) => !item.isBase)) {
+    const key = flavor.category === "religion"
+      ? `religion:${flavor.religion}`
+      : flavor.category === "scripted" ? "named" : flavor.category;
+    const entry = groups.get(key) || { key, flavors: [] };
+    entry.flavors.push(flavor);
+    groups.set(key, entry);
+  }
+  return [...groups.values()]
+    .map((entry) => ({
+      ...entry,
+      order: entry.key.startsWith("religion:")
+        ? interestGroupDevoutReligionOrder.indexOf(entry.key.slice("religion:".length))
+        : interestGroupDevoutReligionOrder.length + groupOrder.indexOf(entry.key),
+    }))
+    .sort((left, right) => left.order - right.order || localizedCompare(left.key, right.key));
+}
+
+function interestGroupFlavorIdeologies(group, flavor) {
+  if (flavor.ideologies?.length) return flavor.ideologies;
+  const ideologies = new Map((group.ideologies || []).filter((item) => item?.key).map((item) => [item.key, item]));
+  for (const rule of flavor.rules || []) {
+    for (const ideology of rule.removed_ideologies || []) ideologies.delete(ideology?.key);
+    for (const ideology of rule.added_ideologies || []) {
+      if (ideology?.key) ideologies.set(ideology.key, ideology);
+    }
+  }
+  return [...ideologies.values()];
+}
+
+function interestGroupFlavorSourceText(flavor) {
+  if (flavor.isBase) return t("interestGroup.baseFlavorDescription");
+  if (flavor.category === "country") return t("interestGroup.countryTraitFlavorDescription");
+  if (flavor.category === "condition") return t("interestGroup.conditionFlavorDescription");
+  if (flavor.category === "scripted") return t("interestGroup.scriptedVariants");
+  if (flavor.isPotential) return t("interestGroup.postStartFlavorDescription");
+  return t("interestGroup.namedFlavorDescription");
+}
+
+function interestGroupIdeologySummaryHtml(group, ideologies) {
+  return `
+    <div class="interest-group-ideology-summary">
+      ${ideologyPills(ideologies, "tag-ideology")}
+      ${ideologyPills(group.character_ideologies, "tag-tradition")}
+    </div>
+  `;
+}
+
+function interestGroupFlavorStateHtml(group, flavor, active) {
+  const ideologies = interestGroupFlavorIdeologies(group, flavor);
+  return `
+    <section class="interest-group-flavor-state" data-interest-group-flavor-state="${escapeHtml(flavor.key)}"${active ? "" : " hidden"}>
+      <div class="interest-group-flavor-context" data-interest-group-flavor-source>
+        <div class="interest-group-flavor-context-heading">
+          <strong>${escapeHtml(flavor.name)}</strong>
+          <span>${escapeHtml(interestGroupFlavorSourceText(flavor))}</span>
+        </div>
+        ${flavor.isBase ? "" : `
+          <div class="interest-group-flavor-context-meta">
+            ${interestGroupCountryList(flavor.countries)}
+            ${interestGroupRuleDetails(flavor.rules)}
+          </div>
+        `}
+      </div>
+      ${interestGroupTraitSlotListHtml(flavor.traits)}
+      <div class="interest-group-selected-information">
+        ${interestGroupIdeologySummaryHtml(group, ideologies)}
+      </div>
+      ${interestGroupPopulationAttractionHtml(group.pop_attraction)}
+    </section>
+  `;
+}
+
+function interestGroupFlavorSelectorHtml(group, variants) {
+  const flavors = interestGroupFlavorOptions(group, variants);
+  const baseFlavor = flavors.find((flavor) => flavor.isBase);
+  const optionGroups = interestGroupFlavorOptionGroups(flavors);
+  return `
+    <div class="interest-group-flavor-selector">
+      <label>
+        <span>${escapeHtml(t("interestGroup.traitFlavor"))}</span>
+        <select data-interest-group-flavor-select aria-label="${escapeHtml(t("interestGroup.traitFlavor"))}">
+          <option value="${escapeHtml(baseFlavor.key)}">${escapeHtml(baseFlavor.name)}</option>
+          ${optionGroups.map((entry) => `
+            <optgroup label="${escapeHtml(interestGroupFlavorGroupLabel(entry.key))}">
+              ${entry.flavors.map((flavor) => `<option value="${escapeHtml(flavor.key)}">${escapeHtml(flavor.name)}</option>`).join("")}
+            </optgroup>
+          `).join("")}
+        </select>
+      </label>
+    </div>
+    <div class="interest-group-flavor-states">
+      ${flavors.map((flavor, index) => interestGroupFlavorStateHtml(group, flavor, index === 0)).join("")}
+    </div>
+  `;
+}
+
+function interestGroupPopulationValue(entry) {
+  const value = String(entry?.value_raw || "");
+  const multiplier = String(entry?.multiplier_raw || "");
+  const dynamic = value === "literacy_rate"
+    ? t("interestGroup.populationValue.literacyRate")
+    : value === "standard_of_living" || value === "this.standard_of_living"
+      ? t("interestGroup.populationValue.standardOfLiving")
+      : value;
+  if (!multiplier) return dynamic;
+  return t("interestGroup.populationValue.multiplied", { value: dynamic, multiplier });
+}
+
+function interestGroupPopulationAttractionHtml(entries) {
+  const grouped = new Map();
+  for (const entry of entries || []) {
+    const row = grouped.get(entry.label_key) || { ...entry, entries: [] };
+    row.entries.push(entry);
+    grouped.set(entry.label_key, row);
+  }
+  return `
+    <details class="interest-group-population-disclosure">
+      <summary><span>${escapeHtml(t("interestGroup.populationAttraction"))}</span><small>${escapeHtml(t("interestGroup.populationAttractionHint"))}</small></summary>
+      <div class="interest-group-pop-attraction-list">
+      ${[...grouped.values()].map((row) => `
+        <section class="interest-group-pop-attraction">
+          <h3>${escapeHtml(entityText(row, "label", row.label_key))}</h3>
+          <ul class="interest-group-pop-attraction-entries">
+            ${row.entries.map((entry) => `
+              <li class="interest-group-pop-attraction-entry${entry.is_otherwise ? " is-otherwise" : ""}">
+                <strong>${escapeHtml(interestGroupPopulationValue(entry))}</strong>
+                ${interestGroupPopulationConditionHtml(entry)}
+              </li>
+            `).join("")}
+          </ul>
+        </section>
+      `).join("") || `<p class="empty compact">${escapeHtml(t("interestGroup.noPopulationAttraction"))}</p>`}
+      </div>
+    </details>
+  `;
+}
+
+function interestGroupPopulationConditionHtml(entry) {
+  const parts = [];
+  const named = (items, label, negativeLabel) => {
+    const positive = (items || []).filter((item) => !item.negated).map((item) => entityText(item)).filter(Boolean);
+    const negative = (items || []).filter((item) => item.negated).map((item) => entityText(item)).filter(Boolean);
+    if (positive.length) parts.push(`${label}${t("ui.colon", "：")}${positive.join(t("ui.listSeparator", "、"))}`);
+    if (negative.length) parts.push(`${negativeLabel}${t("ui.colon", "：")}${negative.join(t("ui.listSeparator", "、"))}`);
+  };
+  named(entry.pop_types, t("interestGroup.conditionPopulation"), t("interestGroup.conditionNotPopulation"));
+  named(entry.employment_building_groups, t("interestGroup.conditionEmployment"), t("interestGroup.conditionNotEmployment"));
+  const summary = entityText(entry, "conditionSummary", "");
+  if (summary) parts.push(summary);
+  if (entry.is_otherwise) parts.push(t("interestGroup.otherwise"));
+  const lines = parts.length ? parts : [t("interestGroup.noExtraConditions")];
+  return `<p>${lines.map((part) => escapeHtml(part)).join("<br>")}</p>`;
+}
+
+function bindInterestGroupFlavorSelector(container) {
+  container.querySelectorAll("[data-interest-group-flavor-select]").forEach((selector) => {
+    selector.addEventListener("change", () => {
+      const section = selector.closest(".interest-group-trait-section");
+      if (!section) return;
+      section.querySelectorAll("[data-interest-group-flavor-state]").forEach((state) => {
+        state.hidden = state.dataset.interestGroupFlavorState !== selector.value;
+      });
+    });
+  });
+}
+
+function renderInterestGroupBoardDetail(group) {
+  const variants = interestGroupVariants(group);
+  const flavorNames = variants
+    .filter((variant) => !variant.isTraitOnly && !variant.isConditionVariant)
+    .map((variant) => variant.name)
+    .filter(Boolean);
+  return `
+    <section class="interest-group-board-shell interest-group-board-detail">
+      <a class="detail-back-button" href="#/interest-group" aria-label="${escapeHtml(t("ui.back"))}" title="${escapeHtml(t("ui.back"))}"><img class="lucide-icon" src="assets/lucide/icons/arrow-left.svg" alt="" aria-hidden="true"></a>
+      <header class="interest-group-detail-heading" style="${escapeHtml(interestGroupBoardColorStyle(group))}">
+        ${interestGroupIconHtml(group, "interest-group-detail-icon")}
+        <div>
+          <h2>${escapeHtml(entityText(group))}${flavorNames.length ? `<span class="interest-group-detail-flavor-names">（${escapeHtml(flavorNames.join(t("interestGroup.flavorSeparator", " / ")))}）</span>` : ""}</h2>
+          <p class="minor">${escapeHtml(group.key)}</p>
+          <p class="interest-group-detail-description">${escapeHtml(cleanDescriptionText(entityText(group, "description", "")))}</p>
+        </div>
+      </header>
+      <section class="interest-group-detail-section interest-group-trait-section">
+        <div class="interest-group-detail-section-heading"><h2>${escapeHtml(t("interestGroup.traits"))}</h2></div>
+        ${interestGroupFlavorSelectorHtml(group, variants)}
+      </section>
+    </section>
+  `;
+}
+
+function renderInterestGroupBoard() {
+  mapRuntime.filteredCountryTags = new Set();
+  const groups = interestGroupBoardOrder.map((key) => byInterestGroup.get(key)).filter(Boolean);
+  const selected = byInterestGroup.get(state.selectedInterestGroup);
+  els.resultCount.textContent = t("nav.interestGroup");
+  els.activeHint.textContent = "";
+  els.countryList.className = "country-list interest-group-board";
+  els.detail.innerHTML = "";
+  if (selected) {
+    els.countryList.innerHTML = renderInterestGroupBoardDetail(selected);
+    bindInterestGroupFlavorSelector(els.countryList);
+    renderMap([]);
+    return;
+  }
+  els.countryList.innerHTML = `
+    <section class="interest-group-board-shell">
+      <header class="interest-group-board-heading"><h2>${escapeHtml(t("nav.interestGroup"))}</h2></header>
+      <div class="interest-group-board-grid">${groups.map(interestGroupBoardCard).join("")}</div>
+    </section>
+  `;
+  els.countryList.querySelectorAll("[data-interest-group-key]").forEach((card) => {
+    card.addEventListener("click", () => {
+      location.hash = "/interest-group/" + encodeURIComponent(card.dataset.interestGroupKey);
+    });
+  });
   renderMap([]);
 }
 
@@ -1135,6 +1917,7 @@ async function navigateGlobalSearchResult(kind, key) {
   else if (kind === "geographicRegion") replaceHash(`/geographic-region/${encodeURIComponent(key)}`);
   else if (kind === "company") replaceHash(`/company/${encodeURIComponent(key)}`);
   else if (kind === "ideology") replaceHash(`/ideology/${encodeURIComponent(key)}`);
+  else if (kind === "interestGroup") replaceHash(`/interest-group/${encodeURIComponent(key)}`);
   else if (kind === "law") replaceHash(`/law/${encodeURIComponent(key)}`);
   else if (kind === "technology") replaceHash(`/technology/${encodeURIComponent(key)}`);
   else if (kind === "achievement") replaceHash(`/achievement/${encodeURIComponent(key)}`);

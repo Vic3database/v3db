@@ -851,7 +851,7 @@ function interestGroupTraitDetailCard(trait, changed = false) {
             <strong>${escapeHtml(name)}</strong>
             ${approval ? `<span>${escapeHtml(approval)}</span>` : ""}
           </div>
-          ${summary ? `<p>${escapeHtml(summary)}</p>` : ""}
+          ${summary ? `<p>${summary.split(/；|;/).map((line) => escapeHtml(line.trim())).filter(Boolean).join("<br>")}</p>` : ""}
           ${desc ? `<p class="minor">${escapeHtml(desc)}</p>` : ""}
         </div>
       </div>
@@ -1561,7 +1561,7 @@ function interestGroupRuleDetails(rules) {
       <div class="interest-group-rule-list">
         ${rules.map((rule) => `
           <section class="interest-group-rule">
-            <div class="minor">${escapeHtml(renderTextSpec({ message: rule.loc?.conditionSummary, fallback: t("board.ideology.default", "默认") }))}</div>
+            <div class="minor">${interestGroupLineBreaks(rule.condition_summary_zh || renderTextSpec({ message: rule.loc?.conditionSummary, fallback: t("board.ideology.default", "默认") }))}</div>
             <dl class="mini-grid">
               ${field(t("board.ideology.name", "名称"), interestGroupEffectRefPills(rule.names, "interestGroup", "tag-ig-changed"))}
               ${field(t("board.ideology.traits", "特质"), interestGroupEffectRefPills(rule.traits, "interestGroupTrait", "tag-changed-outline"))}
@@ -1574,6 +1574,10 @@ function interestGroupRuleDetails(rules) {
       </div>
     </details>
   `;
+}
+
+function interestGroupLineBreaks(value) {
+  return String(value || "").split(/；|;/).map((line) => escapeHtml(line.trim())).filter(Boolean).join("<br>");
 }
 
 function interestGroupEffectRefPills(items, kind, className) {
@@ -1590,9 +1594,13 @@ function interestGroupEffectRefPills(items, kind, className) {
 
 function interestGroupTraitApprovalText(trait) {
   const parts = [];
-  if (trait?.min_approval) parts.push(t("board.ideology.minimumApproval", { value: trait.min_approval }));
-  if (trait?.max_approval) parts.push(t("board.ideology.maximumApproval", { value: trait.max_approval }));
+  if (trait?.min_approval) parts.push(t("board.ideology.minimumApproval", { value: interestGroupApprovalLabel(trait.min_approval) }));
+  if (trait?.max_approval) parts.push(t("board.ideology.maximumApproval", { value: interestGroupApprovalLabel(trait.max_approval) }));
   return parts.join("；");
+}
+
+function interestGroupApprovalLabel(value) {
+  return t(`interestGroup.approval.${value}`, value || "");
 }
 
 function sameKeySet(left, right) {
@@ -2090,7 +2098,7 @@ function interestGroupIconHtml(group, className = "interest-group-icon") {
 }
 
 function interestGroupIconPath(texture) {
-  const baseName = fileBaseName(texture).replace(/\.dds$/i, ".png");
+  const baseName = fileBaseName(texture).replace(/\.dds$/i, ".webp");
   if (!baseName || baseName === fileBaseName(texture)) return "";
   return `assets/interest-groups/${encodeURIComponent(baseName)}`;
 }

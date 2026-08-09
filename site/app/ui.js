@@ -67,8 +67,18 @@ function syncTopbarNavigationGroups() {
   });
 }
 
+function updateBackToTopButton() {
+  if (!els.backToTopButton) return;
+  els.backToTopButton.hidden = window.scrollY < 160;
+}
+
 function bindEvents() {
   bindTopbarNavigationMenus();
+  els.backToTopButton?.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+  window.addEventListener("scroll", updateBackToTopButton, { passive: true });
+  updateBackToTopButton();
   els.languageMenuButton?.addEventListener("click", () => {
     const open = els.languageMenu?.hidden !== false;
     if (els.languageMenu) els.languageMenu.hidden = !open;
@@ -1295,6 +1305,16 @@ async function applyHash() {
     state.selectedIdeology = decodeURIComponent(parts[1]);
     return;
   }
+  if (parts[0] === "interest-group" && !parts[1]) {
+    changeBoard("interest-group", "interestGroup");
+    state.selectedInterestGroup = "";
+    return;
+  }
+  if (parts[0] === "interest-group" && parts[1] && byInterestGroup.has(decodeURIComponent(parts[1]))) {
+    changeBoard("interest-group", "interestGroup");
+    state.selectedInterestGroup = decodeURIComponent(parts[1]);
+    return;
+  }
   if (parts[0] === "law" && !parts[1]) {
     changeBoard("law", "law");
     return;
@@ -1356,6 +1376,7 @@ async function setView(view) {
   closeTopbarNavigationMenus();
   changeBoard(view, view === "region" ? "stateRegion" : view);
   if (view === "region") state.regionListMode = "state";
+  if (view === "interest-group") state.selectedInterestGroup = "";
   replaceHash(`/${view}`);
   await ensureDataChunksForRoute();
   renderStrategicRegionFilterOptions();
@@ -1504,6 +1525,8 @@ function render() {
     renderCompanyBoard();
   } else if (state.view === "ideology") {
     renderIdeologyBoard();
+  } else if (state.view === "interest-group") {
+    renderInterestGroupBoard();
   } else if (state.view === "law") {
     renderLawBoard();
   } else if (state.view === "technology") {
@@ -1517,7 +1540,7 @@ function render() {
   } else {
     renderCountryBoard();
   }
-  const boardManagesDetail = state.view === "home" || state.view === "technology" || state.view === "achievement" || state.view === "building" || state.view === "goods" || state.view === "news";
+  const boardManagesDetail = state.view === "home" || state.view === "interest-group" || state.view === "technology" || state.view === "achievement" || state.view === "building" || state.view === "goods" || state.view === "news";
   if (!boardManagesDetail && state.view !== "changelog" && isDetailPageRoute()) {
     renderDetailForState();
   } else if (!boardManagesDetail) {

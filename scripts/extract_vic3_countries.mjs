@@ -245,6 +245,16 @@ function main() {
     interestGroupTraits,
     ideologies,
   );
+  attachInterestGroupPotentialFlavors(interestGroups, {
+    sourceDirs: interestGroupFlavorSourceDirs(),
+    loc,
+    interestGroupTraits,
+  });
+  attachInterestGroupConditionVariants(interestGroups, {
+    loc,
+    interestGroupTraits,
+    ideologies,
+  });
   applyIdeologyUnlockSources(ideologies, collectIdeologyUnlockSources({
     interestGroupDir: contentPath("common", "interest_groups"),
     politicalMovementDir: contentPath("common", "political_movements"),
@@ -2789,6 +2799,8 @@ function loadInterestGroups(dir, loc, interestGroupTraits, ideologies) {
         ideologies: ideologyKeys.map((key) => ideologyRef(key, ideologies)),
         character_ideologies: characterIdeologyKeys.map((key) => ideologyRef(key, ideologies)),
         base_traits: baseTraitKeys.map((key) => interestGroupTraitRef(key, interestGroupTraits)),
+        potential_flavors: [],
+        pop_attraction: interestGroupPopAttraction(firstValue(node, "pop_weight"), loc, key),
         flavor_rule_count: countInterestGroupFlavorRules(onEnable),
         source_file: normalizePath(file),
         _on_enable: onEnable,
@@ -2802,6 +2814,404 @@ function loadInterestGroups(dir, loc, interestGroupTraits, ideologies) {
     (a.index ?? Number.MAX_SAFE_INTEGER) - (b.index ?? Number.MAX_SAFE_INTEGER)
     || a.key.localeCompare(b.key)
   ));
+}
+
+function interestGroupFlavorSourceDirs() {
+  const commonDirs = contentPath("common");
+  return [
+    ...commonDirs,
+    ...contentPath("events"),
+    ...commonDirs.map((dir) => path.join(dir, "history", "countries")),
+    ...commonDirs.map((dir) => path.join(dir, "journal_entries")),
+    ...commonDirs.map((dir) => path.join(dir, "scripted_effects")),
+    ...commonDirs.map((dir) => path.join(dir, "scripted_buttons")),
+  ];
+}
+
+function attachInterestGroupPotentialFlavors(interestGroups, { sourceDirs, loc, interestGroupTraits }) {
+  const groupsByKey = new Map((interestGroups || []).map((group) => [group.key, group]));
+  const flavorsByGroup = new Map();
+  for (const file of listFiles(sourceDirs)) {
+    const source = readText(file);
+    if (!source.includes("set_interest_group_name")) continue;
+    const root = parseScript(source, file);
+    collectPotentialInterestGroupFlavors(root, {
+      groupKey: "",
+      conditions: [],
+      scopeTraitKeys: [],
+      sourceFile: normalizePath(file),
+      loc,
+      interestGroupTraits,
+      groupsByKey,
+      flavorsByGroup,
+    });
+  }
+  for (const group of interestGroups || []) {
+    group.potential_flavors = [...(flavorsByGroup.get(group.key)?.values() || [])]
+      .map((flavor) => ({
+        ...flavor,
+        traits: uniqueRefs(flavor.traits),
+        rules: [...flavor.rules.values()],
+      }))
+      .sort((left, right) => left.name_zh.localeCompare(right.name_zh) || left.key.localeCompare(right.key));
+  }
+}
+
+const interestGroupConditionVariantDefinitions = {
+  ig_devout: [
+    {
+      key: "jewish",
+      name_zh: "犹太教",
+      condition: `{
+  owner = {
+    country_has_state_religion = rel:jewish
+  }
+}`,
+      traits: ["ig_trait_traditsye", "ig_trait_yeshivot", "ig_trait_the_best_revenge"],
+    },
+    {
+      key: "animist",
+      name_zh: "泛灵论",
+      condition: `{
+  owner = {
+    country_has_state_religion = rel:animist
+  }
+}`,
+      traits: ["ig_trait_pious_fiction", "ig_trait_divine_right", "ig_trait_be_fruitful_and_multiply"],
+    },
+  ],
+  ig_armed_forces: [
+    {
+      key: "latin_spanish",
+      name_zh: "军队（拉美西语）",
+      condition: `{\n  owner = {\n    any_primary_culture = {\n      has_discrimination_trait = language_hispanophone\n      has_discrimination_trait_group = heritage_group_european\n      NOT = { has_discrimination_trait = heritage_iberian }\n    }\n  }\n}`,
+    traits: ["ig_trait_materiel_waste", "ig_trait_veteran_consultation", "ig_trait_el_buen_jefe"],
+  },
+  {
+    key: "caudillo_cultures",
+    name_zh: "军队（普拉塔/南安第斯/北安第斯/中美/墨西哥）",
+    condition: `{\n  is_in_geographic_region = geographic_region_latin_america\n  OR = {\n    country_has_primary_culture = cu:platinean\n    country_has_primary_culture = cu:south_andean\n    country_has_primary_culture = cu:north_andean\n    country_has_primary_culture = cu:central_american\n    country_has_primary_culture = cu:mexican\n  }\n}`,
+    added_ideologies: ["ideology_caudillismo"],
+  },
+  ],
+  ig_landowners: [
+    {
+      key: "latin_spanish",
+      name_zh: "地主（拉美西语）",
+      condition: `{\n  any_primary_culture = {\n    has_discrimination_trait = language_hispanophone\n    has_discrimination_trait_group = heritage_group_european\n    NOT = { has_discrimination_trait = heritage_iberian }\n    NOT = { cu:caribeno = this }\n  }\n}`,
+      added_ideologies: ["ideology_republican_paternalistic"],
+      removed_ideologies: ["ideology_paternalistic"],
+    },
+    {
+      key: "boer",
+      name_zh: "地主（布尔）",
+      condition: `{\n  country_has_primary_culture = cu:boer\n  NOT = {\n    NOT = { any_primary_culture = { cu:boer = this } }\n  }\n}`,
+      added_ideologies: ["ideology_republican_paternalistic"],
+      removed_ideologies: ["ideology_paternalistic"],
+    },
+    {
+      key: "polish",
+      name_zh: "地主（波兰）",
+      condition: `{\n  country_has_primary_culture = cu:polish\n}`,
+      added_ideologies: ["ideology_magnatial"],
+      removed_ideologies: ["ideology_paternalistic"],
+    },
+  ],
+  ig_intelligentsia: [{
+    key: "constitutionalists",
+    name_zh: "知识分子（立宪派）",
+    condition: `{\n  OR = {\n    c:GBR ?= THIS\n    c:POR ?= THIS\n    c:SPA ?= THIS\n    c:AUS ?= THIS\n    any_primary_culture = {\n      has_discrimination_trait_group = heritage_group_south_asian\n    }\n  }\n}`,
+    added_ideologies: ["ideology_constitutionalist"],
+    removed_ideologies: ["ideology_republican"],
+  }],
+  ig_industrialists: [{
+    key: "colonial",
+    name_zh: "实业家（殖民）",
+    condition: `{\n  owner = {\n    OR = {\n      c:DEI ?= this\n      c:ALK ?= this\n      c:HBC ?= this\n      is_country_type = company\n    }\n  }\n}`,
+    added_ideologies: ["ideology_colonialist"],
+    removed_ideologies: ["ideology_laissez_faire"],
+  }],
+  ig_petty_bourgeoisie: [{
+    key: "mercantile",
+    name_zh: "小市民（重商派）",
+    condition: `{\n  owner = {\n    OR = {\n      has_law_or_variant = law_type:law_traditionalism\n      has_law_or_variant = law_type:law_isolationism\n    }\n  }\n}`,
+    added_ideologies: ["ideology_mercantile"],
+  }],
+};
+
+function attachInterestGroupConditionVariants(interestGroups, { loc, interestGroupTraits, ideologies }) {
+  for (const group of interestGroups || []) {
+    const variants = interestGroupConditionVariantDefinitions[group.key] || [];
+    group.condition_variants = variants.map((variant) => ({
+      id: `interest_group_condition_variant:${group.key}:${variant.key}`,
+      key: variant.key,
+      name_zh: variant.name_zh,
+      condition_summary_zh: summarizeInterestGroupCondition(parseScript(variant.condition, `<condition:${group.key}:${variant.key}>`), {
+        locName: (key) => locCleanName(loc, key),
+      }).summary_zh,
+      condition_raw: variant.condition,
+      traits: (variant.traits || []).map((key) => interestGroupTraitRef(key, interestGroupTraits)),
+      added_ideologies: (variant.added_ideologies || []).map((key) => ideologyRef(key, ideologies)),
+      removed_ideologies: (variant.removed_ideologies || []).map((key) => ideologyRef(key, ideologies)),
+    }));
+  }
+}
+
+function collectPotentialInterestGroupFlavors(value, context) {
+  const node = asNode(value);
+  if (!node) return;
+  const localConditions = [
+    ...context.conditions,
+    ...node.assignments
+      .filter((assignment) => ["trigger", "is_shown", "possible"].includes(assignment.key))
+      .map((assignment) => assignment.value),
+  ];
+  for (const assignment of node.assignments) {
+    const scopedGroupKey = interestGroupScopeKey(assignment.key);
+    if (scopedGroupKey) {
+      const scopedNode = asNode(assignment.value);
+      collectPotentialInterestGroupFlavors(assignment.value, {
+        ...context,
+        groupKey: scopedGroupKey,
+        conditions: localConditions,
+        scopeTraitKeys: directInterestGroupTraitKeys(scopedNode),
+      });
+      continue;
+    }
+    if (assignment.key === "set_interest_group_name" && context.groupKey && context.groupsByKey.has(context.groupKey)) {
+      addPotentialInterestGroupFlavor(context, stripPrefix(scalarFromValue(assignment.value)));
+      continue;
+    }
+    if (["trigger", "is_shown", "possible", "limit"].includes(assignment.key)) continue;
+    if (["if", "else_if", "else"].includes(assignment.key)) {
+      const branch = asNode(assignment.value);
+      const limit = branch ? firstValue(branch, "limit") : null;
+      collectPotentialInterestGroupFlavors(assignment.value, {
+        ...context,
+        conditions: limit ? [...localConditions, limit] : localConditions,
+      });
+      continue;
+    }
+    collectPotentialInterestGroupFlavors(assignment.value, {
+      ...context,
+      conditions: localConditions,
+    });
+  }
+}
+
+function interestGroupScopeKey(value) {
+  const match = String(value || "").match(/^ig:(ig_[a-z0-9_]+)/i);
+  return match ? match[1] : "";
+}
+
+function directInterestGroupTraitKeys(node) {
+  if (!node) return [];
+  return node.assignments
+    .filter((assignment) => assignment.key === "set_ig_trait")
+    .map((assignment) => stripPrefix(scalarFromValue(assignment.value)))
+    .filter(Boolean);
+}
+
+function addPotentialInterestGroupFlavor(context, flavorKey) {
+  if (!flavorKey || flavorKey === context.groupKey) return;
+  const groupFlavors = context.flavorsByGroup.get(context.groupKey) || new Map();
+  const flavor = groupFlavors.get(flavorKey) || {
+    id: `interest_group_flavor:${context.groupKey}:${flavorKey}`,
+    key: flavorKey,
+    name_zh: locCleanName(context.loc, flavorKey),
+    traits: [],
+    rules: new Map(),
+  };
+  const condition = combineConditionSummaries(context.conditions.map((value) => summarizeInterestGroupCondition(value, {
+    locName: (key) => locCleanName(context.loc, key),
+  })));
+  const rule = {
+    condition_summary_zh: condition.summary_zh,
+    condition_raw: condition.raw,
+    source_file: context.sourceFile,
+    names: [{ key: flavorKey, name_zh: locCleanName(context.loc, flavorKey) }],
+    traits: context.scopeTraitKeys.map((key) => interestGroupTraitRef(key, context.interestGroupTraits)),
+    added_ideologies: [],
+    removed_ideologies: [],
+  };
+  for (const trait of rule.traits) flavor.traits.push(trait);
+  flavor.rules.set(interestGroupRuleSignature(rule), rule);
+  groupFlavors.set(flavorKey, flavor);
+  context.flavorsByGroup.set(context.groupKey, groupFlavors);
+}
+
+function interestGroupRuleSignature(rule) {
+  return [rule.condition_raw, rule.source_file, ...(rule.traits || []).map((trait) => trait.key)].join("|");
+}
+
+function interestGroupPopAttraction(value, loc, groupKey) {
+  const node = asNode(value);
+  if (!node) return [];
+  const entries = [];
+  collectInterestGroupPopAttractionScope(node, [], "", entries, loc);
+  const seen = new Set();
+  return entries.filter((entry) => {
+    const signature = [
+      entry.label_key,
+      entry.value_raw,
+      entry.condition_raw,
+    ].join("|");
+    if (seen.has(signature)) return false;
+    seen.add(signature);
+    return true;
+  }).map((entry, index) => ({
+    ...entry,
+    id: `interest_group_pop_attraction:${groupKey}:${index}`,
+  }));
+}
+
+function collectInterestGroupPopAttractionScope(node, conditions, inheritedLabel, entries, loc, isOtherwise = false) {
+  for (const assignment of node.assignments || []) {
+    if (assignment.key === "add") {
+      collectInterestGroupPopAttractionAdd(assignment.value, conditions, inheritedLabel, entries, loc, isOtherwise);
+      continue;
+    }
+    if (assignment.key !== "if" && assignment.key !== "else_if" && assignment.key !== "else") continue;
+    const branch = asNode(assignment.value);
+    if (!branch) continue;
+    const limit = firstValue(branch, "limit");
+    const nextConditions = limit ? [...conditions, limit] : conditions;
+    collectInterestGroupPopAttractionScope(branch, nextConditions, inheritedLabel, entries, loc, isOtherwise || assignment.key === "else");
+  }
+}
+
+function collectInterestGroupPopAttractionAdd(value, conditions, inheritedLabel, entries, loc, isOtherwise = false) {
+  const node = asNode(value);
+  if (!node) {
+    const entry = interestGroupPopAttractionEntry(value, inheritedLabel, conditions, loc, null, isOtherwise);
+    if (entry) entries.push(entry);
+    return;
+  }
+  const labelKey = firstScalar(node, "desc") || inheritedLabel;
+  collectInterestGroupPopAttractionValues(node, conditions, labelKey, entries, loc, isOtherwise);
+}
+
+function collectInterestGroupPopAttractionValues(node, conditions, labelKey, entries, loc, isOtherwise) {
+  for (const assignment of node.assignments || []) {
+    if (assignment.key === "value") {
+      const entry = interestGroupPopAttractionEntry(assignment.value, labelKey, conditions, loc, node, isOtherwise);
+      if (entry) entries.push(entry);
+      continue;
+    }
+    if (assignment.key === "add") {
+      collectInterestGroupPopAttractionAdd(assignment.value, conditions, labelKey, entries, loc, isOtherwise);
+      continue;
+    }
+    if (assignment.key !== "if" && assignment.key !== "else_if" && assignment.key !== "else") continue;
+    const branch = asNode(assignment.value);
+    if (!branch) continue;
+    const limit = firstValue(branch, "limit");
+    const nextConditions = limit ? [...conditions, limit] : conditions;
+    collectInterestGroupPopAttractionValues(branch, nextConditions, labelKey, entries, loc, isOtherwise || assignment.key === "else");
+  }
+}
+
+function interestGroupPopAttractionEntry(value, labelKey, conditions, loc, parentNode = null, isOtherwise = false) {
+  const valueText = stringifyScriptValue(value).trim();
+  if (!valueText || !labelKey) return null;
+  const multiplier = parentNode ? firstScalar(parentNode, "multiply") : "";
+  const condition = interestGroupPopAttractionCondition(conditions, loc);
+  return {
+    label_key: labelKey,
+    label_zh: locCleanName(loc, labelKey),
+    value_raw: valueText,
+    multiplier_raw: multiplier || "",
+    is_otherwise: isOtherwise,
+    condition_summary_zh: condition.summary_zh,
+    condition_raw: condition.raw,
+    pop_types: condition.pop_types,
+    employment_building_groups: condition.employment_building_groups,
+    laws: condition.laws,
+    technologies: condition.technologies,
+    cultures: condition.cultures,
+    countries: condition.countries,
+  };
+}
+
+function interestGroupPopAttractionCondition(values, loc) {
+  const valueList = values || [];
+  const popTypes = collectInterestGroupPopAttractionConditionValues(valueList, "is_pop_type");
+  const employmentBuildingGroups = collectInterestGroupPopAttractionConditionValues(valueList, "pop_employment_building_group");
+  const lawKeys = [...new Set(valueList.flatMap((value) => [...collectLawRefs(value)]))].sort();
+  const technologyKeys = [...new Set(valueList.flatMap((value) => [...collectTechnologyRefs(value)]))].sort();
+  const cultureKeys = collectInterestGroupPopAttractionConditionValues(valueList, "culture")
+    .filter((item) => !item.negated)
+    .map((item) => item.key);
+  const countryKeys = collectInterestGroupPopAttractionCountryKeys(valueList);
+  const literacyConditions = collectInterestGroupPopAttractionComparisons(valueList, "literacy_rate");
+  const parts = [];
+  if (literacyConditions.length) parts.push(`识字率：${literacyConditions.join("、")}`);
+  if (lawKeys.length) parts.push(`法律：${lawKeys.map((key) => locCleanName(loc, key)).join("、")}`);
+  if (technologyKeys.length) parts.push(`科技：${technologyKeys.map((key) => locCleanName(loc, key)).join("、")}`);
+  if (cultureKeys.length) parts.push(`文化：${cultureKeys.map((key) => locCleanName(loc, key)).join("、")}`);
+  if (countryKeys.length) parts.push(`国家：${countryKeys.map((key) => locCleanName(loc, key)).join("、")}`);
+  return {
+    summary_zh: parts.join("；"),
+    raw: valueList.map((item) => stringifyScriptValue(item)).filter(Boolean).join("\n"),
+    pop_types: popTypes.map((item) => ({ key: item.key, name_zh: locCleanName(loc, item.key), negated: item.negated })),
+    employment_building_groups: employmentBuildingGroups.map((item) => ({ key: item.key, name_zh: locCleanName(loc, item.key), negated: item.negated })),
+    laws: refObjects(lawKeys, loc, "law"),
+    technologies: refsToObjects(technologyKeys, loc),
+    cultures: cultureKeys.map((key) => ({ key, name_zh: locCleanName(loc, key) })),
+    countries: countryKeys.map((key) => ({ key, name_zh: locCleanName(loc, key) })),
+  };
+}
+
+function collectInterestGroupPopAttractionConditionValues(values, assignmentKey) {
+  const found = new Map();
+  const visit = (value, negated = false) => {
+    const node = asNode(value);
+    if (!node) return;
+    for (const assignment of node.assignments || []) {
+      if (assignment.key === assignmentKey) {
+        const scalar = stripPrefix(scalarFromValue(assignment.value));
+        if (scalar) found.set(`${negated ? "not:" : ""}${scalar}`, { key: scalar, negated });
+      }
+      visit(assignment.value, negated || assignment.key === "NOT");
+    }
+    for (const item of node.items || []) visit(item, negated);
+  };
+  for (const value of values || []) visit(value);
+  return [...found.values()].sort((left, right) => left.key.localeCompare(right.key) || Number(left.negated) - Number(right.negated));
+}
+
+function collectInterestGroupPopAttractionCountryKeys(values) {
+  const found = new Set();
+  const visit = (value) => {
+    const node = asNode(value);
+    if (!node) return;
+    for (const assignment of node.assignments || []) {
+      const match = String(assignment.key || "").match(/^c:([A-Z0-9_]+)$/);
+      if (match) found.add(match[1]);
+      visit(assignment.value);
+    }
+    for (const item of node.items || []) visit(item);
+  };
+  for (const value of values || []) visit(value);
+  return [...found].sort();
+}
+
+function collectInterestGroupPopAttractionComparisons(values, key) {
+  const found = new Set();
+  const visit = (value) => {
+    const node = asNode(value);
+    if (!node) return;
+    for (const assignment of node.assignments || []) {
+      if (assignment.key === key && assignment.op && assignment.op !== "=") {
+        const scalar = scalarFromValue(assignment.value);
+        if (scalar) found.add(`${assignment.op} ${scalar}`);
+      }
+      visit(assignment.value);
+    }
+    for (const item of node.items || []) visit(item);
+  };
+  for (const value of values || []) visit(value);
+  return [...found];
 }
 
 function collectIdeologyUnlockSources({ interestGroupDir, politicalMovementDir, eventDirs, loc }) {

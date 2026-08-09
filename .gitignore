@@ -43,6 +43,8 @@ site/assets/companies/
 site/assets/dlc/
 site/assets/ideologies/
 site/assets/interest-groups/
+!site/assets/interest-groups/
+!site/assets/interest-groups/*.webp
 site/assets/map/
 !site/assets/map/
 !site/assets/map/flatmap__2.png
