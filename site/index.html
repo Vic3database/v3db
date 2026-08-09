@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Vicdata</title>
-    <link rel="stylesheet" href="styles.css?v=20260808-two-level-navigation1">
+    <link rel="stylesheet" href="styles.css?v=20260809-interest-group-board16">
     <link rel="icon" type="image/png" sizes="16x16" href="assets/brand/favicon-16.png?v=20260720-v">
     <link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png?v=20260720-v">
     <link rel="apple-touch-icon" sizes="180x180" href="assets/brand/apple-touch-icon.png">
@@ -18,36 +18,37 @@
           <details class="topbar-nav-group" data-nav-group="domestic">
             <summary class="topbar-nav-summary"><span data-i18n="nav.domestic">内政</span></summary>
             <div class="topbar-nav-popover">
-              <button class="topbar-nav-item" type="button" data-nav-view="country"><img class="lucide-icon" src="assets/lucide/icons/earth.svg" alt="" aria-hidden="true"><span data-i18n="nav.country">国家</span></button>
-              <button class="topbar-nav-item" type="button" data-nav-view="law"><img class="lucide-icon" src="assets/lucide/icons/scale.svg" alt="" aria-hidden="true"><span data-i18n="nav.law">法律</span></button>
-              <button class="topbar-nav-item" type="button" data-nav-view="ideology"><img class="lucide-icon" src="assets/lucide/icons/user-star.svg" alt="" aria-hidden="true"><span data-i18n="nav.ideology">意识形态</span></button>
+              <button class="topbar-nav-item" type="button" data-nav-view="country"><span data-i18n="nav.country">国家</span></button>
+              <button class="topbar-nav-item" type="button" data-nav-view="law"><span data-i18n="nav.law">法律</span></button>
+              <button class="topbar-nav-item" type="button" data-nav-view="ideology"><span data-i18n="nav.ideology">意识形态</span></button>
+              <button class="topbar-nav-item" type="button" data-nav-view="interest-group"><span data-i18n="nav.interestGroup">利益集团</span></button>
             </div>
           </details>
           <details class="topbar-nav-group" data-nav-group="society">
             <summary class="topbar-nav-summary"><span data-i18n="nav.society">社会</span></summary>
             <div class="topbar-nav-popover">
-              <button class="topbar-nav-item" type="button" data-nav-view="culture"><img class="lucide-icon" src="assets/lucide/icons/drama.svg" alt="" aria-hidden="true"><span data-i18n="nav.culture">文化</span></button>
+              <button class="topbar-nav-item" type="button" data-nav-view="culture"><span data-i18n="nav.culture">文化</span></button>
             </div>
           </details>
           <details class="topbar-nav-group" data-nav-group="economy">
             <summary class="topbar-nav-summary"><span data-i18n="nav.economy">经济</span></summary>
             <div class="topbar-nav-popover">
-              <button class="topbar-nav-item" type="button" data-nav-view="region"><img class="lucide-icon" src="assets/lucide/icons/map.svg" alt="" aria-hidden="true"><span data-i18n="nav.region">地域</span></button>
-              <button class="topbar-nav-item" type="button" data-nav-view="company"><img class="lucide-icon" src="assets/lucide/icons/briefcase-business.svg" alt="" aria-hidden="true"><span data-i18n="nav.company">公司</span></button>
-              <button class="topbar-nav-item" type="button" data-nav-view="building"><img class="lucide-icon" src="assets/lucide/icons/landmark.svg" alt="" aria-hidden="true"><span data-i18n="nav.building">建筑</span></button>
-              <button class="topbar-nav-item" type="button" data-nav-view="goods"><img class="lucide-icon" src="assets/lucide/icons/package.svg" alt="" aria-hidden="true"><span data-i18n="nav.goods">商品</span></button>
+              <button class="topbar-nav-item" type="button" data-nav-view="region"><span data-i18n="nav.region">地域</span></button>
+              <button class="topbar-nav-item" type="button" data-nav-view="company"><span data-i18n="nav.company">公司</span></button>
+              <button class="topbar-nav-item" type="button" data-nav-view="building"><span data-i18n="nav.building">建筑</span></button>
+              <button class="topbar-nav-item" type="button" data-nav-view="goods"><span data-i18n="nav.goods">商品</span></button>
             </div>
           </details>
           <details class="topbar-nav-group" data-nav-group="technology">
             <summary class="topbar-nav-summary"><span data-i18n="nav.technology">科技</span></summary>
             <div class="topbar-nav-popover">
-              <button class="topbar-nav-item" type="button" data-nav-view="technology"><img class="lucide-icon" src="assets/lucide/icons/lightbulb.svg" alt="" aria-hidden="true"><span data-i18n="nav.technology">科技</span></button>
+              <button class="topbar-nav-item" type="button" data-nav-view="technology"><span data-i18n="nav.technology">科技</span></button>
             </div>
           </details>
           <details class="topbar-nav-group" data-nav-group="game">
             <summary class="topbar-nav-summary"><span data-i18n="nav.gameContent">游戏内容</span></summary>
             <div class="topbar-nav-popover">
-              <button class="topbar-nav-item" type="button" data-nav-view="achievement"><img class="lucide-icon" src="assets/lucide/icons/trophy.svg" alt="" aria-hidden="true"><span data-i18n="nav.achievement">成就</span></button>
+              <button class="topbar-nav-item" type="button" data-nav-view="achievement"><span data-i18n="nav.achievement">成就</span></button>
             </div>
           </details>
         </nav>
@@ -74,6 +75,7 @@
           <option value="region" data-i18n="nav.region">地域</option>
           <option value="company" data-i18n="nav.company">公司</option>
           <option value="ideology" data-i18n="nav.ideology">意识形态</option>
+          <option value="interest-group" data-i18n="nav.interestGroup">利益集团</option>
           <option value="law" data-i18n="nav.law">法律</option>
           <option value="technology" data-i18n="nav.technology">科技</option>
           <option value="achievement" data-i18n="nav.achievement">成就</option>
@@ -82,6 +84,7 @@
         </select>
       </div>
     </header>
+    <button id="backToTopButton" class="back-to-top-button" type="button" aria-label="回到顶部" data-i18n-aria-label="ui.backToTop" title="回到顶部" data-i18n-title="ui.backToTop" hidden><img class="lucide-icon" src="assets/lucide/icons/arrow-up.svg" alt="" aria-hidden="true"></button>
 
     <main class="layout">
       <section id="mapPanel" class="map-panel" aria-label="地图模式" data-i18n-aria-label="map.mode">
@@ -346,12 +349,12 @@
     <script src="assets/flags/country-flags.js?v=20260712-all-flags2"></script>
     <script src="assets/victorian-century-flags.js?v=20260729-country-flags1"></script>
     <script src="locales/manifest.js?v=20260804-vc-english-economy1"></script>
-    <script src="app/runtime.js?v=20260806-subsistence-polish1"></script>
-    <script src="app/i18n.js?v=20260808-two-level-navigation1"></script>
-    <script src="app/data.js?v=20260804-vc-english-economy1"></script>
-    <script src="app/ui.js?v=20260808-two-level-navigation1"></script>
+    <script src="app/runtime.js?v=20260809-interest-group-board16"></script>
+    <script src="app/i18n.js?v=20260809-interest-group-board16"></script>
+    <script src="app/data.js?v=20260809-interest-group-board16"></script>
+    <script src="app/ui.js?v=20260809-interest-group-board16"></script>
     <script src="app/company-location-rules.js?v=20260718-company-location2"></script>
-    <script src="app/boards.js?v=20260804-vc-english-economy1"></script>
+    <script src="app/boards.js?v=20260809-interest-group-board16"></script>
     <script src="app/filters.js?v=20260806-subsistence-polish1"></script>
     <script src="app/presentation.js?v=20260806-subsistence-polish1"></script>
     <script src="app/map.js?v=20260806-subsistence-polish1"></script>

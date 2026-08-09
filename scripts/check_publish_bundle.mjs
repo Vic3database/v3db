@@ -202,7 +202,7 @@ function dataAssetReferences(data, helpers) {
     value?.key && String(value.key).startsWith("ig_")
   ));
   for (const group of groups.values()) {
-    const fileName = iconFileName(group.texture);
+    const fileName = interestGroupIconFileName(group.texture);
     if (fileName) out.push(`assets/interest-groups/${fileName}`);
   }
 
@@ -236,6 +236,12 @@ function collectByIcon(value, out, iconField, predicate) {
 
 function iconFileName(icon) {
   const baseName = path.basename(String(icon || "")).replace(/\.dds$/i, ".png");
+  if (!baseName || baseName === path.basename(String(icon || ""))) return "";
+  return baseName;
+}
+
+function interestGroupIconFileName(icon) {
+  const baseName = path.basename(String(icon || "")).replace(/\.dds$/i, ".webp");
   if (!baseName || baseName === path.basename(String(icon || ""))) return "";
   return baseName;
 }

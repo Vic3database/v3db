@@ -86,6 +86,7 @@ function dataChunksForView(view) {
   if (view === "region") return ["region", "country", "culture", "company"];
   if (view === "company") return ["company", "region", "country"];
   if (view === "ideology") return ["ideology", "law", "country"];
+  if (view === "interest-group") return ["ideology", "country"];
   if (view === "law") return ["law", "ideology", "country"];
   if (view === "technology") return ["technology"];
   if (view === "achievement") return ["achievement"];
@@ -103,7 +104,7 @@ async function ensureDataChunksForRoute() {
 
 function routeView() {
   const segment = location.hash.replace(/^#\/?/, "").split("/")[0];
-  if (["country", "culture", "region", "company", "ideology", "law", "technology", "achievement", "building", "goods"].includes(segment)) return segment;
+  if (["country", "culture", "region", "company", "ideology", "interest-group", "law", "technology", "achievement", "building", "goods"].includes(segment)) return segment;
   if (["news", "changelog"].includes(segment)) return segment;
   if (["state-region", "strategic-region", "geographic-region"].includes(segment)) return "region";
   return "home";

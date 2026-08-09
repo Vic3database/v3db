@@ -112,6 +112,8 @@ assert.equal(mapData?.height, 3616, "VC map height must be 3616");
 const runtime = fs.readFileSync(path.join(siteRoot, "app", "runtime.js"), "utf8");
 const dataLoader = fs.readFileSync(path.join(siteRoot, "app", "data.js"), "utf8");
 const components = fs.readFileSync(path.join(siteRoot, "app", "components.js"), "utf8");
+const boards = fs.readFileSync(path.join(siteRoot, "app", "boards.js"), "utf8");
+const englishUi = fs.readFileSync(path.join(siteRoot, "locales", "ui.en.js"), "utf8");
 const economy = fs.readFileSync(path.join(siteRoot, "app", "economy.js"), "utf8");
 assert.match(runtime, /VICTORIAN_CENTURY_SITE_CONFIG/, "runtime must read the VC standalone configuration");
 assert.match(runtime, /standaloneLibrarySelect/, "runtime must expose the standalone library selector");
@@ -124,6 +126,12 @@ assert.match(ui, /els\.standaloneLibrarySelect\?\.addEventListener\("change"/, "
 assert.match(ui, /url\.searchParams\.set\("lang", localeRuntime\.current\)/, "library navigation must preserve the active locale");
 assert.match(components, /function webpPreferredImageHtml/, "component renderer must support WebP with PNG fallback");
 assert.match(components, /webpPreferredImageHtml\(\{[^}]*path[^}]*\}\)/, "company, law, and ideology renderers must use the WebP-aware image helper");
+const ideologySummary = boards.match(/function interestGroupIdeologySummaryHtml\([\s\S]*?\n\}/)?.[0] || "";
+assert.match(ideologySummary, /ideologyPills\(ideologies, "tag-ideology"\)/, "VC interest-group detail must retain interest-group ideology pills");
+assert.match(ideologySummary, /ideologyPills\(group\.character_ideologies, "tag-tradition"\)/, "VC interest-group detail must retain character ideology pills");
+assert.doesNotMatch(ideologySummary, /groupIdeologies|characterIdeologiesShort/, "VC ideology labels must not be duplicated outside the shared pill renderer");
+assert.match(englishUi, /"enum\.ideologyType\.interestGroup": "Interest Group"/, "VC English interface must label interest-group ideologies in English");
+assert.match(englishUi, /"enum\.ideologyType\.character": "Character"/, "VC English interface must label character ideologies in English");
 const companyIconPathSource = components.match(/function companyIconPath\(icon\) \{[\s\S]*?\n\}/)?.[0];
 assert(companyIconPathSource, "missing companyIconPath implementation");
 const companyIconPath = vm.runInNewContext(`(${companyIconPathSource})`, {
