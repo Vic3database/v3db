@@ -112,7 +112,8 @@ async function checkBrowserSite(browser, indexUrl, name) {
   const desktop = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   const browserErrors = [];
   desktop.on("pageerror", (error) => browserErrors.push(error.message));
-  await desktop.goto(`${indexUrl}#/country`, { waitUntil: "networkidle" });
+  await desktop.goto(`${indexUrl}#/country`, { waitUntil: "domcontentloaded" });
+  await desktop.waitForFunction(() => document.body.dataset.view === "country" && Boolean(document.querySelector('[data-nav-group="economy"]')));
   const economy = desktop.locator('[data-nav-group="economy"]');
   await economy.hover();
   await assertVisible(economy.locator(".topbar-nav-popover"), `${name}: desktop hover should reveal the economy submenu`);
@@ -141,7 +142,8 @@ async function checkBrowserSite(browser, indexUrl, name) {
   await desktop.close();
 
   const mobile = await browser.newPage({ viewport: { width: 442, height: 844 } });
-  await mobile.goto(`${indexUrl}#/country`, { waitUntil: "networkidle" });
+  await mobile.goto(`${indexUrl}#/country`, { waitUntil: "domcontentloaded" });
+  await mobile.waitForFunction(() => document.body.dataset.view === "country" && Boolean(document.querySelector('[data-nav-group="domestic"]')));
   const mobileDomestic = mobile.locator('[data-nav-group="domestic"]');
   assert.equal(await mobileDomestic.getAttribute("open"), null, `${name}: narrow screen menus should start closed`);
   await mobileDomestic.locator("summary").click();
