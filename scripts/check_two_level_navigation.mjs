@@ -12,6 +12,7 @@ const uiSource = readText("site/app/ui.js");
 const i18nSource = readText("site/app/i18n.js");
 const foundationSource = readText("site/styles/foundation.css");
 const shellSource = readText("site/styles/shell.css");
+const stylesheetSource = readText("site/styles.css");
 const vcBuildSource = readText("scripts/build_victorian_century_site.mjs");
 const zhSource = readText("site/locales/ui.zh-Hans.js");
 const enSource = readText("site/locales/ui.en.js");
@@ -58,10 +59,12 @@ assert.ok(/\.topbar-nav-group\s*\{[\s\S]*position:\s*relative/.test(foundationSo
 assert.ok(/\.topbar-nav-popover\s*\{[\s\S]*position:\s*absolute/.test(foundationSource), "desktop submenu needs a popover layout");
 assert.ok(/\.topbar-nav-group\.is-current\s*>\s*\.topbar-nav-summary/.test(foundationSource), "active topbar category needs a visible state");
 assert.ok(/@media\s*\(max-width:\s*760px\)[\s\S]*\.topbar-nav-popover\s*\{[\s\S]*position:\s*static/.test(shellSource), "narrow screens need inline click-disclosure submenus");
-assert.ok(/styles\.css\?v=20260809-interest-group-board16/.test(indexSource), "topbar stylesheet cache version is stale");
-assert.ok(/app\/ui\.js\?v=20260809-interest-group-board16/.test(indexSource), "topbar UI script cache version is stale");
-assert.ok(/app\/i18n\.js\?v=20260809-interest-group-board16/.test(indexSource), "topbar localization runtime cache version is stale");
-assert.ok(/v=20260809-interest-group-board16/.test(i18nSource), "dynamic locale loading cache version is stale");
+assert.ok(/styles\.css\?v=20260810-topbar-cache1/.test(indexSource), "topbar stylesheet cache version is stale");
+assert.ok(/styles\/foundation\.css\?v=20260810-topbar-cache1/.test(stylesheetSource), "topbar foundation stylesheet cache version is stale");
+assert.ok(/styles\/shell\.css\?v=20260810-topbar-cache1/.test(stylesheetSource), "topbar responsive stylesheet cache version is stale");
+assert.ok(/app\/ui\.js\?v=20260810-interest-group-tooltip-layout1/.test(indexSource), "topbar UI script cache version is stale");
+assert.ok(/app\/i18n\.js\?v=20260810-global-search-interest-group-flavors1/.test(indexSource), "topbar localization runtime cache version is stale");
+assert.ok(/v=20260810-global-search-interest-group-flavors1/.test(i18nSource), "dynamic locale loading cache version is stale");
 assert.ok(vcBuildSource.includes('/<link rel="stylesheet" href="styles\\.css\\?v=[^"]+"\\s*\\/?>/'), "Victorian Century builder must match the base stylesheet independently of its cache version");
 
 console.log(JSON.stringify({
@@ -82,22 +85,26 @@ function readText(relativePath) {
 
 async function checkBrowser() {
   const { chromium } = require("playwright");
-  const server = await startPreviewServer(root);
+  const urlIndex = process.argv.indexOf("--url");
+  const publicIndexUrl = urlIndex >= 0 ? process.argv[urlIndex + 1] : "";
+  assert.ok(urlIndex < 0 || publicIndexUrl, "--url requires a public index URL");
+  const server = publicIndexUrl ? null : await startPreviewServer(root);
   const browser = await chromium.launch({
     headless: true,
     ...(process.env.VC_CHROME_PATH ? { executablePath: process.env.VC_CHROME_PATH } : {}),
   });
   try {
-    const desktop = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
-    const browserErrors = [];
-    desktop.on("pageerror", (error) => browserErrors.push(error.message));
-    await checkBrowserSite(browser, `${server.url}/site/index.html`, "main");
-    await checkBrowserSite(browser, `${server.url}/Victorian%20Century%20Database/index.html`, "victorian-century-standalone");
-    await checkBrowserSite(browser, `${server.url}/site/vc/index.html`, "victorian-century-published");
-    console.log(JSON.stringify({ two_level_navigation_browser: "ok", base_url: server.url }, null, 2));
+    if (publicIndexUrl) {
+      await checkBrowserSite(browser, publicIndexUrl, "public");
+    } else {
+      await checkBrowserSite(browser, `${server.url}/site/index.html`, "main");
+      await checkBrowserSite(browser, `${server.url}/Victorian%20Century%20Database/index.html`, "victorian-century-standalone");
+      await checkBrowserSite(browser, `${server.url}/site/vc/index.html`, "victorian-century-published");
+    }
+    console.log(JSON.stringify({ two_level_navigation_browser: "ok", base_url: publicIndexUrl || server.url }, null, 2));
   } finally {
     await browser.close();
-    await server.close();
+    await server?.close();
   }
 }
 
@@ -133,19 +140,30 @@ async function checkBrowserSite(browser, indexUrl, name) {
   assert.deepEqual(browserErrors, [], `${name}: desktop navigation errors: ${browserErrors.join(" | ")}`);
   await desktop.close();
 
-  const mobile = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true });
+  const mobile = await browser.newPage({ viewport: { width: 442, height: 844 } });
   await mobile.goto(`${indexUrl}#/country`, { waitUntil: "networkidle" });
-  const mobileEconomy = mobile.locator('[data-nav-group="economy"]');
-  assert.equal(await mobileEconomy.getAttribute("open"), null, `${name}: narrow screen menus should start closed`);
-  await mobileEconomy.locator("summary").click();
-  await mobile.waitForFunction(() => document.querySelector('[data-nav-group="economy"]')?.open === true);
-  const mobileLayout = await mobileEconomy.locator(".topbar-nav-popover").evaluate((node) => ({
+  const mobileDomestic = mobile.locator('[data-nav-group="domestic"]');
+  assert.equal(await mobileDomestic.getAttribute("open"), null, `${name}: narrow screen menus should start closed`);
+  await mobileDomestic.locator("summary").click();
+  await mobile.waitForFunction(() => document.querySelector('[data-nav-group="domestic"]')?.open === true);
+  const mobileLayout = await mobileDomestic.locator(".topbar-nav-popover").evaluate((node) => ({
     position: getComputedStyle(node).position,
     width: node.getBoundingClientRect().width,
     parentWidth: node.closest(".topbar-nav-group").getBoundingClientRect().width,
+    navWidth: node.closest(".topbar-nav").getBoundingClientRect().width,
   }));
   assert.equal(mobileLayout.position, "static", `${name}: narrow screen submenu should remain in the topbar flow`);
   assert.ok(mobileLayout.width <= mobileLayout.parentWidth + 1, `${name}: narrow screen submenu should not overflow its category row`);
+  assert.ok(mobileLayout.parentWidth >= mobileLayout.navWidth - 1, `${name}: an open narrow-screen category should occupy the full navigation row`);
+  const mobileOverlap = await mobile.evaluate(() => {
+    const openGroup = document.querySelector('[data-nav-group="domestic"]');
+    const popover = openGroup.querySelector(".topbar-nav-popover").getBoundingClientRect();
+    return [...document.querySelectorAll(".topbar-nav-group:not([data-nav-group='domestic']) > .topbar-nav-summary")].some((summary) => {
+      const rect = summary.getBoundingClientRect();
+      return rect.left < popover.right && rect.right > popover.left && rect.top < popover.bottom && rect.bottom > popover.top;
+    });
+  });
+  assert.equal(mobileOverlap, false, `${name}: an open narrow-screen submenu must not overlap the other category summaries`);
   await mobile.close();
 }
 

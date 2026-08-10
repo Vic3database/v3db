@@ -63,7 +63,7 @@ assert.ok(fs.existsSync(path.join(root, "site", "assets", "technologies", "corpo
 const topbarNavigationItems = [...indexSource.matchAll(/<button class="topbar-nav-item"[^>]*>([\s\S]*?)<\/button>/g)];
 assert.ok(topbarNavigationItems.length > 0, "top navigation needs board entries");
 assert.ok(topbarNavigationItems.every(([, content]) => !/<img\b/.test(content)), "top navigation board entries must not contain icons");
-assert.match(indexSource, /styles\.css\?v=20260810-interest-group-tooltip-layout1/, "interest-group stylesheet cache version is stale");
+assert.match(indexSource, /styles\.css\?v=20260810-topbar-cache1/, "interest-group stylesheet cache version is stale");
 assert.match(stylesEntrySource, /home\.css\?v=20260810-interest-group-tooltip-layout1/, "interest-group home stylesheet cache version is stale");
 for (const script of ["runtime", "ui"]) {
   assert.match(indexSource, new RegExp(`app/${script}\\.js\\?v=20260810-interest-group-tooltip-layout1`), `${script} cache version is stale`);
