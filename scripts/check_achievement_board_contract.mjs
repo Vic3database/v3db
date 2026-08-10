@@ -26,7 +26,9 @@ for (const achievement of achievements) {
 }
 
 assert.match(index, /data-nav-view="achievement"[^>]*>[\s\S]*?<span[^>]*data-i18n="nav\.achievement"[^>]*>成就<\/span>/, "top navigation must expose a localized achievements entry");
-assert.match(index, /data-nav-view="achievement"[^>]*>[\s\S]*?trophy\.svg/, "achievement navigation must use the trophy icon");
+const achievementNavigation = index.match(/<button class="topbar-nav-item"[^>]*data-nav-view="achievement"[^>]*>[\s\S]*?<\/button>/)?.[0] || "";
+assert.doesNotMatch(achievementNavigation, /<img\b/, "top navigation board entries must remain text-only");
+assert.match(app, /view: "achievement", icon: "assets\/home\/icon_achievements_enabled\.png"/, "the homepage achievement entry must retain its game icon");
 for (const file of ["runtime", "data", "ui", "achievements"]) {
   assert.match(index, new RegExp(`app/${file}\\.js\\?v=[^"']+`), `${file} must use a cache version`);
 }

@@ -52,7 +52,9 @@ assert.match(styles, /body\.detail-page\[data-view="technology"\] \.results \{[\
 assert.match(styles, /body\.detail-page\[data-view="technology"\] \.detail \{[\s\S]*?width: 20vw/s, "technology detail panel must occupy twenty percent of the page width");
 assert.match(app, /data-technology-back/, "selected technology detail must expose a return button");
 assert.match(index, /data-nav-view="technology"[^>]*>[\s\S]*?<span data-i18n="nav\.technology">科技<\/span>/, "top navigation must provide a localized technology entry");
-assert.match(index, /data-nav-view="technology"[^>]*>[\s\S]*?lightbulb\.svg/, "technology navigation must use the lightbulb icon");
+const technologyNavigation = index.match(/<button class="topbar-nav-item"[^>]*data-nav-view="technology"[^>]*>[\s\S]*?<\/button>/)?.[0] || "";
+assert.doesNotMatch(technologyNavigation, /<img\b/, "top navigation board entries must remain text-only");
+assert.match(app, /view: "technology", icon: "assets\/home\/academia\.png"/, "the homepage technology entry must retain its game icon");
 assert.match(technologyRenderer, /data-technology-reset[^>]*aria-label="\$\{escapeHtml\(t\("board\.technology\.resetView"[^>]*>[\s\S]*?refresh-ccw\.svg/, "technology reset control must use the localized shared reset icon");
 assert.match(app, /location\.hash = "\/technology"/, "technology detail return button must clear the selected technology route");
 assert.match(app, /if \(!technology\) return ""/, "technology detail renderer must render no right-panel content when no technology is selected");

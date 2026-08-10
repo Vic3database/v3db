@@ -81,12 +81,12 @@ async function loadVersion(version, options = {}) {
 }
 
 function dataChunksForView(view) {
-  if (view === "country") return ["country", "culture", "region", "ideology"];
+  if (view === "country") return ["country", "culture", "region", "ideology", "law"];
   if (view === "culture") return ["culture", "region", "country"];
   if (view === "region") return ["region", "country", "culture", "company"];
   if (view === "company") return ["company", "region", "country"];
   if (view === "ideology") return ["ideology", "law", "country"];
-  if (view === "interest-group") return ["ideology", "country"];
+  if (view === "interest-group") return ["ideology", "country", "culture", "region", "law"];
   if (view === "law") return ["law", "ideology", "country"];
   if (view === "technology") return ["technology"];
   if (view === "achievement") return ["achievement"];
@@ -152,7 +152,7 @@ function localeChunkPath(file) {
 async function loadSearchIndex() {
   const entry = dataIndex?.locales?.search_index;
   if (!entry?.path) return;
-  await loadScript(localeChunkPath(entry.path));
+  await loadScript(`${localeChunkPath(entry.path)}?v=${encodeURIComponent(entry.sha256 || "")}`);
 }
 
 async function ensureLocaleChunks(chunkKeys, locale = localeRuntime.current, targetMessages = localeRuntime.dataMessages[locale] || {}) {
@@ -164,7 +164,7 @@ async function ensureLocaleChunks(chunkKeys, locale = localeRuntime.current, tar
       mergeLocaleMessages(targetMessages, localeRuntime.dataMessages[locale] || {}, locale);
       continue;
     }
-    await loadScript(localeChunkPath(entry.path));
+    await loadScript(`${localeChunkPath(entry.path)}?v=${encodeURIComponent(entry.sha256 || "")}`);
     const chunk = window.VIC3_LOCALE_CHUNKS?.[entry.id];
     if (!chunk || chunk.locale !== locale) throw new Error(`Invalid locale chunk ${entry.id}`);
     mergeLocaleMessages(targetMessages, chunk.messages || {}, locale);

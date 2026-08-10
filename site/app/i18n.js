@@ -29,7 +29,7 @@ function localeLabel(locale) {
 function loadScript(src) {
   return new Promise((resolve, reject) => {
     const script = document.createElement("script");
-    script.src = `${src}${src.includes("?") ? "&" : "?"}v=20260809-interest-group-board16`;
+    script.src = `${src}${src.includes("?") ? "&" : "?"}v=20260810-global-search-interest-group-flavors1`;
     script.async = true;
     script.onload = () => { script.remove(); resolve(); };
     script.onerror = () => { script.remove(); reject(new Error(`Unable to load ${src}`)); };
@@ -144,8 +144,12 @@ async function initializeLocale() {
 async function activateInitialLocaleAfterDataIndex() {
   const locale = supportedLocaleIds.has(localeRuntime.requested) ? localeRuntime.requested : "zh-Hans";
   const messages = await loadUiLocale(locale);
+  const nextDataMessages = { ...(localeRuntime.dataMessages[locale] || {}) };
+  const nextCacheKeys = await ensureLocaleChunks(dataChunksForView(routeView()), locale, nextDataMessages);
   localeRuntime.current = locale;
   localeRuntime.messages = messages;
+  localeRuntime.dataMessages[locale] = nextDataMessages;
+  nextCacheKeys.forEach((key) => localeRuntime.loadedChunks.add(key));
   configureLocaleFormats(locale);
   setDocumentLocale(locale);
   updateLocaleUrl(locale);

@@ -56,17 +56,27 @@ try {
     if (options.victorianCenturyFlavorsOnly) {
       const homeInterestGroupEntry = await checkHomeInterestGroupEntry(desktop, server.url);
       const victorianCenturyFlavors = await checkVictorianCenturyFlavorGroups(desktop, server.url);
+      const flavorPage = await checkInterestGroupFlavorPage(desktop, server.url);
+      const flavorSearch = await checkInterestGroupFlavorSearch(desktop, server.url);
       const namedCountryVariants = await checkNamedCountryVariants(desktop, server.url);
       const singleCountryTraitVariantNames = await checkSingleCountryTraitVariantNames(desktop, server.url);
       const countryListOrder = await checkCountryListOrder(desktop, server.url);
+      const flavorLinksAndTooltips = await checkInterestGroupFlavorLinksAndTooltips(desktop, server.url);
+      const ideologyTooltips = await checkAllIdeologyTooltips(desktop, server.url);
+      const interestGroupIdeologyTooltips = await checkInterestGroupIdeologyTooltips(desktop, server.url);
       console.log(JSON.stringify({
         victorian_century_interest_group_flavor_groups_browser: "ok",
         siteRoot: options.siteRoot,
         homeInterestGroupEntry,
         victorianCenturyFlavors,
+        flavorPage,
+        flavorSearch,
         namedCountryVariants,
         singleCountryTraitVariantNames,
         countryListOrder,
+        flavorLinksAndTooltips,
+        ideologyTooltips,
+        interestGroupIdeologyTooltips,
       }, null, 2));
       await desktop.close();
       return;
@@ -74,6 +84,7 @@ try {
     const homeInterestGroupEntry = await checkHomeInterestGroupEntry(desktop, server.url);
     const desktopBoard = await checkDesktopBoard(desktop, server.url);
     const landowners = await checkSelectedFlavorDetail(desktop, server.url, "ig_landowners");
+    const flavorPage = await checkInterestGroupFlavorPage(desktop, server.url);
     const intelligentsia = await checkIntelligentsiaDetail(desktop, server.url);
     const englishIdeologyLabels = await checkEnglishIdeologyLabels(desktop, server.url);
     fs.writeFileSync(path.join(screenshotDir, "interest-group-intelligentsia-detail.png"), Buffer.from(await desktop.screenshot(), "base64"));
@@ -90,6 +101,7 @@ try {
       homeInterestGroupEntry,
       desktop: desktopBoard,
       landowners,
+      flavorPage,
       intelligentsia,
       englishIdeologyLabels,
       tradeUnions,
@@ -254,6 +266,277 @@ async function checkSelectedFlavorDetail(page, baseUrl, key) {
   return detail;
 }
 
+async function checkInterestGroupFlavorPage(page, baseUrl) {
+  await navigateAndWait(page, `${baseUrl}/index.html?lang=zh-Hans#/interest-group/ig_landowners/flavor/ig_boyars`, () => (
+    document.body.dataset.view === "interest-group"
+      && Boolean(document.querySelector(".interest-group-flavor-page"))
+  ));
+  const detail = await page.evaluate(`(() => ({
+    title: document.querySelector(".interest-group-detail-heading h2")?.textContent?.trim() || "",
+    parentHref: document.querySelector(".interest-group-flavor-parent")?.getAttribute("href") || "",
+    description: document.querySelector(".interest-group-detail-heading .interest-group-detail-description")?.textContent?.trim() || "",
+    headingText: document.querySelector(".interest-group-detail-heading")?.textContent?.replace(/\\s+/g, " ").trim() || "",
+    traitSlots: document.querySelectorAll(".interest-group-flavor-page .interest-group-trait-slot").length,
+    countryLinks: [...document.querySelectorAll(".interest-group-flavor-page .interest-group-country-list a")]
+      .map((link) => link.getAttribute("href") || ""),
+  }))()`);
+  assert.equal(detail.title, "\u6ce2\u96c5\u5c14\uff08\u5730\u4e3b\uff09", "Boyars must place its linked parent interest group in the title parentheses");
+  assert.equal(detail.parentHref, "#/interest-group/ig_landowners", "a flavor page must link back to its parent interest group");
+  assert.equal(detail.description, "\u5927\u519c\u5e84\u548c\u5927\u79cd\u690d\u56ed\u7684\u62e5\u6709\u8005\uff0c\u662f\u4f20\u7edf\u548c\u201c\u8001\u94b1\u201d\u7684\u5b88\u62a4\u4eba\u3002", "Boyars must use the Landowners description instead of its availability label");
+  assert.ok(!detail.headingText.includes("\u540e\u7eed\u53ef\u51fa\u73b0\u7684\u98ce\u5473"), "a flavor heading must not show an availability label");
+  assert.equal(detail.traitSlots, 3, "a flavor page must render the three approval trait slots");
+  assert.deepEqual(new Set(detail.countryLinks), new Set(["#/country/MOL", "#/country/ROM", "#/country/WAL"]), "Boyars must link to every applicable country");
+
+  await page.evaluate(`document.querySelector('.interest-group-flavor-parent')?.click()`);
+  await waitFor(async () => page.evaluate(`(
+    location.hash === "#/interest-group/ig_landowners"
+      && document.body.dataset.view === "interest-group"
+      && Boolean(document.querySelector('.interest-group-board-detail'))
+  )`), "Boyars parent interest-group link");
+  const parent = await page.evaluate(`(() => ({
+    titleLinks: [...document.querySelectorAll('.interest-group-detail-heading .interest-group-detail-flavor-names a')]
+      .map((link) => ({ text: link.textContent?.trim() || '', href: link.getAttribute('href') || '' })),
+    linkRows: [...document.querySelectorAll('.interest-group-flavor-link-row')]
+      .map((row) => ({
+        category: row.className,
+        label: row.querySelector('h3')?.textContent?.trim() || '',
+        links: [...row.querySelectorAll('a')].map((link) => ({ text: link.textContent?.trim() || '', href: link.getAttribute('href') || '' })),
+      })),
+  }))()`);
+  assert.ok(parent.titleLinks.some((link) => link.text === "\u6ce2\u96c5\u5c14" && link.href === "#/interest-group/ig_landowners/flavor/ig_boyars"), "Landowners heading must link to Boyars by flavor route");
+  assert.deepEqual(parent.linkRows.map((row) => row.label), ["\u6761\u4ef6\u53d8\u4f53", "\u56fd\u5bb6\u98ce\u5473"], "Landowners must show condition variants and country flavors as two direct link rows");
+  assert.ok(parent.linkRows.every((row) => row.links.length > 0), "each Landowners flavor link row must contain direct flavor links");
+  assert.ok(parent.linkRows.flatMap((row) => row.links).every((link) => link.href.startsWith("#/interest-group/ig_landowners/flavor/")), "Landowners flavor rows must use dedicated flavor routes");
+  const linkedFlavors = [
+    parent.titleLinks.find((link) => link.text === "\u6ce2\u96c5\u5c14"),
+    parent.linkRows.find((row) => row.label === "\u6761\u4ef6\u53d8\u4f53")?.links[0],
+    parent.linkRows.find((row) => row.label === "\u56fd\u5bb6\u98ce\u5473")?.links[0],
+  ].filter(Boolean);
+  for (const link of linkedFlavors) {
+    await page.evaluate(`location.hash = ${JSON.stringify(link.href.slice(1))}`);
+    await waitFor(async () => page.evaluate(`(
+      location.hash === ${JSON.stringify(link.href)} && Boolean(document.querySelector(".interest-group-flavor-page"))
+    )`), `Landowners flavor link ${link.href}`);
+    await page.evaluate(`document.querySelector('.interest-group-flavor-parent')?.click()`);
+    await waitFor(async () => page.evaluate(`location.hash === "#/interest-group/ig_landowners"`), "return to Landowners from flavor link");
+  }
+  return { detail, parent, linkedFlavors };
+}
+
+async function checkInterestGroupFlavorLinksAndTooltips(page, baseUrl) {
+  await navigateAndWait(page, `${baseUrl}/index.html?lang=zh-Hans#/interest-group/ig_landowners`, () => (
+    document.body.dataset.view === "interest-group"
+      && Boolean(document.querySelector(".interest-group-board-detail"))
+  ));
+  const links = await page.evaluate(`(() => {
+    const rows = [...document.querySelectorAll('.interest-group-flavor-link-row')];
+    return rows.map((row) => ({
+      label: row.querySelector('h3')?.textContent?.trim() || '',
+      leftBorder: getComputedStyle(row).borderLeftWidth,
+      text: row.querySelector('div')?.textContent?.replace(/\\s+/g, ' ').trim() || '',
+      links: [...row.querySelectorAll('a')].map((link) => ({
+        href: link.getAttribute('href') || '',
+        decoration: getComputedStyle(link).textDecorationLine,
+      })),
+    }));
+  })()`);
+  assert.equal(links.length, 2, `Landowners must keep two flavor-link categories: ${JSON.stringify(links)}`);
+  assert.ok(links.every((row) => row.leftBorder === '3px'), `each flavor-link category needs a complete left frame: ${JSON.stringify(links)}`);
+  assert.ok(links.every((row) => row.text.includes(' / ')), `condition and country flavors must use slash separators: ${JSON.stringify(links)}`);
+  assert.ok(links.every((row) => row.links.every((link) => link.decoration.includes('underline'))), `condition and country flavor links must be underlined: ${JSON.stringify(links)}`);
+
+  await navigateAndWait(page, `${baseUrl}/index.html?lang=zh-Hans#/country/HOH`, () => (
+    document.body.dataset.view === "country"
+      && Boolean(document.querySelector('[data-concept-kind="ideology"]'))
+  ));
+  const countryTooltip = await page.evaluate(`(() => {
+    const countryTarget = document.querySelector('[data-concept-kind="country"][data-concept-key="HOH"]') || document.querySelector('[data-concept-kind="country"]');
+    showConceptTooltip(countryTarget, { clientX: 24, clientY: 24 });
+    return {
+      hidden: document.querySelector('#conceptTooltip')?.hidden,
+      text: document.querySelector('#conceptTooltip')?.textContent?.replace(/\\s+/g, ' ').trim() || '',
+    };
+  })()`);
+  await page.evaluate(`(() => {
+    const target = document.querySelector('[data-concept-kind="ideology"]');
+    const section = target?.closest('details');
+    if (section) section.open = true;
+  })()`);
+  await page.evaluate(`new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))`);
+  const ideologyTarget = await page.evaluate(`(() => {
+    hideConceptTooltip();
+    const target = document.querySelector('[data-concept-kind="ideology"]');
+    target?.scrollIntoView({ block: 'center', inline: 'center' });
+    const rect = target?.getBoundingClientRect();
+    if (rect && (rect.top < 0 || rect.bottom > innerHeight)) {
+      window.scrollTo({
+        top: Math.max(0, window.scrollY + rect.top - (innerHeight - rect.height) / 2),
+        behavior: 'instant',
+      });
+    }
+    const visibleRect = target?.getBoundingClientRect();
+    return visibleRect ? { x: visibleRect.left + visibleRect.width / 2, y: visibleRect.top + visibleRect.height / 2 } : null;
+  })()`);
+  assert.ok(ideologyTarget, "country detail must contain an ideology hover target");
+  const preHover = await page.evaluate(`(() => {
+    const target = document.querySelector('[data-concept-kind="ideology"]');
+    const rect = target?.getBoundingClientRect();
+    return {
+      target: rect ? { top: rect.top, bottom: rect.bottom } : null,
+      viewport: { width: innerWidth, height: innerHeight },
+      scrollY,
+    };
+  })()`);
+  assert.ok(preHover.target?.top >= 0 && preHover.target?.bottom <= preHover.viewport.height, `ideology hover target must be visible before pointer testing: ${JSON.stringify(preHover)}`);
+  await page.evaluate(`(() => {
+    window.__ideologyHoverEvents = [];
+    for (const type of ['pointerover', 'mouseover', 'pointermove', 'mousemove', 'pointerout', 'mouseout']) {
+      document.addEventListener(type, (event) => {
+        const target = event.target.closest?.('[data-concept-kind="ideology"]');
+        if (target) {
+          window.__ideologyHoverEvents.push(type);
+        }
+      }, true);
+    }
+  })()`);
+  await page.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: 2, y: 2 });
+  await page.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: ideologyTarget.x, y: ideologyTarget.y });
+  await new Promise((resolve) => setTimeout(resolve, 120));
+  const hoverDiagnostics = await page.evaluate(`(() => ({
+    pointElement: document.elementFromPoint(${ideologyTarget.x}, ${ideologyTarget.y})?.closest?.('[data-concept-key]')?.dataset?.conceptKind || '',
+    events: window.__ideologyHoverEvents || [],
+    hidden: document.querySelector('#conceptTooltip')?.hidden,
+  }))()`);
+  assert.ok(hoverDiagnostics.events.length > 0, `ideology target must receive browser pointer events: ${JSON.stringify(hoverDiagnostics)}`);
+  await waitFor(async () => page.evaluate(`(
+    !document.querySelector('#conceptTooltip')?.hidden
+      && document.querySelector('#conceptTooltip')?.classList.contains('ideology-tooltip')
+  )`), "ideology hover tooltip");
+  const ideologyTooltip = await page.evaluate(`(() => {
+    const ideologyTarget = document.querySelector('[data-concept-kind="ideology"]');
+    return {
+      hidden: document.querySelector('#conceptTooltip')?.hidden,
+      dedicated: document.querySelector('#conceptTooltip')?.classList.contains('ideology-tooltip'),
+      text: document.querySelector('#conceptTooltip')?.textContent?.replace(/\\s+/g, ' ').trim() || '',
+      label: ideologyTarget?.dataset.conceptLabel || '',
+    };
+  })()`);
+  const tooltips = { country: countryTooltip, ideology: ideologyTooltip };
+  assert.equal(tooltips.country.hidden, false, `country hover must show a tooltip: ${JSON.stringify(tooltips)}`);
+  assert.ok(tooltips.country.text.includes('\u5357\u5fb7\u610f\u5fd7') && tooltips.country.text.includes('\u5929\u4e3b\u6559') && tooltips.country.text.includes('\u7b26\u817e\u5821'), `country hover must use Chinese culture, religion, and capital names: ${JSON.stringify(tooltips)}`);
+  assert.equal(tooltips.ideology.hidden, false, `ideology hover must show a tooltip: ${JSON.stringify(tooltips)}`);
+  assert.equal(tooltips.ideology.dedicated, true, `ideology hover must use the dedicated tooltip: ${JSON.stringify(tooltips)}`);
+  assert.ok(tooltips.ideology.label && tooltips.ideology.text.includes(tooltips.ideology.label), `ideology hover must show its localized label: ${JSON.stringify(tooltips)}`);
+  return { links, tooltips };
+}
+
+async function checkAllIdeologyTooltips(page, baseUrl) {
+  await navigateAndWait(page, `${baseUrl}/index.html?lang=zh-Hans#/ideology`, () => (
+    document.body.dataset.view === "ideology"
+      && document.querySelectorAll('[data-concept-kind="ideology"]').length > 1
+  ));
+  const results = await page.evaluate(`(() => {
+    const targets = [...new Map(
+      [...document.querySelectorAll('[data-concept-kind="ideology"]')]
+        .map((target) => [target.dataset.conceptKey || '', target]),
+    ).values()].filter((target) => target.dataset.conceptKey);
+    return targets.map((target) => {
+      try {
+        showConceptTooltip(target, { clientX: 24, clientY: 24 });
+        return {
+          key: target.dataset.conceptKey || '',
+          label: target.dataset.conceptLabel || '',
+          shown: document.querySelector('#conceptTooltip')?.hidden === false,
+          dedicated: document.querySelector('#conceptTooltip')?.classList.contains('ideology-tooltip') || false,
+        };
+      } catch (error) {
+        return {
+          key: target.dataset.conceptKey || '',
+          label: target.dataset.conceptLabel || '',
+          error: String(error?.message || error),
+        };
+      }
+    });
+  })()`);
+  assert.ok(results.length > 1, `ideology board must expose multiple hover targets: ${JSON.stringify(results)}`);
+  assert.ok(results.every((result) => result.shown && result.dedicated), `every ideology must render its dedicated hover tooltip: ${JSON.stringify(results.filter((result) => !result.shown || !result.dedicated || result.error))}`);
+  return { count: results.length };
+}
+
+async function checkInterestGroupIdeologyTooltips(page, baseUrl) {
+  await navigateAndWait(page, `${baseUrl}/index.html?lang=zh-Hans&tooltipProbe=interest-group#/interest-group/ig_landowners`, () => (
+    document.body.dataset.view === "interest-group"
+      && document.querySelectorAll('[data-concept-kind="ideology"]').length > 1
+  ));
+  const results = await page.evaluate(`(() => {
+    const targets = [...new Map(
+      [...document.querySelectorAll('[data-concept-kind="ideology"]')]
+        .map((target) => [target.dataset.conceptKey || '', target]),
+    ).values()].filter((target) => target.dataset.conceptKey);
+    return targets.map((target) => {
+      try {
+        hideConceptTooltip();
+        showConceptTooltip(target, { clientX: 24, clientY: 24 });
+        return {
+          key: target.dataset.conceptKey || '',
+          label: target.dataset.conceptLabel || '',
+          shown: document.querySelector('#conceptTooltip')?.hidden === false,
+          dedicated: document.querySelector('#conceptTooltip')?.classList.contains('ideology-tooltip') || false,
+        };
+      } catch (error) {
+        return {
+          key: target.dataset.conceptKey || '',
+          label: target.dataset.conceptLabel || '',
+          error: String(error?.message || error),
+        };
+      }
+    });
+  })()`);
+  assert.ok(results.length > 1, `interest-group detail must expose multiple ideology hover targets: ${JSON.stringify(results)}`);
+  assert.ok(results.every((result) => result.shown && result.dedicated), `every ideology in an interest-group detail must render its dedicated hover tooltip: ${JSON.stringify(results.filter((result) => !result.shown || !result.dedicated || result.error))}`);
+  return { count: results.length };
+}
+
+async function checkInterestGroupFlavorSearch(page, baseUrl) {
+  await navigateAndWait(page, `${baseUrl}/index.html?lang=zh-Hans#/home`, () => (
+    document.body.dataset.view === "home" && Boolean(document.querySelector("#globalSearchButton"))
+  ));
+  await page.evaluate(`(() => {
+    document.querySelector("#globalSearchButton")?.click();
+    const input = document.querySelector("#globalSearchDialogInput");
+    if (!input) return;
+    input.value = "\u6ce2\u96c5\u5c14";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  })()`);
+  await waitFor(async () => page.evaluate(`document.querySelectorAll('[data-global-dialog-result]').length > 0`), "Boyars global-search result");
+  const search = await page.evaluate(`(() => ([...document.querySelectorAll('[data-global-dialog-result]')].map((row) => {
+    const content = row.querySelector('.global-search-result-content');
+    const title = row.querySelector('.country-heading');
+    const subtitle = row.querySelector('.country-meta');
+    return {
+      kind: row.dataset.resultKind || '',
+      key: row.dataset.resultKey || '',
+      text: row.textContent?.replace(/\\s+/g, ' ').trim() || '',
+      rowHeight: row.offsetHeight || Math.round(parseFloat(getComputedStyle(row).height) || 0),
+      contentHeight: content?.offsetHeight || Math.round(parseFloat(getComputedStyle(content || row).height) || 0),
+      titleHeight: title?.offsetHeight || Math.round(parseFloat(getComputedStyle(title || row).height) || 0),
+      subtitleHeight: subtitle?.offsetHeight || Math.round(parseFloat(getComputedStyle(subtitle || row).height) || 0),
+    };
+  })))()`);
+  const flavors = search.filter((result) => result.kind === "interestGroupFlavor");
+  assert.equal(flavors.length, 1, `Boyars must produce one aggregated global-search result: ${JSON.stringify(search)}`);
+  assert.equal(flavors[0].key, "ig_landowners:ig_boyars", "Boyars must route through its parent interest group and flavor key");
+  assert.ok(flavors[0].text.includes("\u6ce2\u96c5\u5c14") && flavors[0].text.includes("\u5730\u4e3b"), "Boyars search result must show the flavor and its parent interest group");
+  assert.equal(flavors[0].rowHeight, 64, `Boyars search result must use the fixed 64-pixel icon row: ${JSON.stringify(flavors[0])}`);
+
+  await page.evaluate(`document.querySelector('[data-global-dialog-result][data-result-kind="interestGroupFlavor"]')?.click()`);
+  await waitFor(async () => page.evaluate(`(
+    location.hash === "#/interest-group/ig_landowners/flavor/ig_boyars"
+      && Boolean(document.querySelector(".interest-group-flavor-page"))
+  )`), "Boyars flavor page from global search");
+  return flavors[0];
+}
+
 async function checkIntelligentsiaDetail(page, baseUrl) {
   await navigateAndWait(page, `${baseUrl}/index.html?lang=zh-Hans#/interest-group/ig_intelligentsia`, () => (
     document.body.dataset.view === "interest-group"
@@ -356,7 +639,6 @@ async function checkLaterAvailableFlavors(page, baseUrl) {
 
 async function checkNamedCountryVariants(page, baseUrl) {
   const cases = [
-    { key: 'ig_armed_forces', expected: '\u519b\u961f\uff08\u62c9\u7f8e\u897f\u8bed\uff09' },
     { key: 'ig_industrialists', expected: '\u5b9e\u4e1a\u5bb6\uff08\u4e2d\u56fd\uff09' },
     { key: 'ig_intelligentsia', expected: '\u77e5\u8bc6\u5206\u5b50\uff08\u7acb\u5baa\u6d3e\uff09' },
     { key: 'ig_intelligentsia', expected: '\u77e5\u8bc6\u5206\u5b50\uff08\u5fb7\u610f\u5fd7\uff0f\u7acb\u5baa\u6d3e\uff09' },
@@ -444,6 +726,28 @@ async function checkVictorianCenturyFlavorGroups(page, baseUrl) {
   const named = armedForces.groups.find((group) => group.label === '\u98ce\u5473\u540d\u79f0');
   assert.ok(named?.options.includes('\u7ea2\u519b'), `VC flavored names must include the Red Army: ${JSON.stringify(armedForces)}`);
   assert.ok(named?.options.includes('\u56fd\u6c11\u81ea\u536b\u519b'), `VC flavored names must include the National Guard: ${JSON.stringify(armedForces)}`);
+  const conditionGroup = armedForces.groups.find((group) => group.label === '\u6761\u4ef6\u53d8\u4f53');
+  assert.deepEqual(conditionGroup?.options, [
+    '\u519b\u961f\uff08\u52a0\u52d2\u6bd4\u3001\u52a0\u5229\u798f\u5c3c\u4e9a\uff09',
+    '\u519b\u961f\uff08\u666e\u62c9\u5854/\u5357\u5b89\u7b2c\u65af/\u5317\u5b89\u7b2c\u65af/\u4e2d\u7f8e/\u58a8\u897f\u54e5\uff09',
+  ], `VC armed-force condition variants must use the agreed two-group split: ${JSON.stringify(armedForces)}`);
+  assert.equal(
+    armedForces.groups.some((group) => group.options.includes('\u519b\u961f\uff08\u62c9\u7f8e\u897f\u8bed\uff09')),
+    false,
+    `VC must not retain the superseded Latin-Spanish country flavor: ${JSON.stringify(armedForces)}`,
+  );
+  const finalEffectGroups = await readArmedForcesFinalEffectGroups(page);
+  assert.deepEqual(finalEffectGroups.caribbeanCalifornia?.countries, ['ATL', 'CAL', 'CUB', 'DOM', 'PCO'], 'VC Caribbean and California flavor must contain the agreed five countries');
+  assert.equal(finalEffectGroups.caribbeanCalifornia?.ideologies.includes('ideology_caudillismo'), false, 'VC Caribbean and California flavor must not gain caudillismo');
+  assert.ok(finalEffectGroups.caribbeanCalifornia?.traits.includes('ig_trait_el_buen_jefe'), 'VC Caribbean and California flavor must retain El Buen Jefe');
+  assert.deepEqual(finalEffectGroups.caudilloCultures?.countries, [
+    'ALT', 'ARG', 'BOL', 'CHL', 'CLM', 'COS', 'ECU', 'ELS', 'FND', 'GCO', 'GUA', 'HON', 'MEX',
+    'NIC', 'NPU', 'PBC', 'PEU', 'PLT', 'PNM', 'PRG', 'RIO', 'SPU', 'UCA', 'URU', 'VNZ', 'YUC',
+  ], 'VC caudillo cultures must contain the agreed 26 countries');
+  assert.equal(finalEffectGroups.caudilloCultures?.ideologies.includes('ideology_caudillismo'), true, 'VC caudillo cultures must gain caudillismo');
+  assert.ok(finalEffectGroups.caudilloCultures?.traits.includes('ig_trait_el_buen_jefe'), 'VC caudillo cultures must retain El Buen Jefe');
+  const overlap = finalEffectGroups.caribbeanCalifornia?.countries.filter((tag) => finalEffectGroups.caudilloCultures?.countries.includes(tag)) || [];
+  assert.deepEqual(overlap, [], 'VC armed-force final-effect groups must be mutually exclusive');
 
   await navigateAndWait(page, `${baseUrl}/index.html?lang=zh-Hans#/interest-group/ig_landowners`, () => (
     document.body.dataset.view === 'interest-group'
@@ -457,6 +761,31 @@ async function checkVictorianCenturyFlavorGroups(page, baseUrl) {
   assert.ok(landownerNamed?.options.includes('\u5965\u5730\u5229\u8d35\u65cf'), `VC flavored names must include Austrian Aristocracy: ${JSON.stringify(landowners)}`);
   assert.ok(landownerNamed?.options.includes('\u9ec4\u4fc4\u7f57\u65af\u653f\u5e9c'), `VC flavored names must include the Russia-China Government: ${JSON.stringify(landowners)}`);
   return { armedForces, landowners };
+}
+
+async function readArmedForcesFinalEffectGroups(page) {
+  return page.evaluate(`(() => {
+    const selector = document.querySelector('[data-interest-group-flavor-select]');
+    const selectFlavor = (name) => {
+      const option = [...selector.options].find((item) => item.textContent?.trim() === name);
+      if (!option) return null;
+      selector.value = option.value;
+      selector.dispatchEvent(new Event('change', { bubbles: true }));
+      const active = document.querySelector('[data-interest-group-flavor-state]:not([hidden])');
+      return {
+        countries: [...active.querySelectorAll('.interest-group-country-tags [data-concept-key]')]
+          .map((item) => item.dataset.conceptKey || '').sort(),
+        traits: [...active.querySelectorAll('.interest-group-trait-card')]
+          .map((item) => item.dataset.conceptKey || '').filter(Boolean).sort(),
+        ideologies: [...active.querySelectorAll('.tag-ideology [data-concept-key], .tag-ideology[data-concept-key]')]
+          .map((item) => item.dataset.conceptKey || '').filter(Boolean).sort(),
+      };
+    };
+    return {
+      caribbeanCalifornia: selectFlavor('\u519b\u961f\uff08\u52a0\u52d2\u6bd4\u3001\u52a0\u5229\u798f\u5c3c\u4e9a\uff09'),
+      caudilloCultures: selectFlavor('\u519b\u961f\uff08\u666e\u62c9\u5854/\u5357\u5b89\u7b2c\u65af/\u5317\u5b89\u7b2c\u65af/\u4e2d\u7f8e/\u58a8\u897f\u54e5\uff09'),
+    };
+  })()`);
 }
 
 async function checkDescriptiveConditionVariants(page, baseUrl) {
@@ -479,9 +808,21 @@ async function checkDescriptiveConditionVariants(page, baseUrl) {
   ], `flavor groups must follow base, flavored names, condition variants, then country flavors: ${JSON.stringify(armedForces)}`);
   const conditionGroup = armedForces.groups.find((group) => group.label === '\u6761\u4ef6\u53d8\u4f53');
   assert.deepEqual(conditionGroup?.options, [
-    '\u519b\u961f\uff08\u62c9\u7f8e\u897f\u8bed\uff09',
+    '\u519b\u961f\uff08\u52a0\u52d2\u6bd4\u3001\u52a0\u5229\u798f\u5c3c\u4e9a\uff09',
     '\u519b\u961f\uff08\u666e\u62c9\u5854/\u5357\u5b89\u7b2c\u65af/\u5317\u5b89\u7b2c\u65af/\u4e2d\u7f8e/\u58a8\u897f\u54e5\uff09',
-  ], 'armed-force condition variants must use the agreed descriptive names and order');
+  ], 'armed-force condition variants must use the agreed final-effect names and order');
+  const finalEffectGroups = await readArmedForcesFinalEffectGroups(page);
+  assert.deepEqual(finalEffectGroups.caribbeanCalifornia?.countries, ['ATL', 'CAL', 'CUB', 'DOM', 'PCO'], 'Caribbean and California must be the five Latin-Spanish-only countries');
+  assert.equal(finalEffectGroups.caribbeanCalifornia?.ideologies.includes('ideology_caudillismo'), false, 'Caribbean and California must not gain caudillismo');
+  assert.ok(finalEffectGroups.caribbeanCalifornia?.traits.includes('ig_trait_el_buen_jefe'), 'Caribbean and California must retain El Buen Jefe');
+  assert.deepEqual(finalEffectGroups.caudilloCultures?.countries, [
+    'ALT', 'ARG', 'BOL', 'CHL', 'CLM', 'COS', 'ECU', 'ELS', 'FND', 'GCO', 'GUA', 'HON', 'MEX',
+    'NIC', 'NPU', 'PBC', 'PEU', 'PLT', 'PNM', 'PRG', 'RIO', 'SPU', 'UCA', 'URU', 'VNZ', 'YUC',
+  ], 'caudillo cultures must contain the 26 countries that also receive the Latin-Spanish traits');
+  assert.equal(finalEffectGroups.caudilloCultures?.ideologies.includes('ideology_caudillismo'), true, 'caudillo cultures must gain caudillismo');
+  assert.ok(finalEffectGroups.caudilloCultures?.traits.includes('ig_trait_el_buen_jefe'), 'caudillo cultures must retain the Latin-Spanish El Buen Jefe trait');
+  const overlap = finalEffectGroups.caribbeanCalifornia?.countries.filter((tag) => finalEffectGroups.caudilloCultures?.countries.includes(tag)) || [];
+  assert.deepEqual(overlap, [], 'the two armed-force final-effect groups must be mutually exclusive');
 
   await navigateAndWait(page, `${baseUrl}/index.html?lang=zh-Hans#/interest-group/ig_devout`, () => (
     document.body.dataset.view === 'interest-group' && Boolean(document.querySelector('.interest-group-board-detail'))
@@ -505,7 +846,7 @@ async function checkDescriptiveConditionVariants(page, baseUrl) {
   assert.ok(devout.find((group) => group.label === '\u72b9\u592a\u6559')?.options.includes('\u72b9\u592a\u6559'), 'Jewish traits must be grouped by religion');
   assert.ok(devout.find((group) => group.label === '\u6cdb\u7075\u8bba')?.options.includes('\u6cdb\u7075\u8bba'), 'Animist traits must be grouped by religion');
   assert.ok(devout.find((group) => group.label === '\u9521\u514b\u6559')?.options.length, 'Sikh flavors must remain distinct from Animism');
-  return { armedForces, devout };
+  return { armedForces, finalEffectGroups, devout };
 }
 
 async function checkCountryListOrder(page, baseUrl) {

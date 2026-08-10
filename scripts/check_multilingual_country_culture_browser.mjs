@@ -24,6 +24,7 @@ try {
   await verifyBoard(desktop, "en", "country", "PRU", "#/country", "[data-country]", "#mobileCountryToolbar", /[A-Za-z]/u, "Prussia");
   await verifyBoard(desktop, "zh-Hans", "culture", "north_german", "#/culture", "[data-culture]", "#mobileCultureToolbar", /[\u4e00-\u9fff]/u, "北德意志");
   await verifyBoard(desktop, "en", "culture", "north_german", "#/culture", "[data-culture]", "#mobileCultureToolbar", /[A-Za-z]/u, "North German");
+  await verifyChineseRomanPrimaryCultures(desktop);
 
   await desktop.close();
   console.log(JSON.stringify({ multilingual_country_culture_browser: "ok", base_url: baseUrl }, null, 2));
@@ -42,6 +43,19 @@ async function verifyBoard(page, locale, route, key, boardRoute, rowSelector, to
   const detailTitle = await page.evaluate(() => document.querySelector(".detail h2")?.textContent?.trim() || "");
   assert.match(detailTitle, titlePattern, `${route} detail title must follow the active locale`);
   assert.ok(detailTitle.includes(expectedTitleSample), `${route} detail title must include the expected sample text`);
+}
+
+async function verifyChineseRomanPrimaryCultures(page) {
+  await page.goto(`${baseUrl}?lang=zh-Hans#/country/RME`);
+  await page.waitForSelector(".detail .field-grid", "Roman Empire detail");
+  const primaryCultures = await page.evaluate(() => [...document.querySelectorAll(".field-grid dt")]
+    .find((label) => label.textContent.includes("\u4e3b\u6d41\u6587\u5316"))
+    ?.nextElementSibling?.innerText?.trim().split(/\s+/u).filter(Boolean) || []);
+  assert.equal(
+    primaryCultures.join("\u3001"),
+    "\u5317\u610f\u5927\u5229\u3001\u5357\u610f\u5927\u5229\u3001\u5e0c\u814a\u3001\u897f\u73ed\u7259\u3001\u8461\u8404\u7259\u3001\u6cd5\u5170\u897f\u3001\u963f\u52d2\u66fc\u5c3c\u3001\u571f\u8033\u5176\u3001\u9a6c\u683c\u91cc\u5e03\u3001\u5bc6\u601d\u513f",
+    "Roman Empire primary cultures must resolve to Simplified Chinese names",
+  );
 }
 
 async function openPage(viewport) {

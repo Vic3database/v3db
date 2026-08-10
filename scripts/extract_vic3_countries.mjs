@@ -4614,7 +4614,7 @@ function cleanLocalizationText(text, loc, depth = 0) {
     cleanLocalizationText(locName(loc, key), loc, depth + 1)
   ));
   result = result.replace(/@[A-Za-z0-9_]+!/g, "");
-  result = result.replace(/#(?:[A-Za-z0-9_]+)?\s?/g, "").replace(/#!/g, "");
+  result = result.replace(/#!/g, "").replace(/#(?:[A-Za-z0-9_]+)?\s?/g, "");
   return result;
 }
 

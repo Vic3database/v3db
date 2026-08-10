@@ -191,6 +191,7 @@ const state = {
   selectedCompany: "",
   selectedIdeology: "",
   selectedInterestGroup: "",
+  selectedInterestGroupFlavor: "",
   selectedLaw: "",
   selectedTechnology: "",
   selectedAchievement: "",

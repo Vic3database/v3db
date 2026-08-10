@@ -621,8 +621,13 @@ function createSearchEntries(data, messagesByLocale) {
     ["interestGroupTrait", "interestGroupTraits", "key"],
     ["strategicRegion", "strategicRegions", "key"],
     ["geographicRegion", "geographicRegions", "key"],
+    ["building", "buildings", "key"],
+    ["goods", "goods", "key"],
+    ["prestigeGood", "prestigeGoods", "key"],
+    ["productionMethodGroup", "productionMethodGroups", "key"],
+    ["productionMethod", "productionMethods", "key"],
   ];
-  return collections.flatMap(([kind, collection, keyField]) => (data[collection] || []).map((item) => {
+  const indexedCollections = collections.flatMap(([kind, collection, keyField]) => (data[collection] || []).map((item) => {
     const key = item[keyField] || item.key || item.tag || "";
     const id = item.id || `${kind}:${key}`;
     const message = item.loc?.displayName || item.loc?.name || "";
@@ -636,6 +641,45 @@ function createSearchEntries(data, messagesByLocale) {
       },
     };
   }));
+  const interestGroupFlavors = new Map();
+  const addInterestGroupFlavor = ({ groupKey, flavorKey, nameMessage, countryTag = "" }) => {
+    if (!groupKey || !flavorKey) return;
+    const identity = `${groupKey}:${flavorKey}`;
+    const flavor = interestGroupFlavors.get(identity) || {
+      kind: "interestGroupFlavor",
+      id: `interestGroupFlavor:${groupKey}:${flavorKey}`,
+      key: flavorKey,
+      navigationKey: identity,
+      interestGroupKey: groupKey,
+      countryTags: [],
+      names: {
+        "zh-Hans": messagesByLocale["zh-Hans"]?.[nameMessage] || flavorKey,
+        en: messagesByLocale.en?.[nameMessage] || flavorKey,
+      },
+    };
+    if (countryTag) flavor.countryTags.push(countryTag);
+    interestGroupFlavors.set(identity, flavor);
+  };
+  for (const group of data.interestGroups || []) {
+    for (const flavor of [...(group.condition_variants || []), ...(group.potential_flavors || [])]) {
+      addInterestGroupFlavor({
+        groupKey: group.key,
+        flavorKey: flavor.key,
+        nameMessage: flavor.loc?.name || "",
+      });
+    }
+  }
+  for (const country of data.countries || []) {
+    for (const group of country.interestGroups || []) {
+      if (!group.display_name?.is_flavored) continue;
+      const flavorKey = group.display_name.key || group.key;
+      const nameMessage = group.display_name?.loc?.name || group.loc?.displayName || group.loc?.name || "";
+      addInterestGroupFlavor({ groupKey: group.key, flavorKey, nameMessage, countryTag: country.tag });
+    }
+  }
+  const aggregatedInterestGroupFlavors = [...interestGroupFlavors.values()]
+    .map((flavor) => ({ ...flavor, countryTags: [...new Set(flavor.countryTags)].sort() }));
+  return [...indexedCollections, ...aggregatedInterestGroupFlavors];
 }
 
 function printHelp() {

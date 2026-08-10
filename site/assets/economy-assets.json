@@ -4602,6 +4602,1378 @@
     },
     {
       "category": "production-methods",
+      "key": "pmg_additional_ownership_building_manor_house",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_ownership.dds",
+      "target": "assets/production-methods/pmg_additional_ownership_building_manor_house.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_aeroplanes",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_aeroplanes.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_airship_mooring_post",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_refining.dds",
+      "target": "assets/production-methods/pmg_airship_mooring_post.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_amenities",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_amenities.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_army_logistics_center",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_military.dds",
+      "target": "assets/production-methods/pmg_army_logistics_center.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_automation_building_arms_industry",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_automation_building_arms_industry.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_automation_building_automotive_industry",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_automation_building_automotive_industry.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_automation_building_food_industry",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_automation_building_food_industry.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_automation_building_furniture_manufactory",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_automation_building_furniture_manufactory.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_automation_building_motor_industry",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_automation_building_motor_industry.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_automation_building_munition_plant",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_automation_building_munition_plant.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_automation_building_paper_mill",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_automation_building_paper_mill.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_automation_building_steel_mill",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_automation_building_steel_mill.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_automation_building_textile_mill",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_automation_building_textile_mill.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_automation_building_tooling_workshop",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_automation_building_tooling_workshop.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_automobile_production",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_refining.dds",
+      "target": "assets/production-methods/pmg_automobile_production.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_banana_exploitation",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_banana_exploitation.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_angkor_wat",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_angkor_wat.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_art_academy",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_art_academy.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_banana_plantation",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_banana_plantation.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_big_ben",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_big_ben.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_coffee_plantation",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_coffee_plantation.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_construction_sector",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_construction_sector.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_cotton_plantation",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_cotton_plantation.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_cristo_redentor",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_cristo_redentor.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_dye_plantation",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_dye_plantation.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_eiffel_tower",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_eiffel_tower.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_estacion_de_madrid_atocha",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_estacion_de_madrid_atocha.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_fishing_wharf",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_fishing_wharf.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_food_industry",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_food_industry.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_forbidden_city",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_forbidden_city.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_furniture_manufactory",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_furniture_manufactory.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_glassworks",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_glassworks.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_gold_field",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_gold_field.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_government_administration",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_government_administration.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_gran_teatro_de_la_habana",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_gran_teatro_de_la_habana.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_hagia_sophia",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_hagia_sophia.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_kaiserforum_1",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_kaiserforum_1.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_kaiserforum_2",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_kaiserforum_2.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_kaiserforum_3",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_kaiserforum_3.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_kaiserforum_4",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_kaiserforum_4.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_livestock_ranch",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_refining.dds",
+      "target": "assets/production-methods/pmg_base_building_livestock_ranch.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_logging_camp",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_logging_camp.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_maize_farm",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_maize_farm.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_manila_cathedral_monument",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_manila_cathedral_monument.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_manila_cathedral_ruins",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_manila_cathedral_ruins.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_millet_farm",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_millet_farm.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_mosque_of_djenne",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_mosque_of_djenne.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_motor_industry",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_motor_industry.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_munition_plant",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_munition_plant.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_naval_administration",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_military.dds",
+      "target": "assets/production-methods/pmg_base_building_naval_administration.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_naval_fortification",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_military.dds",
+      "target": "assets/production-methods/pmg_base_building_naval_fortification.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_oil_rig",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_oil_rig.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_opium_plantation",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_opium_plantation.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_paper_mill",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_paper_mill.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_pena_convent",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_pena_convent.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_pena_palace",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_pena_palace.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_port",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_port.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_power_bloc_statue",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_power_bloc_statue.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_power_plant",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_power_plant.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_railway",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_railway.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_rice_farm",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_rice_farm.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_rubber_plantation",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_rubber_plantation.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_rye_farm",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_rye_farm.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_sagrada_familia_cathedral_1",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_sagrada_familia_cathedral_1.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_sagrada_familia_cathedral_2",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_sagrada_familia_cathedral_2.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_sagrada_familia_cathedral_3",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_sagrada_familia_cathedral_3.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_saint_basils_cathedral",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_saint_basils_cathedral.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_shipyard",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_shipyard.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_silk_plantation",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_silk_plantation.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_skyscraper",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_skyscraper.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_statue_of_liberty",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_statue_of_liberty.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_subsistence_farm",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_subsistence_farm.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_subsistence_fishing_village",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_subsistence_fishing_village.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_subsistence_orchard",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_subsistence_orchard.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_subsistence_pasture",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_subsistence_pasture.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_subsistence_rice_farm",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_subsistence_rice_farm.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_sugar_plantation",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_sugar_plantation.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_taj_mahal",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_taj_mahal.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_tea_plantation",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_tea_plantation.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_textile_mill",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_textile_mill.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_tobacco_plantation",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_tobacco_plantation.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_tooling_workshop",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_tooling_workshop.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_trade_center",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_trade_center.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_university",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_university.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_vatican_city",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_vatican_city.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_victoria_terminus",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_victoria_terminus.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_vineyard",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_vineyard.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_whaling_station",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_whaling_station.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_wheat_farm",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_wheat_farm.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_base_building_white_house",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_base_building_white_house.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_canal",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_canal.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_canning",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_canning.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_coffee_exploitation",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_coffee_exploitation.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_cotton_exploitation",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_cotton_exploitation.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_distillery",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_refining.dds",
+      "target": "assets/production-methods/pmg_distillery.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_drying_coffee_plantation",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_drying_coffee_plantation.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_dye_exploitation",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_dye_exploitation.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_equipment",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_equipment.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_exploitation_sugar",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_exploitation_sugar.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_explosives_building_chemical_plant",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_explosives_building_chemical_plant.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_explosives_building_coal_mine",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_explosives_building_coal_mine.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_explosives_building_gold_mine",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_explosives_building_gold_mine.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_explosives_building_iron_mine",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_explosives_building_iron_mine.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_explosives_building_lead_mine",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_explosives_building_lead_mine.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_explosives_building_sulfur_mine",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_explosives_building_sulfur_mine.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_fencing",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_fencing.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_fertilizer_production",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_fertilizer_production.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_firearms_manufacturing",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_firearms_manufacturing.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_foundries",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_foundries.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_glassblowing",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_glassblowing.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_government_administration_bureaucrat_professionalism",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_ownership.dds",
+      "target": "assets/production-methods/pmg_government_administration_bureaucrat_professionalism.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_government_administration_religious_administration",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_ownership.dds",
+      "target": "assets/production-methods/pmg_government_administration_religious_administration.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_hardwood",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_refining.dds",
+      "target": "assets/production-methods/pmg_hardwood.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_harvesting_process_building_maize_farm",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_harvesting_process_building_maize_farm.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_harvesting_process_building_millet_farm",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_harvesting_process_building_millet_farm.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_harvesting_process_building_rice_farm",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_harvesting_process_building_rice_farm.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_harvesting_process_building_rye_farm",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_harvesting_process_building_rye_farm.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_harvesting_process_building_wheat_farm",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_harvesting_process_building_wheat_farm.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_home_workshops_building_subsistence_farm",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_refining.dds",
+      "target": "assets/production-methods/pmg_home_workshops_building_subsistence_farm.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_home_workshops_building_subsistence_fishing_village",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_refining.dds",
+      "target": "assets/production-methods/pmg_home_workshops_building_subsistence_fishing_village.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_home_workshops_building_subsistence_orchard",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_refining.dds",
+      "target": "assets/production-methods/pmg_home_workshops_building_subsistence_orchard.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_home_workshops_building_subsistence_pasture",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_refining.dds",
+      "target": "assets/production-methods/pmg_home_workshops_building_subsistence_pasture.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_home_workshops_building_subsistence_rice_farm",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_refining.dds",
+      "target": "assets/production-methods/pmg_home_workshops_building_subsistence_rice_farm.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_luxury_building_furniture_manufactory",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_refining.dds",
+      "target": "assets/production-methods/pmg_luxury_building_furniture_manufactory.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_luxury_building_glassworks",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_refining.dds",
+      "target": "assets/production-methods/pmg_luxury_building_glassworks.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_luxury_building_textile_mill",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_refining.dds",
+      "target": "assets/production-methods/pmg_luxury_building_textile_mill.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_manufacture_tobacco",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_manufacture_tobacco.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_military_base",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_military.dds",
+      "target": "assets/production-methods/pmg_military_base.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_mining_equipment_building_coal_mine",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_mining_equipment_building_coal_mine.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_mining_equipment_building_gold_mine",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_mining_equipment_building_gold_mine.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_mining_equipment_building_iron_mine",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_mining_equipment_building_iron_mine.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_mining_equipment_building_lead_mine",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_mining_equipment_building_lead_mine.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_mining_equipment_building_sulfur_mine",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_mining_equipment_building_sulfur_mine.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_naval_logistics_center",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_military.dds",
+      "target": "assets/production-methods/pmg_naval_logistics_center.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_naval_theory",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_military.dds",
+      "target": "assets/production-methods/pmg_naval_theory.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_ownership_building_art_academy",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_ownership.dds",
+      "target": "assets/production-methods/pmg_ownership_building_art_academy.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_ownership_building_company_headquarter",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_ownership.dds",
+      "target": "assets/production-methods/pmg_ownership_building_company_headquarter.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_ownership_building_financial_district",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_ownership.dds",
+      "target": "assets/production-methods/pmg_ownership_building_financial_district.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_ownership_building_manor_house",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_ownership.dds",
+      "target": "assets/production-methods/pmg_ownership_building_manor_house.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_passenger_trains",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_refining.dds",
+      "target": "assets/production-methods/pmg_passenger_trains.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_principle_freedom_of_movement_3",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_principle_freedom_of_movement_3.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_public_transport",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_refining.dds",
+      "target": "assets/production-methods/pmg_public_transport.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_radios_category",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_refining.dds",
+      "target": "assets/production-methods/pmg_radios_category.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_refinement_building_sugar_plantation",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_refinement_building_sugar_plantation.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_refrigeration_building_fishing_wharf",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_refrigeration_building_fishing_wharf.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_refrigeration_building_livestock_ranch",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_refrigeration_building_livestock_ranch.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_refrigeration_building_whaling_station",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_refrigeration_building_whaling_station.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_rubber_exploitation",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_rubber_exploitation.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_secondary_building_maize_farm",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_refining.dds",
+      "target": "assets/production-methods/pmg_secondary_building_maize_farm.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_secondary_building_millet_farm",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_refining.dds",
+      "target": "assets/production-methods/pmg_secondary_building_millet_farm.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_secondary_building_rice_farm",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_refining.dds",
+      "target": "assets/production-methods/pmg_secondary_building_rice_farm.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_secondary_building_rye_farm",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_refining.dds",
+      "target": "assets/production-methods/pmg_secondary_building_rye_farm.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_secondary_building_wheat_farm",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_refining.dds",
+      "target": "assets/production-methods/pmg_secondary_building_wheat_farm.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_serfdom_building_subsistence_farm",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_serfdom_building_subsistence_farm.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_serfdom_building_subsistence_fishing_village",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_serfdom_building_subsistence_fishing_village.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_serfdom_building_subsistence_orchard",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_serfdom_building_subsistence_orchard.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_serfdom_building_subsistence_pasture",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_serfdom_building_subsistence_pasture.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_serfdom_building_subsistence_rice_farm",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_serfdom_building_subsistence_rice_farm.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_sheep_ranch",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_sheep_ranch.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_steam_automation_building_coal_mine",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_steam_automation_building_coal_mine.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_steam_automation_building_gold_mine",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_steam_automation_building_gold_mine.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_steam_automation_building_iron_mine",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_steam_automation_building_iron_mine.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_steam_automation_building_lead_mine",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_steam_automation_building_lead_mine.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_steam_automation_building_sulfur_mine",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_steam_automation_building_sulfur_mine.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_steelmaking_process",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_steelmaking_process.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_street_lighting",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_street_lighting.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_synthetic_dyes",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_synthetic_dyes.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_synthetic_silk",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_refining.dds",
+      "target": "assets/production-methods/pmg_synthetic_silk.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_tanks",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_refining.dds",
+      "target": "assets/production-methods/pmg_tanks.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_tea_exploitation",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_tea_exploitation.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_telephones_category",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_telephones_category.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_trade_quantity_trade_center",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_trade_quantity_trade_center.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_train_automation_building_banana_plantation",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_train_automation_building_banana_plantation.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_train_automation_building_coal_mine",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_train_automation_building_coal_mine.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_train_automation_building_coffee_plantation",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_train_automation_building_coffee_plantation.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_train_automation_building_cotton_plantation",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_train_automation_building_cotton_plantation.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_train_automation_building_dye_plantation",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_train_automation_building_dye_plantation.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_train_automation_building_gold_mine",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_train_automation_building_gold_mine.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_train_automation_building_iron_mine",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_train_automation_building_iron_mine.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_train_automation_building_lead_mine",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_train_automation_building_lead_mine.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_train_automation_building_opium_plantation",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_train_automation_building_opium_plantation.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_train_automation_building_rubber_plantation",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_train_automation_building_rubber_plantation.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_train_automation_building_silk_plantation",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_train_automation_building_silk_plantation.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_train_automation_building_sugar_plantation",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_train_automation_building_sugar_plantation.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_train_automation_building_sulfur_mine",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_train_automation_building_sulfur_mine.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_train_automation_building_tea_plantation",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_train_automation_building_tea_plantation.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_train_automation_building_tobacco_plantation",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_train_automation_building_tobacco_plantation.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_train_automation_building_vineyard",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_train_automation_building_vineyard.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_training",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_military.dds",
+      "target": "assets/production-methods/pmg_training.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_training_conscription",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_military.dds",
+      "target": "assets/production-methods/pmg_training_conscription.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_transportation_building_logging_camp",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_transportation_building_logging_camp.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_transportation_building_oil_rig",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_automation.dds",
+      "target": "assets/production-methods/pmg_transportation_building_oil_rig.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_university_academia",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_ownership.dds",
+      "target": "assets/production-methods/pmg_university_academia.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_urban_clergy",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_ownership.dds",
+      "target": "assets/production-methods/pmg_urban_clergy.webp"
+    },
+    {
+      "category": "production-methods",
+      "key": "pmg_working_conditions_tobacco",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/mixed_icon_base.dds",
+      "target": "assets/production-methods/pmg_working_conditions_tobacco.webp"
+    },
+    {
+      "category": "production-methods",
       "key": "radio_stations_tobacco",
       "source_kind": "game",
       "source": "gfx/interface/icons/production_method_icons/radio_stations.dds",

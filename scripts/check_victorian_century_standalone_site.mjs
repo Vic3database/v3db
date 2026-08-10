@@ -49,9 +49,11 @@ for (const relative of ["index.html", "data-index.js", "map-data.js", "victorian
 }
 
 const html = fs.readFileSync(htmlFile, "utf8");
+const publishedHtml = fs.readFileSync(path.join(publishedRoot, "index.html"), "utf8");
 assert.match(html, /<title>Victorian Century Database<\/title>/, "page title must identify Victorian Century");
 assert.match(html, /href="vc-theme\.css\?v=20260807-wine-plum-evergreen4"/, "standalone page must load the solid cool-olive theme after base styles");
 assert.match(html, /src="victorian-century-config\.js/, "page must load the standalone configuration");
+assert.match(publishedHtml, /src="victorian-century-config\.js/, "published VC page must load the standalone configuration");
 assert.doesNotMatch(html, /id="versionSelect"/, "standalone page must not render a version selector");
 assert.match(html, /id="standaloneLibrarySelect"/, "standalone page must offer a library return selector");
 assert.match(html, /<option value="victorian-century" data-i18n="library\.victorianCentury" selected>Victorian Century<\/option>/, "standalone selector must identify the current VC library");
@@ -91,6 +93,10 @@ assert(vcTechnology, "missing VC-added technology in the bilingual search index"
 assert.equal(vcTechnology.names?.["zh-Hans"], "垂直整合种植园", "VC-added technology must retain its Chinese name");
 assert.equal(vcTechnology.names?.en, "Vertically Integrated Plantations", "VC-added technology must retain its English name");
 assert.notEqual(vcTechnology.names.en, vcTechnology.names["zh-Hans"], "VC English localization must not be filled with Chinese text");
+const boyarFlavors = searchIndex?.entries?.filter((entry) => entry.kind === "interestGroupFlavor" && entry.names?.["zh-Hans"] === "波雅尔") || [];
+assert.equal(boyarFlavors.length, 1, "VC search index must consolidate Boyars into one flavor page result");
+assert.equal(boyarFlavors[0]?.interestGroupKey, "ig_landowners", "VC Boyars search result must retain the Landowners parent group");
+assert.equal(boyarFlavors[0]?.countryTags?.sort().join(","), "MOL,ROM,WAL", "VC Boyars search result must retain links to every applicable country");
 for (const locale of ["zh-Hans", "en"]) {
   for (const key of expectedChunks) {
     const localeChunk = dataIndex?.locales?.chunks?.[locale]?.[key];
@@ -132,6 +138,7 @@ assert.match(ideologySummary, /ideologyPills\(group\.character_ideologies, "tag-
 assert.doesNotMatch(ideologySummary, /groupIdeologies|characterIdeologiesShort/, "VC ideology labels must not be duplicated outside the shared pill renderer");
 assert.match(englishUi, /"enum\.ideologyType\.interestGroup": "Interest Group"/, "VC English interface must label interest-group ideologies in English");
 assert.match(englishUi, /"enum\.ideologyType\.character": "Character"/, "VC English interface must label character ideologies in English");
+assert.match(englishUi, /"entity\.interestGroupFlavor": "Interest Group Flavor"/, "VC English interface must label interest-group flavor search results");
 const companyIconPathSource = components.match(/function companyIconPath\(icon\) \{[\s\S]*?\n\}/)?.[0];
 assert(companyIconPathSource, "missing companyIconPath implementation");
 const companyIconPath = vm.runInNewContext(`(${companyIconPathSource})`, {

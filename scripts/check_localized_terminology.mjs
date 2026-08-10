@@ -33,9 +33,9 @@ for (const [relativePath, source] of [...uiSources, ...generatorSources]) {
 
 const tooltipDefinitions = read("site/app/tag-tooltip-definitions.js");
 const indexSource = read("site/index.html");
-assert.match(tooltipDefinitions, /"company-ownership-category"\s*:\s*\{\s*category:\s*"控股类别"\s*\}/, "company ownership category tooltip definition is missing");
-assert.match(tooltipDefinitions, /"tag-region"\s*:\s*\{\s*category:\s*"区域关系"\s*\}/, "generic region tag category must avoid conflating region types");
-assert.match(tooltipDefinitions, /"country-tier"\s*:\s*\{\s*category:\s*"国家位阶"\s*\}/, "country tier must remain distinct from international rank");
+assert.match(tooltipDefinitions, /"company-ownership-category"\s*:\s*\{\s*categoryKey:\s*"tooltip\.category\.ownership"\s*\}/, "company ownership category tooltip definition is missing");
+assert.match(tooltipDefinitions, /"tag-region"\s*:\s*\{\s*categoryKey:\s*"tooltip\.category\.regionRelation"\s*\}/, "generic region tag category must avoid conflating region types");
+assert.match(tooltipDefinitions, /"country-tier"\s*:\s*\{\s*categoryKey:\s*"tooltip\.category\.countryTier"\s*\}/, "country tier must remain distinct from international rank");
 assert.equal(/州地区|本土州|日志：|事件\/日志(?!条目)/.test(indexSource), false, "site index still contains outdated localized terminology");
 
 const components = read("site/app/components.js");

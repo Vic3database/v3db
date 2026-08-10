@@ -988,7 +988,7 @@ function cleanGameLocalizationText(value) {
     .replace(/#!/g, "")
     .replace(/#[A-Za-z0-9_]+\s*/g, "")
     .replace(/#$/g, "")
-    .replace(/!(?=\p{L})/gu, "")
+    .replace(/!(?=[\p{L},.;:，。；：])/gu, "")
     .replace(/!+$/, "")
     .replace(/\s+([,.;:!?])/g, "$1")
     .replace(/\s+/g, " ")
@@ -1986,6 +1986,31 @@ function lawIconHtml(law, className = "law-icon") {
   const alt = escapeHtml(entityText(law, "name", t("board.law.title", "法律")));
   const path = `assets/laws/${encodeURIComponent(baseName)}.png`;
   return webpPreferredImageHtml({ className, path, alt, fallback: "this.hidden=true" });
+}
+
+function technologyIconHtml(technology, className = "technology-icon") {
+  const fileName = fileBaseName(technology?.icon).replace(/\.dds$/i, ".webp");
+  if (!fileName || fileName === fileBaseName(technology?.icon)) return "";
+  const title = entityText(technology, "name", technology?.key || t("entity.technology", "科技"));
+  return `<img class="${escapeHtml(className)}" src="assets/technologies/${encodeURIComponent(fileName)}" alt="" title="${escapeHtml(title)}" onerror="this.hidden=true">`;
+}
+
+function achievementIconHtml(achievement, className = "achievement-icon") {
+  const key = achievement?.key || "";
+  if (!key) return "";
+  const title = entityText(achievement, "name", key);
+  return `<img class="${escapeHtml(className)}" src="assets/achievements/${encodeURIComponent(key)}.webp" alt="" title="${escapeHtml(title)}" onerror="this.hidden=true">`;
+}
+
+function economyEntityIconHtml(entity, category, className = "economy-icon") {
+  const key = entity?.key || "";
+  const iconPath = entity?.icon?.site_path || "";
+  if (!iconPath) return "";
+  const fileName = fileBaseName(iconPath || entity?.icon?.source || "");
+  const path = iconPath;
+  if (fileName && !fileName.toLowerCase().endsWith(".webp")) return "";
+  const title = entityText(entity, "name", key);
+  return `<img class="${escapeHtml(className)}" src="${escapeHtml(path)}" alt="" title="${escapeHtml(title)}" onerror="this.hidden=true">`;
 }
 
 function lawPill(law) {

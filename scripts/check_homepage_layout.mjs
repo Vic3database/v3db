@@ -15,36 +15,28 @@ const icons = [
   "state.png",
   "companies.png",
   "democracy.png",
-  "mass_communication.png",
   "icon_achievements_enabled.png",
   "academia.png",
   "grand_strategy_games_prestige.png",
   "manufacturies.png",
   "law_enforcement.png",
-  "sovereign_empire.png",
-  "event_default.png",
-  "romanticism.png",
-  "international_diplomacy.png",
-  "event_portrait.png",
-  "line_infantry.png",
-  "dreadnought.png",
 ];
-const categories = ["diplomacy", "politics", "society", "economy", "military", "other"];
+const categories = ["domestic", "society", "economy", "technology", "game"];
 
 expect(homeFunction.includes("const entries = ["), "homepage should define its entry data");
-expect((homeFunction.match(/icon: "/g) || []).length === 18, "homepage should define all eighteen requested entries");
-expect(homeFunction.includes('view: "country"'), "homepage should retain the country entry route");
-expect(homeFunction.includes('view: "changelog"'), "homepage should link the changelog entry");
+expect((homeFunction.match(/icon: "/g) || []).length === 11, "homepage should define the eleven published topbar entries");
+for (const view of ["country", "law", "ideology", "interest-group", "culture", "region", "company", "building", "goods", "technology", "achievement"]) {
+  expect(homeFunction.includes(`view: "${view}"`), `homepage should retain the ${view} entry route`);
+}
 expect(homeFunction.includes("home-entry-grid"), "homepage should render an entry grid");
 expect(homeFunction.includes("home-category"), "homepage should render categorized entry sections");
-expect((homeFunction.match(/category: "/g) || []).length === 18, "homepage should classify all eighteen requested entries");
+expect((homeFunction.match(/category: "/g) || []).length === 11, "homepage should classify all published topbar entries");
 for (const category of categories) {
   expect(homeFunction.includes(`category: "${category}"`), `homepage should include the ${category} category`);
 }
-expect(homeFunction.includes('label: "home.entry.diplomacy"'), "homepage should include diplomacy and play entries");
-expect(homeFunction.includes('label: "home.entry.journal"'), "homepage should include journal, event, and decision entries");
-expect(homeFunction.includes('label: "home.entry.character"'), "homepage should include the character entry");
-expect(homeFunction.includes('label: "home.entry.army"') && homeFunction.includes('label: "home.entry.navy"'), "homepage should include military entries");
+expect(homeFunction.includes('label: "nav.domestic"'), "homepage should use the topbar domestic group label");
+expect(homeFunction.includes('label: "nav.gameContent"'), "homepage should use the topbar game-content group label");
+expect(!homeFunction.includes("pending: true"), "homepage should not render entries absent from the topbar");
 expect(!homeFunction.includes('dataCount("countries", countries)'), "homepage entry cards should not display country counts");
 expect(!homeFunction.includes('dataCount("ideologies", ideologies)'), "homepage entry cards should not display ideology counts");
 expect(!homeFunction.includes('dataCount("cultures", cultures)'), "homepage entry cards should not display culture counts");
@@ -52,7 +44,7 @@ expect(!homeFunction.includes('dataCount("technologies", technologies)'), "homep
 expect(!homeFunction.includes('dataCount("companies", companies)'), "homepage entry cards should not display company counts");
 expect(!homeFunction.includes('`${laws.length} 条法律`'), "homepage entry cards should not display law counts");
 expect(!homeFunction.includes('`${landStateRegions.length} 个地域`'), "homepage entry cards should not display region counts");
-expect(homeFunction.includes('view: "country"') && !homeFunction.includes('text: "nav.country"'), "homepage ready entry cards should omit the secondary count line");
+expect(homeFunction.includes('view: "country"') && !homeFunction.includes('text: "nav.country"'), "homepage entry cards should omit the secondary count line");
 expect(indexSource.includes('id="homeWelcome"'), "homepage should define a welcome panel outside the navigation list");
 expect(indexSource.includes('id="vcHomeEntry"'), "homepage should include a Victorian Century entry");
 expect(indexSource.includes('href="vc/index.html"'), "homepage VC entry should use a relative vc path");
@@ -87,20 +79,17 @@ expect(!homeFunction.includes("data.meta?.generated_at"), "homepage announcement
 expect(homeFunction.includes("renderHomeNewsHtml") && homeNewsFunction.includes("home-news-panel"), "homepage should render the news panel");
 expect(homeNewsFunction.includes("home-news-tabs"), "homepage news panel should render category tabs");
 expect(homeNewsFunction.includes('t("news.more")'), "homepage news panel should provide a localized more link");
-expect(homeFunction.includes('const categories = ["diplomacy", "politics", "economy", "military", "society", "other"]'), "homepage should define the six independent category cards");
+expect(homeFunction.includes('const categories = ['), "homepage should define the five topbar category cards");
 expect(!homeFunction.includes("const categoryRows ="), "homepage should not merge categories into paired rows");
 expect(homeFunction.includes('class="home-category-card"'), "homepage should render each category as an independent card");
 expect(!homeFunction.includes('categoryEntries.length'), "homepage category headings should not display redundant entry counts");
-expect(/\.home-category-list\s*\{[\s\S]*grid-template-columns:\s*repeat\(6,\s*minmax\(0,\s*1fr\)\)/.test(stylesSource), "homepage category cards should use a six-column grid");
-expect(/\.home-category-card\s*\{[\s\S]*grid-column:\s*(?:1\s*\/\s*)?span\s*3/.test(stylesSource), "standard category cards should span three columns");
-expect(/\.home-category-card\[data-category="economy"\]\s*\{[\s\S]*grid-column:\s*(?:1\s*\/\s*)?span\s*4/.test(stylesSource), "economy category card should span four columns");
-expect(/\.home-category-card\[data-category="military"\]\s*\{[\s\S]*grid-column:\s*(?:1\s*\/\s*)?span\s*2/.test(stylesSource), "military category card should span two columns");
+expect(/\.home-category-list\s*\{[\s\S]*grid-template-columns:\s*repeat\(5,\s*minmax\(0,\s*1fr\)\)[\s\S]*align-items:\s*start/.test(stylesSource), "homepage category cards should use five topbar-aligned columns");
+expect(/\.home-category-card\s*\{[\s\S]*grid-column:\s*auto[\s\S]*align-self:\s*start/.test(stylesSource), "each topbar category card should keep its natural height");
 expect(/\.home-category-card\s*\{[\s\S]*border:\s*1px\s+solid\s+rgba\(200,\s*164,\s*91,\s*0?\.3\)/.test(stylesSource), "category cards should use the elevated gold border");
 expect(/\.home-category-card\s*\{[\s\S]*background:\s*rgba\(31,\s*33,\s*31,\s*0?\.46\)/.test(stylesSource), "category card bodies should remain gray");
 expect(/\.home-category-card\s*\{[\s\S]*box-shadow:\s*var\(--shadow\)/.test(stylesSource), "category cards should use the elevated panel shadow");
 expect(/\.home-category-heading\s*\{[\s\S]*margin:\s*-12px\s+-12px\s+12px[\s\S]*background:\s*linear-gradient\(180deg,\s*color-mix\(in\s+srgb,\s*var\(--panel\)\s+92%,\s*white\s+4%\),\s*var\(--panel\)\)[\s\S]*border-bottom:\s*1px\s+solid\s+rgba\(200,\s*164,\s*91,\s*0?\.28\)/.test(stylesSource), "category headings should use blue bars separated from the gray body by gold lines");
-expect(/\.home-category-card\s+\.home-entry-grid\s*\{[^}]*gap:\s*36px/.test(stylesSource), "three-entry category cards should retain the historical spacing");
-expect(/\.home-category-card\[data-category="economy"\]\s+\.home-entry-grid\s*\{[^}]*gap:\s*36px/.test(stylesSource), "economy category card should retain the historical spacing");
+expect(/\.home-category-card\s+\.home-entry-grid\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)[^}]*gap:\s*10px/.test(stylesSource), "each topbar category should stack its own entries");
 expect(/\.home-entry\s*\{[\s\S]*grid-template-columns:\s*46px\s+minmax\(0,\s*1fr\)/.test(stylesSource), "homepage entry cards should place icon left and text right");
 expect(/\.home-entry\s*\{[\s\S]*background:\s*var\(--surface\)/.test(stylesSource), "homepage entry buttons should retain gray backgrounds");
 expect(/\.home-entry-copy strong\s*\{[\s\S]*font-size:\s*var\(--text-base\)/.test(stylesSource), "homepage entry labels should use the larger base text size");
@@ -132,7 +121,7 @@ if (failures.length) {
 
 console.log(JSON.stringify({
   homepage_layout: "ok",
-  entries: 18,
+  entries: 11,
   icons: icons.length,
 }, null, 2));
 

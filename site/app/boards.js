@@ -121,46 +121,38 @@ function renderHomeBoard() {
   els.activeHint.textContent = "";
   els.countryList.className = "country-list home-board";
   const entries = [
-    { category: "diplomacy", label: "nav.country", view: "country", icon: "assets/home/waving_flag.png" },
-    { category: "diplomacy", label: "home.entry.powerBloc", pending: true, icon: "assets/home/sovereign_empire.png" },
-    { category: "diplomacy", label: "home.entry.diplomacy", pending: true, icon: "assets/home/international_diplomacy.png" },
-    { category: "politics", label: "nav.law", view: "law", icon: "assets/home/law_enforcement.png" },
-    { category: "politics", label: "nav.ideology", view: "ideology", icon: "assets/home/democracy.png" },
-    { category: "politics", label: "nav.interestGroup", view: "interest-group", icon: "assets/technologies/corporatism.webp" },
-    { category: "politics", label: "home.entry.journal", pending: true, icon: "assets/home/event_default.png" },
+    { category: "domestic", label: "nav.country", view: "country", icon: "assets/home/waving_flag.png" },
+    { category: "domestic", label: "nav.law", view: "law", icon: "assets/home/law_enforcement.png" },
+    { category: "domestic", label: "nav.ideology", view: "ideology", icon: "assets/home/democracy.png" },
+    { category: "domestic", label: "nav.interestGroup", view: "interest-group", icon: "assets/technologies/corporatism.webp" },
     { category: "society", label: "nav.culture", view: "culture", icon: "assets/home/nationalism.png" },
-    { category: "society", label: "nav.technology", view: "technology", icon: "assets/home/academia.png" },
-    { category: "society", label: "home.entry.character", pending: true, icon: "assets/home/event_portrait.png" },
     { category: "economy", label: "nav.region", view: "region", icon: "assets/home/state.png" },
-    { category: "economy", label: "home.entry.building", pending: true, icon: "assets/home/manufacturies.png" },
-    { category: "economy", label: "home.entry.goods", pending: true, icon: "assets/home/grand_strategy_games_prestige.png" },
     { category: "economy", label: "nav.company", view: "company", icon: "assets/home/companies.png" },
-    { category: "military", label: "home.entry.army", pending: true, icon: "assets/home/line_infantry.png" },
-    { category: "military", label: "home.entry.navy", pending: true, icon: "assets/home/dreadnought.png" },
-    { category: "other", label: "nav.achievement", pending: true, icon: "assets/home/icon_achievements_enabled.png" },
-    { category: "other", label: "home.entry.resources", pending: true, icon: "assets/home/romanticism.png" },
-    { category: "other", label: "nav.changelog", text: "home.versionDiff", view: "changelog", icon: "assets/home/mass_communication.png" },
+    { category: "economy", label: "nav.building", view: "building", icon: "assets/home/manufacturies.png" },
+    { category: "economy", label: "nav.goods", view: "goods", icon: "assets/home/grand_strategy_games_prestige.png" },
+    { category: "technology", label: "nav.technology", view: "technology", icon: "assets/home/academia.png" },
+    { category: "game", label: "nav.achievement", view: "achievement", icon: "assets/home/icon_achievements_enabled.png" },
   ];
-  const visibleEntries = isStandaloneSite ? entries.filter((entry) => entry.view !== "changelog") : entries;
-  const categories = ["diplomacy", "politics", "economy", "military", "society", "other"];
+  const categories = [
+    { key: "domestic", label: "nav.domestic" },
+    { key: "society", label: "nav.society" },
+    { key: "economy", label: "nav.economy" },
+    { key: "technology", label: "nav.technology" },
+    { key: "game", label: "nav.gameContent" },
+  ];
   els.countryList.innerHTML = `
     <div class="home-category-list">
       ${categories.map((category) => {
-        const categoryEntries = visibleEntries.filter((entry) => entry.category === category);
+        const categoryEntries = entries.filter((entry) => entry.category === category.key);
         return `
-          <section class="home-category-card" data-category="${escapeHtml(category)}" aria-label="${escapeHtml(t(`home.category.${category}`))}">
-            <div class="home-category-heading"><h2>${escapeHtml(t(`home.category.${category}`))}</h2></div>
+          <section class="home-category-card" data-category="${escapeHtml(category.key)}" aria-label="${escapeHtml(t(category.label))}">
+            <div class="home-category-heading"><h2>${escapeHtml(t(category.label))}</h2></div>
             <div class="home-entry-grid">
-              ${categoryEntries.map((entry) => entry.view ? `
+              ${categoryEntries.map((entry) => `
                 <button class="home-entry" type="button" data-home-view="${escapeHtml(entry.view)}">
                   <img class="home-entry-icon" src="${escapeHtml(entry.icon)}" alt="" aria-hidden="true">
                   <span class="home-entry-copy"><strong>${escapeHtml(t(entry.label))}</strong>${entry.text ? `<small>${escapeHtml(t(entry.text))}</small>` : ""}</span>
                 </button>
-              ` : `
-                <article class="home-entry home-entry-pending" aria-label="${escapeHtml(t("home.pendingAria", { label: t(entry.label) }))}">
-                  <img class="home-entry-icon" src="${escapeHtml(entry.icon)}" alt="" aria-hidden="true">
-                  <span class="home-entry-copy"><strong>${escapeHtml(t(entry.label))}</strong><small>${escapeHtml(t("home.pending"))}</small></span>
-                </article>
               `).join("")}
             </div>
           </section>
@@ -170,10 +162,6 @@ function renderHomeBoard() {
   `;
   els.countryList.querySelectorAll("[data-home-view]").forEach((button) => {
     button.addEventListener("click", async () => {
-      if (button.dataset.homeView === "changelog") {
-        location.hash = "/changelog";
-        return;
-      }
       await setView(button.dataset.homeView);
       render();
     });
@@ -262,7 +250,7 @@ function interestGroupConditionSignature(condition) {
 }
 
 const interestGroupConditionFlavorDefinition = {
-  "ig_armed_forces:latin_spanish": { name: "军队（拉美西语）", order: 10 },
+  "ig_armed_forces:latin_spanish": { name: "军队（加勒比、加利福尼亚）", order: 10 },
   "ig_armed_forces:caudillo_cultures": { name: "军队（普拉塔/南安第斯/北安第斯/中美/墨西哥）", order: 20 },
   "ig_landowners:latin_spanish": { name: "地主（拉美西语）", order: 10 },
   "ig_landowners:boer": { name: "地主（布尔）", order: 20 },
@@ -272,11 +260,49 @@ const interestGroupConditionFlavorDefinition = {
   "ig_petty_bourgeoisie:mercantile": { name: "小市民（重商派）", order: 10 },
 };
 
+const armedForcesCaudilloCultureKeys = new Set([
+  "platinean",
+  "south_andean",
+  "north_andean",
+  "central_american",
+  "mexican",
+]);
+
+function isArmedForcesCaudilloCultureCountry(country) {
+  if (!(country?.primaryCultures || []).some((key) => armedForcesCaudilloCultureKeys.has(key))) return false;
+  const latinAmerica = byGeographicRegion.get("geographic_region_latin_america");
+  const latinAmericanStates = new Set((latinAmerica?.state_regions || []).map((stateRegion) => stateRegion.key));
+  return (country?.locationStateRegions || []).some((stateRegion) => latinAmericanStates.has(stateRegion.key));
+}
+
+function applyArmedForcesConditionFlavorGrouping(groupKey, variants) {
+  if (groupKey !== "ig_armed_forces") return;
+  const latinSpanish = variants.get("latin_spanish");
+  const caudilloCultures = variants.get("caudillo_cultures");
+  if (!latinSpanish || !caudilloCultures) return;
+  const caudilloCountryTags = countries
+    .filter(isArmedForcesCaudilloCultureCountry)
+    .map((country) => country.tag)
+    .filter((tag) => latinSpanish.countries.has(tag));
+  caudilloCultures.countries.clear();
+  for (const tag of caudilloCountryTags) {
+    latinSpanish.countries.delete(tag);
+    caudilloCultures.countries.add(tag);
+  }
+  for (const [traitKey, traitUse] of latinSpanish.traits) {
+    caudilloCultures.traits.set(traitKey, {
+      trait: traitUse.trait,
+      countries: new Set(caudilloCountryTags),
+    });
+  }
+  for (const [ruleKey, rule] of latinSpanish.rules) caudilloCultures.rules.set(ruleKey, rule);
+}
+
 const interestGroupCountryVariantDefinition = {
   "ig_armed_forces:ig_trait_el_buen_jefe|ig_trait_materiel_waste|ig_trait_veteran_consultation:ideology_caudillismo|ideology_jingoist|ideology_loyalist|ideology_patriotic": {
     name: "interestGroup.variant.armedForces.latinSpanish",
     order: 10,
-    replacesConditionVariant: "latin_spanish",
+    conditionVariant: "caudillo_cultures",
   },
   "ig_armed_forces:ig_trait_clube_militar|ig_trait_coronelismo|ig_trait_el_buen_jefe:ideology_jingoist|ideology_loyalist|ideology_patriotic": {
     name: "interestGroup.variant.armedForces.brazilSpain",
@@ -403,6 +429,118 @@ const interestGroupCountryVariantDefinition = {
     name: "interestGroup.variant.tradeUnions.englandBritain",
     order: 30,
   },
+  "ig_landowners:ig_trait_family_ties|ig_trait_noble_privileges|ig_trait_wiener_walzer:ideology_hierarchic|ideology_paternalistic|ideology_patriarchal": {
+    name: "interestGroup.variant.landowners.austria",
+    order: 60,
+  },
+  "ig_landowners:ig_trait_fazenda_ibicaba|ig_trait_latifundios|ig_trait_noble_privileges:ideology_hierarchic|ideology_paternalistic|ideology_patriarchal": {
+    name: "interestGroup.variant.landowners.brazil",
+    order: 70,
+  },
+  "ig_landowners:ig_trait_family_ties|ig_trait_noble_privileges|ig_trait_patrician_philanthropy:ideology_hierarchic|ideology_patriarchal|ideology_republican_paternalistic": {
+    name: "interestGroup.variant.landowners.california",
+    order: 80,
+  },
+  "ig_landowners:ig_trait_family_ties|ig_trait_noble_privileges|ig_trait_noblesse_oblige:ideology_hierarchic|ideology_patriarchal|ideology_republican_paternalistic": {
+    name: "interestGroup.variant.landowners.latinAmericaBoer",
+    order: 90,
+  },
+  "ig_landowners:ig_trait_family_ties|ig_trait_junkerdom|ig_trait_noble_privileges:ideology_hierarchic|ideology_paternalistic|ideology_patriarchal": {
+    name: "interestGroup.variant.landowners.germanyNorthGermanFederation",
+    order: 100,
+  },
+  "ig_landowners:ig_trait_family_ties|ig_trait_noble_privileges|ig_trait_noblesse_oblige:ideology_hierarchic|ideology_magnatial|ideology_patriarchal": {
+    name: "interestGroup.variant.landowners.polish",
+    order: 110,
+  },
+  "ig_landowners:ig_trait_family_ties|ig_trait_noble_privileges|ig_trait_noblesse_oblige:ideology_carlist_ig|ideology_hierarchic|ideology_patriarchal": {
+    name: "interestGroup.variant.landowners.carlistSpain",
+    order: 120,
+  },
+  "ig_trade_unions:ig_trait_bourse_du_travail|ig_trait_industrial_organizers|ig_trait_work_to_rule:ideology_anti_slavery|ideology_egalitarian|ideology_populist|ideology_proletarian": {
+    name: "interestGroup.variant.tradeUnions.france",
+    order: 40,
+  },
+  "ig_armed_forces:ig_trait_clube_militar|ig_trait_coronelismo|ig_trait_patriotic_fervor:ideology_jingoist|ideology_loyalist|ideology_patriotic": {
+    name: "interestGroup.variant.armedForces.brazil",
+    order: 70,
+  },
+  "ig_armed_forces:ig_trait_newly_created_army|ig_trait_parochial_leadership|ig_trait_self_strengthening:ideology_jingoist|ideology_loyalist|ideology_patriotic": {
+    name: "interestGroup.variant.armedForces.china",
+    order: 80,
+  },
+  "ig_armed_forces:ig_trait_el_buen_jefe|ig_trait_materiel_waste|ig_trait_veteran_consultation:ideology_jingoist|ideology_loyalist|ideology_patriotic": {
+    name: "interestGroup.variant.armedForces.spanishLatinAmerica",
+    order: 90,
+  },
+  "ig_devout:ig_trait_the_best_revenge|ig_trait_traditsye|ig_trait_yeshivot:ideology_moralist|ideology_patriarchal|ideology_pious": {
+    name: "interestGroup.variant.devout.judaism",
+    order: 10,
+  },
+  "ig_industrialists:ig_trait_engines_of_progress|ig_trait_job_creators|ig_trait_tax_avoidance:ideology_colonialist|ideology_individualist|ideology_plutocratic": {
+    name: "interestGroup.variant.industrialists.colonialCompanies",
+    order: 70,
+  },
+  "ig_industrialists:ig_trait_job_creators|ig_trait_tax_avoidance|ig_trait_the_goods_must_flow:ideology_individualist|ideology_laissez_faire|ideology_plutocratic": {
+    name: "interestGroup.variant.industrialists.brazil",
+    order: 80,
+  },
+  "ig_industrialists:ig_trait_engines_of_progress|ig_trait_tax_avoidance|ig_trait_ventilate_unify_beautify:ideology_individualist|ideology_laissez_faire|ideology_plutocratic": {
+    name: "interestGroup.variant.industrialists.france",
+    order: 90,
+  },
+  "ig_industrialists:ig_trait_engines_of_progress|ig_trait_kommerskollegium|ig_trait_tax_avoidance:ideology_individualist|ideology_laissez_faire|ideology_plutocratic": {
+    name: "interestGroup.variant.industrialists.sweden",
+    order: 100,
+  },
+  "ig_rural_folk:ig_trait_nucleos_coloniais|ig_trait_old_ways|ig_trait_plantation_work:ideology_agrarian|ideology_isolationist|ideology_particularist": {
+    name: "interestGroup.variant.ruralFolk.brazil",
+    order: 30,
+  },
+  "ig_rural_folk:ig_trait_honest_work|ig_trait_obshchina|ig_trait_old_ways:ideology_agrarian|ideology_isolationist|ideology_particularist": {
+    name: "interestGroup.variant.ruralFolk.russia",
+    order: 40,
+  },
+  "ig_petty_bourgeoisie:ig_trait_effendi|ig_trait_treasury_bonds|ig_trait_xenophobia:ideology_meritocratic|ideology_patriotic|ideology_reactionary": {
+    name: "interestGroup.variant.pettyBourgeoisie.egypt",
+    order: 60,
+  },
+  "ig_petty_bourgeoisie:ig_trait_haute_finance|ig_trait_master_of_the_house|ig_trait_xenophobia:ideology_meritocratic|ideology_patriotic|ideology_reactionary": {
+    name: "interestGroup.variant.pettyBourgeoisie.france",
+    order: 70,
+  },
+  "ig_petty_bourgeoisie:ig_trait_bah_humbug|ig_trait_civil_service|ig_trait_old_lady_of_threadneedle_street:ideology_meritocratic|ideology_patriotic|ideology_reactionary": {
+    name: "interestGroup.variant.pettyBourgeoisie.greatBritain",
+    order: 80,
+  },
+  "ig_petty_bourgeoisie:ig_trait_middle_managers|ig_trait_treasury_bonds|ig_trait_xenophobia:ideology_cartist|ideology_patriotic|ideology_reactionary": {
+    name: "interestGroup.variant.pettyBourgeoisie.portugal",
+    order: 90,
+  },
+  "ig_petty_bourgeoisie:ig_trait_bergsbrukens_valdistrikten|ig_trait_treasury_bonds|ig_trait_xenophobia:ideology_meritocratic|ideology_patriotic|ideology_reactionary": {
+    name: "interestGroup.variant.pettyBourgeoisie.sweden",
+    order: 100,
+  },
+  "ig_petty_bourgeoisie:ig_trait_effendi|ig_trait_reorganization|ig_trait_xenophobia:ideology_meritocratic|ideology_patriotic|ideology_reactionary": {
+    name: "interestGroup.variant.pettyBourgeoisie.turkey",
+    order: 110,
+  },
+  "ig_intelligentsia:ig_trait_avant_garde|ig_trait_bachareis|ig_trait_brasilidade|ig_trait_propagandists|ig_trait_social_criticism:ideology_anti_clerical|ideology_anti_slavery|ideology_constitutionalist|ideology_liberal": {
+    name: "interestGroup.variant.intelligentsia.brazil",
+    order: 50,
+  },
+  "ig_intelligentsia:ig_trait_avant_garde|ig_trait_les_beaux_arts|ig_trait_social_criticism:ideology_anti_clerical|ideology_anti_slavery|ideology_liberal|ideology_republican": {
+    name: "interestGroup.variant.intelligentsia.france",
+    order: 60,
+  },
+  "ig_intelligentsia:ig_trait_avant_garde|ig_trait_propagandists|ig_trait_social_criticism:ideology_anti_slavery|ideology_liberal|ideology_republican": {
+    name: "interestGroup.variant.intelligentsia.rome",
+    order: 70,
+  },
+  "ig_intelligentsia:ig_trait_avant_garde|ig_trait_crisis_of_identity|ig_trait_propagandists:ideology_anti_clerical|ideology_anti_slavery|ideology_liberal|ideology_republican": {
+    name: "interestGroup.variant.intelligentsia.russiaTurkey",
+    order: 80,
+  },
 };
 
 function interestGroupCountryVariantKey(groupKey, traits, ideologies) {
@@ -513,8 +651,7 @@ function interestGroupVariants(group) {
     const variant = ensureVariant(conditionVariant);
     if (!variant) continue;
     variant.isConditionVariant = true;
-    variant.name = conditionVariant.name_zh
-      || interestGroupConditionFlavorDefinition[`${groupKey}:${conditionVariant.key}`]?.name
+    variant.name = interestGroupConditionFlavorDefinition[`${groupKey}:${conditionVariant.key}`]?.name
       || variant.name
       || conditionVariant.key;
     const rule = {
@@ -588,6 +725,7 @@ function interestGroupVariants(group) {
       }
     }
   }
+  applyArmedForcesConditionFlavorGrouping(groupKey, variants);
   for (const flavor of group?.potential_flavors || []) {
     const variant = ensureVariant(flavor);
     if (!variant) continue;
@@ -833,7 +971,7 @@ function interestGroupFlavorSelectorHtml(group, variants) {
     <div class="interest-group-flavor-selector">
       <label>
         <span>${escapeHtml(t("interestGroup.traitFlavor"))}</span>
-        <select data-interest-group-flavor-select aria-label="${escapeHtml(t("interestGroup.traitFlavor"))}">
+        <select data-interest-group-flavor-select data-interest-group-flavor-page aria-label="${escapeHtml(t("interestGroup.traitFlavor"))}">
           <option value="${escapeHtml(baseFlavor.key)}">${escapeHtml(baseFlavor.name)}</option>
           ${optionGroups.map((entry) => `
             <optgroup label="${escapeHtml(interestGroupFlavorGroupLabel(entry.key))}">
@@ -846,6 +984,81 @@ function interestGroupFlavorSelectorHtml(group, variants) {
     <div class="interest-group-flavor-states">
       ${flavors.map((flavor, index) => interestGroupFlavorStateHtml(group, flavor, index === 0)).join("")}
     </div>
+  `;
+}
+
+function bindInterestGroupFlavorPageLinks(container, group) {
+  container.querySelectorAll("[data-interest-group-flavor-page]").forEach((selector) => {
+    selector.addEventListener("change", () => {
+      if (!selector.value || selector.value === "base") return;
+      location.hash = interestGroupFlavorRoute(group.key, selector.value);
+    });
+  });
+}
+
+function interestGroupFlavorRoute(groupKey, flavorKey) {
+  return `/interest-group/${encodeURIComponent(groupKey)}/flavor/${encodeURIComponent(flavorKey)}`;
+}
+
+function interestGroupFlavorLinkHtml(group, flavor) {
+  return `<a href="#${interestGroupFlavorRoute(group.key, flavor.key)}">${escapeHtml(flavor.name || flavor.key)}</a>`;
+}
+
+function interestGroupFlavorHeadingHtml(group, flavor) {
+  return `${escapeHtml(flavor.name || flavor.key)}<span class="interest-group-detail-flavor-names">（<a class="interest-group-flavor-parent" href="#/interest-group/${encodeURIComponent(group.key)}">${escapeHtml(entityText(group))}</a>）</span>`;
+}
+
+function interestGroupFlavorLinkRowsHtml(group, variants) {
+  const named = variants.filter((variant) => !variant.isTraitOnly && !variant.isConditionVariant);
+  const condition = variants.filter((variant) => variant.isConditionVariant);
+  const country = variants.filter((variant) => variant.isTraitOnly);
+  const row = (category, items) => items.length ? `
+    <section class="interest-group-flavor-link-row interest-group-flavor-link-row--${escapeHtml(category)}">
+      <h3>${escapeHtml(interestGroupFlavorGroupLabel(category))}</h3>
+      <div>${items.map((flavor) => interestGroupFlavorLinkHtml(group, flavor)).join(t("interestGroup.flavorSeparator", " / "))}</div>
+    </section>
+  ` : "";
+  return {
+    heading: named.length ? `<span class="interest-group-detail-flavor-names">（${named.map((flavor) => interestGroupFlavorLinkHtml(group, flavor)).join(t("interestGroup.flavorSeparator", " / "))}）</span>` : "",
+    rows: `${row("condition", condition)}${row("country", country)}`,
+  };
+}
+
+function renderInterestGroupFlavorBoardDetail(group, flavor) {
+  const flavorOption = interestGroupFlavorOptions(group, [flavor]).find((option) => option.key === flavor.key);
+  const flavorTraits = flavorOption?.traits || group.base_traits || [];
+  const ideologies = interestGroupFlavorIdeologies(group, flavor);
+  return `
+    <section class="interest-group-board-shell interest-group-board-detail interest-group-flavor-page" style="${escapeHtml(interestGroupBoardColorStyle(group))}">
+      <a class="detail-back-button" href="#/interest-group/${encodeURIComponent(group.key)}" aria-label="${escapeHtml(t("ui.back"))}" title="${escapeHtml(t("ui.back"))}"><img class="lucide-icon" src="assets/lucide/icons/arrow-left.svg" alt="" aria-hidden="true"></a>
+      <header class="interest-group-detail-heading">
+        ${interestGroupIconHtml(group, "interest-group-detail-icon")}
+        <div>
+          <h2>${interestGroupFlavorHeadingHtml(group, flavor)}</h2>
+          <p class="minor">${escapeHtml(flavor.key)}</p>
+          <p class="interest-group-detail-description">${escapeHtml(cleanDescriptionText(entityText(group, "description", "")))}</p>
+        </div>
+      </header>
+      <section class="interest-group-detail-section interest-group-trait-section">
+        <div class="interest-group-detail-section-heading"><h2>${escapeHtml(t("interestGroup.traits"))}</h2></div>
+        ${interestGroupTraitSlotListHtml(flavorTraits)}
+      </section>
+      <section class="interest-group-detail-section">
+        <div class="interest-group-detail-section-heading"><h2>${escapeHtml(t("interestGroup.applicableCountries"))}</h2></div>
+        ${interestGroupCountryList(flavor.countries)}
+      </section>
+      ${flavor.rules.length ? `
+        <section class="interest-group-detail-section">
+          <div class="interest-group-detail-section-heading"><h2>${escapeHtml(t("interestGroup.triggerRules"))}</h2></div>
+          ${interestGroupRuleDetails(flavor.rules)}
+        </section>
+      ` : ""}
+      <section class="interest-group-detail-section">
+        <div class="interest-group-detail-section-heading"><h2>${escapeHtml(t("interestGroup.ideologies"))}</h2></div>
+        ${interestGroupIdeologySummaryHtml(group, ideologies)}
+      </section>
+      ${interestGroupPopulationAttractionHtml(group.pop_attraction)}
+    </section>
   `;
 }
 
@@ -921,21 +1134,19 @@ function bindInterestGroupFlavorSelector(container) {
 
 function renderInterestGroupBoardDetail(group) {
   const variants = interestGroupVariants(group);
-  const flavorNames = variants
-    .filter((variant) => !variant.isTraitOnly && !variant.isConditionVariant)
-    .map((variant) => variant.name)
-    .filter(Boolean);
+  const flavorLinks = interestGroupFlavorLinkRowsHtml(group, variants);
   return `
-    <section class="interest-group-board-shell interest-group-board-detail">
+    <section class="interest-group-board-shell interest-group-board-detail" style="${escapeHtml(interestGroupBoardColorStyle(group))}">
       <a class="detail-back-button" href="#/interest-group" aria-label="${escapeHtml(t("ui.back"))}" title="${escapeHtml(t("ui.back"))}"><img class="lucide-icon" src="assets/lucide/icons/arrow-left.svg" alt="" aria-hidden="true"></a>
-      <header class="interest-group-detail-heading" style="${escapeHtml(interestGroupBoardColorStyle(group))}">
+      <header class="interest-group-detail-heading">
         ${interestGroupIconHtml(group, "interest-group-detail-icon")}
         <div>
-          <h2>${escapeHtml(entityText(group))}${flavorNames.length ? `<span class="interest-group-detail-flavor-names">（${escapeHtml(flavorNames.join(t("interestGroup.flavorSeparator", " / ")))}）</span>` : ""}</h2>
+          <h2>${escapeHtml(entityText(group))}${flavorLinks.heading}</h2>
           <p class="minor">${escapeHtml(group.key)}</p>
           <p class="interest-group-detail-description">${escapeHtml(cleanDescriptionText(entityText(group, "description", "")))}</p>
         </div>
       </header>
+      ${flavorLinks.rows}
       <section class="interest-group-detail-section interest-group-trait-section">
         <div class="interest-group-detail-section-heading"><h2>${escapeHtml(t("interestGroup.traits"))}</h2></div>
         ${interestGroupFlavorSelectorHtml(group, variants)}
@@ -953,8 +1164,12 @@ function renderInterestGroupBoard() {
   els.countryList.className = "country-list interest-group-board";
   els.detail.innerHTML = "";
   if (selected) {
-    els.countryList.innerHTML = renderInterestGroupBoardDetail(selected);
+    const flavor = interestGroupVariants(selected).find((item) => item.key === state.selectedInterestGroupFlavor);
+    els.countryList.innerHTML = flavor
+      ? renderInterestGroupFlavorBoardDetail(selected, flavor)
+      : renderInterestGroupBoardDetail(selected);
     bindInterestGroupFlavorSelector(els.countryList);
+    bindInterestGroupFlavorPageLinks(els.countryList, selected);
     renderMap([]);
     return;
   }
@@ -1823,7 +2038,7 @@ function renderGlobalSearchList(results) {
       <button class="country-row global-result-row" type="button" data-global-result="${escapeHtml(result.id)}" aria-current="${result.id === state.selectedGlobalResult}">
         <span class="country-heading">
           ${result.kind === "country" ? countryFlagIconHtml(result.raw, "country-flag-inline") : result.color ? `<span class="country-color" style="${colorStyle(result.color)}" aria-hidden="true"></span>` : ""}
-          <span class="tag">${escapeHtml(result.key)}</span>
+          ${globalSearchResultIdentifier(result) ? `<span class="tag">${escapeHtml(globalSearchResultIdentifier(result))}</span>` : ""}
           <span class="name">${escapeHtml(result.displayTitle || result.title)}</span>
         </span>
         <span class="minor country-meta">${escapeHtml(result.subtitle || result.searchHint || "")}</span>
@@ -1863,14 +2078,17 @@ function renderGlobalSearchDialogResults() {
     <div class="list-section-title">${escapeHtml(group.label)}</div>
     ${group.items.map((result) => {
       const active = itemIndex === state.globalSearchActiveIndex;
+      const badge = globalSearchResultBadge(result);
       const html = `
-        <button class="country-row global-result-row" type="button" data-global-dialog-result="${escapeHtml(result.id)}" data-result-kind="${escapeHtml(result.kind)}" data-result-key="${escapeHtml(result.navigationKey || result.key)}" aria-selected="${active}">
-          ${renderEntityBadge(result.kind, result.raw || result, result.displayTitle || result.title)}
-          <span class="country-heading">
-            <span class="tag">${escapeHtml(result.key)}</span>
-            <span class="name">${escapeHtml(result.displayTitle || result.title)}</span>
+        <button class="country-row global-result-row ${badge ? "global-result-row--with-icon" : "global-result-row--compact"}" type="button" data-global-dialog-result="${escapeHtml(result.id)}" data-result-kind="${escapeHtml(result.kind)}" data-result-key="${escapeHtml(result.navigationKey || result.key)}" aria-selected="${active}">
+          ${badge}
+          <span class="global-search-result-content">
+            <span class="country-heading">
+              ${globalSearchResultIdentifier(result) ? `<span class="tag">${escapeHtml(globalSearchResultIdentifier(result))}</span>` : ""}
+              <span class="name">${escapeHtml(result.displayTitle || result.title)}</span>
+            </span>
+            ${(result.subtitle || result.searchHint) ? `<span class="minor country-meta">${escapeHtml(result.subtitle || result.searchHint || "")}</span>` : ""}
           </span>
-          <span class="minor country-meta">${escapeHtml(result.subtitle || result.searchHint || "")}</span>
         </button>
       `;
       itemIndex += 1;
@@ -1899,12 +2117,11 @@ async function navigateGlobalSearchResult(kind, key) {
   if (!kind || !key) return;
   if (kind !== "country") state.globalSearchColorRestoreTag = "";
   if (kind === "interestGroupFlavor") {
-    const [countryTag, groupKey] = key.split(":");
-    if (!countryTag || !groupKey) return;
-    replaceHash(`/country/${encodeURIComponent(countryTag)}`);
+    const [groupKey, flavorKey] = key.split(":");
+    if (!groupKey || !flavorKey) return;
+    replaceHash(interestGroupFlavorRoute(groupKey, flavorKey));
     await applyHash();
     render();
-    focusInterestGroupFlavorResult(countryTag, groupKey);
     return;
   }
   if (kind === "country") {
@@ -1921,6 +2138,18 @@ async function navigateGlobalSearchResult(kind, key) {
   else if (kind === "law") replaceHash(`/law/${encodeURIComponent(key)}`);
   else if (kind === "technology") replaceHash(`/technology/${encodeURIComponent(key)}`);
   else if (kind === "achievement") replaceHash(`/achievement/${encodeURIComponent(key)}`);
+  else if (kind === "building") replaceHash(`/building/${encodeURIComponent(key)}`);
+  else if (kind === "goods") replaceHash(`/goods/${encodeURIComponent(key)}`);
+  else if (kind === "prestigeGood") {
+    const good = prestigeGoodByKey.get(key);
+    if (!good?.base_good_key) return;
+    replaceHash(`/goods/${encodeURIComponent(good.base_good_key)}`);
+  }
+  else if (kind === "productionMethodGroup" || kind === "productionMethod") {
+    const buildingKey = globalSearchEconomyBuildingKey(kind, key);
+    if (!buildingKey) return;
+    replaceHash(`/building/${encodeURIComponent(buildingKey)}`);
+  }
   else return;
   await applyHash();
   render();
@@ -1942,7 +2171,14 @@ function renderGlobalSearchDetail(result) {
   if (result.kind === "cultureTrait" || result.kind === "cultureTraitGroup") return renderCultureTraitDetail(result);
   if (result.kind === "interestGroup") return renderInterestGroupDetail(result);
   if (result.kind === "interestGroupTrait") return renderInterestGroupTraitDetail(result);
-  if (result.kind === "interestGroupFlavor") return renderCountryDetail(byTag.get(result.countryTag));
+  if (result.kind === "interestGroupFlavor") {
+    const group = byInterestGroup.get(result.interestGroupKey);
+    const flavor = interestGroupVariants(group).find((item) => item.key === result.key);
+    if (group && flavor) {
+      els.detail.innerHTML = renderInterestGroupFlavorBoardDetail(group, flavor);
+      return;
+    }
+  }
   els.detail.innerHTML = `
     <div class="detail-title">
       <div class="detail-title-main"><h2>${escapeHtml(result.title)}</h2></div>
@@ -1960,7 +2196,10 @@ function globalSearchResults(query) {
   if (!needle) return [];
   const results = (window.VIC3_SEARCH_INDEX?.entries || []).flatMap((entry) => {
     const names = Object.values(entry.names || {}).filter(Boolean);
-    const haystack = normalizeSearchText([entry.key, ...names].join(" "));
+    const countryNames = entry.kind === "interestGroupFlavor"
+      ? (entry.countryTags || []).map((tag) => entityText(byTag.get(tag) || { tag }))
+      : [];
+    const haystack = normalizeSearchText([entry.key, entry.interestGroupKey, ...(entry.countryTags || []), ...countryNames, ...names].join(" "));
     if (!haystack.includes(needle)) return [];
     const title = entry.names?.[localeRuntime.current] || entry.names?.en || entry.key;
     const aliases = [...new Set(names.filter((name) => name !== title))];
@@ -1980,7 +2219,9 @@ function globalSearchResults(query) {
       typeLabel: t(`entity.${kind}`),
       title,
       aliases,
-      raw: searchResultEntity(kind, entry.key),
+      raw: searchResultEntity(kind, entry.key, entry),
+      subtitle: kind === "interestGroupFlavor" ? entityText(byInterestGroup.get(entry.interestGroupKey)) : "",
+      countryTags: entry.countryTags || [],
       score,
     };
     return [{ ...result, displayTitle: globalSearchDisplayTitle(result, needle) }];
@@ -1995,7 +2236,7 @@ function searchResultKind(kind) {
   return kind === "region" ? "stateRegion" : kind;
 }
 
-function searchResultEntity(kind, key) {
+function searchResultEntity(kind, key, entry = null) {
   if (kind === "country") return byTag.get(key);
   if (kind === "culture") return byCulture.get(key);
   if (kind === "stateRegion") return byStateRegion.get(key);
@@ -2006,10 +2247,34 @@ function searchResultEntity(kind, key) {
   if (kind === "law") return lawByKey.get(key);
   if (kind === "technology") return technologyByKey.get(key);
   if (kind === "achievement") return achievementByKey.get(key);
+  if (kind === "building") return buildingRecordByKey.get(key);
+  if (kind === "goods") return goodByKey.get(key);
+  if (kind === "prestigeGood") return prestigeGoodByKey.get(key);
+  if (kind === "productionMethodGroup") return productionMethodGroupByKey.get(key);
+  if (kind === "productionMethod") return productionMethodByKey.get(key);
   if (kind === "cultureTrait") return cultureTraitByKey.get(key);
   if (kind === "interestGroup") return interestGroups.find((item) => item.key === key);
   if (kind === "interestGroupTrait") return interestGroupTraitByKey.get(key);
+  if (kind === "interestGroupFlavor") return byInterestGroup.get(entry?.interestGroupKey);
   return null;
+}
+
+function globalSearchResultBadge(result) {
+  const badge = renderEntityBadge(result.kind, result.raw || result, result.displayTitle || result.title);
+  return badge.includes("<img") ? badge : "";
+}
+
+function globalSearchResultIdentifier(result) {
+  return result.kind === "country" ? result.key : "";
+}
+
+function globalSearchEconomyBuildingKey(kind, key) {
+  if (kind === "productionMethodGroup") {
+    return buildings.find((building) => (building.production_method_group_keys || []).includes(key))?.key || "";
+  }
+  return buildings.find((building) => (building.production_method_group_keys || []).some((groupKey) => (
+    productionMethodGroupByKey.get(groupKey)?.production_method_keys?.includes(key)
+  )))?.key || "";
 }
 
 function normalizeSearchText(value) {

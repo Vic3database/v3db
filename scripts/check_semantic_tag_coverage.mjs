@@ -10,6 +10,8 @@ const components = read("site/app/components.js");
 const presentation = read("site/app/presentation.js");
 const ui = read("site/app/ui.js");
 const definitions = read("site/app/tag-tooltip-definitions.js");
+const uiZh = read("site/locales/ui.zh-Hans.js");
+const uiEn = read("site/locales/ui.en.js");
 const recordStyles = read("site/styles/records.css");
 
 for (const mapName of ["stateTraitByKey", "stateTraitRegionsByKey", "buildingByKey", "goodsByKey"]) {
@@ -48,15 +50,16 @@ requireMatch(components, /state-trait-category/, "state trait categories need a 
 
 for (const kind of ["stateTrait", "building", "goods", "technology"]) {
   requireMatch(ui, new RegExp(`kind === "${kind}"`), `${kind} tooltip entity resolver is missing`);
-  requireMatch(ui, new RegExp(`${kind}: "`), `${kind} tooltip label is missing`);
+  requireMatch(uiZh, new RegExp(`"tooltip\\.kind\\.${kind}"\\s*:`), `${kind} Chinese tooltip label is missing`);
+  requireMatch(uiEn, new RegExp(`"tooltip\\.kind\\.${kind}"\\s*:`), `${kind} English tooltip label is missing`);
 }
 const conceptTooltipContent = functionSource(ui, "conceptTooltipContent");
 requireMatch(conceptTooltipContent, /conceptSecondaryDescription/, "tooltip content must render a secondary description section");
 requireMatch(conceptTooltipContent, /concept-tooltip-divider/, "tooltip content must divide its secondary description section");
 const countryTooltipMainInfo = functionSource(ui, "countryTooltipMainInfo");
-requireMatch(countryTooltipMainInfo, /primaryCulturesZh/, "country tooltip main information must include primary cultures");
-requireMatch(countryTooltipMainInfo, /religionZh/, "country tooltip main information must include religion");
-requireMatch(countryTooltipMainInfo, /capitalZh/, "country tooltip main information must include capital location");
+requireMatch(countryTooltipMainInfo, /country\.primaryCultures[\s\S]*entityText\(byCulture\.get\(key\)\)/, "country tooltip main information must include localized primary cultures");
+requireMatch(countryTooltipMainInfo, /localizedReligionName\(country\.religion\)/, "country tooltip main information must include localized religion");
+requireMatch(countryTooltipMainInfo, /entityText\(byStateRegion\.get\(country\.capital\)\)/, "country tooltip main information must include localized capital location");
 const stateRegionTooltipContext = functionSource(ui, "conceptTooltipContextLine");
 assert.equal(stateRegionTooltipContext.includes("resourceSummaryText"), false, "state region tooltip context must not render resources as text");
 requireMatch(conceptTooltipContent, /stateRegionTooltipResourceHtml/, "state region tooltips must render a dedicated resource icon summary");
@@ -118,6 +121,9 @@ for (const region of regions.stateRegions) {
 const descriptionContext = {
   stateTraitRegionsByKey,
   technologyRefNames: (items) => items.map((item) => item.name_zh || item.key).join("、"),
+  modifierSummaryLabel: (modifier) => modifier.key === "building_group_bg_logging_throughput_add" ? "伐木业吞吐量 +20%" : modifier.key,
+  entityText: (entity) => entity?.name_zh || entity?.key || "",
+  t: (_key, fallback) => typeof fallback === "string" ? fallback : _key,
 };
 vm.runInNewContext(`${functionSource(components, "stateTraitTooltipDescription")}; this.describeStateTrait = stateTraitTooltipDescription;`, descriptionContext);
 vm.runInNewContext(`${functionSource(components, "stateTraitTooltipSecondaryDescription")}; this.describeStateTraitSecondary = stateTraitTooltipSecondaryDescription;`, descriptionContext);
@@ -126,11 +132,23 @@ const regionalSecondaryDescription = descriptionContext.describeStateTraitSecond
 const genericDescription = descriptionContext.describeStateTrait(naturalHarbors[0], regions.stateRegions.find((region) => region.key === "STATE_SVEALAND"));
 const genericSecondaryDescription = descriptionContext.describeStateTraitSecondary(naturalHarbors[0], regions.stateRegions.find((region) => region.key === "STATE_SVEALAND"));
 assert.equal(regionalDescription, "伐木业吞吐量 +20%", "state trait effects must display without a redundant heading");
-assert.match(regionalSecondaryDescription, /拥有该特质的地区：\n约塔兰/, "regional state traits must name their other regions in a separate section");
+assert.match(regionalSecondaryDescription, /拥有该特质的地区：\nSTATE_GOTALAND/, "regional state traits must name their other regions in a separate section");
 assert.equal(genericDescription.includes("\u6548\u679c\uFF1A"), false, "generic state trait effects must not add a redundant heading");
 assert.equal(genericSecondaryDescription, "", "generic state traits must not list every region that uses them");
 
-const countryContext = {};
+const countryContext = {
+  byCulture: new Map((sweden.primaryCultures || []).map((key) => [key, { key, name_zh: "瑞典" }])),
+  byStateRegion: new Map([[sweden.capital, { key: sweden.capital, name_zh: "斯韦阿兰" }]]),
+  entityText: (entity) => entity?.name_zh || entity?.key || "",
+  localizedReligionName: () => "新教",
+  t: (key, values) => {
+    if (key === "ui.listSeparator") return "、";
+    if (key === "tooltip.country.primaryCultures") return `主流文化：${values.value}`;
+    if (key === "tooltip.country.religion") return `宗教：${values.value}`;
+    if (key === "tooltip.country.capital") return `首都：${values.value}`;
+    return key;
+  },
+};
 vm.runInNewContext(`${countryTooltipMainInfo}; this.describeCountry = countryTooltipMainInfo;`, countryContext);
 assert.equal(countryContext.describeCountry(sweden), "主流文化：瑞典\n宗教：新教\n首都：斯韦阿兰", "country tooltips must show primary culture, religion, and capital location");
 
@@ -153,7 +171,16 @@ function requireMatch(source, pattern, message) {
 function functionSource(source, name) {
   const start = source.indexOf(`function ${name}(`);
   if (start < 0) return "";
-  const bodyStart = source.indexOf("{", start);
+  let parameterDepth = 0;
+  let bodyStart = -1;
+  for (let index = source.indexOf("(", start); index < source.length; index += 1) {
+    if (source[index] === "(") parameterDepth += 1;
+    if (source[index] === ")" && --parameterDepth === 0) {
+      bodyStart = source.indexOf("{", index);
+      break;
+    }
+  }
+  if (bodyStart < 0) return "";
   let depth = 0;
   for (let index = bodyStart; index < source.length; index += 1) {
     if (source[index] === "{") depth += 1;

@@ -1310,7 +1310,7 @@ body[data-view="law"][data-results-panel="collapsed"] .detail {
   touch-action: pan-x;
 }
 
-@media (max-width: 1180px) and (max-aspect-ratio: 3 / 2) {
+@media (max-aspect-ratio: 3 / 2) {
   .layout::before {
     display: none;
   }

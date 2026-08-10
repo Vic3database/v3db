@@ -90,7 +90,9 @@ assert.match(appSource, /lawDisplayName\(law\)/, "law rows should render variant
 assert.match(appSource, /lawEffectListHtml\(law\)/, "law details should render effects as a list");
 assert.match(appSource, /function\s+renderLawBoard\s*\([^)]*\)\s*{[\s\S]*filtered\.length/, "law board should expose the filtered law count");
 assert.match(appSource, /view: "law"/, "home law entry should link to the law board");
-assert.match(indexSource, /data-nav-view="law"[\s\S]*assets\/lucide\/icons\/scale\.svg/, "law nav should use the scale icon");
+const lawNavigation = indexSource.match(/<button class="topbar-nav-item"[^>]*data-nav-view="law"[^>]*>[\s\S]*?<\/button>/)?.[0] || "";
+assert.doesNotMatch(lawNavigation, /<img\b/, "top navigation board entries must remain text-only");
+assert.match(appSource, /view: "law", icon: "assets\/home\/law_enforcement\.png"/, "the homepage law entry must retain its game icon");
 assert.match(indexSource, /<div id="countryList" class="country-list"><\/div>/, "content panel should expose the shared list container");
 assert.match(indexSource, /id="commonLawIdeologyFilter"/, "common-only law and ideology checkbox is missing");
 assert.doesNotMatch(appSource, /（运动）/, "movement labels should use ASCII parentheses");

@@ -13,6 +13,27 @@ function renderEntityBadge(kind, entity, label = "") {
   if (kind === "company") {
     return companyIconHtml(entity).replace('class="company-logo"', 'class="entity-badge entity-badge-company"');
   }
+  if (kind === "law") {
+    return lawIconHtml(entity, "entity-badge entity-badge-law");
+  }
+  if (kind === "technology") {
+    return technologyIconHtml(entity, "entity-badge entity-badge-technology");
+  }
+  if (kind === "achievement") {
+    return achievementIconHtml(entity, "entity-badge entity-badge-achievement");
+  }
+  if (kind === "building") {
+    return economyEntityIconHtml(entity, "buildings", "entity-badge entity-badge-economy");
+  }
+  if (kind === "goods") {
+    return economyEntityIconHtml(entity, "goods", "entity-badge entity-badge-economy");
+  }
+  if (kind === "prestigeGood") {
+    return economyEntityIconHtml(entity, "prestige-goods", "entity-badge entity-badge-economy");
+  }
+  if (kind === "productionMethodGroup" || kind === "productionMethod") {
+    return economyEntityIconHtml(entity, "production-methods", "entity-badge entity-badge-economy");
+  }
   if (kind === "ideology") {
     return ideologyIconHtml(entity, "entity-badge entity-badge-ideology");
   }
@@ -38,7 +59,7 @@ function renderCountryList(filtered) {
         ${rowDetailButton("data-country-detail", country.tag)}
       </span>
       <span class="minor country-meta">${countryCapitalText(country)}</span>
-      <span class="minor country-meta">${t("board.country.primaryCulture", "主流文化")}${t("ui.colon")}${(country.primaryCultures || []).map((cultureRef) => entityText(byCulture.get(cultureRef.key) || cultureRef)).filter(Boolean).join(t("ui.listSeparator")) || t("board.country.none", "无")}</span>
+      <span class="minor country-meta">${t("board.country.primaryCulture", "主流文化")}${t("ui.colon")}${(country.primaryCultures || []).map((cultureRef) => entityText(byCulture.get(cultureRef?.key || cultureRef) || cultureRef)).filter(Boolean).join(t("ui.listSeparator")) || t("board.country.none", "无")}</span>
       <span class="pill-line country-tags">${countryTagPills(country)}</span>
     </article>
   `).join("");
@@ -333,6 +354,12 @@ function selectCountryCard(countryTag) {
   commitCountrySelection(countryTag);
 }
 
+function scrollCountryCardIntoView(countryTag) {
+  requestAnimationFrame(() => {
+    rowsForSelection("data-country", countryTag)[0]?.scrollIntoView({ block: "center", behavior: "smooth" });
+  });
+}
+
 function selectCountryFromMap(countryTag) {
   if (!countryTag || !byTag.has(countryTag)) return;
   if (!mapRuntime.filteredCountryTags.has(countryTag)) {
@@ -340,6 +367,7 @@ function selectCountryFromMap(countryTag) {
     return;
   }
   commitCountrySelection(countryTag);
+  scrollCountryCardIntoView(countryTag);
 }
 
 function openCountryDetail(countryTag) {
@@ -693,37 +721,13 @@ function lawProgressivenessLabel(value) {
 
 function globalSearchDisplayTitle(result, needle) {
   const title = result.title || result.key || "";
+  if (localeRuntime.current === "zh-Hans") return title;
   const aliases = result.aliases || [];
   if (result.kind === "interestGroupFlavor" && aliases.length) return `${title}（${aliases.join("/")}）`;
   const matchedAliases = aliases.filter((alias) => normalizeSearchText(alias).includes(needle));
   if (!matchedAliases.length) return title;
   const remainingAliases = aliases.filter((alias) => !matchedAliases.includes(alias));
   return `${title}（${[...matchedAliases, ...remainingAliases].join("/")}）`;
-}
-
-function interestGroupFlavorSearchResults() {
-  const candidates = countries.flatMap((country) => (country.interestGroups || [])
-    .filter((group) => group.display_name?.is_flavored)
-    .map((group) => ({
-      id: `interestGroupFlavor:${country.tag}:${group.key}`,
-      kind: "interestGroupFlavor",
-      typeLabel: "利益集团风味",
-      key: group.key,
-      navigationKey: `${country.tag}:${group.key}`,
-      title: entityText(group.display_name || group),
-      aliases: [entityText(group)].filter((name) => name && name !== entityText(group.display_name)),
-      subtitle: entityText(country),
-      raw: group,
-      countryTag: country.tag,
-      searchText: [country.tag, entityText(country), group.key, entityText(group), group.display_name?.key, entityText(group.display_name)].filter(Boolean).join(" "),
-    })));
-  const byFlavor = new Map();
-  for (const candidate of candidates) {
-    const identity = `${candidate.key}:${candidate.title}`;
-    const current = byFlavor.get(identity);
-    if (!current || candidate.countryTag === "JAP") byFlavor.set(identity, candidate);
-  }
-  return [...byFlavor.values()];
 }
 
 function matchesCommonLawAndIdeologyFilter(item, kind) {
@@ -957,7 +961,7 @@ function renderCountryDetail(country) {
     els.detail.innerHTML = `<p class="empty">${t("board.country.empty", "没有匹配结果。")}</p>`;
     return;
   }
-  const primaryCultureNames = (country.primaryCultures || []).map((item) => entityText(byCulture.get(item.key) || item)).filter(Boolean);
+  const primaryCultureNames = (country.primaryCultures || []).map((item) => entityText(byCulture.get(item?.key || item) || item)).filter(Boolean);
   const capitalName = country.capital ? entityText(byStateRegion.get(country.capital), "name", country.capital) || country.capital : "";
   els.detail.innerHTML = `
     <div class="detail-title">

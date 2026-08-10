@@ -15,6 +15,7 @@ const collections = [
   ["buildings", "buildings"],
   ["goods", "goods"],
   ["prestige_goods", "prestige-goods"],
+  ["production_method_groups", "production-methods"],
   ["production_methods", "production-methods"],
 ];
 const counts = {};

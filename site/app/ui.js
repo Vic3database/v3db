@@ -760,7 +760,7 @@ function scheduleConceptTooltip(target, event) {
     clearConceptTooltipTimer();
     if (!delayedTarget?.isConnected || !delayedPoint) return;
     showConceptTooltip(delayedTarget, delayedPoint);
-  }, CONCEPT_TOOLTIP_DELAY_MS);
+  }, target.dataset.conceptKind === "ideology" ? 0 : CONCEPT_TOOLTIP_DELAY_MS);
 }
 
 function conceptTooltipPoint(event) {
@@ -988,13 +988,18 @@ function conceptTooltipDescription(target, kind, key, label) {
 function countryTooltipMainInfo(country) {
   if (!country) return "";
   const primaryCultures = (country.primaryCultures || []).map((key) => entityText(byCulture.get(key)) || key).filter(Boolean).join(t("ui.listSeparator"));
-  const religion = entityText(country.religion) || country.religion || "";
+  const religion = localizedReligionName(country.religion);
   const capital = entityText(byStateRegion.get(country.capital)) || country.capital || "";
   return [
     primaryCultures ? t("tooltip.country.primaryCultures", { value: primaryCultures }) : "",
     religion ? t("tooltip.country.religion", { value: religion }) : "",
     capital ? t("tooltip.country.capital", { value: capital }) : "",
   ].filter(Boolean).join("\n");
+}
+
+function localizedReligionName(key) {
+  if (!key) return "";
+  return translateMessage(`religion:${key}.name`, key);
 }
 
 function conceptTooltipEntity(kind, key) {
@@ -1308,11 +1313,23 @@ async function applyHash() {
   if (parts[0] === "interest-group" && !parts[1]) {
     changeBoard("interest-group", "interestGroup");
     state.selectedInterestGroup = "";
+    state.selectedInterestGroupFlavor = "";
     return;
+  }
+  if (parts[0] === "interest-group" && parts[1] && parts[2] === "flavor" && parts[3] && byInterestGroup.has(decodeURIComponent(parts[1]))) {
+    changeBoard("interest-group", "interestGroup");
+    const group = byInterestGroup.get(decodeURIComponent(parts[1]));
+    const flavor = interestGroupVariants(group).find((item) => item.key === decodeURIComponent(parts[3]));
+    if (flavor) {
+      state.selectedInterestGroup = group.key;
+      state.selectedInterestGroupFlavor = flavor.key;
+      return;
+    }
   }
   if (parts[0] === "interest-group" && parts[1] && byInterestGroup.has(decodeURIComponent(parts[1]))) {
     changeBoard("interest-group", "interestGroup");
     state.selectedInterestGroup = decodeURIComponent(parts[1]);
+    state.selectedInterestGroupFlavor = "";
     return;
   }
   if (parts[0] === "law" && !parts[1]) {
@@ -1376,7 +1393,10 @@ async function setView(view) {
   closeTopbarNavigationMenus();
   changeBoard(view, view === "region" ? "stateRegion" : view);
   if (view === "region") state.regionListMode = "state";
-  if (view === "interest-group") state.selectedInterestGroup = "";
+  if (view === "interest-group") {
+    state.selectedInterestGroup = "";
+    state.selectedInterestGroupFlavor = "";
+  }
   replaceHash(`/${view}`);
   await ensureDataChunksForRoute();
   renderStrategicRegionFilterOptions();

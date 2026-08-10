@@ -27,6 +27,8 @@ const expectedChunks = {
   law: ["laws", "lawGroups"],
   technology: ["technologies", "technologyEras"],
   achievement: ["achievements"],
+  building: ["buildings", "buildingGroups", "productionMethodGroups", "productionMethods"],
+  goods: ["goods", "prestigeGoods"],
 };
 
 for (const [key, keys] of Object.entries(expectedChunks)) {
@@ -78,6 +80,7 @@ assert(/async function openGlobalSearchDialog\(\)[\s\S]*ensureDataChunks\(Object
 assert(/for \(const key of pending\)/.test(appSource), "data chunks must load sequentially because they share a browser global");
 assert(/versions\/\$\{loadedDataVersion\}/.test(appSource), "chunk URLs must use the selected version");
 assert(/window\.VIC3_LOCALE_CHUNKS\?\.?\[entry\.id\]/.test(appSource), "locale chunks must be read through their unique ids");
+assert(/entry\.sha256/.test(appSource), "locale chunk URLs should use their content hash for cache invalidation");
 
 console.log(JSON.stringify({
   data_chunking: "ok",

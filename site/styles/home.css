@@ -451,6 +451,21 @@ body[data-view="interest-group"] .results {
   letter-spacing: 0.02em;
 }
 
+.interest-group-detail-flavor-names a,
+.interest-group-flavor-parent {
+  color: inherit;
+  text-decoration-color: color-mix(in srgb, currentColor 62%, transparent);
+  text-underline-offset: 0.12em;
+}
+
+.interest-group-detail-flavor-names a:hover,
+.interest-group-detail-flavor-names a:focus-visible,
+.interest-group-flavor-parent:hover,
+.interest-group-flavor-parent:focus-visible {
+  color: var(--interest-group-text-color, var(--interest-group-color));
+  text-decoration-thickness: 2px;
+}
+
 .interest-group-detail-heading .minor {
   margin: 8px 0 0;
 }
@@ -470,6 +485,51 @@ body[data-view="interest-group"] .results {
 
 .interest-group-detail-section + .interest-group-detail-section {
   margin-top: 32px;
+}
+
+.interest-group-flavor-link-row {
+  display: grid;
+  grid-template-columns: 116px minmax(0, 1fr);
+  align-items: start;
+  gap: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-inline-start: 3px solid var(--interest-group-color);
+  background: color-mix(in srgb, var(--surface) 92%, var(--interest-group-background) 8%);
+}
+
+.interest-group-flavor-link-row + .interest-group-flavor-link-row {
+  margin-top: 10px;
+}
+
+.interest-group-flavor-link-row h3 {
+  margin: 2px 0 0;
+  color: var(--accent);
+  font-family: var(--font-body);
+  font-size: var(--text-lg);
+  letter-spacing: 0.05em;
+}
+
+.interest-group-flavor-link-row > div {
+  color: color-mix(in srgb, var(--interest-group-text-color, var(--interest-group-color)) 68%, var(--ink));
+  font-size: var(--text-lg);
+  line-height: 1.6;
+}
+
+.interest-group-flavor-link-row a {
+  color: var(--interest-group-text-color, var(--interest-group-color));
+  font-weight: 700;
+  text-decoration-line: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 72%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.14em;
+}
+
+.interest-group-flavor-link-row a:hover,
+.interest-group-flavor-link-row a:focus-visible {
+  color: var(--ink);
+  text-decoration-color: currentColor;
+  outline: none;
 }
 
 .interest-group-detail-section-heading {
@@ -773,26 +833,20 @@ body[data-view="interest-group"] .results {
 
 .home-category-list {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: start;
   gap: 14px;
 }
 
 .home-category-card {
-  grid-column: span 3;
+  grid-column: auto;
+  align-self: start;
   padding: 12px;
   border: 1px solid rgba(200, 164, 91, 0.3);
   border-radius: 8px;
   background: rgba(31, 33, 31, 0.46);
   box-shadow: var(--shadow);
   overflow: hidden;
-}
-
-.home-category-card[data-category="economy"] {
-  grid-column: span 4;
-}
-
-.home-category-card[data-category="military"] {
-  grid-column: span 2;
 }
 
 .home-category-heading {
@@ -814,17 +868,8 @@ body[data-view="interest-group"] .results {
 }
 
 .home-category-card .home-entry-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 36px;
-}
-
-.home-category-card[data-category="economy"] .home-entry-grid {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 36px;
-}
-
-.home-category-card[data-category="military"] .home-entry-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
 }
 
 .home-entry {
@@ -1378,6 +1423,11 @@ body[data-view="news"] .detail {
     font-size: 0.56em;
   }
 
+  .interest-group-flavor-link-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
   .interest-group-trait-slot-list,
   .interest-group-pop-attraction-list {
     grid-template-columns: 1fr;
@@ -1388,7 +1438,7 @@ body[data-view="news"] .detail {
   }
 }
 
-@media (max-width: 1180px) and (max-aspect-ratio: 3 / 2) {
+@media (max-aspect-ratio: 3 / 2) {
   body[data-view="home"] {
     overflow: auto;
   }
@@ -1474,20 +1524,18 @@ body[data-view="news"] .detail {
   }
 
   .home-category-card,
-  .home-category-card[data-category="economy"],
-  .home-category-card[data-category="military"] {
+  .home-category-card[data-category="economy"] {
     grid-column: auto;
   }
 
-  .home-category-card .home-entry-grid,
-  .home-category-card[data-category="economy"] .home-entry-grid,
-  .home-category-card[data-category="military"] .home-entry-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 520px) {
   .home-entry-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .home-category-list {
     grid-template-columns: minmax(0, 1fr);
   }
 }

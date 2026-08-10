@@ -49,6 +49,7 @@ function checkMapSelectionContracts() {
   const bindMapEvents = functionSource("bindMapEvents");
   const selectCountryFromMap = functionSource("selectCountryFromMap");
   const selectCountryCard = functionSource("selectCountryCard");
+  const scrollCountryCardIntoView = functionSource("scrollCountryCardIntoView");
 
   assert(/function\s+countryMapStateKeys\s*\(/.test(appSource), "country map should derive a selected country's default territory state keys");
   assert(/formationStateRegions[\s\S]*formationStates[\s\S]*formationRegion[\s\S]*startingStates/.test(functionSource("countryMapStateKeys")), "country map territory should prefer formation ranges before falling back to starting states");
@@ -75,13 +76,15 @@ function checkMapSelectionContracts() {
   assert(/highestStartingOverlord\(owner\)/.test(countryOwnerMapColor), "eligible subjects should use the highest starting overlord color");
   assert(/countryOwnerMapColor\(owner, ownerTag\)/.test(mapPixelColor), "map tooltip colors should share the owner-color decision path");
   assert(/state\.view\s*===\s*"country"[\s\S]*countryOwnerTagFromPointerEvent\(event\)[\s\S]*selectCountryFromMap\(/.test(bindMapEvents), "a left click on the country map should select the clicked country card");
-  assert(!/scrollIntoView\(/.test(selectCountryFromMap), "country map selection should not scroll the list");
+  assert(/scrollCountryCardIntoView\(countryTag\)/.test(selectCountryFromMap), "country map selection should locate the clicked country card in the list");
+  assert(/requestAnimationFrame\(/.test(scrollCountryCardIntoView) && /scrollIntoView\(/.test(scrollCountryCardIntoView), "country list focus should wait for the selection update before scrolling the card into view");
   assert(!/\brender\(\)/.test(selectCountryFromMap), "country map selection should not rebuild the board");
   assert(!/\brender\(\)/.test(selectCountryCard), "country card selection should not rebuild the board");
   assert(!/focusCountryOnMap\(/.test(selectCountryFromMap), "country map selection should preserve the map transform");
   assert(/commitCountrySelection\(/.test(selectCountryFromMap), "country map selection should use the shared fast commit path");
   assert(/mapRuntime\.filteredCountryTags\.has\(countryTag\)/.test(selectCountryFromMap), "country map selection should preserve filtered-out country clearing");
-  assert(/app\/boards\.js\?v=20260730-culture-mobile1/.test(indexSource), "fast country selection should use the current boards cache version");
+  assert(/app\/boards\.js\?v=20260810-interest-group-tooltip-layout1/.test(indexSource), "fast country selection should use the current boards cache version");
+  assert(/app\/presentation\.js\?v=20260810-global-search-localized-labels1/.test(indexSource), "country map list focus should use the current presentation cache version");
 }
 
 function highestStartingOverlordTag(tag) {

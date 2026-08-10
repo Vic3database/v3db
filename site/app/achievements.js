@@ -4,6 +4,11 @@ function achievementBoardAvailable() {
   return Boolean(dataIndex?.chunks?.achievement || achievements.length);
 }
 
+function achievementEnglishName(achievement) {
+  const entry = window.VIC3_SEARCH_INDEX?.entries?.find((item) => item.id === achievement.id);
+  return entry?.names?.en || localeRuntime.dataMessages?.en?.[achievement.loc?.name] || achievement.key;
+}
+
 function achievementMatches(achievement, query) {
   const haystack = [
     ...searchNames(achievement.id),
@@ -110,7 +115,7 @@ function renderAchievementDetail(achievement) {
   els.detail.innerHTML = `<article class="achievement-detail">
     <header class="achievement-detail-head">
       <img src="assets/achievements/${escapeHtml(achievement.key)}.webp" alt="">
-      <div><p class="achievement-detail-difficulty">${escapeHtml(difficultyName)}</p><h2>${escapeHtml(entityText(achievement))}</h2><p class="achievement-detail-english">${escapeHtml(achievement.key)}</p></div>
+      <div><p class="achievement-detail-difficulty">${escapeHtml(difficultyName)}</p><h2>${escapeHtml(entityText(achievement))}</h2><p class="achievement-detail-english">${escapeHtml(achievementEnglishName(achievement))}</p></div>
       <button type="button" data-achievement-back aria-label="${escapeHtml(t("board.achievement.closeDetail", "关闭成就详情"))}">×</button>
     </header>
     <section><h3>${t("board.achievement.officialDescription", "官方说明")}</h3><p>${escapeHtml(entityText(achievement, "description", t("ui.noDescription", "无说明")))}</p></section>

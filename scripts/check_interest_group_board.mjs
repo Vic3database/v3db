@@ -63,12 +63,14 @@ assert.ok(fs.existsSync(path.join(root, "site", "assets", "technologies", "corpo
 const topbarNavigationItems = [...indexSource.matchAll(/<button class="topbar-nav-item"[^>]*>([\s\S]*?)<\/button>/g)];
 assert.ok(topbarNavigationItems.length > 0, "top navigation needs board entries");
 assert.ok(topbarNavigationItems.every(([, content]) => !/<img\b/.test(content)), "top navigation board entries must not contain icons");
-assert.match(indexSource, /styles\.css\?v=20260809-interest-group-board16/, "interest-group stylesheet cache version is stale");
-assert.match(stylesEntrySource, /home\.css\?v=20260809-interest-group-board16/, "interest-group home stylesheet cache version is stale");
-for (const script of ["runtime", "i18n", "data", "ui", "boards"]) {
-  assert.match(indexSource, new RegExp(`app/${script}\\.js\\?v=20260809-interest-group-board16`), `${script} cache version is stale`);
+assert.match(indexSource, /styles\.css\?v=20260810-interest-group-tooltip-layout1/, "interest-group stylesheet cache version is stale");
+assert.match(stylesEntrySource, /home\.css\?v=20260810-interest-group-tooltip-layout1/, "interest-group home stylesheet cache version is stale");
+for (const script of ["runtime", "ui"]) {
+  assert.match(indexSource, new RegExp(`app/${script}\\.js\\?v=20260810-interest-group-tooltip-layout1`), `${script} cache version is stale`);
 }
-assert.match(i18nSource, /v=20260809-interest-group-board16/, "dynamic locale cache version is stale");
+assert.match(indexSource, /app\/boards\.js\?v=20260810-interest-group-tooltip-layout1/, "interest-group board script cache version is stale");
+assert.match(indexSource, /app\/i18n\.js\?v=20260810-global-search-interest-group-flavors1/, "locale bootstrap cache version is stale");
+assert.match(i18nSource, /v=20260810-global-search-interest-group-flavors1/, "dynamic locale cache version is stale");
 assert.match(appSource, /interestGroup\.singleCountryTraitVariant/, "single-country trait variants must use the interest-group and country naming template");
 assert.match(zhUi, /interestGroup\.singleCountryTraitVariant/, "Chinese single-country trait variant template is missing");
 assert.match(enUi, /interestGroup\.singleCountryTraitVariant/, "English single-country trait variant template is missing");
@@ -76,13 +78,24 @@ assert.match(appSource, /function\s+renderInterestGroupBoard\s*\(/, "interest-gr
 assert.match(appSource, /function\s+interestGroupBoardCard\s*\(/, "interest-group card renderer is missing");
 assert.match(appSource, /function\s+interestGroupBoardPalette\s*\(/, "interest-group presentation palette is missing");
 assert.match(appSource, /function\s+interestGroupVariants\s*\(/, "interest-group variant aggregation is missing");
+assert.match(appSource, /selectedInterestGroupFlavor/, "interest-group flavor pages need their own route state");
+assert.match(appSource, /function\s+renderInterestGroupFlavorBoardDetail\s*\(/, "interest-group flavor pages need a dedicated renderer");
+assert.match(appSource, /function\s+interestGroupFlavorRoute\s*\(/, "interest-group flavor pages need stable routes");
+assert.match(appSource, /interestGroupFlavorOptions\(group,\s*\[flavor\]\)/, "interest-group flavor pages must normalize variant traits before rendering cards");
+assert.match(appSource, /function\s+interestGroupFlavorHeadingHtml\s*\(/, "flavor pages need a heading that links to their parent interest group");
+assert.match(appSource, /function\s+interestGroupFlavorLinkRowsHtml\s*\(/, "parent interest-group pages need direct flavor link rows");
+assert.match(appSource, /items\.map\(\(flavor\) => interestGroupFlavorLinkHtml\(group, flavor\)\)\.join\(t\("interestGroup\.flavorSeparator", " \/ "\)\)/, "condition and country flavor links must use the same slash separator as named flavors");
+assert.match(appSource, /interest-group-board-shell interest-group-board-detail" style="\$\{escapeHtml\(interestGroupBoardColorStyle\(group\)\)\}"/, "interest-group detail color variables must wrap the title and flavor-link rows");
+assert.match(appSource, /cleanDescriptionText\(entityText\(group, "description", ""\)\)/, "flavor pages must use the parent interest-group description instead of flavor availability text");
+assert.match(appSource, /parts\[2\]\s*===\s*["']flavor["']/, "interest-group flavor routes must be parsed before the parent group route");
+assert.match(appSource, /interestGroupCountryList\(flavor\.countries\)/, "interest-group flavor pages must link their applicable countries");
 assert.match(appSource, /interestGroupBoardOrder/, "interest-group card order is missing");
 for (const key of expectedKeys) {
   assert.match(appSource, new RegExp(key), `missing interest-group card key ${key}`);
 }
 assert.match(appSource, /routeView[\s\S]*interest-group/, "interest-group route is not recognized");
 assert.match(appSource, /dataChunksForView[\s\S]*interest-group/, "interest-group route needs its data chunks");
-assert.match(appSource, /if\s*\(view\s*===\s*["']interest-group["']\)\s*state\.selectedInterestGroup\s*=\s*["']["']/, "top navigation must clear the selected interest group");
+assert.match(appSource, /if\s*\(view\s*===\s*["']interest-group["']\)\s*\{?\s*state\.selectedInterestGroup\s*=\s*["']["']/, "top navigation must clear the selected interest group");
 assert.match(appSource, /location\.hash\s*=\s*["'`]\/interest-group\//, "interest-group cards must link to details");
 assert.match(appSource, /display\?\.is_flavored/, "variant aggregation must exclude base names");
 assert.match(appSource, /interestGroupTraitSlots/, "detail page needs ordered interest-group trait slots");
@@ -115,7 +128,7 @@ assert.match(zhUi, /"interestGroup\.specialCountryVariants": "国家风味"/, "C
 assert.match(enUi, /"interestGroup\.namedVariants": "Flavored names"/, "English selector needs a flavored-name group");
 assert.match(enUi, /"interestGroup\.specialCountryVariants": "Country flavors"/, "English selector needs a country-flavor group");
 for (const label of [
-  "军队（拉美西语）",
+  "军队（加勒比、加利福尼亚）",
   "军队（普拉塔/南安第斯/北安第斯/中美/墨西哥）",
   "地主（拉美西语）",
   "地主（布尔）",
@@ -126,6 +139,11 @@ for (const label of [
 ]) {
   assert.match(appSource, new RegExp(label.replace(/[()]/g, "\\$&")), `missing descriptive condition variant: ${label}`);
 }
+assert.match(appSource, /function\s+applyArmedForcesConditionFlavorGrouping\s*\(/, "armed-force condition variants need final-effect grouping");
+assert.match(appSource, /function\s+isArmedForcesCaudilloCultureCountry\s*\(/, "armed-force caudillo grouping must be derived from culture and geographic-region data");
+assert.match(appSource, /name:\s*["']interestGroup\.variant\.armedForces\.latinSpanish["'][\s\S]*?conditionVariant:\s*["']caudillo_cultures["']/, "the caudillismo country signature must feed the caudillo condition variant");
+assert.match(appSource, /latinSpanish\.countries\.delete\(tag\)/, "the Caribbean and California flavor must exclude caudillo-culture countries");
+assert.match(appSource, /caudilloCultures\.countries\.add\(tag\)/, "the caudillo-culture flavor must include its matching countries");
 for (const religion of ["东方正统教会", "东正教", "天主教", "新教", "逊尼派", "什叶派", "伊巴德派", "犹太教", "佛教", "印度教", "儒教", "神道教", "泛灵论"]) {
   assert.match(appSource, new RegExp(religion), `missing devout religion grouping: ${religion}`);
 }
@@ -135,6 +153,12 @@ assert.doesNotMatch(appSource, /<h3>\$\{escapeHtml\(slot\.label\)\}<\/h3>/, "app
 assert.match(indexSource, /id="backToTopButton"/, "the shell needs a back-to-top button");
 assert.match(appSource, /backToTopButton/, "back-to-top behavior needs a browser binding");
 assert.match(styleSource, /body\[data-view="interest-group"\]/, "interest-group full-width layout is missing");
+assert.match(styleSource, /\.interest-group-flavor-link-row\s*\{[\s\S]*border-inline-start:\s*3px solid var\(--interest-group-color\)/, "flavor link rows need a visible left frame");
+assert.match(styleSource, /\.interest-group-flavor-link-row a\s*\{[\s\S]*text-decoration-line:\s*underline/, "flavor link rows must underline direct links");
+assert.match(appSource, /if \(view === "interest-group"\) return \["ideology", "country", "culture", "region", "law"\]/, "interest-group pages must preload the localized law data required by ideology hover cards");
+assert.match(appSource, /if \(view === "country"\) return \["country", "culture", "region", "ideology", "law"\]/, "country pages must preload laws needed by ideology hover cards");
+assert.match(appSource, /translateMessage\(`religion:\$\{key\}\.name`, key\)/, "country tooltips must localize religion keys");
+assert.match(appSource, /target\.dataset\.conceptKind === "ideology" \? 0 : CONCEPT_TOOLTIP_DELAY_MS/, "ideology tooltips must appear immediately on hover");
 assert.match(styleSource, /grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\)/, "desktop cards need four columns");
 assert.match(
   styleSource,

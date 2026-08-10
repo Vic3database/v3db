@@ -21,7 +21,7 @@ assert(/state\.view\s*!==\s*view[\s\S]*resetBoardView\(\)/.test(changeBoard), "c
 assert(/changeBoard\(view,\s*view === "region" \? "stateRegion" : view\)/.test(setView), "navigation should use the shared board change helper");
 assert(!/state\.view\s*=/.test(applyHash), "hash routing should use the shared board change helper");
 assert(/changeBoard\("company", "company"\)/.test(applyHash), "company hash routing should reset a previous board layout");
-assert(/app\/ui\.js\?v=20260728-board-view-reset1/.test(indexSource), "UI script cache version should cover board-view reset");
+assert(/app\/ui\.js\?v=20260810-interest-group-tooltip-layout1/.test(indexSource), "UI script cache version should cover board-view reset");
 
 if (failures.length) {
   console.error(failures.map((failure) => `- ${failure}`).join("\n"));
