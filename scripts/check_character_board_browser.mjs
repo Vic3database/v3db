@@ -67,6 +67,22 @@ try {
     assert.equal(mobileLayout.results, "none", "mobile character detail should replace the list");
     assert.notEqual(mobileLayout.detail, "none", "mobile character detail should remain visible");
     await mobile.close();
+
+    const wide = await browser.openPage({ width: 2048, height: 1024 });
+    await wide.goto(`http://127.0.0.1:${port}/index.html#/character/ACE_alauddin_muhammad_bugis`);
+    await wide.waitFor(() => {
+      const results = document.querySelector(".results")?.getBoundingClientRect();
+      const detail = document.querySelector(".detail")?.getBoundingClientRect();
+      return Boolean(document.querySelector(".character-detail") && results && detail && detail.right >= innerWidth - 20 && results.right <= detail.left - 1);
+    }, "wide character layout");
+    const wideLayout = await wide.evaluate(() => {
+      const results = document.querySelector(".results").getBoundingClientRect();
+      const detail = document.querySelector(".detail").getBoundingClientRect();
+      return { resultsRight: results.right, detailLeft: detail.left, detailRight: detail.right, viewport: innerWidth };
+    });
+    assert.ok(wideLayout.detailRight >= wideLayout.viewport - 20, `wide detail should stay at the right edge: ${JSON.stringify(wideLayout)}`);
+    assert.ok(wideLayout.resultsRight <= wideLayout.detailLeft - 1, `wide list and detail must not overlap: ${JSON.stringify(wideLayout)}`);
+    await wide.close();
   } finally {
     await browser.close();
   }

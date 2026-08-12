@@ -58,9 +58,24 @@ body[data-view="name-pool"]:not(.detail-page) .results {
   right: 12px;
 }
 
+body.detail-page[data-view="character"] .results,
+body.detail-page[data-view="name-pool"] .results {
+  left: calc(12px + var(--left-panel-width) + var(--role-panel-gap)) !important;
+  right: calc(12px + var(--right-panel-width) + var(--role-panel-gap)) !important;
+  width: auto !important;
+}
+
+body.detail-page[data-view="character"] .detail,
+body.detail-page[data-view="name-pool"] .detail {
+  left: auto !important;
+  right: 12px !important;
+  width: var(--right-panel-width) !important;
+}
+
 body[data-view="character"] .detail,
 body[data-view="name-pool"] .detail {
   right: 12px;
+  left: auto;
   width: var(--right-panel-width);
   border: 1px solid var(--line);
   border-radius: 12px;
