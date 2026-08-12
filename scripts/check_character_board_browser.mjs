@@ -38,11 +38,20 @@ try {
       row: (() => {
         const node = document.querySelector(".character-row");
         const name = node?.querySelector(".name");
+        const key = node?.querySelector(".character-row-key");
+        const identityNodes = [...(node?.querySelectorAll(".character-row-identity") || [])];
         return {
           display: node ? getComputedStyle(node).display : "",
           gridTemplateColumns: node ? getComputedStyle(node).gridTemplateColumns : "",
           overflow: name ? getComputedStyle(name).overflowWrap : "",
           rowOverflow: node ? node.scrollWidth > node.clientWidth : true,
+          keyText: key?.textContent.trim() || "",
+          rowKey: node?.dataset.characterKey || "",
+          keyTextAlign: key ? getComputedStyle(key).textAlign : "",
+          identityCount: identityNodes.length,
+          interestGroupIcon: Boolean(node?.querySelector(".interest-group-icon")),
+          ideologyIcon: Boolean(node?.querySelector(".ideology-icon")),
+          identityText: identityNodes.map((identity) => identity.textContent.trim()).join(" "),
         };
       })(),
     }));
@@ -56,6 +65,12 @@ try {
     assert.equal(characterBoard.row.gridTemplateColumns, "none", "character rows should not inherit country grid columns");
     assert.notEqual(characterBoard.row.overflow, "normal", "character names should wrap inside the list row");
     assert.equal(characterBoard.row.rowOverflow, false, "character row content should stay inside the list");
+    assert.equal(characterBoard.row.keyText, characterBoard.row.rowKey, "character rows should show the English key");
+    assert.equal(characterBoard.row.keyTextAlign, "right", "character keys should align to the right");
+    assert.ok(characterBoard.row.identityCount >= 2, "character rows should show default identity labels");
+    assert.equal(characterBoard.row.interestGroupIcon, true, "character rows should show the interest-group icon");
+    assert.equal(characterBoard.row.ideologyIcon, true, "character rows should show the ideology icon");
+    assert.doesNotMatch(characterBoard.row.identityText, /(?:^|\s)(?:ig|ideology)_[a-z0-9_]+/i, "identity labels should use localized names");
     assert.equal(characterBoard.nav, true, "name-pool navigation should be present");
     assert.match(characterBoard.count, /1[，,]?983|1983/, "character count should report all templates");
 

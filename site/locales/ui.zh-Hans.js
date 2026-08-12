@@ -624,6 +624,8 @@ window.VICDATA_UI_LOCALES["zh-Hans"] = {
     "board.character.dna": "有 DNA",
     "board.character.noDna": "无 DNA",
     "board.character.unknownCulture": "未指定文化",
+    "board.character.defaultInterestGroup": "默认利益集团",
+    "board.character.startingIdeology": "初始意识形态",
     "board.character.field.gender": "性别",
     "board.character.field.birth": "出生日期",
     "board.character.field.role": "角色职能",

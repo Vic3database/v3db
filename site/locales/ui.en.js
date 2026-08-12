@@ -624,6 +624,8 @@ window.VICDATA_UI_LOCALES.en = {
     "board.character.dna": "DNA present",
     "board.character.noDna": "No DNA",
     "board.character.unknownCulture": "Culture not specified",
+    "board.character.defaultInterestGroup": "Default interest group",
+    "board.character.startingIdeology": "Starting ideology",
     "board.character.field.gender": "Gender",
     "board.character.field.birth": "Birth date",
     "board.character.field.role": "Role",

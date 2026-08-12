@@ -129,6 +129,27 @@ body[data-view="name-pool"]:not(.detail-page) .detail {
   display: block;
 }
 
+.character-list .character-row .character-row-title {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, auto);
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+
+.character-list .character-row .character-row-key {
+  min-width: 0;
+  max-width: 48%;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 500;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  text-align: right;
+}
+
 .character-list .character-row .name,
 .name-pool-list .name-pool-row .name {
   display: block;
@@ -152,6 +173,47 @@ body[data-view="name-pool"]:not(.detail-page) .detail {
   flex-wrap: wrap;
   align-items: center;
   gap: 4px;
+}
+
+.character-row-identities {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px 12px;
+  width: 100%;
+  min-width: 0;
+}
+
+.character-row-identity {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  max-width: 100%;
+  gap: 5px;
+  color: var(--text, #332e28);
+  font-size: 0.76rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.character-row-identity > span:last-child {
+  min-width: 0;
+}
+
+.character-row-icon {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
+.character-row-icon.interest-group-icon-placeholder,
+.character-row-icon.ideology-icon-placeholder {
+  display: inline-block;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--surface) 80%, var(--muted) 20%);
 }
 
 .character-detail,

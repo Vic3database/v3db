@@ -130,15 +130,28 @@ function renderCharacterBoard() {
 
 function characterListRow(character) {
   const culture = historicalCharacterCulture(character);
+  const interestGroup = byInterestGroup.get(character.interest_group_key);
+  const ideology = ideologyByKey.get(character.ideology_key);
   const badges = [
     character.in_starting_history ? tagPill(t("board.character.starting"), "tag-special") : "",
     character.has_dna ? tagPill(t("board.character.dna"), "tag-technology") : tagPill(t("board.character.noDna"), "tag-muted"),
   ].filter(Boolean).join("");
+  const identities = [
+    interestGroup ? characterIdentityBadge("interest-group", interestGroup, interestGroupIconHtml(interestGroup, "character-row-icon interest-group-icon")) : "",
+    ideology ? characterIdentityBadge("ideology", ideology, ideologyIconHtml(ideology, "character-row-icon ideology-icon")) : "",
+  ].filter(Boolean).join("");
   return `<button class="country-row character-row" type="button" data-character-key="${escapeHtml(character.key)}" aria-current="${state.selectedCharacter === character.key}">
-    <span class="country-heading"><span class="name">${escapeHtml(historicalCharacterName(character))}</span></span>
+    <span class="character-row-title"><span class="name">${escapeHtml(historicalCharacterName(character))}</span><code class="character-row-key" title="${escapeHtml(character.key)}">${escapeHtml(character.key)}</code></span>
     <span class="minor country-meta">${escapeHtml(culture ? entityText(culture) : t("board.character.unknownCulture"))} · ${escapeHtml(character.birth_date || t("ui.none"))}</span>
+    ${identities ? `<span class="character-row-identities">${identities}</span>` : ""}
     <span class="character-row-badges">${badges}</span>
   </button>`;
+}
+
+function characterIdentityBadge(kind, entity, icon) {
+  const label = entityText(entity);
+  const heading = kind === "interest-group" ? t("board.character.defaultInterestGroup", "默认利益集团") : t("board.character.startingIdeology", "初始意识形态");
+  return `<span class="character-row-identity character-row-identity-${kind}" title="${escapeHtml(`${heading}：${label}`)}" aria-label="${escapeHtml(`${heading}：${label}`)}">${icon}<span>${escapeHtml(label)}</span></span>`;
 }
 
 function bindCharacterListEvents() {
