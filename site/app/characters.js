@@ -141,9 +141,8 @@ function characterListRow(character) {
     ideology ? characterIdentityBadge("ideology", ideology, ideologyIconHtml(ideology, "character-row-icon ideology-icon")) : "",
   ].filter(Boolean).join("");
   return `<button class="country-row character-row" type="button" data-character-key="${escapeHtml(character.key)}" aria-current="${state.selectedCharacter === character.key}">
-    <span class="character-row-title"><span class="name">${escapeHtml(historicalCharacterName(character))}</span><code class="character-row-key" title="${escapeHtml(character.key)}">${escapeHtml(character.key)}</code></span>
+    <span class="character-row-title"><span class="character-row-name-group"><span class="name">${escapeHtml(historicalCharacterName(character))}</span>${identities ? `<span class="character-row-identities">${identities}</span>` : ""}</span><code class="character-row-key" title="${escapeHtml(character.key)}">${escapeHtml(character.key)}</code></span>
     <span class="minor country-meta">${escapeHtml(culture ? entityText(culture) : t("board.character.unknownCulture"))} · ${escapeHtml(character.birth_date || t("ui.none"))}</span>
-    ${identities ? `<span class="character-row-identities">${identities}</span>` : ""}
     <span class="character-row-badges">${badges}</span>
   </button>`;
 }
@@ -151,7 +150,7 @@ function characterListRow(character) {
 function characterIdentityBadge(kind, entity, icon) {
   const label = entityText(entity);
   const heading = kind === "interest-group" ? t("board.character.defaultInterestGroup", "默认利益集团") : t("board.character.startingIdeology", "初始意识形态");
-  return `<span class="character-row-identity character-row-identity-${kind}" title="${escapeHtml(`${heading}：${label}`)}" aria-label="${escapeHtml(`${heading}：${label}`)}">${icon}<span>${escapeHtml(label)}</span></span>`;
+  return `<span class="character-row-identity character-row-identity-${kind}" title="${escapeHtml(`${heading}：${label}`)}" aria-label="${escapeHtml(`${heading}：${label}`)}">${icon}</span>`;
 }
 
 function bindCharacterListEvents() {

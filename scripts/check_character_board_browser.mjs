@@ -39,6 +39,8 @@ try {
         const node = document.querySelector(".character-row");
         const name = node?.querySelector(".name");
         const key = node?.querySelector(".character-row-key");
+        const title = node?.querySelector(".character-row-title");
+        const inlineIdentityNodes = [...(title?.querySelectorAll(".character-row-identity") || [])];
         const identityNodes = [...(node?.querySelectorAll(".character-row-identity") || [])];
         return {
           display: node ? getComputedStyle(node).display : "",
@@ -52,6 +54,8 @@ try {
           keyWidth: key?.getBoundingClientRect().width || 0,
           keyHeight: key?.getBoundingClientRect().height || 0,
           identityCount: identityNodes.length,
+          inlineIdentityCount: inlineIdentityNodes.length,
+          separateIdentityRow: Boolean(node?.querySelector(".character-row-title + .character-row-identities")),
           interestGroupIcon: Boolean(node?.querySelector(".interest-group-icon")),
           ideologyIcon: Boolean(node?.querySelector(".ideology-icon")),
           identityText: identityNodes.map((identity) => identity.textContent.trim()).join(" "),
@@ -74,6 +78,8 @@ try {
     assert.ok(characterBoard.row.keyWidth >= 140, `character key column should not collapse: ${JSON.stringify(characterBoard.row)}`);
     assert.ok(characterBoard.row.keyHeight <= 24, `character keys should not break into narrow vertical strips: ${JSON.stringify(characterBoard.row)}`);
     assert.ok(characterBoard.row.identityCount >= 2, "character rows should show default identity labels");
+    assert.equal(characterBoard.row.inlineIdentityCount, 2, "character identity icons should follow the Chinese name");
+    assert.equal(characterBoard.row.separateIdentityRow, false, "character identity icons should not occupy a separate row");
     assert.equal(characterBoard.row.interestGroupIcon, true, "character rows should show the interest-group icon");
     assert.equal(characterBoard.row.ideologyIcon, true, "character rows should show the ideology icon");
     assert.doesNotMatch(characterBoard.row.identityText, /(?:^|\s)(?:ig|ideology)_[a-z0-9_]+/i, "identity labels should use localized names");
