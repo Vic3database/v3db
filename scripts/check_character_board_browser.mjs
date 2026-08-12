@@ -48,6 +48,9 @@ try {
           keyText: key?.textContent.trim() || "",
           rowKey: node?.dataset.characterKey || "",
           keyTextAlign: key ? getComputedStyle(key).textAlign : "",
+          keyWhiteSpace: key ? getComputedStyle(key).whiteSpace : "",
+          keyWidth: key?.getBoundingClientRect().width || 0,
+          keyHeight: key?.getBoundingClientRect().height || 0,
           identityCount: identityNodes.length,
           interestGroupIcon: Boolean(node?.querySelector(".interest-group-icon")),
           ideologyIcon: Boolean(node?.querySelector(".ideology-icon")),
@@ -67,6 +70,9 @@ try {
     assert.equal(characterBoard.row.rowOverflow, false, "character row content should stay inside the list");
     assert.equal(characterBoard.row.keyText, characterBoard.row.rowKey, "character rows should show the English key");
     assert.equal(characterBoard.row.keyTextAlign, "right", "character keys should align to the right");
+    assert.equal(characterBoard.row.keyWhiteSpace, "nowrap", "character keys should stay on one line");
+    assert.ok(characterBoard.row.keyWidth >= 140, `character key column should not collapse: ${JSON.stringify(characterBoard.row)}`);
+    assert.ok(characterBoard.row.keyHeight <= 24, `character keys should not break into narrow vertical strips: ${JSON.stringify(characterBoard.row)}`);
     assert.ok(characterBoard.row.identityCount >= 2, "character rows should show default identity labels");
     assert.equal(characterBoard.row.interestGroupIcon, true, "character rows should show the interest-group icon");
     assert.equal(characterBoard.row.ideologyIcon, true, "character rows should show the ideology icon");

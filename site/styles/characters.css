@@ -131,7 +131,7 @@ body[data-view="name-pool"]:not(.detail-page) .detail {
 
 .character-list .character-row .character-row-title {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, auto);
+  grid-template-columns: minmax(0, 1fr) minmax(150px, 48%);
   align-items: baseline;
   gap: 8px;
   width: 100%;
@@ -140,14 +140,15 @@ body[data-view="name-pool"]:not(.detail-page) .detail {
 
 .character-list .character-row .character-row-key {
   min-width: 0;
-  max-width: 48%;
+  width: 100%;
   color: var(--muted);
   font-size: 0.72rem;
   font-weight: 500;
   line-height: 1.25;
-  overflow-wrap: anywhere;
-  word-break: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
   text-align: right;
+  white-space: nowrap;
 }
 
 .character-list .character-row .name,
