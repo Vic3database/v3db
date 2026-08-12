@@ -31,6 +31,10 @@ assert.match(pools, /function renderNamePoolBoard\(/, "name-pool board renderer 
 assert.match(pools, /male_common_first_names/, "name-pool board must render fixed name pools");
 assert.match(styles, /body\[data-view="character"\]/, "character board styles missing");
 assert.match(styles, /body\[data-view="name-pool"\]/, "name-pool board styles missing");
+assert.match(styles, /grid-template-columns: var\(--role-filter-width\) minmax\(0, 1fr\) var\(--role-detail-width\)/, "role board must use its own three-column layout");
+assert.match(styles, /filter-section:not\(\.character-only\)/, "character board must isolate its filters");
+assert.match(styles, /grid-template-columns: none !important/, "character rows must not inherit the country grid template");
+assert.match(characters, /character_trait:\$\{normalized\}\.name/, "character traits must use the character localization namespace");
 assert.match(search, /"kind":"character"/, "search index must include characters");
 assert.match(search, /"kind":"namePool"/, "search index must include name pools");
 assert.match(boards, /kind === "character"/, "global search must navigate to characters");

@@ -32,8 +32,9 @@ function characterReferenceLabel(key, index, fallback = "") {
 
 function historicalCharacterTraitLabel(key) {
   const normalized = String(key || "");
-  const message = translateMessage(`trait:${normalized}.name`, "");
-  return message && message !== `trait:${normalized}.name`
+  const messageId = `character_trait:${normalized}.name`;
+  const message = translateMessage(messageId, "");
+  return message && message !== messageId
     ? message
     : normalized.replace(/^trait_/, "").replaceAll("_", " ");
 }

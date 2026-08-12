@@ -53,6 +53,17 @@ for (const locale of index.locales?.supported || ["zh-Hans", "en"]) {
   index.locales.chunks[locale].character = { files: [], missing: 0 };
   index.locales.chunks[locale]["name-pool"] = { files: [], missing: 0 };
 }
+const characterTraitKeys = [...new Set(characterData.historicalCharacters.flatMap((item) => item.traits || []))];
+const characterTraitLocale = buildCharacterTraitLocale(characterReport.source_game_path, characterTraitKeys, index.locales?.supported || ["zh-Hans", "en"]);
+for (const [locale, messages] of Object.entries(characterTraitLocale)) {
+  const file = `locale-characters.${locale}.js`;
+  const source = `window.VIC3_LOCALE_CHUNKS = window.VIC3_LOCALE_CHUNKS || {};\nwindow.VIC3_LOCALE_CHUNKS[${JSON.stringify(`${locale}:character:locale-characters`)}] = ${JSON.stringify({ locale, messages })};\n`;
+  fs.writeFileSync(path.join(versionDir, file), source, "utf8");
+  index.locales.chunks[locale].character = {
+    files: [{ id: `${locale}:character:locale-characters`, path: file, sha256: sha256Text(source), missing: 0 }],
+    missing: 0,
+  };
+}
 writeWindowValue(indexPath, "VIC3_DATA_INDEX", index);
 
 const searchPath = path.join(versionDir, "search-index.js");
@@ -119,4 +130,37 @@ function writeWindowValue(file, name, value) {
 
 function sha256Text(value) {
   return crypto.createHash("sha256").update(value, "utf8").digest("hex");
+}
+
+function buildCharacterTraitLocale(gamePath, traitKeys, locales) {
+  const roots = {
+    "zh-Hans": path.join(gamePath, "game", "localization", "simp_chinese"),
+    en: path.join(gamePath, "game", "localization", "english"),
+  };
+  return Object.fromEntries(locales.map((locale) => {
+    const values = parseCharacterTraitLocalization(roots[locale], traitKeys);
+    return [locale, Object.fromEntries(Object.entries(values).map(([key, value]) => [`character_trait:${key}.name`, value]))];
+  }));
+}
+
+function parseCharacterTraitLocalization(root, traitKeys) {
+  const wanted = new Set(traitKeys);
+  const values = new Map();
+  for (const file of listFiles(root)) {
+    const source = fs.readFileSync(file, "utf8").replace(/^\uFEFF/, "");
+    for (const [, key, value] of source.matchAll(/^\s*([A-Za-z0-9_]+):\d*\s+"((?:[^"\\]|\\.)*)"/gm)) {
+      if (wanted.has(key) && !values.has(key)) values.set(key, value.replace(/\\"/g, '"'));
+    }
+  }
+  return Object.fromEntries(values);
+}
+
+function listFiles(root) {
+  const result = [];
+  for (const entry of fs.readdirSync(root, { withFileTypes: true })) {
+    const file = path.join(root, entry.name);
+    if (entry.isDirectory()) result.push(...listFiles(file));
+    else if (entry.isFile() && file.endsWith(".yml")) result.push(file);
+  }
+  return result;
 }

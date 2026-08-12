@@ -28,12 +28,34 @@ try {
       view: document.body.dataset.view,
       rows: document.querySelectorAll("[data-character-key]").length,
       map: getComputedStyle(document.querySelector("#mapPanel")).display,
+      viewSwitch: getComputedStyle(document.querySelector(".view-switch")).display,
+      foreignFilters: [...document.querySelectorAll(".filters .filter-section:not(.character-only)")]
+        .filter((node) => getComputedStyle(node).display !== "none").length,
+      roleFilters: [...document.querySelectorAll(".filters .character-only")]
+        .filter((node) => getComputedStyle(node).display !== "none").length,
       nav: Boolean(document.querySelector('[data-nav-view="name-pool"]')),
       count: document.querySelector("#resultCount")?.textContent || "",
+      row: (() => {
+        const node = document.querySelector(".character-row");
+        const name = node?.querySelector(".name");
+        return {
+          display: node ? getComputedStyle(node).display : "",
+          gridTemplateColumns: node ? getComputedStyle(node).gridTemplateColumns : "",
+          overflow: name ? getComputedStyle(name).overflowWrap : "",
+          rowOverflow: node ? node.scrollWidth > node.clientWidth : true,
+        };
+      })(),
     }));
     assert.equal(characterBoard.view, "character");
     assert.equal(characterBoard.rows, 220, "character board should cap the list at 220 rows");
     assert.equal(characterBoard.map, "none", "character board should hide the map");
+    assert.equal(characterBoard.viewSwitch, "none", "character board should not show the map board switcher");
+    assert.equal(characterBoard.foreignFilters, 0, "character board should only show character filters");
+    assert.equal(characterBoard.roleFilters, 2, "character board should keep source and gender filters");
+    assert.equal(characterBoard.row.display, "flex", "character rows should use a dedicated non-map layout");
+    assert.equal(characterBoard.row.gridTemplateColumns, "none", "character rows should not inherit country grid columns");
+    assert.notEqual(characterBoard.row.overflow, "normal", "character names should wrap inside the list row");
+    assert.equal(characterBoard.row.rowOverflow, false, "character row content should stay inside the list");
     assert.equal(characterBoard.nav, true, "name-pool navigation should be present");
     assert.match(characterBoard.count, /1[，,]?983|1983/, "character count should report all templates");
 
@@ -43,6 +65,11 @@ try {
     assert.match(characterDetail.hash, /^#\/character\//);
     assert.match(characterDetail.fields, /DNA/);
     assert.match(characterDetail.fields, /开局历史|Starting history/);
+
+    await desktop.goto(`http://127.0.0.1:${port}/index.html#/character/ABU_khalifa_al_nahyan`);
+    await desktop.waitFor(() => Boolean(document.querySelector(".character-detail .tag-trait")), "localized character trait");
+    const traitText = await desktop.evaluate(() => document.querySelector(".character-detail .tag-trait")?.textContent || "");
+    assert.notEqual(traitText.trim().toLowerCase(), "imperious", "character traits should use the installed localization");
 
     await desktop.goto(`http://127.0.0.1:${port}/index.html#/name-pool`);
     await desktop.waitFor(() => document.querySelectorAll("[data-name-pool-key]").length === 317, "name-pool rows");
@@ -78,10 +105,12 @@ try {
     const wideLayout = await wide.evaluate(() => {
       const results = document.querySelector(".results").getBoundingClientRect();
       const detail = document.querySelector(".detail").getBoundingClientRect();
-      return { resultsRight: results.right, detailLeft: detail.left, detailRight: detail.right, viewport: innerWidth };
+      return { resultsWidth: results.width, detailWidth: detail.width, resultsRight: results.right, detailLeft: detail.left, detailRight: detail.right, viewport: innerWidth };
     });
     assert.ok(wideLayout.detailRight >= wideLayout.viewport - 20, `wide detail should stay at the right edge: ${JSON.stringify(wideLayout)}`);
     assert.ok(wideLayout.resultsRight <= wideLayout.detailLeft - 1, `wide list and detail must not overlap: ${JSON.stringify(wideLayout)}`);
+    assert.ok(wideLayout.detailWidth >= 560, `wide detail should be wider than the old map-style panel: ${JSON.stringify(wideLayout)}`);
+    assert.ok(wideLayout.resultsWidth <= 1120, `wide list should be narrower than the old map-style list: ${JSON.stringify(wideLayout)}`);
     await wide.close();
   } finally {
     await browser.close();

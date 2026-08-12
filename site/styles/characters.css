@@ -3,34 +3,39 @@ body[data-view="name-pool"] .map-panel,
 body[data-view="character"] .mobile-country-toolbar,
 body[data-view="name-pool"] .mobile-country-toolbar,
 body[data-view="character"] .mobile-culture-toolbar,
-body[data-view="name-pool"] .mobile-culture-toolbar {
-  display: none;
-}
-
-body[data-view="character"] .layout,
-body[data-view="name-pool"] .layout {
-  display: block;
-  height: calc(100vh - var(--chrome-height));
-  overflow: hidden;
-}
-
-body[data-view="character"] .filters,
-body[data-view="name-pool"] .filters {
-  display: block;
-}
-
-body:not([data-view="character"]) .character-only,
-body:not([data-view="name-pool"]) .name-pool-only {
+body[data-view="name-pool"] .mobile-culture-toolbar,
+body[data-view="character"] .mobile-country-filter-panel,
+body[data-view="name-pool"] .mobile-country-filter-panel,
+body[data-view="character"] .mobile-culture-filter-panel,
+body[data-view="name-pool"] .mobile-culture-filter-panel,
+body[data-view="character"] .layout::before,
+body[data-view="name-pool"] .layout::before {
   display: none;
 }
 
 body[data-view="character"],
 body[data-view="name-pool"] {
+  --role-filter-width: clamp(260px, 18vw, 320px);
+  --role-detail-width: clamp(560px, 32vw, 680px);
   --role-panel-gap: 12px;
+}
+
+body[data-view="character"] .filters .view-switch,
+body[data-view="name-pool"] .filters .view-switch,
+body[data-view="character"] .filters .filter-section:not(.character-only),
+body[data-view="name-pool"] .filters .filter-section:not(.name-pool-only) {
+  display: none;
 }
 
 body[data-view="character"] .layout,
 body[data-view="name-pool"] .layout {
+  display: grid;
+  grid-template-columns: var(--role-filter-width) minmax(0, 1fr) var(--role-detail-width);
+  gap: var(--role-panel-gap);
+  height: calc(100vh - var(--chrome-height));
+  min-height: 0;
+  padding: 12px;
+  overflow: hidden;
   background: var(--background, #e7e1d6);
 }
 
@@ -40,45 +45,47 @@ body[data-view="character"] .results,
 body[data-view="name-pool"] .results,
 body[data-view="character"] .detail,
 body[data-view="name-pool"] .detail {
+  position: relative !important;
+  inset: auto !important;
+  top: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+  width: auto !important;
+  height: auto !important;
+  min-height: 0;
+  max-height: none;
+  margin: 0;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 12px;
   background: var(--surface, #f8f5ed);
   backdrop-filter: none;
 }
 
+body[data-view="character"] .filters,
+body[data-view="name-pool"] .filters {
+  grid-column: 1;
+  grid-row: 1;
+  padding: 18px;
+}
+
 body[data-view="character"] .results,
 body[data-view="name-pool"] .results {
-  left: calc(12px + var(--left-panel-width) + var(--role-panel-gap));
-  right: calc(12px + var(--right-panel-width) + var(--role-panel-gap));
-  width: auto;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-}
-
-body[data-view="character"]:not(.detail-page) .results,
-body[data-view="name-pool"]:not(.detail-page) .results {
-  right: 12px;
-}
-
-body.detail-page[data-view="character"] .results,
-body.detail-page[data-view="name-pool"] .results {
-  left: calc(12px + var(--left-panel-width) + var(--role-panel-gap)) !important;
-  right: calc(12px + var(--right-panel-width) + var(--role-panel-gap)) !important;
-  width: auto !important;
-}
-
-body.detail-page[data-view="character"] .detail,
-body.detail-page[data-view="name-pool"] .detail {
-  left: auto !important;
-  right: 12px !important;
-  width: var(--right-panel-width) !important;
+  grid-column: 2;
+  grid-row: 1;
+  padding: 16px 18px;
 }
 
 body[data-view="character"] .detail,
 body[data-view="name-pool"] .detail {
-  right: 12px;
-  left: auto;
-  width: var(--right-panel-width);
-  border: 1px solid var(--line);
-  border-radius: 12px;
+  grid-column: 3;
+  grid-row: 1;
+}
+
+body[data-view="character"]:not(.detail-page) .results,
+body[data-view="name-pool"]:not(.detail-page) .results {
+  grid-column: 2 / 4;
 }
 
 body[data-view="character"]:not(.detail-page) .detail,
@@ -86,21 +93,82 @@ body[data-view="name-pool"]:not(.detail-page) .detail {
   display: none;
 }
 
-.character-row,
-.name-pool-row {
-  position: relative;
-  gap: 4px;
+.character-list,
+.name-pool-list {
+  min-width: 0;
 }
 
-.character-row-badges {
+.character-list .character-row,
+.name-pool-list .name-pool-row {
+  display: flex !important;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  grid-template-columns: none !important;
+  gap: 5px;
+  width: 100%;
+  min-width: 0;
+  min-height: 86px;
+  padding: 11px 13px;
+  overflow: hidden;
+}
+
+.character-list .character-row .country-heading,
+.name-pool-list .name-pool-row .country-heading,
+.character-list .character-row .country-meta,
+.name-pool-list .name-pool-row .country-meta,
+.character-list .character-row .character-row-badges,
+.name-pool-list .name-pool-row .name-pool-row-badges {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.character-list .character-row .country-heading,
+.name-pool-list .name-pool-row .country-heading {
+  display: block;
+}
+
+.character-list .character-row .name,
+.name-pool-list .name-pool-row .name {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
+}
+
+.character-list .character-row .country-meta,
+.name-pool-list .name-pool-row .country-meta {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
+}
+
+.character-row-badges,
+.name-pool-row-badges {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 4px;
 }
 
 .character-detail,
 .name-pool-detail {
+  min-width: 0;
   padding: 18px;
+}
+
+.character-detail .field-grid,
+.name-pool-detail .field-grid {
+  grid-template-columns: minmax(120px, 0.5fr) minmax(0, 1fr);
+}
+
+.character-detail code,
+.name-pool-detail code {
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .character-traits,
@@ -118,13 +186,15 @@ body[data-view="name-pool"]:not(.detail-page) .detail {
 
 .name-pool-group-head {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
 }
 
 .name-pool-group-head h3 {
+  min-width: 0;
   margin: 0;
+  overflow-wrap: anywhere;
 }
 
 .name-pool-entry {
@@ -132,6 +202,7 @@ body[data-view="name-pool"]:not(.detail-page) .detail {
   flex-direction: column;
   gap: 2px;
   min-width: 110px;
+  max-width: 100%;
   padding: 7px 9px;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -147,37 +218,11 @@ body[data-view="name-pool"]:not(.detail-page) .detail {
   margin-top: 18px;
 }
 
-@media (max-width: 1100px) {
-  body[data-view="character"] .results,
-  body[data-view="name-pool"] .results {
-    left: 12px;
-    right: 12px;
-    width: auto;
-    top: auto;
-    bottom: 12px;
-    height: calc(100vh - 180px);
-  }
-
-  body[data-view="character"] .detail,
-  body[data-view="name-pool"] .detail {
-    left: 12px;
-    right: 12px;
-    width: auto;
-  }
-
-  body[data-view="character"].detail-page .filters,
-  body[data-view="name-pool"].detail-page .filters,
-  body[data-view="character"].detail-page .results,
-  body[data-view="name-pool"].detail-page .results {
-    display: none;
-  }
-
-  body[data-view="character"].detail-page .detail,
-  body[data-view="name-pool"].detail-page .detail {
-    display: block;
-    top: 12px;
-    bottom: 12px;
-    height: auto;
+@media (max-width: 1200px) and (min-aspect-ratio: 3 / 2) {
+  body[data-view="character"],
+  body[data-view="name-pool"] {
+    --role-filter-width: 250px;
+    --role-detail-width: 520px;
   }
 }
 
@@ -188,34 +233,19 @@ body[data-view="name-pool"]:not(.detail-page) .detail {
     height: auto;
     min-height: calc(100vh - var(--chrome-height));
     overflow: visible;
+    padding: 0;
   }
 
   body[data-view="character"] .filters,
-  body[data-view="name-pool"] .filters {
-    display: block;
-    position: relative;
-    inset: auto;
-    width: auto;
-    max-height: none;
-    margin: 12px;
-  }
-
+  body[data-view="name-pool"] .filters,
   body[data-view="character"] .results,
-  body[data-view="name-pool"] .results {
-    position: relative;
-    inset: auto;
-    width: auto;
-    height: auto;
-    max-height: none;
-    margin: 12px;
-  }
-
+  body[data-view="name-pool"] .results,
   body[data-view="character"] .detail,
   body[data-view="name-pool"] .detail {
-    position: relative;
-    inset: auto;
-    width: auto;
-    height: auto;
+    position: relative !important;
+    display: block;
+    width: auto !important;
+    height: auto !important;
     max-height: none;
     margin: 12px;
   }
