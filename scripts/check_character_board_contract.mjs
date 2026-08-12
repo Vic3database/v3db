@@ -9,9 +9,11 @@ const html = read("site/index.html");
 const runtime = read("site/app/runtime.js");
 const data = read("site/app/data.js");
 const ui = read("site/app/ui.js");
+const boards = read("site/app/boards.js");
 const characters = read("site/app/characters.js");
 const pools = read("site/app/name-pools.js");
 const styles = read("site/styles/characters.css");
+const search = read("site/versions/1.13.9/search-index.js");
 
 assert.match(html, /data-nav-view="character"/, "missing character navigation entry");
 assert.match(html, /data-nav-view="name-pool"/, "missing name-pool navigation entry");
@@ -29,5 +31,9 @@ assert.match(pools, /function renderNamePoolBoard\(/, "name-pool board renderer 
 assert.match(pools, /male_common_first_names/, "name-pool board must render fixed name pools");
 assert.match(styles, /body\[data-view="character"\]/, "character board styles missing");
 assert.match(styles, /body\[data-view="name-pool"\]/, "name-pool board styles missing");
+assert.match(search, /"kind":"character"/, "search index must include characters");
+assert.match(search, /"kind":"namePool"/, "search index must include name pools");
+assert.match(boards, /kind === "character"/, "global search must navigate to characters");
+assert.match(boards, /kind === "namePool"/, "global search must navigate to name pools");
 
 console.log("character board contract check passed");

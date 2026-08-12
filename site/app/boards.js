@@ -2140,6 +2140,8 @@ async function navigateGlobalSearchResult(kind, key) {
   else if (kind === "achievement") replaceHash(`/achievement/${encodeURIComponent(key)}`);
   else if (kind === "building") replaceHash(`/building/${encodeURIComponent(key)}`);
   else if (kind === "goods") replaceHash(`/goods/${encodeURIComponent(key)}`);
+  else if (kind === "character") replaceHash(`/character/${encodeURIComponent(key)}`);
+  else if (kind === "namePool") replaceHash(`/name-pool/${encodeURIComponent(key)}`);
   else if (kind === "prestigeGood") {
     const good = prestigeGoodByKey.get(key);
     if (!good?.base_good_key) return;
@@ -2162,6 +2164,8 @@ function renderGlobalSearchDetail(result) {
   }
   if (result.kind === "country") return renderCountryDetail(byTag.get(result.key));
   if (result.kind === "culture") return renderCultureDetail(byCulture.get(result.key));
+  if (result.kind === "character") return renderHistoricalCharacterDetail(byHistoricalCharacter.get(result.key));
+  if (result.kind === "namePool") return renderNamePoolDetail(byNamePool.get(result.key));
   if (result.kind === "stateRegion") return renderStateRegionDetail(byStateRegion.get(result.key));
   if (result.kind === "strategicRegion") return renderStrategicRegionDetail(byStrategicRegion.get(result.key));
   if (result.kind === "geographicRegion") return renderGeographicRegionDetail(byGeographicRegion.get(result.key));
@@ -2226,7 +2230,7 @@ function globalSearchResults(query) {
     };
     return [{ ...result, displayTitle: globalSearchDisplayTitle(result, needle) }];
   });
-  const order = new Map(["country", "culture", "stateRegion", "geographicRegion", "cultureTrait", "cultureTraitGroup", "strategicRegion", "company", "ideology", "law", "technology", "achievement", "interestGroup", "interestGroupTrait", "interestGroupFlavor"].map((kind, index) => [kind, index]));
+  const order = new Map(["country", "culture", "character", "namePool", "stateRegion", "geographicRegion", "cultureTrait", "cultureTraitGroup", "strategicRegion", "company", "ideology", "law", "technology", "achievement", "interestGroup", "interestGroupTrait", "interestGroupFlavor"].map((kind, index) => [kind, index]));
   return results
     .sort((a, b) => a.score - b.score || orderValue(order, a.kind) - orderValue(order, b.kind) || localizedCompare(a.title, b.title))
     .slice(0, 120);
@@ -2256,6 +2260,8 @@ function searchResultEntity(kind, key, entry = null) {
   if (kind === "interestGroup") return interestGroups.find((item) => item.key === key);
   if (kind === "interestGroupTrait") return interestGroupTraitByKey.get(key);
   if (kind === "interestGroupFlavor") return byInterestGroup.get(entry?.interestGroupKey);
+  if (kind === "character") return byHistoricalCharacter.get(key);
+  if (kind === "namePool") return byNamePool.get(key);
   return null;
 }
 

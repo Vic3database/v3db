@@ -13,6 +13,7 @@ async function init() {
   initDisplaySettings();
   renderFilterOptions();
   bindEvents();
+  bindCharacterBoardEvents?.();
   els.homeGuideButton?.addEventListener("click", () => openInfoDialog("about"));
   await applyHash();
   render();
@@ -92,6 +93,8 @@ function dataChunksForView(view) {
   if (view === "achievement") return ["achievement"];
   if (view === "building") return ["building", "goods"];
   if (view === "goods") return ["goods"];
+  if (view === "character") return ["character", "culture", "ideology"];
+  if (view === "name-pool") return ["name-pool", "culture"];
   return [];
 }
 
@@ -104,7 +107,7 @@ async function ensureDataChunksForRoute() {
 
 function routeView() {
   const segment = location.hash.replace(/^#\/?/, "").split("/")[0];
-  if (["country", "culture", "region", "company", "ideology", "interest-group", "law", "technology", "achievement", "building", "goods"].includes(segment)) return segment;
+  if (["country", "culture", "region", "company", "ideology", "interest-group", "law", "technology", "achievement", "building", "goods", "character", "name-pool"].includes(segment)) return segment;
   if (["news", "changelog"].includes(segment)) return segment;
   if (["state-region", "strategic-region", "geographic-region"].includes(segment)) return "region";
   return "home";
@@ -227,6 +230,10 @@ function applyLoadedDataset(nextData, nextMapData, options = {}) {
   productionMethods = data.productionMethods || [];
   goods = data.goods || [];
   prestigeGoods = data.prestigeGoods || [];
+  historicalCharacters = data.historicalCharacters || [];
+  historicalCharacterStats = data.historicalCharacterStats || {};
+  namePools = data.namePools || [];
+  namePoolStats = data.namePoolStats || {};
   mapData = nextMapData || null;
   siteTitle = versionConfig?.site_title || data.meta?.site_title || data.meta?.dataset_name || "Vicdata";
 
@@ -249,6 +256,8 @@ function applyLoadedDataset(nextData, nextMapData, options = {}) {
   productionMethodByKey = new Map(productionMethods.map((method) => [method.key, method]));
   goodByKey = new Map(goods.map((good) => [good.key, good]));
   prestigeGoodByKey = new Map(prestigeGoods.map((good) => [good.key, good]));
+  byHistoricalCharacter = new Map(historicalCharacters.map((character) => [character.key, character]));
+  byNamePool = new Map(namePools.map((pool) => [pool.key, pool]));
   cultureTraitByKey = new Map(cultureTraits.map((trait) => [trait.key, trait]));
   cultureTraitGroupByKey = new Map(cultureTraitGroups.map((group) => [group.key, group]));
   buildSemanticTagIndexes();
@@ -367,6 +376,10 @@ function resetDatasetState() {
   state.selectedLaw = "";
   state.selectedBuilding = "";
   state.selectedGood = "";
+  state.selectedCharacter = "";
+  state.selectedNamePool = "";
+  state.characterSources.clear();
+  state.characterGenders.clear();
   state.economySearch = "";
   state.selectedProductionMethods.clear();
   state.openProductionMethodGroup = "";

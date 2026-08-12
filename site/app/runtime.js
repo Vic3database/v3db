@@ -31,6 +31,10 @@ let productionMethodGroups = [];
 let productionMethods = [];
 let goods = [];
 let prestigeGoods = [];
+let historicalCharacters = [];
+let historicalCharacterStats = {};
+let namePools = [];
+let namePoolStats = {};
 let mapData = null;
 let siteTitle = "Vicdata";
 
@@ -53,6 +57,8 @@ let productionMethodGroupByKey = new Map();
 let productionMethodByKey = new Map();
 let goodByKey = new Map();
 let prestigeGoodByKey = new Map();
+let byHistoricalCharacter = new Map();
+let byNamePool = new Map();
 let stateTraitByKey = new Map();
 let stateTraitRegionsByKey = new Map();
 let buildingByKey = new Map();
@@ -197,6 +203,10 @@ const state = {
   selectedAchievement: "",
   selectedBuilding: "",
   selectedGood: "",
+  selectedCharacter: "",
+  selectedNamePool: "",
+  characterSources: new Set(),
+  characterGenders: new Set(),
   economySearch: "",
   selectedProductionMethods: new Map(),
   openProductionMethodGroup: "",
@@ -588,6 +598,8 @@ const viewLabels = {
   achievement: "nav.achievement",
   building: "nav.building",
   goods: "nav.goods",
+  character: "nav.character",
+  "name-pool": "nav.namePool",
   changelog: "nav.changelog",
   news: "nav.news",
 };
@@ -805,5 +817,7 @@ const els = {
   bottomPanelToggle: document.querySelector("#bottomPanelToggle"),
   countryList: document.querySelector("#countryList"),
   detail: document.querySelector("#detail"),
+  characterSourceFilters: document.querySelector("#characterSourceFilters"),
+  characterGenderFilters: document.querySelector("#characterGenderFilters"),
   conceptTooltip: document.querySelector("#conceptTooltip"),
 };
