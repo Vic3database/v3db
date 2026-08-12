@@ -9,7 +9,7 @@ const reportPath = path.join(root, "output", "historical-characters", "historica
 assert.ok(fs.existsSync(reportPath), `missing historical character report: ${reportPath}`);
 const report = JSON.parse(fs.readFileSync(reportPath, "utf8").replace(/^\uFEFF/, ""));
 
-assert.equal(report.source_game_branch, "release/1.13.9", "unexpected game branch");
+assert.equal(report.source_game_branch, "release/1.13.10", "unexpected game branch");
 assert.equal(report.stats.historical_character_templates, 1983, "unexpected historical character count");
 assert.equal(report.stats.invalid_dna_references, 0, "historical character DNA references must resolve");
 assert.equal(report.characters.length, report.stats.historical_character_templates, "character count does not match stats");
