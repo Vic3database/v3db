@@ -175,6 +175,12 @@ try {
       assert.equal(await desktop.evaluate(() => Boolean(document.querySelector(".character-historical-image"))), false, `${key} rejected image should not be shown`);
     }
 
+    for (const key of ["DEN_arnold_peter_moller", "mug_bakht_khan"]) {
+      await desktop.goto(`http://127.0.0.1:${port}/index.html#/character/${key}`);
+      await desktop.waitFor(() => Boolean(document.querySelector(".character-detail")), `${key} character detail`);
+      assert.equal(await desktop.evaluate(() => Boolean(document.querySelector(".character-historical-image"))), false, `${key} rejected image should not be shown`);
+    }
+
     await desktop.goto(`http://127.0.0.1:${port}/index.html#/character/ABU_khalifa_al_nahyan`);
     await desktop.waitFor(() => Boolean(document.querySelector(".character-detail .tag-trait")), "localized character trait");
     const traitText = await desktop.evaluate(() => document.querySelector(".character-detail .tag-trait")?.textContent || "");

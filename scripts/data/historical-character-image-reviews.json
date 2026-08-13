@@ -357,6 +357,231 @@
       "type": "print",
       "reviewed_at": "2026-08-13",
       "reason": "The image is a single-person printed portrait of Anselm Salomon von Rothschild by Friedrich Lieder from circa 1830 with a public-domain license."
+    },
+    {
+      "character_keys": ["SPA_anselmo_lorenzo"],
+      "wikidata_id": "Q174770",
+      "file_title": "File:Anselmo lorenzo.png",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person portrait of Anselmo Lorenzo with a direct Wikidata image statement and public-domain license."
+    },
+    {
+      "character_keys": ["POR_antonio_de_serpa_pimentel"],
+      "wikidata_id": "Q558201",
+      "file_title": "File:Serpa Pimentel.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person printed portrait of António de Serpa Pimentel with a direct Wikidata image statement and public-domain license."
+    },
+    {
+      "character_keys": ["PEU_antonio_gutierrez_de_la_fuente"],
+      "wikidata_id": "Q2332396",
+      "file_title": "File:Agutierrezf.png",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person portrait painting of Antonio Gutiérrez de la Fuente dated 1829 with structured identity evidence and public-domain license."
+    },
+    {
+      "character_keys": ["CUB_antonio_maceo"],
+      "wikidata_id": "Q554264",
+      "file_title": "File:Antonio Maceo.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photograph of Antonio Maceo with structured identity evidence and public-domain license."
+    },
+    {
+      "character_keys": ["GRE_antonios_kriezis"],
+      "wikidata_id": "Q177296",
+      "file_title": "File:Kriezis.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person portrait painting of Antonios Kriezis with structured identity evidence and public-domain license."
+    },
+    {
+      "character_keys": ["CLM_aristides_fernandez"],
+      "wikidata_id": "Q23823817",
+      "file_title": "File:Arístides Fernández.png",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person printed portrait of Arístides Fernández with structured identity evidence and public-domain license."
+    },
+    {
+      "character_keys": ["DEN_arnold_peter_moller"],
+      "wikidata_id": "Q695944",
+      "file_title": "File:Father and son (7258728476).jpg",
+      "decision": "reject",
+      "type": "",
+      "reviewed_at": "2026-08-13",
+      "reason": "The file shows Arnold Peter Møller with his son and is not a single-person portrait."
+    },
+    {
+      "character_keys": ["PRG_arsenio_lopez_decoud"],
+      "wikidata_id": "Q5706415",
+      "file_title": "File:Arsenio López Decoud.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photographic portrait of Arsenio López Decoud with structured identity evidence and public-domain license."
+    },
+    {
+      "character_keys": ["GBR_arthur_james_cook"],
+      "wikidata_id": "Q22017451",
+      "file_title": "File:Arthur E. Cook (1924).png",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photographic portrait of Arthur Cook dated 1924 with structured identity evidence and public-domain license."
+    },
+    {
+      "character_keys": ["CHL_arturo_vial"],
+      "wikidata_id": "Q5488925",
+      "file_title": "File:Fernandez Vial.png",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photographic portrait of Arturo Fernández Vial with structured identity evidence and public-domain license."
+    },
+    {
+      "character_keys": ["HAW_asa_thurston"],
+      "wikidata_id": "Q18921120",
+      "file_title": "File:Asa Thurston.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photographic portrait of Asa Thurston with structured identity evidence and public-domain license."
+    },
+    {
+      "character_keys": ["pru_general_von_goeben"],
+      "wikidata_id": "Q65591",
+      "file_title": "File:August Karl Von Goeben.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photographic portrait of August Karl von Goeben with structured identity evidence and public-domain license."
+    },
+    {
+      "character_keys": ["fra_admiral_boue_de_lapeyrere"],
+      "wikidata_id": "Q2871099",
+      "file_title": "File:Auguste Boué de Lapeyrère.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photograph of Augustin Boué de Lapeyrère with a direct Wikidata image statement and public-domain license."
+    },
+    {
+      "character_keys": ["can_augustin-norbert_morin"],
+      "wikidata_id": "Q329231",
+      "file_title": "File:Augustin Norbert Morin (HS85-10-16599).jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a photographic reproduction of a single-person portrait painting of Augustin-Norbert Morin by Théophile Hamel."
+    },
+    {
+      "character_keys": ["CLM_avelino_rosas"],
+      "wikidata_id": "Q2873422",
+      "file_title": "File:Avelino Rosas.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photographic portrait of Avelino Rosas with structured identity evidence and public-domain license."
+    },
+    {
+      "character_keys": ["trs_avram_iancu"],
+      "wikidata_id": "Q720450",
+      "file_title": "File:Avram Iancu, cca. 1865.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photograph of Avram Iancu dated circa 1865 with a direct Wikidata image statement and public-domain license."
+    },
+    {
+      "character_keys": ["mug_bakht_khan"],
+      "wikidata_id": "Q3774267",
+      "file_title": "File:General Bakht Khan.jpg",
+      "decision": "reject",
+      "type": "",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image depicts a statue rather than Bakht Khan himself."
+    },
+    {
+      "character_keys": ["SPA_baldomero_espartero"],
+      "wikidata_id": "Q434529",
+      "file_title": "File:Baldomero Espartero cropped.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a cropped single-person photograph of Baldomero Espartero dated circa 1865 with a direct Wikidata image statement and public-domain license."
+    },
+    {
+      "character_keys": ["PEU_bartoleme_herrera"],
+      "wikidata_id": "Q2886118",
+      "file_title": "File:BartolomeHerrera1.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person printed portrait of Bartolomé Herrera with structured identity evidence and public-domain license."
+    },
+    {
+      "character_keys": ["BOL_bautista_saavedra_mallea"],
+      "wikidata_id": "Q811928",
+      "file_title": "File:SAAVEDRA B.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photograph of Bautista Saavedra with structured identity evidence and public-domain license."
+    },
+    {
+      "character_keys": ["HAI_beaubrun_ardouin"],
+      "wikidata_id": "Q2893123",
+      "file_title": "File:Beaubrun Ardouin.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photographic portrait of Beaubrun Ardouin dated circa 1865 with structured identity evidence and public-domain license."
+    },
+    {
+      "character_keys": ["USA_benjamin_tucker"],
+      "wikidata_id": "Q505871",
+      "file_title": "File:Benjamin Tucker.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person studio photograph of Benjamin Tucker made before 1893 with structured identity evidence and public-domain license."
+    },
+    {
+      "character_keys": ["fra_admiral_jaureguiberry"],
+      "wikidata_id": "Q259435",
+      "file_title": "File:Jean Bernard Jauréguiberry.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photographic portrait of Bernard Jauréguiberry with structured identity evidence and public-domain license."
+    },
+    {
+      "character_keys": ["prg_general_caballero"],
+      "wikidata_id": "Q738679",
+      "file_title": "File:Bernardino Caballero.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photographic portrait of Bernardino Caballero dated circa 1890 with structured identity evidence and public-domain license."
+    },
+    {
+      "character_keys": ["BRZ_bernardo_pereira_de_vasconcelos"],
+      "wikidata_id": "Q12082349",
+      "file_title": "File:BernardoPereiradeVasconcelos.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photograph of Bernardo Pereira de Vasconcelos dated 1850 with structured identity evidence and public-domain license."
     }
   ],
   "person_reviews": [
@@ -405,6 +630,22 @@
       "decision": "no_eligible_image",
       "reviewed_at": "2026-08-13",
       "reason": "The only current candidate shows Anésia Cauaçu with her daughter."
+    },
+    {
+      "character_keys": ["DEN_arnold_peter_moller"],
+      "wikidata_ids": ["Q695944"],
+      "candidate_file_titles": ["File:Father and son (7258728476).jpg"],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-13",
+      "reason": "The only current candidate shows Arnold Peter Møller with his son."
+    },
+    {
+      "character_keys": ["mug_bakht_khan"],
+      "wikidata_ids": ["Q3774267"],
+      "candidate_file_titles": ["File:General Bakht Khan.jpg"],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-13",
+      "reason": "The only current candidate depicts a statue rather than Bakht Khan himself."
     }
   ]
 }
