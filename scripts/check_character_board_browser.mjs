@@ -175,7 +175,7 @@ try {
       assert.equal(await desktop.evaluate(() => Boolean(document.querySelector(".character-historical-image"))), false, `${key} rejected image should not be shown`);
     }
 
-    for (const key of ["DEN_arnold_peter_moller", "mug_bakht_khan"]) {
+    for (const key of ["DEN_arnold_peter_moller", "mug_bakht_khan", "BIC_dwarkanath_tagore", "sar_general_de_sonnaz"]) {
       await desktop.goto(`http://127.0.0.1:${port}/index.html#/character/${key}`);
       await desktop.waitFor(() => Boolean(document.querySelector(".character-detail")), `${key} character detail`);
       assert.equal(await desktop.evaluate(() => Boolean(document.querySelector(".character-historical-image"))), false, `${key} rejected image should not be shown`);
