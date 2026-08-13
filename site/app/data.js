@@ -232,6 +232,8 @@ function applyLoadedDataset(nextData, nextMapData, options = {}) {
   prestigeGoods = data.prestigeGoods || [];
   historicalCharacters = data.historicalCharacters || [];
   historicalCharacterStats = data.historicalCharacterStats || {};
+  historicalCharacterImages = data.historicalCharacterImages || [];
+  historicalCharacterImageStats = data.historicalCharacterImageStats || {};
   namePools = data.namePools || [];
   namePoolStats = data.namePoolStats || {};
   mapData = nextMapData || null;
@@ -257,6 +259,9 @@ function applyLoadedDataset(nextData, nextMapData, options = {}) {
   goodByKey = new Map(goods.map((good) => [good.key, good]));
   prestigeGoodByKey = new Map(prestigeGoods.map((good) => [good.key, good]));
   byHistoricalCharacter = new Map(historicalCharacters.map((character) => [character.key, character]));
+  byHistoricalCharacterImage = new Map(historicalCharacterImages.flatMap((person) => (
+    (person.character_keys || []).map((key) => [key, person])
+  )));
   byNamePool = new Map(namePools.map((pool) => [pool.key, pool]));
   cultureTraitByKey = new Map(cultureTraits.map((trait) => [trait.key, trait]));
   cultureTraitGroupByKey = new Map(cultureTraitGroups.map((group) => [group.key, group]));

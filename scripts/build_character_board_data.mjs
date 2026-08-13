@@ -38,9 +38,14 @@ const indexPath = path.join(versionDir, "data-index.js");
 const index = readWindowValue(indexPath, "VIC3_DATA_INDEX");
 index.chunks = index.chunks || {};
 index.chunks.character = {
-  files: ["data-characters.js"],
-  keys: ["historicalCharacters", "historicalCharacterStats"],
-  counts: { historicalCharacters: characterData.historicalCharacters.length },
+  files: ["data-characters.js", ...(fs.existsSync(path.join(versionDir, "data-character-images.js")) ? ["data-character-images.js"] : [])],
+  keys: ["historicalCharacters", "historicalCharacterStats", ...(fs.existsSync(path.join(versionDir, "data-character-images.js")) ? ["historicalCharacterImages", "historicalCharacterImageStats"] : [])],
+  counts: {
+    historicalCharacters: characterData.historicalCharacters.length,
+    ...(fs.existsSync(path.join(versionDir, "data-character-images.js"))
+      ? { historicalCharacterImages: readWindowValue(path.join(versionDir, "data-character-images.js"), "VIC3_DATA_CHUNK").historicalCharacterImages.length }
+      : {}),
+  },
 };
 index.chunks["name-pool"] = {
   files: ["data-name-pools.js"],

@@ -1,0 +1,83 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+
+const root = process.cwd();
+const args = parseArgs(process.argv.slice(2));
+const file = path.resolve(root, args.input || "output/historical-character-images/historical-character-images.json");
+const report = JSON.parse(fs.readFileSync(file, "utf8").replace(/^\uFEFF/, ""));
+
+assert.equal(report.schema_version, 1, "图片报告 schema_version 应为 1");
+assert.equal(report.source, "Wikidata and Wikimedia Commons", "图片报告来源不符合约定");
+assert.ok(Array.isArray(report.people), "图片报告缺少 people 数组");
+assert.ok(report.people.length > 0, "图片报告没有已确认人物");
+assert.ok(Array.isArray(report.unmatched), "图片报告缺少 unmatched 数组");
+assert.ok(Array.isArray(report.review), "图片报告缺少 review 数组");
+
+const allowedTypes = new Set(["photograph", "painting", "print"]);
+const allowedMatchMethods = new Set([
+  "exact_name_and_birth_year",
+  "derived_name_variant",
+  "exact_name_and_starting_age",
+]);
+const templateKeys = new Set();
+for (const person of report.people) {
+  assert.ok(allowedMatchMethods.has(person.match_method), `${person.name_en} 缺少有效的人物匹配方式`);
+  if (person.match_method === "derived_name_variant") {
+    assert.ok(Array.isArray(person.matched_variants) && person.matched_variants.length > 0, `${person.name_en} 缺少别名匹配证据`);
+    assert.ok(person.matched_variants.some((value) => String(value).trim().split(/\s+/).length >= 2), `${person.name_en} 的别名证据过短`);
+  }
+  assert.match(person.wikidata_id || "", /^Q\d+$/, `${person.name_en} 缺少有效的维基数据编号`);
+  assert.ok(Array.isArray(person.character_keys) && person.character_keys.length > 0, `${person.name_en} 缺少角色模板键`);
+  assert.ok(person.birth_year, `${person.name_en} 缺少出生年份`);
+  assert.ok(person.image && typeof person.image === "object", `${person.name_en} 缺少图片记录`);
+  assert.ok(allowedTypes.has(person.image.type), `${person.name_en} 的图片类型不在允许范围内`);
+  assert.match(person.image.file_title || "", /^File:/, `${person.name_en} 缺少文件标题`);
+  assert.match(person.image.file_page || "", /^https:\/\/commons\.wikimedia\.org\/wiki\/File:/, `${person.name_en} 缺少维基共享资源文件页`);
+  assert.match(person.image.original_url || "", /^https:\/\/upload\.wikimedia\.org\//, `${person.name_en} 缺少原始图片地址`);
+  assert.ok(person.image.license, `${person.name_en} 缺少许可信息`);
+  assert.ok(person.image.identity_evidence, `${person.name_en} 缺少人物对应证据`);
+  assert.equal(person.image.excluded_reason || "", "", `${person.name_en} 的已确认图片带有排除原因`);
+  for (const key of person.character_keys) {
+    assert.ok(!templateKeys.has(key), `角色模板 ${key} 被重复关联`);
+    templateKeys.add(key);
+  }
+}
+
+const allAccountedTemplateKeys = new Set(templateKeys);
+for (const bucket of [report.review, report.unmatched]) {
+  for (const person of bucket) {
+    for (const key of person.character_keys || []) {
+      assert.ok(!allAccountedTemplateKeys.has(key), `角色模板 ${key} 在报告状态之间重复`);
+      allAccountedTemplateKeys.add(key);
+    }
+  }
+}
+
+const stats = report.stats || {};
+assert.equal(stats.confirmed_people, report.people.length, "已确认人物统计不一致");
+assert.equal(stats.confirmed_character_templates, templateKeys.size, "已确认角色模板统计不一致");
+assert.equal(stats.review_people, report.review.length, "待复核人物统计不一致");
+assert.equal(stats.unmatched_people, report.unmatched.length, "未匹配人物统计不一致");
+assert.equal(
+  allAccountedTemplateKeys.size + stats.excluded_fictional_character_templates,
+  stats.source_character_templates,
+  "角色模板没有全部归入确认、待复核、未匹配或明确排除状态",
+);
+
+console.log(JSON.stringify({
+  confirmed_people: report.people.length,
+  confirmed_character_templates: templateKeys.size,
+  review_people: report.review.length,
+  unmatched_people: report.unmatched.length,
+}));
+
+function parseArgs(argv) {
+  const result = {};
+  for (let index = 0; index < argv.length; index += 1) {
+    const arg = argv[index];
+    if (!arg.startsWith("--")) continue;
+    result[arg.slice(2)] = argv[index + 1] && !argv[index + 1].startsWith("--") ? argv[++index] : true;
+  }
+  return result;
+}
