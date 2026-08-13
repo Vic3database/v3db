@@ -30,6 +30,11 @@ assert.match(ui, /renderCharacterBoard\(\)/, "ui must dispatch character board")
 assert.match(ui, /renderNamePoolBoard\(\)/, "ui must dispatch name-pool board");
 assert.match(characters, /function renderCharacterBoard\(/, "character board renderer missing");
 assert.match(characters, /function renderHistoricalCharacterDetail\(/, "character detail renderer missing");
+assert.match(characters, /byHistoricalCharacterImage\.get\(character\.key\)/, "character UI must read the historical image index");
+assert.match(characters, /board\.character\.hasHistoricalImage/, "character rows must label confirmed historical images");
+assert.match(characters, /character-historical-image/, "character details must render confirmed historical images");
+assert.match(characters, /image\.thumbnail_url/, "character details must use the collected thumbnail");
+assert.match(characters, /image\.file_page/, "character details must link to the Commons file page");
 assert.match(pools, /function renderNamePoolBoard\(/, "name-pool board renderer missing");
 assert.match(pools, /male_common_first_names/, "name-pool board must render fixed name pools");
 assert.match(styles, /body\[data-view="character"\]/, "character board styles missing");

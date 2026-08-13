@@ -39,6 +39,30 @@ function historicalCharacterTraitLabel(key) {
     : normalized.replace(/^trait_/, "").replaceAll("_", " ");
 }
 
+function historicalCharacterImageTypeLabel(type) {
+  const normalized = String(type || "");
+  return translateMessage(`board.character.imageType.${normalized}`, normalized);
+}
+
+function renderHistoricalCharacterImage(record, character) {
+  const image = record?.image;
+  if (!image?.thumbnail_url || !image?.file_page) return "";
+  const metadata = [
+    [t("board.character.image.type"), historicalCharacterImageTypeLabel(image.type), ""],
+    image.artist ? [t("board.character.image.artist"), image.artist, ""] : null,
+    image.date ? [t("board.character.image.date"), image.date, ""] : null,
+    image.license ? [t("board.character.image.license"), image.license, image.license_url] : null,
+  ].filter(Boolean).map(([label, value, href]) => `<span><b>${escapeHtml(label)}</b>${href ? `<a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(value)}</a>` : escapeHtml(value)}</span>`).join("");
+  const alt = t("board.character.image.alt", { name: historicalCharacterName(character) });
+  return `<figure class="character-historical-image">
+    <a class="character-historical-image-frame" href="${escapeHtml(image.file_page)}" target="_blank" rel="noopener noreferrer"><img src="${escapeHtml(image.thumbnail_url)}" alt="${escapeHtml(alt)}" loading="eager" decoding="async"></a>
+    <figcaption>
+      <a class="character-historical-image-source" href="${escapeHtml(image.file_page)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(image.file_title || "")}">${escapeHtml(t("board.character.image.source"))}</a>
+      <span class="character-historical-image-meta">${metadata}</span>
+    </figcaption>
+  </figure>`;
+}
+
 function historicalCharacterSearchBlob(character) {
   const culture = historicalCharacterCulture(character);
   return [
@@ -132,7 +156,9 @@ function characterListRow(character) {
   const culture = historicalCharacterCulture(character);
   const interestGroup = byInterestGroup.get(character.interest_group_key);
   const ideology = ideologyByKey.get(character.ideology_key);
+  const historicalImage = byHistoricalCharacterImage.get(character.key);
   const badges = [
+    historicalImage ? tagPill(t("board.character.hasHistoricalImage"), "tag-historical-image") : "",
     character.in_starting_history ? tagPill(t("board.character.starting"), "tag-special") : "",
     character.has_dna ? tagPill(t("board.character.dna"), "tag-technology") : tagPill(t("board.character.noDna"), "tag-muted"),
   ].filter(Boolean).join("");
@@ -175,6 +201,7 @@ function renderHistoricalCharacterDetail(character) {
   const dnaStatus = character.has_dna ? t("board.character.dna") : t("board.character.noDna");
   return `<article class="character-detail">
     <div class="detail-title"><button class="detail-back-button" type="button" data-detail-back="character" aria-label="${escapeHtml(t("ui.back"))}" title="${escapeHtml(t("ui.back"))}"><img class="lucide-icon" src="assets/lucide/icons/arrow-left.svg" alt="" aria-hidden="true"></button><div class="detail-title-main"><h2>${escapeHtml(historicalCharacterName(character))}</h2><p class="minor">${escapeHtml(character.key)}</p></div></div>
+    ${renderHistoricalCharacterImage(byHistoricalCharacterImage.get(character.key), character)}
     <dl class="field-grid">
       ${field(t("board.character.field.gender"), escapeHtml(character.female ? t("enum.gender.female") : t("enum.gender.male")))}
       ${field(t("board.character.field.birth"), escapeHtml(character.birth_date || t("ui.none")))}

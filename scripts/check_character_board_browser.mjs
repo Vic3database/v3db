@@ -11,6 +11,7 @@ const siteRoot = path.join(root, "site");
 const port = await freePort();
 const debugPort = await freePort();
 const profileDir = fsTempDir("vicdata-character-board-chrome-");
+const screenshotDir = process.env.VICDATA_SCREENSHOT_DIR || "";
 const site = spawn(process.execPath, ["scripts/serve_site.mjs", siteRoot, String(port)], { stdio: "ignore", windowsHide: true });
 const chrome = spawn(chromePath, [
   "--headless=new", "--disable-gpu", "--disable-extensions", "--no-first-run", "--no-default-browser-check",
@@ -86,12 +87,42 @@ try {
     assert.equal(characterBoard.nav, true, "name-pool navigation should be present");
     assert.match(characterBoard.count, /1[，,]?983|1983/, "character count should report all templates");
 
+    const historicalImageTag = await desktop.evaluate(() => ({
+      text: document.querySelector('[data-character-key="ada_lovelace_template"] .tag-historical-image')?.textContent.trim() || "",
+      absentOnUnmatchedCharacter: !document.querySelector('[data-character-key="ABU_khalifa_al_nahyan"] .tag-historical-image'),
+    }));
+    assert.match(historicalImageTag.text, /有史实图片|Historical image/, "confirmed characters should show the historical-image tag");
+    assert.equal(historicalImageTag.absentOnUnmatchedCharacter, true, "unmatched characters should not show the historical-image tag");
+    if (screenshotDir) await desktop.screenshot(path.join(screenshotDir, "historical-character-list.png"));
+
     await desktop.evaluate(() => document.querySelector("[data-character-key]")?.click());
     await desktop.waitFor(() => Boolean(document.querySelector(".character-detail")), "character detail");
     const characterDetail = await desktop.evaluate(() => ({ hash: location.hash, fields: document.querySelector(".character-detail")?.textContent || "" }));
     assert.match(characterDetail.hash, /^#\/character\//);
     assert.match(characterDetail.fields, /DNA/);
     assert.match(characterDetail.fields, /开局历史|Starting history/);
+
+    await desktop.goto(`http://127.0.0.1:${port}/index.html#/character/ada_lovelace_template`);
+    await desktop.waitFor(() => {
+      const image = document.querySelector(".character-historical-image img");
+      return Boolean(image?.complete && image.naturalWidth > 0);
+    }, "historical character image");
+    const imageDetail = await desktop.evaluate(() => {
+      const figure = document.querySelector(".character-historical-image");
+      const image = figure?.querySelector("img");
+      const source = figure?.querySelector('a[href*="commons.wikimedia.org"]');
+      return {
+        complete: image?.complete,
+        naturalWidth: image?.naturalWidth || 0,
+        source: source?.href || "",
+        text: figure?.textContent || "",
+      };
+    });
+    assert.equal(imageDetail.complete, true, "historical image should finish loading");
+    assert.ok(imageDetail.naturalWidth > 0, "historical image should have natural dimensions");
+    assert.match(imageDetail.source, /^https:\/\/commons\.wikimedia\.org\//, "historical image should link to its Commons file page");
+    assert.match(imageDetail.text, /照片|Photograph/, "historical image should show its localized type");
+    if (screenshotDir) await desktop.screenshot(path.join(screenshotDir, "historical-character-desktop.png"));
 
     await desktop.goto(`http://127.0.0.1:${port}/index.html#/character/ABU_khalifa_al_nahyan`);
     await desktop.waitFor(() => Boolean(document.querySelector(".character-detail .tag-trait")), "localized character trait");
@@ -112,22 +143,34 @@ try {
     await desktop.close();
 
     const mobile = await browser.openPage({ width: 390, height: 844 });
-    await mobile.goto(`http://127.0.0.1:${port}/index.html#/character/ABU_khalifa_al_nahyan`);
-    await mobile.waitFor(() => Boolean(document.querySelector(".character-detail")), "mobile character detail");
-    const mobileLayout = await mobile.evaluate(() => ({
-      results: getComputedStyle(document.querySelector(".results")).display,
-      detail: getComputedStyle(document.querySelector(".detail")).display,
-    }));
+    await mobile.goto(`http://127.0.0.1:${port}/index.html#/character/ada_lovelace_template`);
+    await mobile.waitFor(() => Boolean(document.querySelector(".character-historical-image img")), "mobile character detail image");
+    const mobileLayout = await mobile.evaluate(() => {
+      const detail = document.querySelector(".detail");
+      const figure = document.querySelector(".character-historical-image");
+      const detailRect = detail?.getBoundingClientRect();
+      const figureRect = figure?.getBoundingClientRect();
+      return {
+        results: getComputedStyle(document.querySelector(".results")).display,
+        detail: getComputedStyle(detail).display,
+        imageInsideDetail: Boolean(detailRect && figureRect && figureRect.left >= detailRect.left && figureRect.right <= detailRect.right),
+        documentOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+      };
+    });
     assert.equal(mobileLayout.results, "none", "mobile character detail should replace the list");
     assert.notEqual(mobileLayout.detail, "none", "mobile character detail should remain visible");
+    assert.equal(mobileLayout.imageInsideDetail, true, "mobile historical image should stay inside the detail panel");
+    assert.equal(mobileLayout.documentOverflow, false, "mobile historical image should not cause document overflow");
+    if (screenshotDir) await mobile.screenshot(path.join(screenshotDir, "historical-character-mobile.png"));
     await mobile.close();
 
     const wide = await browser.openPage({ width: 2048, height: 1024 });
-    await wide.goto(`http://127.0.0.1:${port}/index.html#/character/ACE_alauddin_muhammad_bugis`);
+    await wide.goto(`http://127.0.0.1:${port}/index.html#/character/ada_lovelace_template`);
     await wide.waitFor(() => {
       const results = document.querySelector(".results")?.getBoundingClientRect();
       const detail = document.querySelector(".detail")?.getBoundingClientRect();
-      return Boolean(document.querySelector(".character-detail") && results && detail && detail.right >= innerWidth - 20 && results.right <= detail.left - 1);
+      const image = document.querySelector(".character-historical-image img");
+      return Boolean(document.querySelector(".character-detail") && image?.complete && image.naturalWidth > 0 && results && detail && detail.right >= innerWidth - 20 && results.right <= detail.left - 1);
     }, "wide character layout");
     const wideLayout = await wide.evaluate(() => {
       const results = document.querySelector(".results").getBoundingClientRect();
@@ -138,6 +181,7 @@ try {
     assert.ok(wideLayout.resultsRight <= wideLayout.detailLeft - 1, `wide list and detail must not overlap: ${JSON.stringify(wideLayout)}`);
     assert.ok(wideLayout.detailWidth >= 560, `wide detail should be wider than the old map-style panel: ${JSON.stringify(wideLayout)}`);
     assert.ok(wideLayout.resultsWidth <= 1120, `wide list should be narrower than the old map-style list: ${JSON.stringify(wideLayout)}`);
+    if (screenshotDir) await wide.screenshot(path.join(screenshotDir, "historical-character-wide.png"));
     await wide.close();
   } finally {
     await browser.close();
@@ -203,6 +247,11 @@ async function cdpConnect(url) {
       page.goto = async (url) => { const loaded = page.next("Page.loadEventFired"); const hash = page.next("Page.navigatedWithinDocument"); await page.send("Page.navigate", { url }); await Promise.race([loaded, hash]); await new Promise((resolve) => setTimeout(resolve, 300)); };
       page.evaluate = async (fn, ...args) => { const serialized = args.map((value) => JSON.stringify(value)).join(","); const result = await page.send("Runtime.evaluate", { expression: `(${fn})(${serialized})`, returnByValue: true, awaitPromise: true }); if (result.exceptionDetails) throw new Error(result.exceptionDetails.text || "browser evaluation failed"); return result.result?.value; };
       page.waitFor = async (fn, description) => waitFor(() => page.evaluate(fn), description);
+      page.screenshot = async (file) => {
+        const result = await page.send("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
+        fs.mkdirSync(path.dirname(file), { recursive: true });
+        fs.writeFileSync(file, Buffer.from(result.data, "base64"));
+      };
       page.close = () => page.send("Page.close");
       return page;
     };
