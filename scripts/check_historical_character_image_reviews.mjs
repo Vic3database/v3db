@@ -1,0 +1,24 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import { validateImageReviewDocument } from "./lib/historical_character_images.mjs";
+
+const root = process.cwd();
+const file = path.resolve(root, process.argv[2] || "scripts/data/historical-character-image-reviews.json");
+const data = JSON.parse(fs.readFileSync(file, "utf8").replace(/^\uFEFF/, ""));
+const reviews = validateImageReviewDocument(data);
+assert.equal(reviews.length, 12, "首批人工复核应包含十一条批准记录和一条拒绝记录");
+assert.equal(reviews.filter((review) => review.decision === "approve").length, 11, "首批人工复核应批准十一张图片");
+assert.equal(reviews.filter((review) => review.decision === "reject").length, 1, "首批人工复核应包含一个群像反例");
+const einstein = reviews.find((review) => review.character_keys.includes("albert_einstein_template"));
+assert.ok(einstein, "人工复核文件缺少爱因斯坦记录");
+assert.equal(einstein.wikidata_id, "Q937", "爱因斯坦记录的维基数据编号不正确");
+assert.equal(einstein.file_title, "File:Einstein 1921 by F Schmutzer - restoration.jpg", "爱因斯坦记录的图片文件不正确");
+assert.equal(einstein.decision, "approve", "爱因斯坦记录应为批准");
+assert.equal(einstein.type, "photograph", "爱因斯坦记录应归类为照片");
+const jackson = reviews.find((review) => review.character_keys.includes("usa_andrew_jackson_template"));
+assert.equal(jackson?.type, "painting", "安德鲁·杰克逊记录应归类为肖像画");
+const carmichael = reviews.find((review) => review.character_keys.includes("BIC_amy_carmichael"));
+assert.equal(carmichael?.decision, "reject", "艾米·卡迈克尔群像应被人工拒绝");
+assert.equal(carmichael?.file_title, "File:Amy Carmichael with children2.jpg", "艾米·卡迈克尔拒绝记录的文件不正确");
+console.log(JSON.stringify({ historical_character_image_reviews: "ok", reviews: reviews.length }));

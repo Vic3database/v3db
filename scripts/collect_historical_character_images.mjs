@@ -7,12 +7,17 @@ import {
   derivedNameCandidate,
   exclusionReason,
   fetchWithRetry,
+  filterRejectedImages,
   identityEvidence,
+  imageReviewKey,
+  imageReviewsForPerson,
   mediaInfoRows,
   normalize,
   eligibleUndatedCandidates,
   queryBatchWithSplit,
   selectImage,
+  selectReviewedImage,
+  validateImageReviewDocument,
 } from "./lib/historical_character_images.mjs";
 
 const root = process.cwd();
@@ -22,11 +27,13 @@ const outDir = path.resolve(root, args.out || "output/historical-character-image
 const cacheDir = path.join(outDir, "cache");
 const reportFile = path.join(outDir, "historical-character-images.json");
 const nameCandidateFile = path.resolve(root, args["name-candidates"] || path.join(outDir, "historical-character-image-name-candidates.json"));
+const reviewFile = path.resolve(root, args.reviews || "scripts/data/historical-character-image-reviews.json");
 const batchSize = positiveInteger(args["batch-size"], 40);
 const offset = nonNegativeInteger(args.offset, 0);
 const limit = args.limit ? positiveInteger(args.limit, 40) : Number.POSITIVE_INFINITY;
 const requestDelayMs = nonNegativeInteger(args["request-delay-ms"], 6000);
 const userAgent = "VicdataPortraitResearch/0.1 (historical character image audit)";
+const imageReviews = validateImageReviewDocument(readJson(reviewFile));
 
 fs.mkdirSync(cacheDir, { recursive: true });
 const characters = readCharacterData(characterFile);
@@ -177,7 +184,7 @@ const report = buildReport(matches, imageClaims, fileMetadata, characters.length
   undated_character_templates: undatedGroups.reduce((sum, person) => sum + person.character_keys.length, 0),
   excluded_fictional_character_templates: excludedFictional.reduce((sum, person) => sum + person.character_keys.length, 0),
   linked_undated_character_templates: linkedUndatedTemplates,
-});
+}, imageReviews);
 fs.mkdirSync(outDir, { recursive: true });
 writeJson(reportFile, report);
 console.log(JSON.stringify(report.stats));
@@ -414,11 +421,12 @@ async function queryCommonsStructuredBatch(pageIds) {
   return mediaInfoRows(data);
 }
 
-function buildReport(matches, claims, fileMetadata, sourceCharacterCount, sourcePeopleCount, scopeStats = {}) {
+function buildReport(matches, claims, fileMetadata, sourceCharacterCount, sourcePeopleCount, scopeStats = {}, reviews = []) {
   const claimRank = new Map(claims.map((claim) => [`${claim.qid}\u0000${claim.file_title}`, claim.rank]));
   const confirmed = [];
   const review = [];
   const unmatched = [];
+  const usedReviewKeys = new Set();
   for (const person of matches) {
     if (person.wikidata_candidates.length !== 1) {
       (person.wikidata_candidates.length ? review : unmatched).push({
@@ -436,7 +444,12 @@ function buildReport(matches, claims, fileMetadata, sourceCharacterCount, source
         wikidataRank: claimRank.get(`${candidate.qid}\u0000${file_title}`) || "",
       } : null;
     }).filter(Boolean);
-    const selected = selectImage(images, { wikidataId: candidate.qid, name: person.name_en });
+    const reviewPerson = { wikidataId: candidate.qid, name: person.name_en, character_keys: person.character_keys };
+    const applicableReviews = imageReviewsForPerson(reviews, reviewPerson);
+    const reviewedSelection = selectReviewedImage(images, reviewPerson, applicableReviews);
+    for (const item of applicableReviews) usedReviewKeys.add(imageReviewKey(item));
+    const eligibleImages = filterRejectedImages(images, reviewPerson, applicableReviews);
+    const selected = reviewedSelection?.image || selectImage(eligibleImages, reviewPerson);
     if (!selected) {
       review.push({
         ...person,
@@ -446,7 +459,10 @@ function buildReport(matches, claims, fileMetadata, sourceCharacterCount, source
         image_candidates: images.map((image) => ({
           file_title: image.title,
           file_page: image.file_page,
+          thumbnail_url: image.thumbnail_url,
           type: classifyImageType(image),
+          artist: image.artist,
+          date: image.date,
           identity_evidence: identityEvidence(image, { wikidataId: candidate.qid, name: person.name_en }),
           excluded_reason: exclusionReason(image),
           license: image.license,
@@ -465,11 +481,16 @@ function buildReport(matches, claims, fileMetadata, sourceCharacterCount, source
       character_keys: person.character_keys,
       match_method: person.match_method,
       matched_variants: person.matched_variants || [],
+      confirmation_method: reviewedSelection ? "manual_review" : "automatic_rules",
+      image_review: reviewedSelection ? {
+        reviewed_at: reviewedSelection.review.reviewed_at,
+        reason: reviewedSelection.review.reason,
+      } : null,
       wikidata_id: candidate.qid,
       wikidata_url: `https://www.wikidata.org/wiki/${candidate.qid}`,
       wikidata_label: cleanDisplayText(candidate.label, person.name_en),
       image: {
-        type: classifyImageType(selected),
+        type: reviewedSelection?.review.type || classifyImageType(selected),
         file_title: selected.title,
         file_page: selected.file_page,
         original_url: selected.original_url,
@@ -487,6 +508,10 @@ function buildReport(matches, claims, fileMetadata, sourceCharacterCount, source
       },
     });
   }
+  const unusedReviews = reviews.filter((item) => !usedReviewKeys.has(imageReviewKey(item)));
+  if (unusedReviews.length) {
+    throw new Error(`Unused historical character image reviews: ${unusedReviews.map((item) => `${item.wikidata_id} ${item.file_title}`).join(", ")}`);
+  }
   const confirmedTemplates = confirmed.reduce((sum, person) => sum + person.character_keys.length, 0);
   return {
     schema_version: 1,
@@ -497,6 +522,7 @@ function buildReport(matches, claims, fileMetadata, sourceCharacterCount, source
       accepted_types: ["photograph", "painting", "print"],
       identity: "exact or conservative multi-token English name match with the same birth year, or exact English name with a birth year consistent with the 1836 starting age, followed by person-specific evidence on the Commons file",
       excluded: ["generated or reconstructed images", "sculptures and monuments", "signatures and heraldry", "group images"],
+      manual_reviews: "versioned decisions must match the current character keys, Wikidata person, and Commons file, and cannot bypass exclusion, identity, or license rules",
     },
     stats: {
       source_character_templates: sourceCharacterCount,
@@ -510,6 +536,8 @@ function buildReport(matches, claims, fileMetadata, sourceCharacterCount, source
       confirmed_exact_name_people: confirmed.filter((person) => person.match_method === "exact_name_and_birth_year").length,
       confirmed_derived_name_people: confirmed.filter((person) => person.match_method === "derived_name_variant").length,
       confirmed_starting_age_people: confirmed.filter((person) => person.match_method === "exact_name_and_starting_age").length,
+      confirmed_automatic_people: confirmed.filter((person) => person.confirmation_method === "automatic_rules").length,
+      confirmed_manual_review_people: confirmed.filter((person) => person.confirmation_method === "manual_review").length,
       review_people: review.length,
       unmatched_people: unmatched.length,
     },

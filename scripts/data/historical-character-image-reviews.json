@@ -1,0 +1,137 @@
+{
+  "schema_version": 1,
+  "reviews": [
+    {
+      "character_keys": [
+        "albert_einstein_template"
+      ],
+      "wikidata_id": "Q937",
+      "file_title": "File:Einstein 1921 by F Schmutzer - restoration.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file identifies Albert Einstein in a 1921 photograph by Ferdinand Schmutzer."
+    },
+    {
+      "character_keys": [
+        "JAP_yosano_akiko"
+      ],
+      "wikidata_id": "Q464104",
+      "file_title": "File:Akiko Yosano.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photograph of Akiko Yosano published by the Eastern Culture Association in 1933 or 1934."
+    },
+    {
+      "character_keys": [
+        "RUS_alexander_fyodorovich_kerensky"
+      ],
+      "wikidata_id": "Q48211",
+      "file_title": "File:Alexandre Fiodorovitch Kerenski, 1881-1970 (cropped).jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a cropped single-person photograph of Alexander Kerensky dated 23 May 1943."
+    },
+    {
+      "character_keys": [
+        "RUS_alexandra_mikhailovna_kollontai"
+      ],
+      "wikidata_id": "Q179558",
+      "file_title": "File:Alexandra Kollontai 1946.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photograph of Alexandra Kollontai dated 10 June 1946."
+    },
+    {
+      "character_keys": [
+        "usa_andrew_jackson_template"
+      ],
+      "wikidata_id": "Q11817",
+      "file_title": "File:Andrew jackson head.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a cropped single-person painted portrait of Andrew Jackson by Ralph Eleaser Whiteside Earl."
+    },
+    {
+      "character_keys": [
+        "BIC_bhimrao_ramji_ambedkar"
+      ],
+      "wikidata_id": "Q231690",
+      "file_title": "File:Dr. Bhimrao Ambedkar.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photographic portrait of B. R. Ambedkar dated after 1948 or in the 1950s."
+    },
+    {
+      "character_keys": [
+        "mex_juarez_character_template"
+      ],
+      "wikidata_id": "Q182276",
+      "file_title": "File:Benito Juarez (cropped).jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a cropped single-person photographic portrait of Benito Juarez."
+    },
+    {
+      "character_keys": [
+        "gbr_disraeli_character_template"
+      ],
+      "wikidata_id": "Q82006",
+      "file_title": "File:Benjamin Disraeli (1804–1881) cropped.png",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a cropped single-person photograph of Benjamin Disraeli by Cornelius Jabez Hughes dated 22 July 1878."
+    },
+    {
+      "character_keys": [
+        "GBR_friedrich_engels"
+      ],
+      "wikidata_id": "Q34787",
+      "file_title": "File:Friedrich Engels portrait (cropped).jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a cropped single-person photograph of Friedrich Engels by William Hall dated May 1877."
+    },
+    {
+      "character_keys": [
+        "agitator_giuseppe_mazzini"
+      ],
+      "wikidata_id": "Q187336",
+      "file_title": "File:Giuseppe Mazzini.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photographic portrait of Giuseppe Mazzini dated 1860."
+    },
+    {
+      "character_keys": [
+        "usa_henry_ford"
+      ],
+      "wikidata_id": "Q8768",
+      "file_title": "File:Henry ford 1919.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photograph of Henry Ford by Fred Hartsook dated 1919."
+    },
+    {
+      "character_keys": [
+        "BIC_amy_carmichael"
+      ],
+      "wikidata_id": "Q481824",
+      "file_title": "File:Amy Carmichael with children2.jpg",
+      "decision": "reject",
+      "type": "",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image shows Amy Carmichael with a child and is not a single-person portrait."
+    }
+  ]
+}

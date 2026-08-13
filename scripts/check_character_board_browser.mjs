@@ -93,6 +93,8 @@ try {
     }));
     assert.match(historicalImageTag.text, /有史实图片|Historical image/, "confirmed characters should show the historical-image tag");
     assert.equal(historicalImageTag.absentOnUnmatchedCharacter, true, "unmatched characters should not show the historical-image tag");
+    const einsteinImageTag = await desktop.evaluate(() => document.querySelector('[data-character-key="albert_einstein_template"] .tag-historical-image')?.textContent.trim() || "");
+    assert.match(einsteinImageTag, /有史实图片|Historical image/, "manually reviewed Einstein should show the historical-image tag");
     if (screenshotDir) await desktop.screenshot(path.join(screenshotDir, "historical-character-list.png"));
 
     await desktop.evaluate(() => document.querySelector("[data-character-key]")?.click());
@@ -123,6 +125,37 @@ try {
     assert.match(imageDetail.source, /^https:\/\/commons\.wikimedia\.org\//, "historical image should link to its Commons file page");
     assert.match(imageDetail.text, /照片|Photograph/, "historical image should show its localized type");
     if (screenshotDir) await desktop.screenshot(path.join(screenshotDir, "historical-character-desktop.png"));
+
+    await desktop.goto(`http://127.0.0.1:${port}/index.html#/character/albert_einstein_template`);
+    await desktop.waitFor(() => {
+      const image = document.querySelector(".character-historical-image img");
+      return Boolean(image?.complete && image.naturalWidth > 0);
+    }, "Einstein historical character image");
+    const einsteinImageDetail = await desktop.evaluate(() => ({
+      source: document.querySelector('.character-historical-image a[href*="commons.wikimedia.org"]')?.href || "",
+      image: document.querySelector(".character-historical-image img")?.src || "",
+      text: document.querySelector(".character-historical-image")?.textContent || "",
+    }));
+    assert.match(einsteinImageDetail.source, /Einstein_1921_by_F_Schmutzer_-_restoration\.jpg/, "Einstein detail should link to the reviewed Commons file");
+    assert.match(einsteinImageDetail.image, /Einstein_1921_by_F_Schmutzer_-_restoration\.jpg/, "Einstein detail should load the reviewed thumbnail");
+    assert.match(einsteinImageDetail.text, /照片|Photograph/, "Einstein detail should identify the image as a photograph");
+    if (screenshotDir) await desktop.screenshot(path.join(screenshotDir, "historical-character-einstein.png"));
+
+    await desktop.goto(`http://127.0.0.1:${port}/index.html#/character/usa_andrew_jackson_template`);
+    await desktop.waitFor(() => {
+      const image = document.querySelector(".character-historical-image img");
+      return Boolean(image?.complete && image.naturalWidth > 0);
+    }, "Andrew Jackson historical character image");
+    const jacksonImageDetail = await desktop.evaluate(() => ({
+      source: document.querySelector('.character-historical-image a[href*="commons.wikimedia.org"]')?.href || "",
+      text: document.querySelector(".character-historical-image")?.textContent || "",
+    }));
+    assert.match(jacksonImageDetail.source, /Andrew_jackson_head\.jpg/, "Andrew Jackson detail should link to the reviewed Commons file");
+    assert.match(jacksonImageDetail.text, /肖像画|Painting/, "Andrew Jackson detail should identify the image as a painting");
+
+    await desktop.goto(`http://127.0.0.1:${port}/index.html#/character/BIC_amy_carmichael`);
+    await desktop.waitFor(() => Boolean(document.querySelector(".character-detail")), "Amy Carmichael character detail");
+    assert.equal(await desktop.evaluate(() => Boolean(document.querySelector(".character-historical-image"))), false, "rejected Amy Carmichael group image should not be shown");
 
     await desktop.goto(`http://127.0.0.1:${port}/index.html#/character/ABU_khalifa_al_nahyan`);
     await desktop.waitFor(() => Boolean(document.querySelector(".character-detail .tag-trait")), "localized character trait");

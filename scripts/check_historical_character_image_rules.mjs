@@ -3,6 +3,7 @@ import {
   classifyImageType,
   derivedNameCandidate,
   exclusionReason,
+  filterRejectedImages,
   fetchWithRetry,
   eligibleUndatedCandidates,
   identityEvidence,
@@ -10,7 +11,59 @@ import {
   nameVariants,
   queryBatchWithSplit,
   selectImage,
+  selectReviewedImage,
+  validateImageReviewDocument,
 } from "./lib/historical_character_images.mjs";
+
+const einsteinPerson = {
+  name_en: "Albert Einstein",
+  character_keys: ["albert_einstein_template"],
+  wikidataId: "Q937",
+};
+const einsteinPhoto = {
+  title: "File:Einstein 1921 by F Schmutzer - restoration.jpg",
+  categories: ["Category:Albert Einstein by Schmutzer (1921)"],
+  description: "Albert Einstein during a lecture in Vienna in 1921",
+  mediaLabel: "Einstein 1921 by F Schmutzer - restoration",
+  directPersonImage: true,
+  license: "Public domain",
+};
+const einsteinReview = {
+  schema_version: 1,
+  reviews: [{
+    character_keys: ["albert_einstein_template"],
+    wikidata_id: "Q937",
+    file_title: einsteinPhoto.title,
+    decision: "approve",
+    type: "photograph",
+    reviewed_at: "2026-08-13",
+    reason: "The file is an identified 1921 photograph of Albert Einstein.",
+  }],
+};
+assert.equal(validateImageReviewDocument(einsteinReview).length, 1);
+assert.equal(selectReviewedImage([einsteinPhoto], einsteinPerson, einsteinReview.reviews)?.image.type, "photograph");
+assert.throws(() => validateImageReviewDocument({
+  schema_version: 1,
+  reviews: [einsteinReview.reviews[0], { ...einsteinReview.reviews[0], file_title: "File:Another Einstein.jpg" }],
+}), /duplicates an approved person decision/);
+
+const rejectedEinstein = {
+  ...einsteinReview.reviews[0],
+  decision: "reject",
+  type: "",
+};
+assert.equal(selectReviewedImage([einsteinPhoto], einsteinPerson, [rejectedEinstein]), null);
+assert.deepEqual(filterRejectedImages([einsteinPhoto], einsteinPerson, [rejectedEinstein]), []);
+
+const einsteinGroup = {
+  ...einsteinPhoto,
+  title: "File:Albert Einstein at a conference.jpg",
+  description: "Albert Einstein at a conference on physics with other scientists.",
+};
+assert.throws(() => selectReviewedImage([einsteinGroup], einsteinPerson, [{
+  ...einsteinReview.reviews[0],
+  file_title: einsteinGroup.title,
+}]), /group image/);
 
 const adaPainting = {
   title: "File:Ada Lovelace.jpg",

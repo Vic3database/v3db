@@ -38,6 +38,11 @@ for (const person of report.people) {
   assert.ok(person.image.license, `${person.name_en} 缺少许可信息`);
   assert.ok(person.image.identity_evidence, `${person.name_en} 缺少人物对应证据`);
   assert.equal(person.image.excluded_reason || "", "", `${person.name_en} 的已确认图片带有排除原因`);
+  assert.ok(["automatic_rules", "manual_review"].includes(person.confirmation_method), `${person.name_en} 缺少有效的确认方式`);
+  if (person.confirmation_method === "manual_review") {
+    assert.match(person.image_review?.reviewed_at || "", /^\d{4}-\d{2}-\d{2}$/, `${person.name_en} 缺少人工复核日期`);
+    assert.ok(person.image_review?.reason, `${person.name_en} 缺少人工复核理由`);
+  }
   for (const key of person.character_keys) {
     assert.ok(!templateKeys.has(key), `角色模板 ${key} 被重复关联`);
     templateKeys.add(key);
@@ -54,9 +59,18 @@ for (const bucket of [report.review, report.unmatched]) {
   }
 }
 
+for (const person of report.review) {
+  for (const candidate of person.image_candidates || []) {
+    assert.match(candidate.thumbnail_url || "", /^https:\/\/upload\.wikimedia\.org\//, `${person.name_en} 的待复核候选缺少缩略图`);
+    assert.ok(Object.hasOwn(candidate, "artist"), `${person.name_en} 的待复核候选缺少作者字段`);
+    assert.ok(Object.hasOwn(candidate, "date"), `${person.name_en} 的待复核候选缺少图片日期字段`);
+  }
+}
+
 const stats = report.stats || {};
 assert.equal(stats.confirmed_people, report.people.length, "已确认人物统计不一致");
 assert.equal(stats.confirmed_character_templates, templateKeys.size, "已确认角色模板统计不一致");
+assert.equal(stats.confirmed_automatic_people + stats.confirmed_manual_review_people, report.people.length, "确认方式统计不一致");
 assert.equal(stats.review_people, report.review.length, "待复核人物统计不一致");
 assert.equal(stats.unmatched_people, report.unmatched.length, "未匹配人物统计不一致");
 assert.equal(
@@ -64,6 +78,22 @@ assert.equal(
   stats.source_character_templates,
   "角色模板没有全部归入确认、待复核、未匹配或明确排除状态",
 );
+
+const einstein = report.people.find((person) => person.character_keys.includes("albert_einstein_template"));
+assert.ok(einstein, "爱因斯坦没有进入已确认图片集");
+assert.equal(einstein.wikidata_id, "Q937", "爱因斯坦的维基数据编号不正确");
+assert.equal(einstein.confirmation_method, "manual_review", "爱因斯坦应由人工复核确认");
+assert.equal(einstein.image.type, "photograph", "爱因斯坦的图片类型应为照片");
+assert.equal(einstein.image.file_title, "File:Einstein 1921 by F Schmutzer - restoration.jpg", "爱因斯坦使用了错误图片");
+
+const jackson = report.people.find((person) => person.character_keys.includes("usa_andrew_jackson_template"));
+assert.equal(jackson?.confirmation_method, "manual_review", "安德鲁·杰克逊应由人工复核确认");
+assert.equal(jackson?.image.type, "painting", "安德鲁·杰克逊的图片类型应为肖像画");
+const carmichaelConfirmed = report.people.find((person) => person.character_keys.includes("BIC_amy_carmichael"));
+assert.equal(carmichaelConfirmed, undefined, "艾米·卡迈克尔的群像不应进入确认集");
+const carmichaelReview = report.review.find((person) => person.character_keys.includes("BIC_amy_carmichael"));
+assert.ok(carmichaelReview, "艾米·卡迈克尔应保留在待复核集");
+assert.equal(carmichaelReview.image_candidates?.[0]?.file_title, "File:Amy Carmichael with children2.jpg", "艾米·卡迈克尔的待复核候选不正确");
 
 console.log(JSON.stringify({
   confirmed_people: report.people.length,

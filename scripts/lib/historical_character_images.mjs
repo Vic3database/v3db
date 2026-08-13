@@ -9,6 +9,8 @@ const structuredTypeMap = new Map([
   ["Q3305213", "painting"],
   ["Q11060274", "print"],
 ]);
+const acceptedImageTypes = new Set(["photograph", "painting", "print"]);
+const acceptedReviewDecisions = new Set(["approve", "reject"]);
 
 export function combinedText(image) {
   return [
@@ -74,6 +76,87 @@ export function selectImage(images, person) {
   return ranked[0]?.image || null;
 }
 
+export function validateImageReviewDocument(document) {
+  if (document?.schema_version !== 1) throw new Error("Historical character image reviews must use schema_version 1");
+  if (!Array.isArray(document.reviews)) throw new Error("Historical character image reviews must contain a reviews array");
+  const seen = new Set();
+  const approvedPeople = new Set();
+  return document.reviews.map((source, index) => {
+    const label = `image review ${index + 1}`;
+    const characterKeys = [...new Set((source.character_keys || []).map((value) => String(value).trim()).filter(Boolean))].sort();
+    if (!characterKeys.length) throw new Error(`${label} must include character_keys`);
+    if (!/^Q\d+$/.test(String(source.wikidata_id || ""))) throw new Error(`${label} must include a Wikidata QID`);
+    if (!/^File:/.test(String(source.file_title || ""))) throw new Error(`${label} must include a Commons file title`);
+    if (!acceptedReviewDecisions.has(source.decision)) throw new Error(`${label} has an invalid decision`);
+    if (source.decision === "approve" && !acceptedImageTypes.has(source.type)) throw new Error(`${label} has an invalid approved image type`);
+    if (source.decision === "reject" && source.type) throw new Error(`${label} must not assign a type to a rejected image`);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(source.reviewed_at || "")) || Number.isNaN(Date.parse(`${source.reviewed_at}T00:00:00Z`))) {
+      throw new Error(`${label} must include a valid review date`);
+    }
+    if (!String(source.reason || "").trim()) throw new Error(`${label} must include a reason`);
+    const review = {
+      character_keys: characterKeys,
+      wikidata_id: String(source.wikidata_id),
+      file_title: String(source.file_title),
+      decision: source.decision,
+      type: source.decision === "approve" ? source.type : "",
+      reviewed_at: String(source.reviewed_at),
+      reason: String(source.reason).trim(),
+    };
+    const key = imageReviewKey(review);
+    if (seen.has(key)) throw new Error(`${label} duplicates an existing person and file decision`);
+    seen.add(key);
+    const personKey = imageReviewPersonKey(review);
+    if (review.decision === "approve" && approvedPeople.has(personKey)) throw new Error(`${label} duplicates an approved person decision`);
+    if (review.decision === "approve") approvedPeople.add(personKey);
+    return review;
+  });
+}
+
+export function imageReviewsForPerson(reviews, person) {
+  const characterKeys = [...new Set((person.character_keys || []).map(String))].sort();
+  const wikidataId = String(person.wikidataId || person.wikidata_id || "");
+  return (reviews || []).filter((review) => (
+    review.wikidata_id === wikidataId
+    && sameStringArray(review.character_keys, characterKeys)
+  ));
+}
+
+export function imageReviewKey(review) {
+  return `${imageReviewPersonKey(review)}\u0000${review.file_title}`;
+}
+
+export function filterRejectedImages(images, person, reviews) {
+  const rejected = new Set(imageReviewsForPerson(reviews, person)
+    .filter((review) => review.decision === "reject")
+    .map((review) => review.file_title));
+  return (images || []).filter((image) => !rejected.has(image.title));
+}
+
+export function selectReviewedImage(images, person, reviews) {
+  const applicable = imageReviewsForPerson(reviews, person);
+  for (const review of applicable) {
+    if (!(images || []).some((image) => image.title === review.file_title)) {
+      throw new Error(`Reviewed Commons file is absent for ${person.name_en || person.name || review.wikidata_id}: ${review.file_title}`);
+    }
+  }
+  const approved = applicable.filter((review) => review.decision === "approve");
+  if (!approved.length) return null;
+  if (approved.length > 1) throw new Error(`Multiple approved images for ${person.name_en || person.name || approved[0].wikidata_id}`);
+  const review = approved[0];
+  const candidate = images.find((image) => image.title === review.file_title);
+  const excluded = exclusionReason(candidate);
+  if (excluded) throw new Error(`Reviewed image violates exclusion rules: ${excluded}`);
+  const evidence = identityEvidence(candidate, person);
+  if (!evidence) throw new Error("Reviewed image lacks person-specific identity evidence");
+  if (!candidate.license) throw new Error("Reviewed image lacks license information");
+  return {
+    image: { ...candidate, type: review.type },
+    review,
+    identity_evidence: evidence,
+  };
+}
+
 export function normalize(value) {
   return String(value || "")
     .normalize("NFKD")
@@ -81,6 +164,14 @@ export function normalize(value) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
+}
+
+function imageReviewPersonKey(review) {
+  return `${[...(review.character_keys || [])].sort().join("\u0001")}\u0000${review.wikidata_id}`;
+}
+
+function sameStringArray(left, right) {
+  return left.length === right.length && left.every((value, index) => value === right[index]);
 }
 
 export function mediaInfoRows(data) {

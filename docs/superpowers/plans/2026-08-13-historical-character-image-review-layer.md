@@ -16,15 +16,15 @@
 - Modify: `scripts/check_historical_character_image_rules.mjs`
 - Create: `scripts/check_historical_character_image_reviews.mjs`
 
-- [ ] **Step 1: Write failing unit assertions**
+- [x] **Step 1: Write failing unit assertions**
 
 在规则校验中导入 `validateImageReviewDocument` 和 `selectReviewedImage`。用无类型的爱因斯坦候选断言：精确批准记录返回该候选并把类型设为 `photograph`；批准群像时抛错；拒绝记录使候选退出自动选择。
 
-- [ ] **Step 2: Write the review-file contract check**
+- [x] **Step 2: Write the review-file contract check**
 
 新校验读取 `scripts/data/historical-character-image-reviews.json`，要求结构版本为 1，第一条批准记录的角色键为 `albert_einstein_template`、人物编号为 `Q937`、文件名为 `File:Einstein 1921 by F Schmutzer - restoration.jpg`、类型为 `photograph`。
 
-- [ ] **Step 3: Run tests and confirm failure**
+- [x] **Step 3: Run tests and confirm failure**
 
 Run: `node scripts/check_historical_character_image_rules.mjs`
 
@@ -41,19 +41,19 @@ Expected: FAIL，提示复核文件不存在。
 - Modify: `scripts/lib/historical_character_images.mjs`
 - Modify: `scripts/collect_historical_character_images.mjs`
 
-- [ ] **Step 1: Add the Einstein review record**
+- [x] **Step 1: Add the Einstein review record**
 
 创建结构版本 1 的复核文件，批准施穆策 1921 年照片，记录 `photograph`、`2026-08-13` 和选择理由。
 
-- [ ] **Step 2: Implement validation and reviewed selection**
+- [x] **Step 2: Implement validation and reviewed selection**
 
 `validateImageReviewDocument` 校验决定、角色键、人物编号、文件名、日期和批准类型；`selectReviewedImage` 精确匹配角色键集合与人物编号，拒绝记录先过滤候选，批准记录还必须通过排除原因、人物证据和许可检查。
 
-- [ ] **Step 3: Integrate reviews into report generation**
+- [x] **Step 3: Integrate reviews into report generation**
 
 采集器支持 `--reviews` 参数，默认读取版本化复核文件。报告为每个确认人物写入 `confirmation_method`；人工批准记录附带复核摘要，统计中增加自动确认和人工确认人数。构建结束时存在未使用复核记录即失败。
 
-- [ ] **Step 4: Run rule and review checks**
+- [x] **Step 4: Run rule and review checks**
 
 Run: `node scripts/check_historical_character_image_rules.mjs`
 
@@ -71,19 +71,19 @@ Expected: 两项校验退出码为 0。
 - Modify: `scripts/check_character_board_browser.mjs`
 - Modify: `docs/worklog/2026-08-13-historical-character-images.md`
 
-- [ ] **Step 1: Rebuild the cached report and site data**
+- [x] **Step 1: Rebuild the cached report and site data**
 
 Run: `node scripts/collect_historical_character_images.mjs --request-delay-ms 0`
 
 Run: `node scripts/build_historical_character_image_data.mjs`
 
-Expected: 确认 391 人、394 个模板，待复核 605 人，未匹配 965 人。
+Expected: 首批复核完成后确认 401 人、404 个模板，待复核 595 人，未匹配 965 人。
 
-- [ ] **Step 2: Add report, data, and browser assertions**
+- [x] **Step 2: Add report, data, and browser assertions**
 
 报告及前端数据校验要求爱因斯坦使用指定文件、类型为照片且确认方式为人工复核。浏览器校验搜索或打开 `albert_einstein_template`，检查列表标签和详情图片文件链接。
 
-- [ ] **Step 3: Run full related verification**
+- [x] **Step 3: Run full related verification**
 
 Run: `node scripts/check_historical_character_images.mjs`
 
@@ -95,6 +95,6 @@ Run: `node scripts/check_character_board_browser.mjs`
 
 Expected: 所有校验退出码为 0。
 
-- [ ] **Step 4: Update worklog and commit selected files**
+- [x] **Step 4: Update worklog and commit selected files**
 
 记录人工复核层、爱因斯坦样本和最新统计，只暂存本阶段文件，提交信息使用 `feat: add historical image review layer`。
