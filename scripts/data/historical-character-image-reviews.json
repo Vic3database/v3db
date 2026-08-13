@@ -1032,9 +1032,250 @@
       "type": "painting",
       "reviewed_at": "2026-08-14",
       "reason": "The Commons file is a single-person public-domain portrait of Ferenc Kölcsey by Anton Einsle."
+    },
+    {
+      "character_keys": ["VNZ_fermin_toro"],
+      "wikidata_id": "Q3621891",
+      "file_title": "File:Antonio Herrera Toro 1897 000.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons description identifies this public-domain 1897 oil-on-canvas portrait of Fermín Toro by Antonio Herrera Toro."
+    },
+    {
+      "character_keys": ["ONT_francis_bond_head"],
+      "wikidata_id": "Q1441408",
+      "file_title": "File:Portrait of Francis Bond Head.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is a public-domain printed portrait of Francis Bond Head, with painter, engraver and publisher credited."
+    },
+    {
+      "character_keys": ["ORA_francis_william_reitz"],
+      "wikidata_id": "Q726327",
+      "file_title": "File:WFReitz CHM VA0957.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is an official single-person portrait of Orange Free State president Francis William Reitz, dated to his 1888–1895 term."
+    },
+    {
+      "character_keys": ["ECU_francisco_aguirre_abad"],
+      "wikidata_id": "Q21041509",
+      "file_title": "File:Aguirre Abad, Dr. Francisco Javier.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is a single-person image tied directly to Francisco Aguirre Abad and carries a reusable CC BY-SA 3.0 license."
+    },
+    {
+      "character_keys": ["BRZ_francisco_escobar"],
+      "wikidata_id": "Q30611210",
+      "file_title": "File:FranciscoEscobarPrefeito.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons description identifies a single-person photograph of Francisco Escobar as mayor, dated 1909."
+    },
+    {
+      "character_keys": ["VNZ_francisco_linares_alcantara"],
+      "wikidata_id": "Q2497665",
+      "file_title": "File:Sketch Linares Alcántara.jpg",
+      "decision": "reject",
+      "type": "",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons description explicitly identifies the file as a sketch of a portrait of Francisco Linares Alcántara, outside the approved image types."
+    },
+    {
+      "character_keys": ["UCA_francisco_morazan"],
+      "wikidata_id": "Q332111",
+      "file_title": "File:General Francisco Morazán.JPG",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is a public-domain historic portrait of Francisco Morazán reproduced from an 1838 publication."
+    },
+    {
+      "character_keys": ["SPA_francisco_savalls"],
+      "wikidata_id": "Q3397627",
+      "file_title": "File:Savalls1.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is a single-person public-domain portrait identified as Francisco Savalls y Massot and dated 1872."
+    },
+    {
+      "character_keys": ["DEI_Frans_David_Cochius"],
+      "wikidata_id": "Q2092779",
+      "file_title": "File:Cochius, Frans David.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is a single-person public-domain portrait of Frans David Cochius by P. H. K. van Schendel."
+    },
+    {
+      "character_keys": ["TRN_frans_lion_cachet"],
+      "wikidata_id": "Q13034743",
+      "file_title": "File:FL Cachet.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file identifies a single-person nineteenth-century photograph of Frans Lion Cachet."
+    },
+    {
+      "character_keys": ["net_general_list"],
+      "wikidata_id": "Q2793043",
+      "file_title": "File:Frederik Carel List.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons title and description identify this public-domain single-person portrait of Frederik Carel List."
+    },
+    {
+      "character_keys": ["SWI_friedrich_ludwig_keller"],
+      "wikidata_id": "Q124208",
+      "file_title": "File:Friedrich Ludwig Keller (1799-1860).jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons description identifies a single-person public-domain portrait of Friedrich Ludwig Keller."
+    },
+    {
+      "character_keys": ["HUN_gabor_baross"],
+      "wikidata_id": "Q450178",
+      "file_title": "File:Baross Gábor Morelli.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons description identifies this public-domain portrait of Gábor Baross as an engraving by Gustav Morelli, dated 1892."
+    },
+    {
+      "character_keys": ["JAP_nagaoka_gaishi"],
+      "wikidata_id": "Q11652027",
+      "file_title": "File:Lieutenant General Gaishi Nagaoka.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is a public-domain old photograph of Lieutenant General Gaishi Nagaoka from the 1930s."
+    },
+    {
+      "character_keys": ["BER_ganpat_rao_gaekwad_template"],
+      "wikidata_id": "Q16066150",
+      "file_title": "File:Ganpat Rao Gaekwad.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is a single-person public-domain portrait identified as Ganpat Rao Gaekwad."
+    },
+    {
+      "character_keys": ["can_george_brown"],
+      "wikidata_id": "Q642382",
+      "file_title": "File:George Brown.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is a single-person public-domain photograph of Canadian politician George Brown from Library and Archives Canada."
+    },
+    {
+      "character_keys": ["AST_george_fife_angas"],
+      "wikidata_id": "Q1507341",
+      "file_title": "File:George Fife Angas.jpg",
+      "decision": "reject",
+      "type": "",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons description explicitly identifies the file as a sketch of George Fife Angas, outside the approved image types."
+    },
+    {
+      "character_keys": ["GBR_george_holyoake"],
+      "wikidata_id": "Q719365",
+      "file_title": "File:Holyoake2.JPG",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons description identifies a single-person public-domain portrait photograph of George Jacob Holyoake in later life."
+    },
+    {
+      "character_keys": ["AST_george_strickland_kingston"],
+      "wikidata_id": "Q3101945",
+      "file_title": "File:Portrait of the Hon. Sir George Stickland Kingston(GN00283).jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is a single-person portrait of George Strickland Kingston dated 1857, with a CC0 license and photographer credit."
+    },
+    {
+      "character_keys": ["fra_georges_sorel_character_template"],
+      "wikidata_id": "Q313666",
+      "file_title": "File:Georges Sorel.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file identifies a single-person early twentieth-century portrait of Georges Sorel and is public domain."
+    },
+    {
+      "character_keys": ["GRE_georgios_kountouriotis"],
+      "wikidata_id": "Q660508",
+      "file_title": "File:Georgios Kountouriotis.png",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons categories identify this public-domain 1860 single-person oil portrait of Georgios Kountouriotis by Dionysios Tsokos."
+    },
+    {
+      "character_keys": ["GRE_georgios_psyllas"],
+      "wikidata_id": "Q15981073",
+      "file_title": "File:Georgios Psillas.JPG",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is a public-domain portrait reproduced in the 1881 Greek illustrated reference work."
+    },
+    {
+      "character_keys": ["ITA_giovanni_agnelli"],
+      "wikidata_id": "Q315610",
+      "file_title": "File:Agnelli.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons description identifies a single-person public-domain portrait of Giovanni Agnelli."
+    },
+    {
+      "character_keys": ["ITA_giovanni_ansaldo"],
+      "wikidata_id": "Q3766422",
+      "file_title": "File:Giovanni Ansaldo .jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file identifies a single-person 1853 portrait of Giovanni Ansaldo and is public domain."
+    },
+    {
+      "character_keys": ["agitator_giovanni_gentile"],
+      "wikidata_id": "Q312295",
+      "file_title": "File:Giovanni Gentile.png",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons description identifies a single-person portrait of philosopher Giovanni Gentile from the early twentieth century."
     }
   ],
   "person_reviews": [
+    {
+      "character_keys": ["VNZ_francisco_linares_alcantara"],
+      "wikidata_ids": ["Q2497665"],
+      "candidate_file_titles": ["File:Sketch Linares Alcántara.jpg"],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-14",
+      "reason": "The only current candidate is explicitly identified as a sketch, outside the approved image types."
+    },
+    {
+      "character_keys": ["AST_george_fife_angas"],
+      "wikidata_ids": ["Q1507341"],
+      "candidate_file_titles": ["File:George Fife Angas.jpg"],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-14",
+      "reason": "The only current candidate is explicitly identified as a sketch, outside the approved image types."
+    },
     {
       "character_keys": ["BIC_dwarkanath_tagore"],
       "wikidata_ids": ["Q1268423"],

@@ -25,7 +25,7 @@ for (const person of data.historicalCharacterImages) {
   }
 }
 assert.equal(data.historicalCharacterImageStats.confirmed_character_templates, keys.size, "模板覆盖统计不一致");
-assert.equal(data.historicalCharacterImageStats.confirmed_manual_review_people, 102, "人工复核人数统计不一致");
+assert.equal(data.historicalCharacterImageStats.confirmed_manual_review_people, 125, "人工复核人数统计不一致");
 const einstein = data.historicalCharacterImages.find((person) => person.character_keys.includes("albert_einstein_template"));
 assert.ok(einstein, "角色图片数据块缺少爱因斯坦");
 assert.equal(einstein.confirmation_method, "manual_review", "爱因斯坦应由人工复核确认");
