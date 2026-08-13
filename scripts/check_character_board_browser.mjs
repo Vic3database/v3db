@@ -153,9 +153,27 @@ try {
     assert.match(jacksonImageDetail.source, /Andrew_jackson_head\.jpg/, "Andrew Jackson detail should link to the reviewed Commons file");
     assert.match(jacksonImageDetail.text, /肖像画|Painting/, "Andrew Jackson detail should identify the image as a painting");
 
+    await desktop.goto(`http://127.0.0.1:${port}/index.html#/character/GRE_alexandros_koumoundouros`);
+    await desktop.waitFor(() => {
+      const image = document.querySelector(".character-historical-image img");
+      return Boolean(image?.complete && image.naturalWidth > 0);
+    }, "Alexandros Koumoundouros historical character image");
+    const koumoundourosImageDetail = await desktop.evaluate(() => ({
+      source: document.querySelector('.character-historical-image a[href*="commons.wikimedia.org"]')?.href || "",
+      text: document.querySelector(".character-historical-image")?.textContent || "",
+    }));
+    assert.match(koumoundourosImageDetail.source, /Alexandros_Koumoundouros\.png/, "Alexandros Koumoundouros detail should link to the reviewed Commons file");
+    assert.match(koumoundourosImageDetail.text, /肖像画|Painting/, "Alexandros Koumoundouros detail should identify the image as a painting");
+
     await desktop.goto(`http://127.0.0.1:${port}/index.html#/character/BIC_amy_carmichael`);
     await desktop.waitFor(() => Boolean(document.querySelector(".character-detail")), "Amy Carmichael character detail");
     assert.equal(await desktop.evaluate(() => Boolean(document.querySelector(".character-historical-image"))), false, "rejected Amy Carmichael group image should not be shown");
+
+    for (const key of ["BRZ_anesia_cauacu", "GBR_andrew_scott_waugh", "agitator_alexandru_bogdan_pitesti"]) {
+      await desktop.goto(`http://127.0.0.1:${port}/index.html#/character/${key}`);
+      await desktop.waitFor(() => Boolean(document.querySelector(".character-detail")), `${key} character detail`);
+      assert.equal(await desktop.evaluate(() => Boolean(document.querySelector(".character-historical-image"))), false, `${key} rejected image should not be shown`);
+    }
 
     await desktop.goto(`http://127.0.0.1:${port}/index.html#/character/ABU_khalifa_al_nahyan`);
     await desktop.waitFor(() => Boolean(document.querySelector(".character-detail .tag-trait")), "localized character trait");

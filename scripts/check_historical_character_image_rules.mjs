@@ -29,7 +29,7 @@ const einsteinPhoto = {
   license: "Public domain",
 };
 const einsteinReview = {
-  schema_version: 1,
+  schema_version: 2,
   reviews: [{
     character_keys: ["albert_einstein_template"],
     wikidata_id: "Q937",
@@ -39,13 +39,52 @@ const einsteinReview = {
     reviewed_at: "2026-08-13",
     reason: "The file is an identified 1921 photograph of Albert Einstein.",
   }],
+  person_reviews: [],
 };
-assert.equal(validateImageReviewDocument(einsteinReview).length, 1);
+const validatedEinsteinReview = validateImageReviewDocument(einsteinReview);
+assert.equal(validatedEinsteinReview.image_reviews.length, 1);
+assert.deepEqual(validatedEinsteinReview.person_reviews, []);
 assert.equal(selectReviewedImage([einsteinPhoto], einsteinPerson, einsteinReview.reviews)?.image.type, "photograph");
 assert.throws(() => validateImageReviewDocument({
-  schema_version: 1,
+  schema_version: 2,
   reviews: [einsteinReview.reviews[0], { ...einsteinReview.reviews[0], file_title: "File:Another Einstein.jpg" }],
+  person_reviews: [],
 }), /duplicates an approved person decision/);
+
+const carmichaelPersonReview = {
+  character_keys: ["BIC_amy_carmichael"],
+  wikidata_ids: ["Q481824"],
+  candidate_file_titles: ["File:Amy Carmichael with children2.jpg"],
+  decision: "no_eligible_image",
+  reviewed_at: "2026-08-13",
+  reason: "The only current candidate is a group image.",
+};
+const validatedPersonReview = validateImageReviewDocument({
+  schema_version: 2,
+  reviews: [],
+  person_reviews: [carmichaelPersonReview],
+});
+assert.deepEqual(validatedPersonReview.person_reviews, [carmichaelPersonReview]);
+assert.throws(() => validateImageReviewDocument({
+  schema_version: 2,
+  reviews: [],
+  person_reviews: [{ ...carmichaelPersonReview, wikidata_ids: ["Q9", "Q1"] }],
+}), /wikidata_ids must be sorted and unique/);
+assert.throws(() => validateImageReviewDocument({
+  schema_version: 2,
+  reviews: [],
+  person_reviews: [{ ...carmichaelPersonReview, candidate_file_titles: [carmichaelPersonReview.candidate_file_titles[0], carmichaelPersonReview.candidate_file_titles[0]] }],
+}), /candidate_file_titles must be sorted and unique/);
+assert.throws(() => validateImageReviewDocument({
+  schema_version: 2,
+  reviews: einsteinReview.reviews,
+  person_reviews: [{
+    ...carmichaelPersonReview,
+    character_keys: einsteinReview.reviews[0].character_keys,
+    wikidata_ids: [einsteinReview.reviews[0].wikidata_id],
+    candidate_file_titles: [einsteinReview.reviews[0].file_title],
+  }],
+}), /conflicts with an approved image review/);
 
 const rejectedEinstein = {
   ...einsteinReview.reviews[0],
@@ -64,6 +103,20 @@ assert.throws(() => selectReviewedImage([einsteinGroup], einsteinPerson, [{
   ...einsteinReview.reviews[0],
   file_title: einsteinGroup.title,
 }]), /group image/);
+
+const cauacuGroup = {
+  ...einsteinPhoto,
+  title: "File:Anésia Cauaçu.jpg",
+  description: "Anésia Cauaçu and daughter.",
+};
+assert.equal(exclusionReason(cauacuGroup), "group image", "a portrait with the subject's daughter should be treated as a group image");
+
+const waughGroupCrop = {
+  ...einsteinPhoto,
+  title: "File:Andrew Scott Waugh 1861.jpg",
+  description: "Andrew Scott Waugh, Bengal Engineers. From a group photo of the Survey of India taken in Calcutta on March 1861.",
+};
+assert.equal(exclusionReason(waughGroupCrop), "group image", "a crop sourced from a group photo should be treated as a group image");
 
 const adaPainting = {
   title: "File:Ada Lovelace.jpg",
@@ -89,6 +142,15 @@ const photographedPainting = {
   license: "Public domain",
 };
 assert.equal(classifyImageType(photographedPainting), "painting");
+
+const bustLengthPhotograph = {
+  title: "File:Alfred Krupp.jpg",
+  categories: ["Category:Black and white portrait photographs of men at bust length"],
+  description: "",
+  mediaLabel: "Alfred Krupp",
+  license: "Public domain",
+};
+assert.equal(exclusionReason(bustLengthPhotograph), "", "bust length should describe portrait framing, not a sculpture");
 
 const lincolnPhoto = {
   title: "File:Abraham Lincoln O-77 matte collodion print.jpg",

@@ -7,12 +7,13 @@ const args = parseArgs(process.argv.slice(2));
 const file = path.resolve(root, args.input || "output/historical-character-images/historical-character-images.json");
 const report = JSON.parse(fs.readFileSync(file, "utf8").replace(/^\uFEFF/, ""));
 
-assert.equal(report.schema_version, 1, "图片报告 schema_version 应为 1");
+assert.equal(report.schema_version, 2, "图片报告 schema_version 应为 2");
 assert.equal(report.source, "Wikidata and Wikimedia Commons", "图片报告来源不符合约定");
 assert.ok(Array.isArray(report.people), "图片报告缺少 people 数组");
 assert.ok(report.people.length > 0, "图片报告没有已确认人物");
 assert.ok(Array.isArray(report.unmatched), "图片报告缺少 unmatched 数组");
 assert.ok(Array.isArray(report.review), "图片报告缺少 review 数组");
+assert.ok(Array.isArray(report.reviewed_without_image), "图片报告缺少 reviewed_without_image 数组");
 
 const allowedTypes = new Set(["photograph", "painting", "print"]);
 const allowedMatchMethods = new Set([
@@ -50,7 +51,7 @@ for (const person of report.people) {
 }
 
 const allAccountedTemplateKeys = new Set(templateKeys);
-for (const bucket of [report.review, report.unmatched]) {
+for (const bucket of [report.reviewed_without_image, report.review, report.unmatched]) {
   for (const person of bucket) {
     for (const key of person.character_keys || []) {
       assert.ok(!allAccountedTemplateKeys.has(key), `角色模板 ${key} 在报告状态之间重复`);
@@ -72,6 +73,8 @@ assert.equal(stats.confirmed_people, report.people.length, "已确认人物统�
 assert.equal(stats.confirmed_character_templates, templateKeys.size, "已确认角色模板统计不一致");
 assert.equal(stats.confirmed_automatic_people + stats.confirmed_manual_review_people, report.people.length, "确认方式统计不一致");
 assert.equal(stats.review_people, report.review.length, "待复核人物统计不一致");
+assert.equal(stats.reviewed_without_image_people, report.reviewed_without_image.length, "已复核未收录人物统计不一致");
+assert.equal(stats.reviewed_no_eligible_image_people + stats.reviewed_identity_ambiguous_people, report.reviewed_without_image.length, "已复核未收录原因统计不一致");
 assert.equal(stats.unmatched_people, report.unmatched.length, "未匹配人物统计不一致");
 assert.equal(
   allAccountedTemplateKeys.size + stats.excluded_fictional_character_templates,
@@ -92,12 +95,15 @@ assert.equal(jackson?.image.type, "painting", "安德鲁·杰克逊的图片类�
 const carmichaelConfirmed = report.people.find((person) => person.character_keys.includes("BIC_amy_carmichael"));
 assert.equal(carmichaelConfirmed, undefined, "艾米·卡迈克尔的群像不应进入确认集");
 const carmichaelReview = report.review.find((person) => person.character_keys.includes("BIC_amy_carmichael"));
-assert.ok(carmichaelReview, "艾米·卡迈克尔应保留在待复核集");
-assert.equal(carmichaelReview.image_candidates?.[0]?.file_title, "File:Amy Carmichael with children2.jpg", "艾米·卡迈克尔的待复核候选不正确");
+assert.equal(carmichaelReview, undefined, "艾米·卡迈克尔不应继续留在待复核集");
+const carmichaelReviewed = report.reviewed_without_image.find((person) => person.character_keys.includes("BIC_amy_carmichael"));
+assert.equal(carmichaelReviewed?.decision, "no_eligible_image", "艾米·卡迈克尔应归入无合格图片终态");
+assert.deepEqual(carmichaelReviewed?.candidate_file_titles, ["File:Amy Carmichael with children2.jpg"], "艾米·卡迈克尔终态的候选文件不正确");
 
 console.log(JSON.stringify({
   confirmed_people: report.people.length,
   confirmed_character_templates: templateKeys.size,
+  reviewed_without_image_people: report.reviewed_without_image.length,
   review_people: report.review.length,
   unmatched_people: report.unmatched.length,
 }));

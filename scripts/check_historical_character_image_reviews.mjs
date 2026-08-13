@@ -6,10 +6,11 @@ import { validateImageReviewDocument } from "./lib/historical_character_images.m
 const root = process.cwd();
 const file = path.resolve(root, process.argv[2] || "scripts/data/historical-character-image-reviews.json");
 const data = JSON.parse(fs.readFileSync(file, "utf8").replace(/^\uFEFF/, ""));
-const reviews = validateImageReviewDocument(data);
-assert.equal(reviews.length, 12, "首批人工复核应包含十一条批准记录和一条拒绝记录");
-assert.equal(reviews.filter((review) => review.decision === "approve").length, 11, "首批人工复核应批准十一张图片");
-assert.equal(reviews.filter((review) => review.decision === "reject").length, 1, "首批人工复核应包含一个群像反例");
+const { image_reviews: reviews, person_reviews: personReviews } = validateImageReviewDocument(data);
+assert.equal(reviews.length, 37, "图片复核记录总数不一致");
+assert.equal(personReviews.length, 5, "人物终态总数不一致");
+assert.equal(reviews.filter((review) => review.decision === "approve").length, 32, "已批准图片总数不一致");
+assert.equal(reviews.filter((review) => review.decision === "reject").length, 5, "已拒绝图片总数不一致");
 const einstein = reviews.find((review) => review.character_keys.includes("albert_einstein_template"));
 assert.ok(einstein, "人工复核文件缺少爱因斯坦记录");
 assert.equal(einstein.wikidata_id, "Q937", "爱因斯坦记录的维基数据编号不正确");
@@ -21,4 +22,17 @@ assert.equal(jackson?.type, "painting", "安德鲁·杰克逊记录应归类为�
 const carmichael = reviews.find((review) => review.character_keys.includes("BIC_amy_carmichael"));
 assert.equal(carmichael?.decision, "reject", "艾米·卡迈克尔群像应被人工拒绝");
 assert.equal(carmichael?.file_title, "File:Amy Carmichael with children2.jpg", "艾米·卡迈克尔拒绝记录的文件不正确");
-console.log(JSON.stringify({ historical_character_image_reviews: "ok", reviews: reviews.length }));
+const carmichaelPerson = personReviews.find((review) => review.character_keys.includes("BIC_amy_carmichael"));
+assert.equal(carmichaelPerson?.decision, "no_eligible_image", "艾米·卡迈克尔应标记为无合格图片");
+assert.deepEqual(carmichaelPerson?.wikidata_ids, ["Q481824"], "艾米·卡迈克尔人物终态的编号不正确");
+assert.deepEqual(carmichaelPerson?.candidate_file_titles, ["File:Amy Carmichael with children2.jpg"], "艾米·卡迈克尔人物终态的候选文件不正确");
+const cauacu = personReviews.find((review) => review.character_keys.includes("BRZ_anesia_cauacu"));
+assert.equal(cauacu?.decision, "no_eligible_image", "阿内夏·考阿苏应标记为无合格图片");
+for (const key of ["agitator_alexandru_bogdan_pitesti", "SWE_anders_danielsson", "GBR_andrew_scott_waugh"]) {
+  assert.equal(personReviews.find((review) => review.character_keys.includes(key))?.decision, "no_eligible_image", `${key} 应标记为无合格图片`);
+}
+const koumoundouros = reviews.find((review) => review.character_keys.includes("GRE_alexandros_koumoundouros"));
+assert.equal(koumoundouros?.type, "painting", "亚历山德罗斯·库蒙祖罗斯应使用肖像画");
+const ganz = reviews.find((review) => review.character_keys.includes("HUN_abraham_ganz"));
+assert.equal(ganz?.type, "print", "亚伯拉罕·甘茨应使用版画");
+console.log(JSON.stringify({ historical_character_image_reviews: "ok", image_reviews: reviews.length, person_reviews: personReviews.length }));

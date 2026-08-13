@@ -13,6 +13,8 @@ import {
   imageReviewsForPerson,
   mediaInfoRows,
   normalize,
+  personReviewForCandidateState,
+  personReviewKey,
   eligibleUndatedCandidates,
   queryBatchWithSplit,
   selectImage,
@@ -33,7 +35,7 @@ const offset = nonNegativeInteger(args.offset, 0);
 const limit = args.limit ? positiveInteger(args.limit, 40) : Number.POSITIVE_INFINITY;
 const requestDelayMs = nonNegativeInteger(args["request-delay-ms"], 6000);
 const userAgent = "VicdataPortraitResearch/0.1 (historical character image audit)";
-const imageReviews = validateImageReviewDocument(readJson(reviewFile));
+const { image_reviews: imageReviews, person_reviews: personReviews } = validateImageReviewDocument(readJson(reviewFile));
 
 fs.mkdirSync(cacheDir, { recursive: true });
 const characters = readCharacterData(characterFile);
@@ -184,7 +186,7 @@ const report = buildReport(matches, imageClaims, fileMetadata, characters.length
   undated_character_templates: undatedGroups.reduce((sum, person) => sum + person.character_keys.length, 0),
   excluded_fictional_character_templates: excludedFictional.reduce((sum, person) => sum + person.character_keys.length, 0),
   linked_undated_character_templates: linkedUndatedTemplates,
-}, imageReviews);
+}, imageReviews, personReviews);
 fs.mkdirSync(outDir, { recursive: true });
 writeJson(reportFile, report);
 console.log(JSON.stringify(report.stats));
@@ -421,18 +423,43 @@ async function queryCommonsStructuredBatch(pageIds) {
   return mediaInfoRows(data);
 }
 
-function buildReport(matches, claims, fileMetadata, sourceCharacterCount, sourcePeopleCount, scopeStats = {}, reviews = []) {
+function buildReport(matches, claims, fileMetadata, sourceCharacterCount, sourcePeopleCount, scopeStats = {}, reviews = [], personReviews = []) {
   const claimRank = new Map(claims.map((claim) => [`${claim.qid}\u0000${claim.file_title}`, claim.rank]));
   const confirmed = [];
+  const reviewedWithoutImage = [];
   const review = [];
   const unmatched = [];
   const usedReviewKeys = new Set();
+  const usedPersonReviewKeys = new Set();
   for (const person of matches) {
     if (person.wikidata_candidates.length !== 1) {
-      (person.wikidata_candidates.length ? review : unmatched).push({
+      if (!person.wikidata_candidates.length) {
+        unmatched.push({
+          ...person,
+          reason: person.no_match_reason || "no exact Wikidata person",
+        });
+        continue;
+      }
+      const candidateState = {
+        name_en: person.name_en,
+        character_keys: person.character_keys,
+        wikidata_ids: person.wikidata_candidates.map((candidate) => candidate.qid).sort(),
+        candidate_file_titles: [...new Set(person.wikidata_candidates.flatMap((candidate) => candidate.images.map((image) => image.file_title)))].sort(),
+      };
+      const terminalReview = personReviewForCandidateState(personReviews, candidateState);
+      if (terminalReview && terminalReview.decision !== "identity_ambiguous") {
+        throw new Error(`Multiple Wikidata people require identity_ambiguous for ${person.name_en}`);
+      }
+      const record = {
         ...person,
-        reason: person.wikidata_candidates.length ? "multiple exact Wikidata people" : (person.no_match_reason || "no exact Wikidata person"),
-      });
+        reason: "multiple exact Wikidata people",
+      };
+      if (terminalReview) {
+        usedPersonReviewKeys.add(personReviewKey(terminalReview));
+        reviewedWithoutImage.push(reviewedWithoutImageRecord(record, candidateState, terminalReview));
+      } else {
+        review.push(record);
+      }
       continue;
     }
     const candidate = person.wikidata_candidates[0];
@@ -450,8 +477,16 @@ function buildReport(matches, claims, fileMetadata, sourceCharacterCount, source
     for (const item of applicableReviews) usedReviewKeys.add(imageReviewKey(item));
     const eligibleImages = filterRejectedImages(images, reviewPerson, applicableReviews);
     const selected = reviewedSelection?.image || selectImage(eligibleImages, reviewPerson);
+    const candidateState = {
+      name_en: person.name_en,
+      character_keys: person.character_keys,
+      wikidata_ids: [candidate.qid],
+      candidate_file_titles: candidate.images.map((image) => image.file_title).sort(),
+    };
+    const terminalReview = personReviewForCandidateState(personReviews, candidateState);
+    if (terminalReview && selected) throw new Error(`Reviewed person now has an eligible image: ${person.name_en}`);
     if (!selected) {
-      review.push({
+      const record = {
         ...person,
         wikidata_id: candidate.qid,
         wikidata_label: candidate.label,
@@ -467,7 +502,14 @@ function buildReport(matches, claims, fileMetadata, sourceCharacterCount, source
           excluded_reason: exclusionReason(image),
           license: image.license,
         })),
-      });
+      };
+      if (terminalReview) {
+        if (terminalReview.decision !== "no_eligible_image") throw new Error(`Unique Wikidata person requires no_eligible_image for ${person.name_en}`);
+        usedPersonReviewKeys.add(personReviewKey(terminalReview));
+        reviewedWithoutImage.push(reviewedWithoutImageRecord(record, candidateState, terminalReview));
+      } else {
+        review.push(record);
+      }
       continue;
     }
     confirmed.push({
@@ -512,9 +554,13 @@ function buildReport(matches, claims, fileMetadata, sourceCharacterCount, source
   if (unusedReviews.length) {
     throw new Error(`Unused historical character image reviews: ${unusedReviews.map((item) => `${item.wikidata_id} ${item.file_title}`).join(", ")}`);
   }
+  const unusedPersonReviews = personReviews.filter((item) => !usedPersonReviewKeys.has(personReviewKey(item)));
+  if (unusedPersonReviews.length) {
+    throw new Error(`Unused historical character person reviews: ${unusedPersonReviews.map((item) => `${item.character_keys.join(",")} ${item.decision}`).join(", ")}`);
+  }
   const confirmedTemplates = confirmed.reduce((sum, person) => sum + person.character_keys.length, 0);
   return {
-    schema_version: 1,
+    schema_version: 2,
     source: "Wikidata and Wikimedia Commons",
     generated_at: new Date().toISOString(),
     scope: "historical character templates with an English name, excluding explicitly fictional spooky templates",
@@ -538,12 +584,33 @@ function buildReport(matches, claims, fileMetadata, sourceCharacterCount, source
       confirmed_starting_age_people: confirmed.filter((person) => person.match_method === "exact_name_and_starting_age").length,
       confirmed_automatic_people: confirmed.filter((person) => person.confirmation_method === "automatic_rules").length,
       confirmed_manual_review_people: confirmed.filter((person) => person.confirmation_method === "manual_review").length,
+      reviewed_without_image_people: reviewedWithoutImage.length,
+      reviewed_no_eligible_image_people: reviewedWithoutImage.filter((person) => person.decision === "no_eligible_image").length,
+      reviewed_identity_ambiguous_people: reviewedWithoutImage.filter((person) => person.decision === "identity_ambiguous").length,
       review_people: review.length,
       unmatched_people: unmatched.length,
     },
     people: confirmed,
+    reviewed_without_image: reviewedWithoutImage,
     review,
     unmatched,
+  };
+}
+
+function reviewedWithoutImageRecord(person, candidateState, terminalReview) {
+  return {
+    name_en: person.name_en,
+    name_zh: person.name_zh,
+    birth_year: person.birth_year || 0,
+    character_keys: person.character_keys,
+    match_method: person.match_method,
+    matched_variants: person.matched_variants || [],
+    wikidata_ids: candidateState.wikidata_ids,
+    candidate_file_titles: candidateState.candidate_file_titles,
+    wikidata_candidates: person.wikidata_candidates || [],
+    decision: terminalReview.decision,
+    reviewed_at: terminalReview.reviewed_at,
+    reason: terminalReview.reason,
   };
 }
 

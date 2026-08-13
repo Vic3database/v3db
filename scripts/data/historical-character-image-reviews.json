@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "reviews": [
     {
       "character_keys": [
@@ -132,6 +132,279 @@
       "type": "",
       "reviewed_at": "2026-08-13",
       "reason": "The image shows Amy Carmichael with a child and is not a single-person portrait."
+    },
+    {
+      "character_keys": ["HUN_abraham_ganz"],
+      "wikidata_id": "Q117463",
+      "file_title": "File:Ganz abraham.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person printed portrait of Ábrahám Ganz with a direct Wikidata image statement and public-domain license."
+    },
+    {
+      "character_keys": ["can_adams_george_archibald"],
+      "wikidata_id": "Q351904",
+      "file_title": "File:Adams George Archibald.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photographic portrait of Adams George Archibald with structured depicts evidence and public-domain license."
+    },
+    {
+      "character_keys": ["POR_afonso_costa"],
+      "wikidata_id": "Q383401",
+      "file_title": "File:Afonso Costa.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photograph of Afonso Costa dated 1904 with structured depicts evidence and public-domain license."
+    },
+    {
+      "character_keys": ["sar_general_chiodo"],
+      "wikidata_id": "Q2827089",
+      "file_title": "File:Agostino Chiodo.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photographic portrait of Agostino Chiodo with structured depicts evidence and public-domain license."
+    },
+    {
+      "character_keys": ["BEL_Albert_Joseph_Goblet_d_Alviella"],
+      "wikidata_id": "Q533339",
+      "file_title": "File:Albert Goblet.png",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person printed portrait of Albert Joseph Goblet d'Alviella with a direct Wikidata image statement and public-domain license."
+    },
+    {
+      "character_keys": ["bel_general_prisse"],
+      "wikidata_id": "Q782120",
+      "file_title": "File:Albert-Florent-Joseph Prisse.png",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person printed portrait of Albert-Florent-Joseph Prisse with a direct Wikidata image statement and public-domain license."
+    },
+    {
+      "character_keys": ["pru_general_von_roon"],
+      "wikidata_id": "Q77281",
+      "file_title": "File:Count Albrecht von Roon circa 1870.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photograph of Albrecht von Roon dated circa 1870 with a direct Wikidata image statement and public-domain license."
+    },
+    {
+      "character_keys": ["RUS_alexander_ageevich_abaza"],
+      "wikidata_id": "Q551333",
+      "file_title": "File:Alexander Ag. Abaza.jpeg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photograph of Alexander Abaza dated 1895 with a direct Wikidata image statement and public-domain license."
+    },
+    {
+      "character_keys": ["AST_alexander_berry"],
+      "wikidata_id": "Q4718350",
+      "file_title": "File:AlexanderBerry02.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photographic copy print of Alexander Berry dated 1912 with structured depicts evidence and public-domain license."
+    },
+    {
+      "character_keys": ["RUS_alexander_ivanovich_guchkov"],
+      "wikidata_id": "Q2083549",
+      "file_title": "File:Александр Иванович Гучков - Finnish Heritage Agency (JOKAOT4SK1917 19-8) (cropped).jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a cropped single-person photograph of Alexander Guchkov dated 12 May 1917 with a direct Wikidata image statement and CC BY 4.0 license."
+    },
+    {
+      "character_keys": ["RUS_alexander_ivanovich_konovalov"],
+      "wikidata_id": "Q2633276",
+      "file_title": "File:Alexander Konovalov.jpeg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photograph of Alexander Konovalov dated 1917 with structured depicts evidence and public-domain license."
+    },
+    {
+      "character_keys": ["GRE_alexandros_koumoundouros"],
+      "wikidata_id": "Q708318",
+      "file_title": "File:Alexandros Koumoundouros.png",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person 19th-century oil portrait of Alexandros Koumoundouros by Spiridon Vikatos with structured depicts evidence and public-domain license."
+    },
+    {
+      "character_keys": ["agitator_alexandru_bogdan_pitesti"],
+      "wikidata_id": "Q2834278",
+      "file_title": "File:Correggio, Alexandru Bogdan-Piteşti.jpg",
+      "decision": "reject",
+      "type": "",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person drawing, outside the approved photograph, painting and print types for this batch."
+    },
+    {
+      "character_keys": ["ECU_alfredo_baquerizo_moreno"],
+      "wikidata_id": "Q2026643",
+      "file_title": "File:Alfredo Baquerizo Moreno.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photograph of Alfredo Baquerizo Moreno from the 1910s with a direct Wikidata image statement and public-domain license."
+    },
+    {
+      "character_keys": ["GRE_general_anastasios_papoulas"],
+      "wikidata_id": "Q2528529",
+      "file_title": "File:Papoulas Anastasios.JPG",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photograph of Anastasios Papoulas from circa 1920 with a direct Wikidata image statement and public-domain license."
+    },
+    {
+      "character_keys": ["GRE_anastasios_polyzoidis"],
+      "wikidata_id": "Q3563112",
+      "file_title": "File:Anastasios Polyzoidis.png",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person printed portrait of Anastasios Polyzoidis with structured depicts evidence and a copyrighted free-use license."
+    },
+    {
+      "character_keys": ["SWE_anders_danielsson"],
+      "wikidata_id": "Q5616737",
+      "file_title": "File:Anders Danielsson(1784-1839).jpg",
+      "decision": "reject",
+      "type": "",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a drawing by Maria Röhl, outside the approved photograph, painting and print types for this batch."
+    },
+    {
+      "character_keys": ["SWE_anders_ericsson"],
+      "wikidata_id": "Q5715009",
+      "file_title": "File:Anders Ericsson SPA 1798 (cropped).jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a cropped single-person photographic portrait of Anders Ericsson with a direct Wikidata image statement and CC BY 4.0 license."
+    },
+    {
+      "character_keys": ["GRE_andreas_syggros"],
+      "wikidata_id": "Q500875",
+      "file_title": "File:Andreas Syggros.JPG",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person printed portrait of Andreas Syggros dated 1900 with a direct Wikidata image statement and public-domain license."
+    },
+    {
+      "character_keys": ["net_general_michiels"],
+      "wikidata_id": "Q2498138",
+      "file_title": "File:Michiels, AV.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person printed portrait of Andreas Victor Michiels by W. R. van Hoevell dated 1850 with a direct Wikidata image statement and public-domain license."
+    },
+    {
+      "character_keys": ["BOL_Andres_de_Santa_Cruz"],
+      "wikidata_id": "Q467959",
+      "file_title": "File:Andrés de Santa Cruz. Ugalde, Manuel. c. 1835, Andrés de Santa Cruz collection, La Paz.png",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person 19th-century painting of Andrés de Santa Cruz by Manuel Ugalde with structured depicts evidence and public-domain license."
+    },
+    {
+      "character_keys": ["GBR_andrew_scott_waugh"],
+      "wikidata_id": "Q507301",
+      "file_title": "File:Andrew Scott Waugh 1861.jpg",
+      "decision": "reject",
+      "type": "",
+      "reviewed_at": "2026-08-13",
+      "reason": "The file is a crop from a group photograph of the Survey of India, so the image context is not a single-person portrait."
+    },
+    {
+      "character_keys": ["BRZ_anesia_cauacu"],
+      "wikidata_id": "Q8202231",
+      "file_title": "File:Anésia Cauaçu.jpg",
+      "decision": "reject",
+      "type": "",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image shows Anésia Cauaçu with her daughter and is not a single-person portrait."
+    },
+    {
+      "character_keys": ["URU_angel_muniz"],
+      "wikidata_id": "Q6173348",
+      "file_title": "File:Rojo y Blanco Año I Numero VII Pagina 32 recorte 03.png",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person printed portrait of Ángel Muniz in a public-domain periodical scan."
+    },
+    {
+      "character_keys": ["AUS_anselm_salomon_von_rothschild"],
+      "wikidata_id": "Q569582",
+      "file_title": "File:Anselm Salomon Rothschild.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person printed portrait of Anselm Salomon von Rothschild by Friedrich Lieder from circa 1830 with a public-domain license."
+    }
+  ],
+  "person_reviews": [
+    {
+      "character_keys": [
+        "BIC_amy_carmichael"
+      ],
+      "wikidata_ids": [
+        "Q481824"
+      ],
+      "candidate_file_titles": [
+        "File:Amy Carmichael with children2.jpg"
+      ],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-13",
+      "reason": "The only current candidate is a group image."
+    },
+    {
+      "character_keys": ["agitator_alexandru_bogdan_pitesti"],
+      "wikidata_ids": ["Q2834278"],
+      "candidate_file_titles": ["File:Correggio, Alexandru Bogdan-Piteşti.jpg"],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-13",
+      "reason": "The only current candidate is a drawing, outside the approved image types."
+    },
+    {
+      "character_keys": ["SWE_anders_danielsson"],
+      "wikidata_ids": ["Q5616737"],
+      "candidate_file_titles": ["File:Anders Danielsson(1784-1839).jpg"],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-13",
+      "reason": "The only current candidate is a drawing, outside the approved image types."
+    },
+    {
+      "character_keys": ["GBR_andrew_scott_waugh"],
+      "wikidata_ids": ["Q507301"],
+      "candidate_file_titles": ["File:Andrew Scott Waugh 1861.jpg"],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-13",
+      "reason": "The only current candidate is cropped from a group photograph and is not a single-person portrait."
+    },
+    {
+      "character_keys": ["BRZ_anesia_cauacu"],
+      "wikidata_ids": ["Q8202231"],
+      "candidate_file_titles": ["File:Anésia Cauaçu.jpg"],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-13",
+      "reason": "The only current candidate shows Anésia Cauaçu with her daughter."
     }
   ]
 }
