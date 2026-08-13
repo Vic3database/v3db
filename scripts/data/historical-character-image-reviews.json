@@ -582,9 +582,242 @@
       "type": "photograph",
       "reviewed_at": "2026-08-13",
       "reason": "The image is a single-person photograph of Bernardo Pereira de Vasconcelos dated 1850 with structured identity evidence and public-domain license."
+    },
+    {
+      "character_keys": ["BIC_bipin_chandra_pal"],
+      "wikidata_id": "Q684198",
+      "file_title": "File:Bipin Chandra Pal.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain photograph identified as Bipin Chandra Pal, dated to the 1910s."
+    },
+    {
+      "character_keys": ["PRU_bruno_bauer"],
+      "wikidata_id": "Q76878",
+      "file_title": "File:Bruno Bauer.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain portrait print identified as Bruno Bauer."
+    },
+    {
+      "character_keys": ["JAP_suzuki_bunji"],
+      "wikidata_id": "Q11648895",
+      "file_title": "File:Bunji Suzuki.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain photograph of Bunji Suzuki from the Bain News Service collection."
+    },
+    {
+      "character_keys": ["tur_butrus_al_bustani"],
+      "wikidata_id": "Q710866",
+      "file_title": "File:Al Mu'allim Butrus al-Bustani.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain portrait identified as Butrus al-Bustani."
+    },
+    {
+      "character_keys": ["VNZ_carlo_castelli"],
+      "wikidata_id": "Q21480512",
+      "file_title": "File:Carlos Castelli (cropped).jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain portrait of Carlo Castelli, identified in the file description as a military portrait painted by Arturo Santana."
+    },
+    {
+      "character_keys": ["PAP_carlo_emanuele_muzzarelli"],
+      "wikidata_id": "Q5041499",
+      "file_title": "File:Carlo Emanuele Muzzarelli.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain portrait identified as Cardinal Carlo Emanuele Muzzarelli."
+    },
+    {
+      "character_keys": ["CUB_carlos_manuel_de_cespedes"],
+      "wikidata_id": "Q452070",
+      "file_title": "File:Carlos Manuel de Cespedes.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain portrait identified as Carlos Manuel de Céspedes del Castillo."
+    },
+    {
+      "character_keys": ["BOL_Casimiro_Olaneta"],
+      "wikidata_id": "Q2917464",
+      "file_title": "File:Casimiro Olañeta.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain portrait identified as Casimiro Olañeta."
+    },
+    {
+      "character_keys": ["PRG_cecilio_baez"],
+      "wikidata_id": "Q860978",
+      "file_title": "File:CECILIO BAEZ.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain photograph identified as Cecilio Báez González, dated circa 1905."
+    },
+    {
+      "character_keys": ["PAN_chand_kaur"],
+      "wikidata_id": "Q5070876",
+      "file_title": "File:Maharani Chand Kaur.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons description identifies this public-domain single-person gouache portrait as Maharani Chand Kaur, circa 1850."
+    },
+    {
+      "character_keys": ["FRA_charles_baudin"],
+      "wikidata_id": "Q1063698",
+      "file_title": "File:Portrait-Charles-Baudin.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain nineteenth-century portrait identified as Charles Baudin."
+    },
+    {
+      "character_keys": ["BEL_Charles_de_Brouck_Ere"],
+      "wikidata_id": "Q1066539",
+      "file_title": "File:Charles de Brouckère.png",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain portrait print identified as Charles de Brouckère."
+    },
+    {
+      "character_keys": ["USA_charles_finney"],
+      "wikidata_id": "Q532375",
+      "file_title": "File:Charles g finney.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain nineteenth-century portrait print identified as Charles Grandison Finney."
+    },
+    {
+      "character_keys": ["FRA_charles_frederick_worth"],
+      "wikidata_id": "Q454330",
+      "file_title": "File:Charles Frédéric Worth.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain photograph of Charles Frédéric Worth by Nadar, dated 1892."
+    },
+    {
+      "character_keys": ["GBR_charles_granville_bruce"],
+      "wikidata_id": "Q177346",
+      "file_title": "File:Charles Granville Bruce (1866-1939).jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain portrait of Charles Granville Bruce painted by George Percy Jacomb-Hood in 1913."
+    },
+    {
+      "character_keys": ["GBR_charles_ogle"],
+      "wikidata_id": "Q7526276",
+      "file_title": "File:Admiral Sir Charles Ogle, Bart - Amiral sir Charles Ogle, Bart.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain portrait of Charles Ogle by Cornelius Durham, dated 1850."
+    },
+    {
+      "character_keys": ["HAI_charles_riviere_herard"],
+      "wikidata_id": "Q605428",
+      "file_title": "File:Charles Rivière-Hérard.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain portrait print of Haitian president Charles Rivière-Hérard from an 1888 reference work."
+    },
+    {
+      "character_keys": ["NVS_colin_campbell"],
+      "wikidata_id": "Q5144954",
+      "file_title": "File:Sir Colin Campbell by William Salter.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain oil portrait of Colin Campbell by William Salter."
+    },
+    {
+      "character_keys": ["GRE_constantine_paparrigopoulos"],
+      "wikidata_id": "Q2449920",
+      "file_title": "File:Paparrigopoulos.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain portrait identified as Constantine Paparrigopoulos."
+    },
+    {
+      "character_keys": ["CHL_cornelio_saavedra_rodriguez"],
+      "wikidata_id": "Q4233309",
+      "file_title": "File:Cornelio Saavedra Rodríguez 2.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain portrait identified as Chilean military and politician Cornelio Saavedra Rodríguez."
+    },
+    {
+      "character_keys": ["GBR_cosmo_gordon_lang"],
+      "wikidata_id": "Q336344",
+      "file_title": "File:Archb. York LCCN2014716215.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain photograph of Cosmo Gordon Lang from the Bain News Service collection, dated circa 1920."
+    },
+    {
+      "character_keys": ["BRZ_custodio_de_melo"],
+      "wikidata_id": "Q2017507",
+      "file_title": "File:L'amiral de Mello, commandant la flotte devant Rio-de-Janeiro.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain illustrated portrait identified as Brazilian admiral Custódio José de Melo."
+    },
+    {
+      "character_keys": ["gbr_admiral_beatty"],
+      "wikidata_id": "Q335013",
+      "file_title": "File:Military at White House, Washington, D.C. LCCN2016890938.jpg",
+      "decision": "reject",
+      "type": "",
+      "reviewed_at": "2026-08-13",
+      "reason": "The file is a military group photograph at the White House; it does not provide a single-person portrait of David Beatty."
+    },
+    {
+      "character_keys": ["CTR_david_canabarro"],
+      "wikidata_id": "Q3018181",
+      "file_title": "File:David Canabarro.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain portrait identified as David Canabarro."
+    },
+    {
+      "character_keys": ["BIC_debendranath_tagore"],
+      "wikidata_id": "Q3020852",
+      "file_title": "File:Devendranath Tagore 1925.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain photograph of Debendranath Tagore, dated 1925."
     }
   ],
   "person_reviews": [
+    {
+      "character_keys": ["gbr_admiral_beatty"],
+      "wikidata_ids": ["Q335013"],
+      "candidate_file_titles": ["File:Military at White House, Washington, D.C. LCCN2016890938.jpg"],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-13",
+      "reason": "The only current candidate is a military group photograph rather than a single-person portrait."
+    },
     {
       "character_keys": [
         "BIC_amy_carmichael"
