@@ -1932,9 +1932,242 @@
       "type": "photograph",
       "reviewed_at": "2026-08-14",
       "reason": "The candidate is a single-person public-domain portrait photograph of Joseph Chamberlain by James Russell and Sons, printed circa 1895."
+    },
+    {
+      "character_keys": ["usa_joshua_norton_character_template"],
+      "wikidata_id": "Q299204",
+      "file_title": "File:His-Imperial-Majesty-Emperor-Norton-I-portrait-crop.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a restored and cropped single-person public-domain portrait photograph identified as Joshua Norton."
+    },
+    {
+      "character_keys": ["KAB_josiah_harlan"],
+      "wikidata_id": "Q166047",
+      "file_title": "File:JosiahHarlan.png",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph identified as Josiah Harlan by the exact Wikidata image statement and Commons person category."
+    },
+    {
+      "character_keys": ["HUN_jozsef_szell"],
+      "wikidata_id": "Q47516014",
+      "file_title": "File:Széll József 1801-1871.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain photographic portrait identified as Hungarian official József Széll in an 1899 publication."
+    },
+    {
+      "character_keys": ["ARG_juan_andres_gelly_y_obes"],
+      "wikidata_id": "Q3810765",
+      "file_title": "File:Juan Andrés Gelly y Obes.JPG",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of General Juan Andrés Gelly y Obes reproduced in an Argentine history publication."
+    },
+    {
+      "character_keys": ["URU_Juan_Antonio_Lavalleja"],
+      "wikidata_id": "Q649615",
+      "file_title": "File:Juan Antonio Lavalleja.png",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain oil portrait of Juan Antonio Lavalleja by Jean-Philippe Goulu from the National Historical Museum of Uruguay."
+    },
+    {
+      "character_keys": ["VNZ_juan_cristostomo_falcon"],
+      "wikidata_id": "Q887139",
+      "file_title": "File:Carpeta asociada 023.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Juan Crisóstomo Falcón dated to the 1860s."
+    },
+    {
+      "character_keys": ["ARG_juan_del_campillo"],
+      "wikidata_id": "Q5576683",
+      "file_title": "File:Juan del Campillo.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait identified as Argentine politician Juan del Campillo and dated 1854."
+    },
+    {
+      "character_keys": ["DOM_juan_pablo_duarte"],
+      "wikidata_id": "Q188122",
+      "file_title": "File:Juan pablo duarte diez.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain oil portrait of Juan Pablo Duarte by Dominican artist Abelardo Rodríguez Urdaneta."
+    },
+    {
+      "character_keys": ["SPA_juan_vazquez_de_mella"],
+      "wikidata_id": "Q3324630",
+      "file_title": "File:Juan Vazquez de Mella-01.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph identified as Juan Vázquez de Mella, dated circa 1915."
+    },
+    {
+      "character_keys": ["VNZ_juan_vicente_gomez"],
+      "wikidata_id": "Q317990",
+      "file_title": "File:Juan Vicente Gómez.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Juan Vicente Gómez published in Revista Selecta in September 1909."
+    },
+    {
+      "character_keys": ["PEU_julio_cesar_arana_del_aguila"],
+      "wikidata_id": "Q6309203",
+      "file_title": "File:Julio C. Arana.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Julio César Arana from the National Library of Peru, dated circa 1912."
+    },
+    {
+      "character_keys": ["ARG_julio_de_vedia"],
+      "wikidata_id": "Q5955903",
+      "file_title": "File:Julio de Vedia.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Argentine general Julio de Vedia dated circa 1872."
+    },
+    {
+      "character_keys": ["ARG_Justo_Jose_de_Urquiza"],
+      "wikidata_id": "Q336247",
+      "file_title": "File:Daguerrotipo de Justo José de Urquiza (recorte).jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a cropped single-person public-domain daguerreotype portrait of Justo José de Urquiza attributed to Charles DeForest Fredricks."
+    },
+    {
+      "character_keys": ["AUS_karl_freiherr_von_vogelsang"],
+      "wikidata_id": "Q71102",
+      "file_title": "File:Karlfvonvogelsang.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain printed portrait identified as Karl Freiherr von Vogelsang."
+    },
+    {
+      "character_keys": ["agitator_karl_liebknecht"],
+      "wikidata_id": "Q75886",
+      "file_title": "File:Karl Liebknecht portrait (cropped).jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a cropped single-person public-domain portrait photograph of Karl Liebknecht made before 1919."
+    },
+    {
+      "character_keys": ["mon_kenjo_jankoviC_"],
+      "wikidata_id": "Q12759635",
+      "file_title": "File:Krsto (Kenjo) Stankov Janković 35c.png",
+      "decision": "reject",
+      "type": "",
+      "reviewed_at": "2026-08-14",
+      "reason": "The only current candidate is a nineteenth-century portrait sketch without evidence that it is a photograph, portrait painting or print."
+    },
+    {
+      "character_keys": ["BIC_khudiram_bose"],
+      "wikidata_id": "Q2642110",
+      "file_title": "File:Khudiram Bose.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Khudiram Bose made before 1908."
+    },
+    {
+      "character_keys": ["aus_klemens_von_metternich"],
+      "wikidata_id": "Q45662",
+      "file_title": "File:Klemens von Metternich by Lawrence.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait of Klemens von Metternich by Thomas Lawrence, dated 1815 and held in the Royal Collection."
+    },
+    {
+      "character_keys": ["HUN_general_lajos_aulich"],
+      "wikidata_id": "Q506929",
+      "file_title": "File:Aulich Lajos 1.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain nineteenth-century printed portrait of Lajos Aulich by Vincent Grimm."
+    },
+    {
+      "character_keys": ["HUN_lajos_kossuth"],
+      "wikidata_id": "Q157040",
+      "file_title": "File:Portrait of Lajos Kossuth, 1852.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain daguerreotype portrait of Lajos Kossuth by Southworth and Hawes, dated 1852."
+    },
+    {
+      "character_keys": ["SWE_lars_johan_hierta"],
+      "wikidata_id": "Q4353611",
+      "file_title": "File:Hierta.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait identified as Swedish publisher Lars Johan Hierta."
+    },
+    {
+      "character_keys": ["swe_lars_magnus_ericsson"],
+      "wikidata_id": "Q711309",
+      "file_title": "File:LM Ericsson 1890-tal.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Lars Magnus Ericsson from the 1890s."
+    },
+    {
+      "character_keys": ["DEN_lauritz_nicolai_hvidt"],
+      "wikidata_id": "Q1993568",
+      "file_title": "File:Lauritz Nicolai Hvidt.png",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain historical portrait photograph identified as Danish politician Lauritz Nicolai Hvidt."
+    },
+    {
+      "character_keys": ["HUN_leo_frankel"],
+      "wikidata_id": "Q700018",
+      "file_title": "File:Leó Frankel.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Leó Frankel made before 1896."
+    },
+    {
+      "character_keys": ["URU_lorenzo_latorre"],
+      "wikidata_id": "Q885848",
+      "file_title": "File:LorenzoLatorre1875.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph identified as Uruguayan president Lorenzo Latorre in a historical periodical."
     }
   ],
   "person_reviews": [
+    {
+      "character_keys": ["mon_kenjo_jankoviC_"],
+      "wikidata_ids": ["Q12759635"],
+      "candidate_file_titles": ["File:Krsto (Kenjo) Stankov Janković 35c.png"],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-14",
+      "reason": "The only current candidate is a portrait sketch without evidence of an approved image type."
+    },
     {
       "character_keys": ["SER_gligorije_vozarevic"],
       "wikidata_ids": ["Q12750244"],

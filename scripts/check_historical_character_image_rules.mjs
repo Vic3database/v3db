@@ -152,6 +152,15 @@ const bustLengthPhotograph = {
 };
 assert.equal(exclusionReason(bustLengthPhotograph), "", "bust length should describe portrait framing, not a sculpture");
 
+const hyphenatedBustLengthPhotograph = {
+  title: "File:Portrait of Lajos Kossuth, 1852.jpg",
+  categories: ["Category:1852 portrait photographs of men"],
+  description: "Bust-length daguerreotype portrait of Lajos Kossuth",
+  mediaLabel: "Portrait of Lajos Kossuth, 1852",
+  license: "Public domain",
+};
+assert.equal(exclusionReason(hyphenatedBustLengthPhotograph), "", "hyphenated bust-length should describe portrait framing, not a sculpture");
+
 const portraitWithCoatOfArms = {
   title: "File:José López Domínguez (Palacio del Senado de España).jpg",
   categories: [
