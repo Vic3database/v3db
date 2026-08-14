@@ -1257,9 +1257,250 @@
       "type": "photograph",
       "reviewed_at": "2026-08-14",
       "reason": "The Commons description identifies a single-person portrait of philosopher Giovanni Gentile from the early twentieth century."
+    },
+    {
+      "character_keys": ["SER_gligorije_vozarevic"],
+      "wikidata_id": "Q12750244",
+      "file_title": "File:Gligorije Vozarević knjižar (cropped).JPG",
+      "decision": "reject",
+      "type": "",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a cropped modern graphic from a commemorative plaque in Belgrade, not a historical photograph, portrait painting or print."
+    },
+    {
+      "character_keys": ["CHL_gregorio_urrutia_venegas"],
+      "wikidata_id": "Q5885554",
+      "file_title": "File:GralUrrutia.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain photographic portrait of Gregorio Urrutia."
+    },
+    {
+      "character_keys": ["PEU_guillermo_billinghurst"],
+      "wikidata_id": "Q136790",
+      "file_title": "File:Guillermo Billingurst 6.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person painted portrait identified as Guillermo Billinghurst and carries a reusable CC BY-SA 3.0 license."
+    },
+    {
+      "character_keys": ["KAS_gulab_singh"],
+      "wikidata_id": "Q12446041",
+      "file_title": "File:Maharaja Gulab Singh of Jammu and Kashmir.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons description identifies this public-domain Indian portrait painting as Maharaja Gulab Singh, made circa 1846."
+    },
+    {
+      "character_keys": ["BIC_haji_shariatullah"],
+      "wikidata_id": "Q5639930",
+      "file_title": "File:Haji Shariatullah.jpg",
+      "decision": "reject",
+      "type": "",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate has no identified author or supported image type, and the rendered image cannot be verified as a historical photograph, portrait painting or print."
+    },
+    {
+      "character_keys": ["NOR_hans_riddervold"],
+      "wikidata_id": "Q947202",
+      "file_title": "File:Hans Riddervold.png",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person mid-nineteenth-century public-domain portrait identified as Hans Riddervold."
+    },
+    {
+      "character_keys": ["pan_hari_singh_nalwa"],
+      "wikidata_id": "Q3631373",
+      "file_title": "File:Hari Singh Nalwa british museum.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons description identifies this public-domain Indian painting as General Hari Singh Nalwa seated in full armor."
+    },
+    {
+      "character_keys": ["JAP_oshio_heihachiro"],
+      "wikidata_id": "Q1056715",
+      "file_title": "File:Oshio Heihachiro.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a public-domain nineteenth-century portrait painting of Ōshio Heihachirō by Kikuchi Yōsai."
+    },
+    {
+      "character_keys": ["AUS_heinrich_oberwinder"],
+      "wikidata_id": "Q1598409",
+      "file_title": "File:Heinrich Oberwinder.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain photograph of Heinrich Oberwinder dated circa 1900."
+    },
+    {
+      "character_keys": ["can_henri_bourassa"],
+      "wikidata_id": "Q3130733",
+      "file_title": "File:Henri bourassa.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain photograph of Canadian politician Henri Bourassa dated July 1917."
+    },
+    {
+      "character_keys": ["POR_henrique_de_barros_gomes"],
+      "wikidata_id": "Q5716802",
+      "file_title": "File:Henrique de Barros Gomes 1886.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain printed portrait of Henrique de Barros Gomes from the illustrated periodical O Ocidente."
+    },
+    {
+      "character_keys": ["POR_hermenegildo_capelo"],
+      "wikidata_id": "Q1250265",
+      "file_title": "File:Hermenegildo Carlos de Brito Capêlo (cropped).jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a cropped single-person public-domain photograph of Hermenegildo Capelo made before 1917."
+    },
+    {
+      "character_keys": ["BOL_hilarion_daza_groselle"],
+      "wikidata_id": "Q492024",
+      "file_title": "File:Hilarion Daza Groselle.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Bolivian president Hilarión Daza, dated circa 1879."
+    },
+    {
+      "character_keys": ["BEL_hippolyte_metdepenningen"],
+      "wikidata_id": "Q2833532",
+      "file_title": "File:Hippolyte Metdepenningen.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain nineteenth-century portrait photograph identified as Hippolyte Metdepenningen."
+    },
+    {
+      "character_keys": ["tur_admiral_hobart"],
+      "wikidata_id": "Q608043",
+      "file_title": "File:Augustus Charles Hobart-Hampden - Project Gutenberg eText 16296.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain printed portrait of Augustus Charles Hobart-Hampden from a Project Gutenberg source."
+    },
+    {
+      "character_keys": ["JAP_iesato_tokugawa"],
+      "wikidata_id": "Q672741",
+      "file_title": "File:Tokugawa Iesato.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a public-domain old photograph of the young Tokugawa Iesato by Suzuki Shin'ichi II."
+    },
+    {
+      "character_keys": ["URU_Ignacio_Oribe"],
+      "wikidata_id": "Q5913459",
+      "file_title": "File:Gral. Ignacio Abdón del Corazón de Jesús Oribe y Viana.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons description identifies this public-domain single-person painted portrait as Uruguayan general Ignacio Oribe."
+    },
+    {
+      "character_keys": ["mex_general_zaragoza"],
+      "wikidata_id": "Q558759",
+      "file_title": "File:Ignacio Zaragoza.png",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons description identifies this public-domain nineteenth-century oil-on-canvas portrait as General Ignacio Zaragoza."
+    },
+    {
+      "character_keys": ["JAP_ii_naonori"],
+      "wikidata_id": "Q7270239",
+      "file_title": "File:Ii Naonori.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons description explicitly identifies the candidate as a public-domain portrait photograph of Ii Naonori."
+    },
+    {
+      "character_keys": ["JAP_ii_naotada"],
+      "wikidata_id": "Q11161278",
+      "file_title": "File:Naotada Ii.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain old photograph of Ii Naotada dated October 1913."
+    },
+    {
+      "character_keys": ["GRE_ioannis_makriyannis"],
+      "wikidata_id": "Q2658023",
+      "file_title": "File:Makrygiannis.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait identified as Ioannis Makriyannis."
+    },
+    {
+      "character_keys": ["agitator_ion_dragoumis"],
+      "wikidata_id": "Q737889",
+      "file_title": "File:Ion Dragoumis.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Ion Dragoumis from the early twentieth century."
+    },
+    {
+      "character_keys": ["BRZ_irineu_evangelista_de_sousa"],
+      "wikidata_id": "Q1791167",
+      "file_title": "File:Irineu evangelista de sousa the viscount of maua.png",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait painting of Irineu Evangelista de Sousa by Édouard Viénot, dated circa 1872."
+    },
+    {
+      "character_keys": ["USA_isaac_hull"],
+      "wikidata_id": "Q2422525",
+      "file_title": "File:Captain Isaac Hull USN(1773-1843).jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait of Captain Isaac Hull held by the United States Navy."
+    },
+    {
+      "character_keys": ["CIR_Ismail_Berzeg"],
+      "wikidata_id": "Q15640229",
+      "file_title": "File:IsmailBerzegCircassia.png",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person 1840 portrait painting of Ismail Berzeg by Grigory Gagarin under a reusable CC BY-SA 4.0 license."
     }
   ],
   "person_reviews": [
+    {
+      "character_keys": ["SER_gligorije_vozarevic"],
+      "wikidata_ids": ["Q12750244"],
+      "candidate_file_titles": ["File:Gligorije Vozarević knjižar (cropped).JPG"],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-14",
+      "reason": "The only current candidate is a cropped modern graphic from a commemorative plaque, outside the approved image types."
+    },
+    {
+      "character_keys": ["BIC_haji_shariatullah"],
+      "wikidata_ids": ["Q5639930"],
+      "candidate_file_titles": ["File:Haji Shariatullah.jpg"],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-14",
+      "reason": "The only current candidate lacks an identified author and a verifiable approved image type."
+    },
     {
       "character_keys": ["VNZ_francisco_linares_alcantara"],
       "wikidata_ids": ["Q2497665"],
