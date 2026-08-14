@@ -2157,9 +2157,262 @@
       "type": "photograph",
       "reviewed_at": "2026-08-14",
       "reason": "The candidate is a single-person public-domain portrait photograph identified as Uruguayan president Lorenzo Latorre in a historical periodical."
+    },
+    {
+      "character_keys": ["TRN_louis_tregardt"],
+      "wikidata_id": "Q3263213",
+      "file_title": "File:Louis Tregardt, Voortrekkermonument, b.jpg",
+      "decision": "reject",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a 2013 photograph of Louis Tregardt as depicted on the Voortrekker Monument frieze, outside the approved two-dimensional historical image types."
+    },
+    {
+      "character_keys": ["agitator_louise_michel"],
+      "wikidata_id": "Q216092",
+      "file_title": "File:Louise Michel, grayscale.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Louise Michel dated circa 1880."
+    },
+    {
+      "character_keys": ["MEX_lucas_alaman"],
+      "wikidata_id": "Q507298",
+      "file_title": "File:Lucas Alamán, portrait.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait of Lucas Alamán dated between 1830 and 1832."
+    },
+    {
+      "character_keys": ["SWE_ludvig_nobel"],
+      "wikidata_id": "Q706189",
+      "file_title": "File:Ludvig Nobel.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain historical portrait photograph identified as Ludvig Immanuel Nobel."
+    },
+    {
+      "character_keys": ["AUS_ludwig_boltzmann"],
+      "wikidata_id": "Q84296",
+      "file_title": "File:Boltzmann-Ludwig.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Ludwig Boltzmann dated 1902."
+    },
+    {
+      "character_keys": ["sar_general_cadorna"],
+      "wikidata_id": "Q333809",
+      "file_title": "File:Luigi Cadorna 02.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Luigi Cadorna dated 1917."
+    },
+    {
+      "character_keys": ["POR_luis_do_rego_barreto"],
+      "wikidata_id": "Q10321788",
+      "file_title": "File:Luís do Rêgo Barreto.png",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain nineteenth-century Portuguese painted portrait of Luís do Rego Barreto."
+    },
+    {
+      "character_keys": ["ASM_maniram_dewan_template"],
+      "wikidata_id": "Q6749854",
+      "file_title": "File:Maniram Dewan.jpg",
+      "decision": "reject",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a retouched portrait uploaded as self-published work in 2016 without a source, author or date for the underlying historical image."
+    },
+    {
+      "character_keys": ["VNZ_manuel_antonio_matos"],
+      "wikidata_id": "Q5992206",
+      "file_title": "File:Manuel Antonio Matos.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait identified as Venezuelan politician Manuel Antonio Matos."
+    },
+    {
+      "character_keys": ["POR_manuel_da_silva_passos"],
+      "wikidata_id": "Q1596681",
+      "file_title": "File:Passos Manuel.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain nineteenth-century painted portrait of Manuel da Silva Passos in the Museu Nacional de Soares dos Reis."
+    },
+    {
+      "character_keys": ["CHL_manuel_garcia_banqueda"],
+      "wikidata_id": "Q6752596",
+      "file_title": "File:Manuel Garcia Banqueda2.jpg",
+      "decision": "reject",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate was uploaded as self-published work in 2022 without a source, author, date or supported type for the underlying historical image."
+    },
+    {
+      "character_keys": ["PEU_manuel_ignacio_de_vivanco"],
+      "wikidata_id": "Q732926",
+      "file_title": "File:Vivanco1.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain printed portrait of Manuel Ignacio de Vivanco reproduced from the El Comercio archive."
+    },
+    {
+      "character_keys": ["ARG_manuel_leiva"],
+      "wikidata_id": "Q5993452",
+      "file_title": "File:Manuel Leiva.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain historical portrait photograph identified as Argentine politician Manuel Leiva."
+    },
+    {
+      "character_keys": ["PEU_manuel_menendez"],
+      "wikidata_id": "Q2004270",
+      "file_title": "File:Manuel Menéndez.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait of Peruvian president Manuel Menéndez from the El Comercio archive."
+    },
+    {
+      "character_keys": ["CHL_Manuel_Rengifo"],
+      "wikidata_id": "Q9028079",
+      "file_title": "File:Manuel Rengifo.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain printed portrait identified as Chilean politician Manuel Rengifo."
+    },
+    {
+      "character_keys": ["PEU_Manuel_Salazar_y_Baquijano"],
+      "wikidata_id": "Q2044416",
+      "file_title": "File:Manuel Salazar y Baquijano.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain reproduction of a nineteenth-century painted portrait of Manuel Salazar y Baquíjano."
+    },
+    {
+      "character_keys": ["nor_thrane_template"],
+      "wikidata_id": "Q581903",
+      "file_title": "File:Marcus Thrane.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain printed portrait identified as Norwegian labour leader Marcus Thrane."
+    },
+    {
+      "character_keys": ["CLM_maria_cano"],
+      "wikidata_id": "Q3296428",
+      "file_title": "File:María de los Ángeles Cano Márquez.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain photograph of María Cano made by Melitón Rodríguez in 1926."
+    },
+    {
+      "character_keys": ["ARG_mariano_jose_de_escalada"],
+      "wikidata_id": "Q5997806",
+      "file_title": "File:Mariano José de Escalada.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain nineteenth-century printed portrait of Mariano José de Escalada by Manuel Pla y Valor."
+    },
+    {
+      "character_keys": ["ARG_Mariano_Medrano"],
+      "wikidata_id": "Q5997837",
+      "file_title": "File:Mariano Medrano 2.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain nineteenth-century printed portrait of Mariano Medrano by Manuel Pla y Valor."
+    },
+    {
+      "character_keys": ["BOL_mariano_melgarejo"],
+      "wikidata_id": "Q734622",
+      "file_title": "File:MarianoMelgarejo.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait identified as Bolivian president Mariano Melgarejo."
+    },
+    {
+      "character_keys": ["FRA_mathieu_de_la_drome"],
+      "wikidata_id": "Q3298925",
+      "file_title": "File:Mathieu, Antoine Philippe.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain printed portrait of Mathieu de la Drôme published in L'Illustration in 1865 after a photograph by Antony Thouret fils."
+    },
+    {
+      "character_keys": ["BAV_max_stirner"],
+      "wikidata_id": "Q76725",
+      "file_title": "File:Max Stirner-k.jpg",
+      "decision": "reject",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is an enlarged crop from Friedrich Engels's group cartoon of Die Freien, outside the approved single-person historical image types."
+    },
+    {
+      "character_keys": ["sax_general_von_hausen"],
+      "wikidata_id": "Q67160",
+      "file_title": "File:Max von Hausen (1846-1922).jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain historical portrait photograph identified as German general Max von Hausen."
+    },
+    {
+      "character_keys": ["URU_maximo_tajes"],
+      "wikidata_id": "Q879013",
+      "file_title": "File:MaximoTajes.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Máximo Tajes from the 1890s, published in Rojo y Blanco in 1901."
     }
   ],
   "person_reviews": [
+    {
+      "character_keys": ["TRN_louis_tregardt"],
+      "wikidata_ids": ["Q3263213"],
+      "candidate_file_titles": ["File:Louis Tregardt, Voortrekkermonument, b.jpg"],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-14",
+      "reason": "The only current candidate is a modern photograph of a figure on the Voortrekker Monument frieze."
+    },
+    {
+      "character_keys": ["ASM_maniram_dewan_template"],
+      "wikidata_ids": ["Q6749854"],
+      "candidate_file_titles": ["File:Maniram Dewan.jpg"],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-14",
+      "reason": "The only current candidate lacks a verifiable source, author and date for the underlying historical image."
+    },
+    {
+      "character_keys": ["CHL_manuel_garcia_banqueda"],
+      "wikidata_ids": ["Q6752596"],
+      "candidate_file_titles": ["File:Manuel Garcia Banqueda2.jpg"],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-14",
+      "reason": "The only current candidate lacks a source, author, date and supported historical image type."
+    },
+    {
+      "character_keys": ["BAV_max_stirner"],
+      "wikidata_ids": ["Q76725"],
+      "candidate_file_titles": ["File:Max Stirner-k.jpg"],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-14",
+      "reason": "The only current candidate is a crop from a group cartoon, outside the approved image types."
+    },
     {
       "character_keys": ["mon_kenjo_jankoviC_"],
       "wikidata_ids": ["Q12759635"],
