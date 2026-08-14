@@ -7,10 +7,10 @@ const root = process.cwd();
 const file = path.resolve(root, process.argv[2] || "scripts/data/historical-character-image-reviews.json");
 const data = JSON.parse(fs.readFileSync(file, "utf8").replace(/^\uFEFF/, ""));
 const { image_reviews: reviews, person_reviews: personReviews } = validateImageReviewDocument(data);
-assert.equal(reviews.length, 262, "图片复核记录总数不一致");
-assert.equal(personReviews.length, 19, "人物终态总数不一致");
-assert.equal(reviews.filter((review) => review.decision === "approve").length, 243, "已批准图片总数不一致");
-assert.equal(reviews.filter((review) => review.decision === "reject").length, 19, "已拒绝图片总数不一致");
+assert.equal(reviews.length, 287, "图片复核记录总数不一致");
+assert.equal(personReviews.length, 22, "人物终态总数不一致");
+assert.equal(reviews.filter((review) => review.decision === "approve").length, 265, "已批准图片总数不一致");
+assert.equal(reviews.filter((review) => review.decision === "reject").length, 22, "已拒绝图片总数不一致");
 const einstein = reviews.find((review) => review.character_keys.includes("albert_einstein_template"));
 assert.ok(einstein, "人工复核文件缺少爱因斯坦记录");
 assert.equal(einstein.wikidata_id, "Q937", "爱因斯坦记录的维基数据编号不正确");
@@ -46,6 +46,9 @@ for (const key of ["SER_gligorije_vozarevic", "BIC_haji_shariatullah"]) {
 }
 assert.equal(personReviews.find((review) => review.character_keys.includes("mon_kenjo_jankoviC_"))?.decision, "no_eligible_image", "Kenjo Janković 应标记为无合格图片");
 for (const key of ["TRN_louis_tregardt", "ASM_maniram_dewan_template", "CHL_manuel_garcia_banqueda", "BAV_max_stirner"]) {
+  assert.equal(personReviews.find((review) => review.character_keys.includes(key))?.decision, "no_eligible_image", `${key} 应标记为无合格图片`);
+}
+for (const key of ["BIC_mithuben_petit", "pan_nau_nihal_singh", "SPA_nazario_equia"]) {
   assert.equal(personReviews.find((review) => review.character_keys.includes(key))?.decision, "no_eligible_image", `${key} 应标记为无合格图片`);
 }
 const koumoundouros = reviews.find((review) => review.character_keys.includes("GRE_alexandros_koumoundouros"));

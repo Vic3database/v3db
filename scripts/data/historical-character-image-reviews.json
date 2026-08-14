@@ -2378,9 +2378,255 @@
       "type": "photograph",
       "reviewed_at": "2026-08-14",
       "reason": "The candidate is a single-person public-domain portrait photograph of Máximo Tajes from the 1890s, published in Rojo y Blanco in 1901."
+    },
+    {
+      "character_keys": ["AUS_michael_thonet"],
+      "wikidata_id": "Q60229",
+      "file_title": "File:Michael Thonet.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Michael Thonet dated circa 1855."
+    },
+    {
+      "character_keys": ["POR_miguel_maximiliano_de_braganca_template"],
+      "wikidata_id": "Q2083842",
+      "file_title": "File:Miguel of Braganza.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Prince Miguel of Braganza from the late nineteenth or early twentieth century."
+    },
+    {
+      "character_keys": ["PEU_miguel_iglesias"],
+      "wikidata_id": "Q645188",
+      "file_title": "File:Miguel Iglesias colaboracionista con Chile.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain historical portrait photograph identified as Peruvian president Miguel Iglesias."
+    },
+    {
+      "character_keys": ["SPA_miguel_lobo_malagamba"],
+      "wikidata_id": "Q6014613",
+      "file_title": "File:Almirante Miguel Lobo.png",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain engraved portrait of Miguel Lobo y Malagamba published in La Ilustración Española y Americana in 1876."
+    },
+    {
+      "character_keys": ["HUN_mihaly_tancsics"],
+      "wikidata_id": "Q713534",
+      "file_title": "File:Táncsics Mihály Rusz.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain engraving of Mihály Táncsics by Károly Rusz, published in Vasárnapi Ujság in 1868."
+    },
+    {
+      "character_keys": ["RUS_mikhail_lazarev"],
+      "wikidata_id": "Q186203",
+      "file_title": "File:Lazarev MP by Schwede rectangle.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait of Mikhail Lazarev by Robert Schwede, dated 1844 and held by the Hermitage Museum."
+    },
+    {
+      "character_keys": ["mon_general_mirko_petrovic_njegos"],
+      "wikidata_id": "Q1282940",
+      "file_title": "File:Vojvoda Mirko Petrović-Njegoš (1863, Beaufort).png",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person printed portrait of Mirko Petrović-Njegoš from Emily Anne Beaufort's 1864 travel book under a CC0 license."
+    },
+    {
+      "character_keys": ["BIC_mithuben_petit"],
+      "wikidata_id": "Q31436151",
+      "file_title": "File:Mithuben Petit 5 April 1930 (cropped).jpg",
+      "decision": "reject",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is cropped from a group photograph of the Salt March with Mahatma Gandhi and does not retain single-person portrait context."
+    },
+    {
+      "character_keys": ["per_mohammad_shah_qajar_template"],
+      "wikidata_id": "Q558231",
+      "file_title": "File:Portrait of Muhammad Shah Qadjar - MV 6700 - v1.JPG",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain oil portrait of Mohammad Shah Qajar by Muhammad Hasan Afshar, dated 1837–1838 and held by the Louvre."
+    },
+    {
+      "character_keys": ["BIC_muhammad_ali_jinnah"],
+      "wikidata_id": "Q160554",
+      "file_title": "File:Jinnah1945c.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Muhammad Ali Jinnah published in 1945."
+    },
+    {
+      "character_keys": ["CIR_Muhammad_Amin_Asiyalav"],
+      "wikidata_id": "Q4308767",
+      "file_title": "File:Muhammad (Asiyalo) Amin ibn Hajjio al-Honodi al-Daghestani.gif",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain historical portrait photograph identified as Muhammad-Amin Asiyalav and dated before 1900."
+    },
+    {
+      "character_keys": ["JAP_matsumae_nagahiro"],
+      "wikidata_id": "Q8514285",
+      "file_title": "File:Matsumae Nagahiro.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain Japanese old photograph of Matsumae Nagahiro held by Hokkaido University Library."
+    },
+    {
+      "character_keys": ["BOL_narciso_campero"],
+      "wikidata_id": "Q3309380",
+      "file_title": "File:NARCISO CAMPERO LEYES.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait identified as Bolivian president Narciso Campero."
+    },
+    {
+      "character_keys": ["pan_nau_nihal_singh"],
+      "wikidata_id": "Q6981064",
+      "file_title": "File:Nau Nihal Singh.jpg",
+      "decision": "reject",
+      "reviewed_at": "2026-08-14",
+      "reason": "The file description explicitly identifies the candidate as a portrait sketch by Godfrey Thomas Vigne, outside the approved image types."
+    },
+    {
+      "character_keys": ["SPA_nazario_equia"],
+      "wikidata_id": "Q3328255",
+      "file_title": "File:Eguía - Magués.jpg",
+      "decision": "reject",
+      "reviewed_at": "2026-08-14",
+      "reason": "The file description explicitly identifies the candidate as a drawing by Isidoro Magués, outside the approved image types."
+    },
+    {
+      "character_keys": ["GRE_neophytos_metaxas"],
+      "wikidata_id": "Q4317264",
+      "file_title": "File:Neofytos Metaxa.JPG",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person printed portrait identified as Neophytos Metaxas under a CC BY-SA 3.0 license."
+    },
+    {
+      "character_keys": ["ARG_nicanor_caceres"],
+      "wikidata_id": "Q6041856",
+      "file_title": "File:General Don Nicanor Cáceres.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain printed portrait of Nicanor Cáceres reproduced from a 1910 book on the Paraguayan War."
+    },
+    {
+      "character_keys": ["fra_general_changarnier"],
+      "wikidata_id": "Q569416",
+      "file_title": "File:Nicolas Changarnier.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain nineteenth-century printed portrait of Nicolas Changarnier by Auguste-Charles Lemoine after a photograph by Pierre Petit."
+    },
+    {
+      "character_keys": ["RUS_nikolay_putilov"],
+      "wikidata_id": "Q4384321",
+      "file_title": "File:Путилов Николай Иванович.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain printed portrait of Nikolay Putilov by Petr Borel, published in Vsemirnaya Illyustratsia in 1880."
+    },
+    {
+      "character_keys": ["mon_general_novica_cerovic"],
+      "wikidata_id": "Q1269148",
+      "file_title": "File:Novica cerovic.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait of Novica Cerović by Ferdo Quiquerez, dated 1889."
+    },
+    {
+      "character_keys": ["PAT_orelie_antoine_de_tounens"],
+      "wikidata_id": "Q886786",
+      "file_title": "File:Orélie Antoine de Tounens.jpeg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain historical portrait photograph identified as Orélie-Antoine de Tounens from the late nineteenth century."
+    },
+    {
+      "character_keys": ["JAP_hamaguchi_osachi"],
+      "wikidata_id": "Q351661",
+      "file_title": "File:Hamaguchi Osachi 1.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain Japanese old photograph of Osachi Hamaguchi made before 1931 and held by the National Diet Library."
+    },
+    {
+      "character_keys": ["tur_general_osman_nuri"],
+      "wikidata_id": "Q546595",
+      "file_title": "File:Osman nuripasa.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Osman Nuri Pasha by Abdullah Frères, dated 1895."
+    },
+    {
+      "character_keys": ["ARG_pablo_ricchieri"],
+      "wikidata_id": "Q7121738",
+      "file_title": "File:Pablo ricchieri by witcomb.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Pablo Ricchieri by Alexander Witcomb, dated 1904 and categorized in the Witcomb collection."
+    },
+    {
+      "character_keys": ["BIC_pandita_ramabai_sarasvati"],
+      "wikidata_id": "Q94889",
+      "file_title": "File:Pandita Ramabai Sarasvati 1858-1922 front-page-portrait.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain frontispiece portrait photograph identified as Pandita Ramabai."
     }
   ],
   "person_reviews": [
+    {
+      "character_keys": ["BIC_mithuben_petit"],
+      "wikidata_ids": ["Q31436151"],
+      "candidate_file_titles": ["File:Mithuben Petit 5 April 1930 (cropped).jpg"],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-14",
+      "reason": "The only current candidate is cropped from a group photograph of the Salt March."
+    },
+    {
+      "character_keys": ["pan_nau_nihal_singh"],
+      "wikidata_ids": ["Q6981064"],
+      "candidate_file_titles": ["File:Nau Nihal Singh.jpg"],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-14",
+      "reason": "The only current candidate is explicitly identified as a portrait sketch, outside the approved image types."
+    },
+    {
+      "character_keys": ["SPA_nazario_equia"],
+      "wikidata_ids": ["Q3328255"],
+      "candidate_file_titles": ["File:Eguía - Magués.jpg"],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-14",
+      "reason": "The only current candidate is explicitly identified as a drawing, outside the approved image types."
+    },
     {
       "character_keys": ["TRN_louis_tregardt"],
       "wikidata_ids": ["Q3263213"],
