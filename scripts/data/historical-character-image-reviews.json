@@ -1482,6 +1482,231 @@
       "type": "painting",
       "reviewed_at": "2026-08-14",
       "reason": "The candidate is a single-person 1840 portrait painting of Ismail Berzeg by Grigory Gagarin under a reusable CC BY-SA 4.0 license."
+    },
+    {
+      "character_keys": ["HUN_istvan_karolyi"],
+      "wikidata_id": "Q1123485",
+      "file_title": "File:Károlyi István.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain lithographic portrait of István Károlyi by József Molnár, dated 1837."
+    },
+    {
+      "character_keys": ["HUN_istvan_szechenyi"],
+      "wikidata_id": "Q279397",
+      "file_title": "File:István Széchenyi.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain oil-on-canvas portrait of István Széchenyi by Friedrich von Amerling."
+    },
+    {
+      "character_keys": ["GBR_james_elphinstone_erskine"],
+      "wikidata_id": "Q6133501",
+      "file_title": "File:James Elphinstone Erskine.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of James Elphinstone Erskine dated circa 1884."
+    },
+    {
+      "character_keys": ["ONT_james_fitzgibbon"],
+      "wikidata_id": "Q1680388",
+      "file_title": "File:James FitzGibbon - Project Gutenberg eText 18025.png",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain printed portrait of James FitzGibbon reproduced by Project Gutenberg."
+    },
+    {
+      "character_keys": ["AST_james_stirling"],
+      "wikidata_id": "Q1360030",
+      "file_title": "File:Jamesstirling.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain printed portrait identified as Governor James Stirling and dated before 1866."
+    },
+    {
+      "character_keys": ["ORA_johannes_brand"],
+      "wikidata_id": "Q1390594",
+      "file_title": "File:Johannes Brand00.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Johannes Henricus Brand from the Cape Archives."
+    },
+    {
+      "character_keys": ["TRN_jan_viljoen"],
+      "wikidata_id": "Q20979821",
+      "file_title": "File:Jan Viljoen.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph identified as Jan Viljoen and dated before 1893."
+    },
+    {
+      "character_keys": ["rus_jaroslaw_dabrowski_character_template"],
+      "wikidata_id": "Q465213",
+      "file_title": "File:Illustration from Żywot jenerała Jarosława Dąbrowskiego (cropped).jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain printed portrait of Jarosław Dąbrowski from an 1878 biography."
+    },
+    {
+      "character_keys": ["BIC_jawaharlal_nehru"],
+      "wikidata_id": "Q1047",
+      "file_title": "File:Jawaharlal Nehru, circa 1925.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Jawaharlal Nehru made by the Keystone View Company circa 1925."
+    },
+    {
+      "character_keys": ["FRA_jean_de_orleans"],
+      "wikidata_id": "Q578791",
+      "file_title": "File:Jean d'Orléans (1874-1940).jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person CC0 portrait photograph identified as Jean d'Orléans, Duke of Guise."
+    },
+    {
+      "character_keys": ["FRA_jean-francois_mocquard"],
+      "wikidata_id": "Q3165782",
+      "file_title": "File:Mocquard ILN.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain printed portrait of Jean-François Mocquard published in The Illustrated London News in 1864."
+    },
+    {
+      "character_keys": ["QUE_jean-jacques_lartigue"],
+      "wikidata_id": "Q3166327",
+      "file_title": "File:Jean-Jacques Lartigue.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait identified as Bishop Jean-Jacques Lartigue."
+    },
+    {
+      "character_keys": ["HAI_jean_pierre_boyer"],
+      "wikidata_id": "Q449421",
+      "file_title": "File:President Jean-Pierre Boyer of Haiti (Hispaniola Unification Regime) Portrait.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait of Haitian president Jean-Pierre Boyer dated 1825."
+    },
+    {
+      "character_keys": ["BIC_jiddu_krishnamurti"],
+      "wikidata_id": "Q179266",
+      "file_title": "File:Jiddu Krishnamurti 01.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Jiddu Krishnamurti from the Library of Congress."
+    },
+    {
+      "character_keys": ["VNZ_joaquin_crespo"],
+      "wikidata_id": "Q2497541",
+      "file_title": "File:JoaquinCrespo.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain printed portrait categorized and identified as Venezuelan president Joaquín Crespo."
+    },
+    {
+      "character_keys": ["BEL_John_Cockerill"],
+      "wikidata_id": "Q707591",
+      "file_title": "File:John Cockerill Industrieller.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait identified as industrialist John Cockerill."
+    },
+    {
+      "character_keys": ["AST_john_hindmarsh"],
+      "wikidata_id": "Q1371649",
+      "file_title": "File:Governor John Hindmarsh.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain printed portrait identified as Governor John Hindmarsh."
+    },
+    {
+      "character_keys": ["GBR_john_hughes"],
+      "wikidata_id": "Q328225",
+      "file_title": "File:1894. Portrait of John Hughes, founder of Hughesovka (cropped).jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait of John Hughes, founder of Hughesovka, dated 1894."
+    },
+    {
+      "character_keys": ["SAF_john_paterson"],
+      "wikidata_id": "Q6252034",
+      "file_title": "File:JohnPaterson.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Cape politician John Paterson from the Port Elizabeth Public Library."
+    },
+    {
+      "character_keys": ["PHL_john_philip"],
+      "wikidata_id": "Q1701417",
+      "file_title": "File:Portrait of Revd. John Philip D.D (4669882).jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain stipple engraving of missionary John Philip, dated 1829."
+    },
+    {
+      "character_keys": ["LIB_john_brown_russwurm"],
+      "wikidata_id": "Q3181134",
+      "file_title": "File:John B. Russwurm.png",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain printed portrait of John Brown Russwurm scanned from The Afro-American Press and Its Editors."
+    },
+    {
+      "character_keys": ["NOR_jonas_anton_hielm"],
+      "wikidata_id": "Q947935",
+      "file_title": "File:Jonas Anton Hielm - norwegischer Politiker.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain printed portrait identified as Norwegian politician Jonas Anton Hielm."
+    },
+    {
+      "character_keys": ["PEU_jorge_de_benavente_y_macoaga"],
+      "wikidata_id": "Q9012959",
+      "file_title": "File:Jorge de Benavente.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain reproduction of a nineteenth-century painted portrait of Archbishop Jorge de Benavente y Macoaga."
+    },
+    {
+      "character_keys": ["CHL_jorge_gonzalez_von_marees"],
+      "wikidata_id": "Q560727",
+      "file_title": "File:Jorge González Von Marées color.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph identified as Chilean politician Jorge González von Marées, dated circa 1940."
+    },
+    {
+      "character_keys": ["BOL_Jose_Ballivian"],
+      "wikidata_id": "Q734711",
+      "file_title": "File:José Ballivián.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait identified as Bolivian president José Ballivián."
     }
   ],
   "person_reviews": [
