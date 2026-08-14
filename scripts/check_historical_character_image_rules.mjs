@@ -152,6 +152,27 @@ const bustLengthPhotograph = {
 };
 assert.equal(exclusionReason(bustLengthPhotograph), "", "bust length should describe portrait framing, not a sculpture");
 
+const portraitWithCoatOfArms = {
+  title: "File:José López Domínguez (Palacio del Senado de España).jpg",
+  categories: [
+    "Category:1907 portrait paintings of men",
+    "Category:20th-century portraits with coat of arms",
+  ],
+  description: "Portrait of José López Domínguez",
+  mediaLabel: "José López Domínguez",
+  license: "Public domain",
+};
+assert.equal(exclusionReason(portraitWithCoatOfArms), "", "a coat of arms within a portrait should not exclude the portrait");
+
+const standaloneCoatOfArms = {
+  title: "File:Example coat of arms.svg",
+  categories: ["Category:Coats of arms"],
+  description: "Coat of arms",
+  mediaLabel: "Example coat of arms",
+  license: "Public domain",
+};
+assert.equal(exclusionReason(standaloneCoatOfArms), "not a two-dimensional portrait of the person", "a standalone coat of arms should remain excluded");
+
 const lincolnPhoto = {
   title: "File:Abraham Lincoln O-77 matte collodion print.jpg",
   categories: ["Category:Abraham Lincoln in 1863", "Category:Images from the Library of Congress"],

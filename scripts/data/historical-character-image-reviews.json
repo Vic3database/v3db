@@ -1707,6 +1707,231 @@
       "type": "painting",
       "reviewed_at": "2026-08-14",
       "reason": "The candidate is a single-person public-domain painted portrait identified as Bolivian president José Ballivián."
+    },
+    {
+      "character_keys": ["PHI_jose_burgos"],
+      "wikidata_id": "Q983553",
+      "file_title": "File:Jose burgos PG.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain printed portrait of José Burgos from the 1922 book Mga Dakilang Pilipino."
+    },
+    {
+      "character_keys": ["SPA_jose_canalejas"],
+      "wikidata_id": "Q365309",
+      "file_title": "File:José Canalejas (cropped).png",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a cropped single-person public-domain portrait photograph of José Canalejas made by the Bain News Service in 1910."
+    },
+    {
+      "character_keys": ["CUB_jose_de_la_luz_y_caballero"],
+      "wikidata_id": "Q6294346",
+      "file_title": "File:José de la Luz y Caballero.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person painted portrait identified as José de la Luz y Caballero under a reusable CC BY-SA 4.0 license."
+    },
+    {
+      "character_keys": ["agitator_jose_do_patrocinio"],
+      "wikidata_id": "Q359451",
+      "file_title": "File:José do Patrocínio.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of José do Patrocínio dated circa 1900."
+    },
+    {
+      "character_keys": ["PRG_jose_felix_estigarribia"],
+      "wikidata_id": "Q379670",
+      "file_title": "File:Jose Estigarribia.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of José Félix Estigarribia dated circa August 1939."
+    },
+    {
+      "character_keys": ["VNZ_jose_gil_fortoul"],
+      "wikidata_id": "Q2585455",
+      "file_title": "File:Gil Fortoul BNV.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of José Gil Fortoul from the late nineteenth or early twentieth century."
+    },
+    {
+      "character_keys": ["VNZ_jose_gregorio_monagas"],
+      "wikidata_id": "Q2080751",
+      "file_title": "File:JoseGregorioMonagas.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait painting of José Gregorio Monagas by Martín Tovar y Tovar, dated 1874."
+    },
+    {
+      "character_keys": ["ARG_jose_hernandez"],
+      "wikidata_id": "Q377623",
+      "file_title": "File:José Hernández.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Argentine writer José Hernández dated circa 1875."
+    },
+    {
+      "character_keys": ["CLM_jose_hilario_lopez"],
+      "wikidata_id": "Q2580777",
+      "file_title": "File:General José Hilario López.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of General José Hilario López by Nadar, dated circa 1857."
+    },
+    {
+      "character_keys": ["SPA_jose_lopez_dominguez"],
+      "wikidata_id": "Q1236352",
+      "file_title": "File:José López Domínguez (Palacio del Senado de España).jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain oil-on-canvas portrait of José López Domínguez by José Moreno Carbonero, dated 1907."
+    },
+    {
+      "character_keys": ["CHL_jose_manuel_pinto_arias"],
+      "wikidata_id": "Q5942252",
+      "file_title": "File:José Manuel Pinto Arias.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person portrait photograph of José Manuel Pinto Arias supplied by the Library of the National Congress of Chile under CC BY 3.0 CL."
+    },
+    {
+      "character_keys": ["prg_general_bruguez", "PRG_jose_maria_bruguez"],
+      "wikidata_id": "Q115139281",
+      "file_title": "File:Gral. Jose Maria Bruguez.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person historical portrait photograph identified as Paraguayan general José María Bruguez under a reusable CC BY-SA 4.0 license."
+    },
+    {
+      "character_keys": ["BOL_jose_maria_de_acha"],
+      "wikidata_id": "Q886251",
+      "file_title": "File:JoseMariaAcha.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait identified as Bolivian president José María de Achá."
+    },
+    {
+      "character_keys": ["SPC_jose_maria_de_orbe_y_elio"],
+      "wikidata_id": "Q9014539",
+      "file_title": "File:Valdespina-magues.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain printed portrait of José María de Orbe y Elío by Isidoro Magués from an 1837 publication."
+    },
+    {
+      "character_keys": ["BOL_jose_maria_linares"],
+      "wikidata_id": "Q888590",
+      "file_title": "File:José María Linares.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait identified as Bolivian president José María Linares."
+    },
+    {
+      "character_keys": ["CLM_jose_maria_melo"],
+      "wikidata_id": "Q2580790",
+      "file_title": "File:Jose Maria Melo 1.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait identified as Colombian president José María Melo, dated circa 1850."
+    },
+    {
+      "character_keys": ["BOL_Jose_Miguel_de_Velasco"],
+      "wikidata_id": "Q373873",
+      "file_title": "File:José Miguel de Velasco Franco - bolivianischer Präsident.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait identified as Bolivian president José Miguel de Velasco."
+    },
+    {
+      "character_keys": ["BRZ_jose_oiticica"],
+      "wikidata_id": "Q6293593",
+      "file_title": "File:Jose Oiticica.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Brazilian anarchist José Oiticica from the 1910s."
+    },
+    {
+      "character_keys": ["SPA_jose_osorio_y_silva"],
+      "wikidata_id": "Q5940663",
+      "file_title": "File:Jose Osorio y Silva, duque de Sesto.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph identified as José Osorio y Silva, Duke of Sesto."
+    },
+    {
+      "character_keys": ["PEU_jose_pardo_y_barreda"],
+      "wikidata_id": "Q136632",
+      "file_title": "File:José Pardo y Barreda.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of José Pardo y Barreda from the Library of Congress National Photo Company Collection."
+    },
+    {
+      "character_keys": ["POR_jose_relvas"],
+      "wikidata_id": "Q957617",
+      "file_title": "File:José Relvas.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph identified as Portuguese politician José Relvas and dated before 1923."
+    },
+    {
+      "character_keys": ["POR_almeida_neto"],
+      "wikidata_id": "Q941091",
+      "file_title": "File:José Sebastião Neto - Cópia.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain historical photograph of Cardinal José Sebastião de Almeida Neto dated before 1920."
+    },
+    {
+      "character_keys": ["CHL_jose_victorino_lastarria"],
+      "wikidata_id": "Q5946038",
+      "file_title": "File:J V Lastarria-2.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a retouched single-person public-domain portrait photograph identified as Chilean writer and politician José Victorino Lastarria."
+    },
+    {
+      "character_keys": ["AUS_josef_peukert"],
+      "wikidata_id": "Q87653",
+      "file_title": "File:Peukert Portrait.png",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph identified as Austrian anarchist Josef Peukert, dated circa 1890."
+    },
+    {
+      "character_keys": ["GBR_joseph_chamberlain"],
+      "wikidata_id": "Q315999",
+      "file_title": "File:Picture of Joseph Chamberlain.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Joseph Chamberlain by James Russell and Sons, printed circa 1895."
     }
   ],
   "person_reviews": [
