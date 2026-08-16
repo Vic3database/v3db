@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { collectLocalizationRefs, sha256Text } from "./lib/localization-schema.mjs";
+import { searchAliasFields } from "./search_aliases.mjs";
 
 const victorianCenturyChangeCollections = [
   ["countries", "tag"],
@@ -95,6 +96,10 @@ const wikiData = {
   productionMethods: data.productionMethods,
   goods: data.goods,
   prestigeGoods: data.prestigeGoods,
+  needsData: {
+    current: buildNeedsDataset(data),
+    baseline: baselineData ? buildNeedsDataset(baselineData) : null,
+  },
   dynamicCountryNameVariants: data.dynamicCountryNameVariants,
   dynamicCountryMapColorRules: data.dynamicCountryMapColorRules,
   formables: data.formables,
@@ -112,6 +117,7 @@ const dataChunks = {
   achievement: ["achievements"],
   building: ["buildings", "buildingGroups", "productionMethodGroups", "productionMethods"],
   goods: ["goods", "prestigeGoods"],
+  needs: ["needsData"],
 };
 
 const dataChunkFileNames = {
@@ -125,6 +131,7 @@ const dataChunkFileNames = {
   achievement: "data-achievements.js",
   building: "data-buildings.js",
   goods: "data-goods.js",
+  needs: "data-needs.js",
 };
 
 const localeChunkDescriptors = Object.fromEntries(["zh-Hans", "en"].map((locale) => [locale, {}]));
@@ -266,6 +273,8 @@ function loadSiteData(sourceFile) {
     const productionMethods = sourceData.files.production_methods ? readJson(path.join(baseDir, sourceData.files.production_methods)) : [];
     const goods = sourceData.files.goods ? readJson(path.join(baseDir, sourceData.files.goods)) : [];
     const prestigeGoods = sourceData.files.prestige_goods ? readJson(path.join(baseDir, sourceData.files.prestige_goods)) : [];
+    const popNeeds = sourceData.files.pop_needs ? readJson(path.join(baseDir, sourceData.files.pop_needs)) : [];
+    const buyPackages = sourceData.files.buy_packages ? readJson(path.join(baseDir, sourceData.files.buy_packages)) : [];
     const lawGroups = sourceData.files.law_groups ? readJson(path.join(baseDir, sourceData.files.law_groups)) : [];
     const dynamicCountryNameVariants = readJson(path.join(baseDir, sourceData.files.dynamic_country_name_variants));
     const dynamicCountryMapColorRules = readJson(path.join(baseDir, sourceData.files.dynamic_country_map_color_rules));
@@ -311,6 +320,8 @@ function loadSiteData(sourceFile) {
       productionMethods,
       goods,
       prestigeGoods,
+      popNeeds,
+      buyPackages,
       dynamicCountryNameVariants,
       dynamicCountryMapColorRules,
       formables,
@@ -344,6 +355,15 @@ function deriveSiteData(siteData) {
     productionMethods: siteData.productionMethods || [],
     goods: siteData.goods || [],
     prestigeGoods: siteData.prestigeGoods || [],
+    popNeeds: siteData.popNeeds || [],
+    buyPackages: siteData.buyPackages || [],
+  };
+}
+
+function buildNeedsDataset(siteData) {
+  return {
+    needs: siteData.popNeeds || [],
+    packages: siteData.buyPackages || [],
   };
 }
 
@@ -631,14 +651,16 @@ function createSearchEntries(data, messagesByLocale) {
     const key = item[keyField] || item.key || item.tag || "";
     const id = item.id || `${kind}:${key}`;
     const message = item.loc?.displayName || item.loc?.name || "";
+    const names = {
+      "zh-Hans": messagesByLocale["zh-Hans"]?.[message] || key,
+      en: messagesByLocale.en?.[message] || key,
+    };
     return {
       kind,
       id,
       key,
-      names: {
-        "zh-Hans": messagesByLocale["zh-Hans"]?.[message] || key,
-        en: messagesByLocale.en?.[message] || key,
-      },
+      names,
+      ...searchAliasFields(kind, item, messagesByLocale, names),
     };
   }));
   const interestGroupFlavors = new Map();
