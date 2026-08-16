@@ -21,11 +21,14 @@ assert.match(functionSource("globalSearchDisplayTitle"), /if \(localeRuntime\.cu
 assert.match(functionSource("globalSearchResults"), /window\.VIC3_SEARCH_INDEX/, "global search should use the generated bilingual index");
 assert.match(functionSource("globalSearchResults"), /entry\.names\?\.\[localeRuntime\.current\]/, "result titles should follow the active locale");
 assert.match(functionSource("globalSearchResults"), /Object\.values\(entry\.names/, "search matching should include every indexed locale");
+assert.match(functionSource("globalSearchResults"), /entry\.aliases/, "search matching should include official entity aliases");
+assert.match(functionSource("globalSearchResults"), /entry\.internalAliases/, "search matching should include hidden compatibility aliases");
+assert.match(functionSource("globalSearchDisplayTitle"), /if \(result\.matchedAlias\) return result\.matchedAlias;[\s\S]*if \(localeRuntime\.current === "zh-Hans"\) return title;/, "an official alias match should be displayed before the active-locale fallback");
 assert.match(functionSource("globalSearchResults"), /entry\.interestGroupKey, \.\.\.\(entry\.countryTags \|\| \[\]\)/, "interest-group flavors should use their aggregated parent and country contexts while rendering search results");
 assert.match(functionSource("navigateGlobalSearchResult"), /interestGroupFlavorRoute\(/, "flavor search results should navigate to their dedicated interest-group flavor page");
 assert.match(functionSource("renderGlobalSearchList"), /globalSearchResultIdentifier\(result\)/, "main global-search rows should use the result identifier presentation rule");
 assert.match(functionSource("renderGlobalSearchDialogResults"), /globalSearchResultIdentifier\(result\)/, "dialog rows should use the result identifier presentation rule");
-assert.match(functionSource("globalSearchResultIdentifier"), /return result\.kind === "country" \? result\.key : "";/, "only country tags should remain visible; other internal keys must stay searchable but hidden");
+assert.match(functionSource("globalSearchResultIdentifier"), /\["journal", "event", "decision"\]/, "content IDs should remain visible while unrelated internal keys stay hidden");
 assert.match(styleSource, /\.global-search-dialog\s*\{[\s\S]*width:\s*min\(1080px,\s*calc\(100vw - 36px\)\)[\s\S]*max-height:\s*min\(84vh,\s*calc\(100vh - 48px\)\)/, "global search dialog should use the expanded desktop frame without exceeding the viewport");
 assert.match(styleSource, /\.global-search-backdrop\s*\{[\s\S]*z-index:\s*110/, "global search backdrop should cover the sticky top bar on narrow viewports");
 assert.match(styleSource, /\.global-search-dialog\s*\{[\s\S]*width:\s*min\(1080px,\s*calc\(100vw - 36px\)\)[\s\S]*max-width:\s*calc\(100vw - 36px\)[\s\S]*min-width:\s*0/, "global search dialog should stay within a narrow viewport");
@@ -65,9 +68,17 @@ assert.equal(prussia.names?.en, "Prussia");
 for (const query of ["普鲁士", "Prussia", "PRU"]) {
   assert.ok(indexMatches(query).some((entry) => entry.id === prussia.id), `${query} should resolve to PRU`);
 }
+const qing = searchIndex.entries.find((entry) => entry.kind === "country" && entry.key === "CHI");
+const chiangMai = searchIndex.entries.find((entry) => entry.kind === "country" && entry.key === "CMI");
+assert.ok(qing, "CHI should be present in the search index");
+assert.ok(chiangMai, "CMI should be present in the search index");
+assert.ok(qing.aliases?.["zh-Hans"]?.includes("大清"), "CHI should retain its official Great Qing dynamic name as a Chinese alias");
+const qingCharacterMatches = indexMatches("清");
+assert.ok(qingCharacterMatches.some((entry) => entry.id === qing.id), "清 should resolve to CHI through 大清");
+assert.ok(qingCharacterMatches.some((entry) => entry.id === chiangMai.id), "清 should continue to resolve to CMI through 清迈");
 
 console.log(JSON.stringify({
-  checked: ["global-search-wording", "bilingual-index", "internal-key-search", "localized-result-labels", "new-board-indexing", "icon-presentation", "compact-text-rows"],
+  checked: ["global-search-wording", "bilingual-index", "internal-key-search", "dynamic-country-name-aliases", "localized-result-labels", "new-board-indexing", "icon-presentation", "compact-text-rows"],
   sample: {
     country: `${prussia.key} ${prussia.names["zh-Hans"]} / ${prussia.names.en}`,
   },
@@ -94,7 +105,7 @@ function readSearchIndex() {
 function indexMatches(query) {
   const needle = String(query).trim().toLocaleLowerCase();
   return searchIndex.entries.filter((entry) => (
-    [entry.key, ...Object.values(entry.names || {})]
+    [entry.key, ...Object.values(entry.names || {}), ...Object.values(entry.aliases || {}).flat(), ...(entry.internalAliases || [])]
       .join(" ")
       .toLocaleLowerCase()
       .includes(needle)

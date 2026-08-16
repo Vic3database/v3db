@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Vicdata</title>
-    <link rel="stylesheet" href="styles.css?v=20260810-topbar-cache1">
+    <link rel="stylesheet" href="styles.css?v=20260816-global-search-row-height1">
     <link rel="icon" type="image/png" sizes="16x16" href="assets/brand/favicon-16.png?v=20260720-v">
     <link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png?v=20260720-v">
     <link rel="apple-touch-icon" sizes="180x180" href="assets/brand/apple-touch-icon.png">
@@ -49,6 +49,9 @@
             <summary class="topbar-nav-summary"><span data-i18n="nav.gameContent">游戏内容</span></summary>
             <div class="topbar-nav-popover">
               <button class="topbar-nav-item" type="button" data-nav-view="achievement"><span data-i18n="nav.achievement">成就</span></button>
+              <button class="topbar-nav-item" type="button" data-nav-view="event"><span data-i18n="nav.event">事件</span></button>
+              <button class="topbar-nav-item" type="button" data-nav-view="journal"><span data-i18n="nav.journal">日志</span></button>
+              <button class="topbar-nav-item" type="button" data-nav-view="decision"><span data-i18n="nav.decision">决议</span></button>
             </div>
           </details>
         </nav>
@@ -79,6 +82,9 @@
           <option value="law" data-i18n="nav.law">法律</option>
           <option value="technology" data-i18n="nav.technology">科技</option>
           <option value="achievement" data-i18n="nav.achievement">成就</option>
+          <option value="event" data-i18n="nav.event">事件</option>
+          <option value="journal" data-i18n="nav.journal">日志</option>
+          <option value="decision" data-i18n="nav.decision">决议</option>
           <option value="building" data-i18n="nav.building">建筑</option>
           <option value="goods" data-i18n="nav.goods">商品</option>
         </select>
@@ -268,6 +274,49 @@
         </details>
       </aside>
 
+      <aside id="journalFilters" class="event-filters content-filters" aria-label="日志筛选" data-i18n-aria-label="board.journal.filterTitle" hidden>
+        <div class="event-filter-head"><strong data-i18n="board.journal.filterTitle">日志</strong><button id="journalResetButton" type="button" data-i18n="board.journal.reset">重置</button></div>
+        <label class="search event-search"><span data-i18n="board.journal.searchLabel">搜索日志</span><input id="journalSearchInput" type="search" autocomplete="off" data-i18n-placeholder="board.journal.searchPlaceholder"></label>
+        <details class="event-filter-section" open><summary data-i18n="board.content.sources">来源</summary><div id="journalSourceFilters" class="option-list"></div></details>
+        <details class="event-filter-section" open><summary data-i18n="board.vcChange.title">VC变更</summary><div id="journalChangeFilters" class="option-list"></div></details>
+        <details class="event-filter-section event-group-navigation" open><summary data-i18n="board.journal.groups">日志组</summary><nav id="journalGroupNav" class="event-group-nav" aria-label="日志组导航" data-i18n-aria-label="board.journal.groupNavigation"></nav></details>
+      </aside>
+
+      <aside id="decisionFilters" class="event-filters content-filters" aria-label="决议筛选" data-i18n-aria-label="board.decision.filterTitle" hidden>
+        <div class="event-filter-head"><strong data-i18n="board.decision.filterTitle">决议</strong><button id="decisionResetButton" type="button" data-i18n="board.decision.reset">重置</button></div>
+        <label class="search event-search"><span data-i18n="board.decision.searchLabel">搜索决议</span><input id="decisionSearchInput" type="search" autocomplete="off" data-i18n-placeholder="board.decision.searchPlaceholder"></label>
+        <details class="event-filter-section" open><summary data-i18n="board.content.sources">来源</summary><div id="decisionSourceFilters" class="option-list"></div></details>
+        <details class="event-filter-section event-group-navigation" open><summary data-i18n="board.decision.groups">决议组</summary><nav id="decisionGroupNav" class="event-group-nav" aria-label="决议组导航" data-i18n-aria-label="board.decision.groupNavigation"></nav></details>
+      </aside>
+
+      <aside id="eventFilters" class="event-filters" aria-label="事件筛选" data-i18n-aria-label="board.event.filterTitle">
+        <div class="event-filter-head">
+          <strong data-i18n="board.event.filterTitle">事件</strong>
+          <button id="eventResetButton" type="button" data-i18n="board.event.reset">重置</button>
+        </div>
+        <label class="search event-search">
+          <span data-i18n="board.event.searchLabel">搜索事件</span>
+          <input id="eventSearchInput" type="search" autocomplete="off" placeholder="标题、说明、事件 ID 或脚本" data-i18n-placeholder="board.event.searchPlaceholder">
+        </label>
+        <p id="eventCoverage" class="event-filter-meta" data-i18n="board.event.coverage">原版游戏事件 {count} 条；测试和调试定义保留在审计数据中。</p>
+        <details class="event-filter-section" open>
+          <summary data-i18n="board.event.types">事件类型</summary>
+          <div id="eventTypeFilters" class="option-list scroll-list"></div>
+        </details>
+        <details class="event-filter-section" open>
+          <summary data-i18n="board.event.flavorKinds">事件性质</summary>
+          <div id="eventFlavorFilters" class="option-list"></div>
+        </details>
+        <details class="event-filter-section" open>
+          <summary data-i18n="board.event.tags">事件标签</summary>
+          <div id="eventTagFilters" class="option-list"></div>
+        </details>
+        <details class="event-filter-section event-group-navigation" open>
+          <summary data-i18n="board.event.groups">事件组</summary>
+          <nav id="eventGroupNav" class="event-group-nav" aria-label="事件组导航" data-i18n-aria-label="board.event.groupNavigation"></nav>
+        </details>
+      </aside>
+
       <section class="home-left-column">
       <section id="homeWelcome" class="home-welcome" hidden aria-label="Vicdata 资料库说明" data-i18n-aria-label="home.databaseIntro">
         <p class="home-kicker">VICTORIA 3 · DATA REFERENCE</p>
@@ -323,8 +372,15 @@
           </div>
           <label class="global-search-field">
             <span data-i18n="search.allRecords">搜索全部资料</span>
-            <input id="globalSearchDialogInput" type="search" autocomplete="off" placeholder="国家、地区、文化、公司、意识形态" data-i18n-placeholder="search.placeholder">
+            <input id="globalSearchDialogInput" type="search" autocomplete="off" placeholder="国家、地区、文化、日志、事件或决议" data-i18n-placeholder="search.placeholder">
           </label>
+          <div class="global-search-options">
+            <label class="global-search-detailed-toggle">
+              <input id="globalSearchDetailedToggle" type="checkbox">
+              <span data-i18n="search.detailed">详细搜索</span>
+            </label>
+            <span class="global-search-option-description" data-i18n="search.detailedDescription">同时搜索说明、选项、来源路径和原始脚本</span>
+          </div>
           <label class="global-search-legacy-toggle">
             <input id="globalSearchLegacyToggle" type="checkbox">
             <span data-i18n="search.includeLegacy">包含旧版本</span>
@@ -348,20 +404,26 @@
     <script src="news-data.js?v=20260718-news3"></script>
     <script src="assets/flags/country-flags.js?v=20260712-all-flags2"></script>
     <script src="assets/victorian-century-flags.js?v=20260729-country-flags1"></script>
-    <script src="locales/manifest.js?v=20260804-vc-english-economy1"></script>
-    <script src="app/runtime.js?v=20260810-interest-group-tooltip-layout1"></script>
-    <script src="app/i18n.js?v=20260810-global-search-interest-group-flavors1"></script>
-    <script src="app/data.js?v=20260809-global-search-media1"></script>
-    <script src="app/ui.js?v=20260810-interest-group-tooltip-layout1"></script>
+    <script src="locales/manifest.js?v=20260816-global-content-search1"></script>
+    <script src="app/runtime.js?v=20260816-global-content-search1"></script>
+    <script src="app/i18n.js?v=20260811-goods-needs2"></script>
+    <script src="app/data.js?v=20260811-goods-needs2"></script>
+    <script src="app/ui.js?v=20260816-global-content-search1"></script>
     <script src="app/company-location-rules.js?v=20260718-company-location2"></script>
-    <script src="app/boards.js?v=20260810-interest-group-tooltip-layout1"></script>
+    <script src="app/boards.js?v=20260816-global-search-aliases1"></script>
     <script src="app/filters.js?v=20260806-subsistence-polish1"></script>
-    <script src="app/presentation.js?v=20260810-global-search-localized-labels1"></script>
+    <script src="app/presentation.js?v=20260816-global-search-aliases1"></script>
     <script src="app/map.js?v=20260806-subsistence-polish1"></script>
     <script src="app/tag-tooltip-definitions.js?v=20260804-vc-english-economy1"></script>
     <script src="app/components.js?v=20260809-global-search-media1"></script>
     <script src="app/achievements.js?v=20260809-achievement-english-name1"></script>
-    <script src="app/economy.js?v=20260806-production-goods-flow1"></script>
+    <script src="app/content-dynamic-text.js?v=20260816-readable-content1"></script>
+    <script src="app/content-country-links.js?v=20260816-country-content1"></script>
+    <script src="app/events.js?v=20260816-country-content1"></script>
+    <script src="app/journals.js?v=20260816-country-content1"></script>
+    <script src="app/decisions.js?v=20260816-country-content1"></script>
+    <script src="app/needs.js?v=20260811-goods-needs2"></script>
+    <script src="app/economy.js?v=20260811-goods-needs2"></script>
     <script src="app/bootstrap.js?v=20260804-vc-english-economy1"></script>
   </body>
 </html>

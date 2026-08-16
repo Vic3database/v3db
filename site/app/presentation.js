@@ -721,6 +721,7 @@ function lawProgressivenessLabel(value) {
 
 function globalSearchDisplayTitle(result, needle) {
   const title = result.title || result.key || "";
+  if (result.matchedAlias) return result.matchedAlias;
   if (localeRuntime.current === "zh-Hans") return title;
   const aliases = result.aliases || [];
   if (result.kind === "interestGroupFlavor" && aliases.length) return `${title}（${aliases.join("/")}）`;
@@ -990,6 +991,8 @@ function renderCountryDetail(country) {
       ${field(t("board.country.religion", "宗教"), linkedTerms([country.religion], [entityText(country.religion)], "religion") + sourceSuffix(country.religionSource))}
       ${field(t("board.country.capital", "首都"), stateRegionLinks(country.capital ? [byStateRegion.get(country.capital) || { key: country.capital, id: `state_region:${country.capital}` }] : []))}
     </dl>
+
+    ${countryFlavorContentHtml(country.tag)}
 
     ${collapsibleDetailSection(t("board.country.interestGroupFlavor", "利益集团风味"), interestGroupFlavorList(country.interestGroups), t("board.country.groupCount", "{count} 组", { count: (country.interestGroups || []).length }))}
 

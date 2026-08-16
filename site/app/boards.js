@@ -132,7 +132,11 @@ function renderHomeBoard() {
     { category: "economy", label: "nav.goods", view: "goods", icon: "assets/home/grand_strategy_games_prestige.png" },
     { category: "technology", label: "nav.technology", view: "technology", icon: "assets/home/academia.png" },
     { category: "game", label: "nav.achievement", view: "achievement", icon: "assets/home/icon_achievements_enabled.png" },
+    { category: "game", label: "nav.event", view: "event", icon: "assets/home/event_portrait.png" },
+    { category: "game", label: "nav.journal", view: "journal", icon: "assets/home/event_portrait.png" },
+    { category: "game", label: "nav.decision", view: "decision", icon: "assets/home/event_default.png" },
   ];
+  const availableEntries = entries;
   const categories = [
     { key: "domestic", label: "nav.domestic" },
     { key: "society", label: "nav.society" },
@@ -143,7 +147,7 @@ function renderHomeBoard() {
   els.countryList.innerHTML = `
     <div class="home-category-list">
       ${categories.map((category) => {
-        const categoryEntries = entries.filter((entry) => entry.category === category.key);
+    const categoryEntries = availableEntries.filter((entry) => entry.category === category.key);
         return `
           <section class="home-category-card" data-category="${escapeHtml(category.key)}" aria-label="${escapeHtml(t(category.label))}">
             <div class="home-category-heading"><h2>${escapeHtml(t(category.label))}</h2></div>
@@ -2088,6 +2092,7 @@ function renderGlobalSearchDialogResults() {
               <span class="name">${escapeHtml(result.displayTitle || result.title)}</span>
             </span>
             ${(result.subtitle || result.searchHint) ? `<span class="minor country-meta">${escapeHtml(result.subtitle || result.searchHint || "")}</span>` : ""}
+            ${result.matchExcerpt ? `<span class="minor global-search-match-excerpt">${escapeHtml(result.matchExcerpt)}</span>` : ""}
           </span>
         </button>
       `;
@@ -2140,6 +2145,9 @@ async function navigateGlobalSearchResult(kind, key) {
   else if (kind === "achievement") replaceHash(`/achievement/${encodeURIComponent(key)}`);
   else if (kind === "building") replaceHash(`/building/${encodeURIComponent(key)}`);
   else if (kind === "goods") replaceHash(`/goods/${encodeURIComponent(key)}`);
+  else if (kind === "journal") replaceHash(`/journal/${encodeURIComponent(key)}`);
+  else if (kind === "event") replaceHash(`/event/${encodeURIComponent(key)}`);
+  else if (kind === "decision") replaceHash(`/decision/${encodeURIComponent(key)}`);
   else if (kind === "prestigeGood") {
     const good = prestigeGoodByKey.get(key);
     if (!good?.base_good_key) return;
@@ -2196,22 +2204,46 @@ function globalSearchResults(query) {
   if (!needle) return [];
   const results = (window.VIC3_SEARCH_INDEX?.entries || []).flatMap((entry) => {
     const names = Object.values(entry.names || {}).filter(Boolean);
+    const localizedAliases = entry.aliases?.[localeRuntime.current] || [];
+    const otherAliases = Object.entries(entry.aliases || {})
+      .filter(([locale]) => locale !== localeRuntime.current)
+      .flatMap(([, values]) => values || []);
+    const internalAliases = entry.internalAliases || [];
+    const groupNames = Object.values(entry.groupNames || {}).filter(Boolean);
     const countryNames = entry.kind === "interestGroupFlavor"
       ? (entry.countryTags || []).map((tag) => entityText(byTag.get(tag) || { tag }))
       : [];
-    const haystack = normalizeSearchText([entry.key, entry.interestGroupKey, ...(entry.countryTags || []), ...countryNames, ...names].join(" "));
-    if (!haystack.includes(needle)) return [];
+    const haystack = normalizeSearchText([entry.key, entry.groupKey, entry.interestGroupKey, ...(entry.countryTags || []), ...countryNames, ...names, ...localizedAliases, ...otherAliases, ...internalAliases, ...groupNames].join(" "));
+    const defaultMatch = haystack.includes(needle);
+    const detail = state.globalSearchDetailed ? ensureGlobalSearchDetailCache().get(entry.id) : null;
+    const detailedMatch = Boolean(detail?.text.includes(needle));
+    if (!defaultMatch && !detailedMatch) return [];
     const title = entry.names?.[localeRuntime.current] || entry.names?.en || entry.key;
     const aliases = [...new Set(names.filter((name) => name !== title))];
+    const matchedAlias = localizedAliases.find((alias) => normalizeSearchText(alias).includes(needle)) || "";
     const normalizedTitle = normalizeSearchText(title);
     const normalizedKey = normalizeSearchText(entry.key);
-    const score = normalizedTitle === needle
-      ? 0
-      : normalizedKey === needle
-        ? 1
-        : normalizedTitle.startsWith(needle)
-          ? 2
-          : haystack.indexOf(needle) + 10;
+    const normalizedCurrentAliases = localizedAliases.map((value) => normalizeSearchText(value));
+    const normalizedOtherAliases = otherAliases.map((value) => normalizeSearchText(value));
+    const normalizedInternalAliases = internalAliases.map((value) => normalizeSearchText(value));
+    const score = !defaultMatch
+      ? 1000 + detail.text.indexOf(needle)
+      : normalizedTitle === needle
+        ? 0
+        : normalizedCurrentAliases.includes(needle)
+          ? 1
+          : normalizedKey === needle
+            ? 2
+            : normalizedTitle.startsWith(needle)
+              ? 3
+              : normalizedCurrentAliases.some((value) => value.startsWith(needle))
+                ? 4
+                : [...normalizedOtherAliases, ...Object.values(entry.names || {}).map((value) => normalizeSearchText(value))]
+                    .some((value) => value === needle || value.startsWith(needle))
+                  ? 5
+                  : normalizedInternalAliases.some((value) => value === needle || value.startsWith(needle))
+                    ? 6
+                    : haystack.indexOf(needle) + 20;
     const kind = searchResultKind(entry.kind);
     const result = {
       ...entry,
@@ -2219,14 +2251,16 @@ function globalSearchResults(query) {
       typeLabel: t(`entity.${kind}`),
       title,
       aliases,
+      matchedAlias,
       raw: searchResultEntity(kind, entry.key, entry),
-      subtitle: kind === "interestGroupFlavor" ? entityText(byInterestGroup.get(entry.interestGroupKey)) : "",
+      subtitle: matchedAlias ? title : globalSearchResultSubtitle(kind, entry),
+      matchExcerpt: !defaultMatch && detailedMatch ? globalSearchMatchExcerpt(detail, needle) : "",
       countryTags: entry.countryTags || [],
       score,
     };
     return [{ ...result, displayTitle: globalSearchDisplayTitle(result, needle) }];
   });
-  const order = new Map(["country", "culture", "stateRegion", "geographicRegion", "cultureTrait", "cultureTraitGroup", "strategicRegion", "company", "ideology", "law", "technology", "achievement", "interestGroup", "interestGroupTrait", "interestGroupFlavor"].map((kind, index) => [kind, index]));
+  const order = new Map(["country", "culture", "stateRegion", "geographicRegion", "cultureTrait", "cultureTraitGroup", "strategicRegion", "company", "ideology", "law", "technology", "achievement", "journal", "event", "decision", "interestGroup", "interestGroupTrait", "interestGroupFlavor"].map((kind, index) => [kind, index]));
   return results
     .sort((a, b) => a.score - b.score || orderValue(order, a.kind) - orderValue(order, b.kind) || localizedCompare(a.title, b.title))
     .slice(0, 120);
@@ -2234,6 +2268,48 @@ function globalSearchResults(query) {
 
 function searchResultKind(kind) {
   return kind === "region" ? "stateRegion" : kind;
+}
+
+function globalSearchResultSubtitle(kind, entry) {
+  if (kind === "interestGroupFlavor") return entityText(byInterestGroup.get(entry.interestGroupKey));
+  if (!["journal", "event", "decision"].includes(kind)) return "";
+  const groupName = entry.groupNames?.[localeRuntime.current] || entry.groupNames?.en || entry.groupKey || "";
+  return [entry.key, groupName].filter(Boolean).join(" · ");
+}
+
+function ensureGlobalSearchDetailCache() {
+  if (globalSearchDetailCache) return globalSearchDetailCache;
+  globalSearchDetailCache = new Map();
+  for (const row of journalEntries) addGlobalSearchDetail("journal", journalId(row), [
+    row.locales?.zhHans?.reason, row.locales?.en?.reason, row.is_shown_when_inactive_raw,
+    row.possible_raw, row.complete_raw, row.fail_raw, row.invalid_raw, row.on_complete_raw,
+    row.on_fail_raw, row.on_timeout_raw, row.source_file, ...(row.source_files || []).map((item) => item.file), row.raw,
+  ]);
+  for (const row of contentEvents) addGlobalSearchDetail("event", row.id || row.script_key, [
+    row.locales?.zhHans?.desc, row.locales?.en?.desc, row.locales?.zhHans?.flavor, row.locales?.en?.flavor,
+    ...Object.values(row.locales?.zhHans?.options || {}), ...Object.values(row.locales?.en?.options || {}),
+    ...(row.options || []).map((option) => option.raw), row.trigger_raw, row.immediate_raw, row.source_file,
+    ...(row.source_files || []).map((item) => item.file), row.raw,
+  ]);
+  for (const row of decisions) addGlobalSearchDetail("decision", decisionId(row), [
+    row.locales?.zhHans?.desc, row.locales?.en?.desc, row.is_shown_raw, row.possible_raw,
+    row.when_taken_raw, row.ai_chance_raw, row.source_file, ...(row.source_files || []).map((item) => item.file), row.raw,
+  ]);
+  return globalSearchDetailCache;
+}
+
+function addGlobalSearchDetail(kind, key, values) {
+  const segments = values.filter(Boolean).map((value) => String(value).replace(/\s+/g, " ").trim()).filter(Boolean);
+  globalSearchDetailCache.set(`${kind}:${key}`, { segments, text: normalizeSearchText(segments.join(" ")) });
+}
+
+function globalSearchMatchExcerpt(detail, needle) {
+  const segment = detail?.segments?.find((value) => normalizeSearchText(value).includes(needle)) || "";
+  if (!segment) return "";
+  const index = normalizeSearchText(segment).indexOf(needle);
+  const start = Math.max(0, index - 48);
+  const end = Math.min(segment.length, index + needle.length + 72);
+  return `${start ? "…" : ""}${segment.slice(start, end)}${end < segment.length ? "…" : ""}`;
 }
 
 function searchResultEntity(kind, key, entry = null) {
@@ -2250,6 +2326,9 @@ function searchResultEntity(kind, key, entry = null) {
   if (kind === "building") return buildingRecordByKey.get(key);
   if (kind === "goods") return goodByKey.get(key);
   if (kind === "prestigeGood") return prestigeGoodByKey.get(key);
+  if (kind === "journal") return journalEntries.find((row) => journalId(row) === key);
+  if (kind === "event") return eventByKey.get(key);
+  if (kind === "decision") return decisions.find((row) => decisionId(row) === key);
   if (kind === "productionMethodGroup") return productionMethodGroupByKey.get(key);
   if (kind === "productionMethod") return productionMethodByKey.get(key);
   if (kind === "cultureTrait") return cultureTraitByKey.get(key);
@@ -2265,7 +2344,7 @@ function globalSearchResultBadge(result) {
 }
 
 function globalSearchResultIdentifier(result) {
-  return result.kind === "country" ? result.key : "";
+  return result.kind === "country" || ["journal", "event", "decision"].includes(result.kind) ? result.key : "";
 }
 
 function globalSearchEconomyBuildingKey(kind, key) {
