@@ -35,7 +35,7 @@ for (const relative of outputs) {
   const qing = search.entries.find((entry) => entry.kind === "country" && entry.key === "CHI");
   assert.ok(qing?.aliases?.["zh-Hans"]?.includes("大清"), `${relative} content update must preserve country aliases`);
   const barracks = search.entries.find((entry) => entry.kind === "building" && entry.key === "building_barrack");
-  assert.deepEqual(barracks?.internalAliases, ["building_barracks"], `${relative} content update must preserve building compatibility aliases`);
+  assert.deepEqual(Array.from(barracks?.internalAliases || []), ["building_barracks"], `${relative} content update must preserve building compatibility aliases`);
 
   for (const sample of expectedSamples) {
     const entry = search.entries.find((candidate) => candidate.kind === sample.kind && candidate.key === sample.key);

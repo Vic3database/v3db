@@ -23,7 +23,7 @@ for (const relative of outputs) {
   assert.ok(entry("country", "CHI").aliases?.en?.includes("Dai Ching"));
   assert.ok(entry("region", "STATE_ALSACE_LORRAINE").aliases?.["zh-Hans"]?.includes("埃尔萨斯‑洛林根"));
   assert.ok(entry("company", "company_basic_agriculture_1").aliases?.["zh-Hans"]?.includes("财团"));
-  assert.deepEqual(entry("building", "building_barrack").internalAliases, ["building_barracks"]);
+  assert.deepEqual(Array.from(entry("building", "building_barrack").internalAliases || []), ["building_barracks"]);
   assert.equal(new Set(search.entries.map((item) => item.id)).size, search.entries.length);
 
   reports.push({
