@@ -52,6 +52,10 @@ function renderBuildingBoard() {
 }
 
 function renderGoodsBoard() {
+  if (state.goodsPanel === "needs") {
+    renderNeedsBoard();
+    return;
+  }
   const query = state.economySearch;
   const grouped = new Map();
   for (const good of goods.filter((item) => matchesVictorianCenturyChange(item) && economyMatches(item, query))) {
@@ -68,12 +72,15 @@ function renderGoodsBoard() {
     items: goods,
     groups,
     card: (good) => goodCardHtml(good),
+    prefix: goodsPanelSwitchHtml("list"),
   });
+  bindGoodsPanelSwitch();
   renderGoodsDetail(goodByKey.get(state.selectedGood) || null);
 }
 
-function renderEconomyShell({ kind, label, count, items, groups, card }) {
+function renderEconomyShell({ kind, label, count, items, groups, card, prefix = "" }) {
   els.countryList.innerHTML = `<section class="economy-shell" aria-label="${escapeHtml(t("board.economy.overview", { label }))}">
+    ${prefix}
     <header class="economy-toolbar">
       <form class="economy-search" data-economy-search-form>
         <label for="economySearchInput">${escapeHtml(t("board.economy.searchLabel", { label }))}</label>

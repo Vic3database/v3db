@@ -25,12 +25,14 @@ let lawGroups = [];
 let technologies = [];
 let technologyEras = [];
 let achievements = [];
+let events = [];
 let buildings = [];
 let buildingGroups = [];
 let productionMethodGroups = [];
 let productionMethods = [];
 let goods = [];
 let prestigeGoods = [];
+let needsData = null;
 let mapData = null;
 let siteTitle = "Vicdata";
 
@@ -47,6 +49,7 @@ let lawByKey = new Map();
 let lawGroupByKey = new Map();
 let technologyByKey = new Map();
 let achievementByKey = new Map();
+let eventByKey = new Map();
 let buildingRecordByKey = new Map();
 let buildingGroupByKey = new Map();
 let productionMethodGroupByKey = new Map();
@@ -195,9 +198,17 @@ const state = {
   selectedLaw: "",
   selectedTechnology: "",
   selectedAchievement: "",
+  selectedEvent: "",
+  eventTypes: new Set(),
+  eventFlavorKinds: new Set(),
+  eventTags: new Set(),
   selectedBuilding: "",
   selectedGood: "",
   economySearch: "",
+  goodsPanel: "list",
+  needsTable: "substitutes",
+  needsCompareBaseline: false,
+  needsLoadError: "",
   selectedProductionMethods: new Map(),
   openProductionMethodGroup: "",
   achievementSearch: "",
@@ -586,6 +597,7 @@ const viewLabels = {
   law: "nav.law",
   technology: "nav.technology",
   achievement: "nav.achievement",
+  event: "nav.event",
   building: "nav.building",
   goods: "nav.goods",
   changelog: "nav.changelog",
@@ -775,6 +787,13 @@ const els = {
   ideologyOccurrenceFilters: document.querySelector("#ideologyOccurrenceFilters"),
   ideologyLawGroupFilters: document.querySelector("#ideologyLawGroupFilters"),
   lawGroupFilters: document.querySelector("#lawGroupFilters"),
+  eventTypeFilters: document.querySelector("#eventTypeFilters"),
+  eventFlavorFilters: document.querySelector("#eventFlavorFilters"),
+  eventTagFilters: document.querySelector("#eventTagFilters"),
+  eventFilters: document.querySelector("#eventFilters"),
+  eventSearchInput: document.querySelector("#eventSearchInput"),
+  eventResetButton: document.querySelector("#eventResetButton"),
+  eventGroupNav: document.querySelector("#eventGroupNav"),
   commonLawIdeologyFilter: document.querySelector("#commonLawIdeologyFilter"),
   victorianCenturyChangeFilterSection: document.querySelector("#victorianCenturyChangeFilterSection"),
   victorianCenturyAddedFilter: document.querySelector("#victorianCenturyAddedFilter"),

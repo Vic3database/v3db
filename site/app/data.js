@@ -90,21 +90,35 @@ function dataChunksForView(view) {
   if (view === "law") return ["law", "ideology", "country"];
   if (view === "technology") return ["technology"];
   if (view === "achievement") return ["achievement"];
+  if (view === "event") return ["event"];
   if (view === "building") return ["building", "goods"];
   if (view === "goods") return ["goods"];
   return [];
 }
 
-async function ensureDataChunksForRoute() {
+function dataChunksForCurrentRoute() {
   const chunkKeys = dataChunksForView(routeView());
   const parts = location.hash.replace(/^#\/?/, "").split("/").filter(Boolean);
   if (parts[0] === "region" && parts[1] === "resource") chunkKeys.push("building");
-  return ensureDataChunks(chunkKeys);
+  if (parts[0] === "goods" && parts[1] === "needs") chunkKeys.push("needs");
+  return [...new Set(chunkKeys)];
+}
+
+async function ensureDataChunksForRoute() {
+  const chunkKeys = dataChunksForCurrentRoute();
+  const needsRoute = chunkKeys.includes("needs");
+  try {
+    await ensureDataChunks(chunkKeys);
+    if (needsRoute) state.needsLoadError = "";
+  } catch (error) {
+    if (!needsRoute) throw error;
+    state.needsLoadError = error instanceof Error ? error.message : String(error);
+  }
 }
 
 function routeView() {
   const segment = location.hash.replace(/^#\/?/, "").split("/")[0];
-  if (["country", "culture", "region", "company", "ideology", "interest-group", "law", "technology", "achievement", "building", "goods"].includes(segment)) return segment;
+  if (["country", "culture", "region", "company", "ideology", "interest-group", "law", "technology", "achievement", "event", "building", "goods"].includes(segment)) return segment;
   if (["news", "changelog"].includes(segment)) return segment;
   if (["state-region", "strategic-region", "geographic-region"].includes(segment)) return "region";
   return "home";
@@ -221,12 +235,14 @@ function applyLoadedDataset(nextData, nextMapData, options = {}) {
   technologies = data.technologies || [];
   technologyEras = data.technologyEras || [];
   achievements = data.achievements || [];
+  events = data.events || [];
   buildings = data.buildings || [];
   buildingGroups = data.buildingGroups || [];
   productionMethodGroups = data.productionMethodGroups || [];
   productionMethods = data.productionMethods || [];
   goods = data.goods || [];
   prestigeGoods = data.prestigeGoods || [];
+  needsData = data.needsData || null;
   mapData = nextMapData || null;
   siteTitle = versionConfig?.site_title || data.meta?.site_title || data.meta?.dataset_name || "Vicdata";
 
@@ -243,6 +259,7 @@ function applyLoadedDataset(nextData, nextMapData, options = {}) {
   lawGroupByKey = new Map(lawGroups.map((group) => [group.key, group]));
   technologyByKey = new Map(technologies.map((technology) => [technology.key, technology]));
   achievementByKey = new Map(achievements.map((achievement) => [achievement.key, achievement]));
+  eventByKey = new Map(events.map((event) => [event.key, event]));
   buildingRecordByKey = new Map(buildings.map((building) => [building.key, building]));
   buildingGroupByKey = new Map(buildingGroups.map((group) => [group.key, group]));
   productionMethodGroupByKey = new Map(productionMethodGroups.map((group) => [group.key, group]));
@@ -347,6 +364,9 @@ function resetDatasetState() {
   state.ideologyOccurrences.clear();
   state.ideologyLawGroups.clear();
   state.lawGroups.clear();
+  state.eventTypes.clear();
+  state.eventFlavorKinds.clear();
+  state.eventTags.clear();
   state.victorianCenturyOnly = false;
   state.dimUnfilteredCountries = false;
   state.regionMapView = "default";
@@ -365,9 +385,14 @@ function resetDatasetState() {
   state.selectedCompany = "";
   state.selectedIdeology = "";
   state.selectedLaw = "";
+  state.selectedEvent = "";
   state.selectedBuilding = "";
   state.selectedGood = "";
   state.economySearch = "";
+  state.goodsPanel = "list";
+  state.needsTable = "substitutes";
+  state.needsCompareBaseline = false;
+  state.needsLoadError = "";
   state.selectedProductionMethods.clear();
   state.openProductionMethodGroup = "";
   state.selectedGlobalResult = "";

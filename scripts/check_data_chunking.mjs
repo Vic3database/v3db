@@ -27,8 +27,10 @@ const expectedChunks = {
   law: ["laws", "lawGroups"],
   technology: ["technologies", "technologyEras"],
   achievement: ["achievements"],
+  event: ["events", "eventGroups"],
   building: ["buildings", "buildingGroups", "productionMethodGroups", "productionMethods"],
   goods: ["goods", "prestigeGoods"],
+  needs: ["needsData"],
 };
 
 for (const [key, keys] of Object.entries(expectedChunks)) {

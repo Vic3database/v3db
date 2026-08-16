@@ -145,7 +145,7 @@ async function activateInitialLocaleAfterDataIndex() {
   const locale = supportedLocaleIds.has(localeRuntime.requested) ? localeRuntime.requested : "zh-Hans";
   const messages = await loadUiLocale(locale);
   const nextDataMessages = { ...(localeRuntime.dataMessages[locale] || {}) };
-  const nextCacheKeys = await ensureLocaleChunks(dataChunksForView(routeView()), locale, nextDataMessages);
+  const nextCacheKeys = await ensureLocaleChunks(dataChunksForCurrentRoute(), locale, nextDataMessages);
   localeRuntime.current = locale;
   localeRuntime.messages = messages;
   localeRuntime.dataMessages[locale] = nextDataMessages;
@@ -172,7 +172,7 @@ async function switchLocale(locale) {
   try {
     const messages = await loadUiLocale(locale);
     const nextDataMessages = { ...(localeRuntime.dataMessages[locale] || {}) };
-    const nextCacheKeys = await ensureLocaleChunks(dataChunksForView(routeView()), locale, nextDataMessages);
+    const nextCacheKeys = await ensureLocaleChunks(dataChunksForCurrentRoute(), locale, nextDataMessages);
     if (requestId !== localeRuntime.requestId) return;
     previousViewState = captureLocaleViewState();
     localeRuntime.current = locale;

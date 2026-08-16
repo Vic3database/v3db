@@ -13,6 +13,8 @@ export const appSections = [
   "app/map.js",
   "app/components.js",
   "app/achievements.js",
+  "app/events.js",
+  "app/needs.js",
   "app/economy.js",
   "app/bootstrap.js",
 ];
@@ -27,7 +29,9 @@ export const styleSections = [
   "styles/dialogs.css",
   "styles/technology.css",
   "styles/achievements.css",
+  "styles/events.css",
   "styles/economy.css",
+  "styles/needs.css",
 ];
 
 export function readSiteAppSource(root) {

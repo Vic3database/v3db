@@ -25,6 +25,9 @@ site/versions/*
 !site/versions/1.13.9/map-data.js
 !site/versions/1.13.9/data-buildings.js
 !site/versions/1.13.9/data-goods.js
+!site/versions/1.13.9/data-events.js
+!site/versions/1.13.9/locale-events.zh-Hans.js
+!site/versions/1.13.9/locale-events.en.js
 
 # Game-derived site assets
 site/assets/buildings/

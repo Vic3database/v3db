@@ -9,8 +9,8 @@ const buildScript = read("scripts/build_wiki.mjs");
 const appSource = readSiteAppSource(root);
 const styleSource = readSiteStyleSource(root);
 
-assert.match(indexHtml, /app\/economy\.js\?v=20260806-production-goods-flow1/, "economy script must use the production-goods flow cache version");
-assert.match(indexHtml, /styles\.css\?v=20260810-topbar-cache1/, "site styles must invalidate the current topbar stylesheet dependencies");
+assert.match(indexHtml, /app\/economy\.js\?v=20260811-goods-needs2/, "economy script must invalidate the goods-needs entry cache");
+assert.match(indexHtml, /styles\.css\?v=20260811-goods-needs2/, "site styles must invalidate the goods-needs stylesheet dependencies");
 
 for (const view of ["building", "goods"]) {
   assert(indexHtml.includes(`data-nav-view="${view}"`), `top navigation must include ${view}`);

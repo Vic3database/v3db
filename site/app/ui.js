@@ -188,6 +188,18 @@ function bindEvents() {
     state.globalSearchColorRestoreTag = "";
     render();
   });
+  els.eventSearchInput?.addEventListener("input", () => {
+    state.search = els.eventSearchInput.value.trim().toLowerCase();
+    render();
+  });
+  els.eventResetButton?.addEventListener("click", () => {
+    state.search = "";
+    state.eventTypes.clear();
+    state.eventFlavorKinds.clear();
+    state.eventTags.clear();
+    if (els.eventSearchInput) els.eventSearchInput.value = "";
+    render();
+  });
   els.mobileCountryToolbar?.addEventListener("input", (event) => {
     const input = event.target.closest("[data-mobile-country-search]");
     if (!input) return;
@@ -1316,6 +1328,10 @@ async function applyHash() {
     state.selectedInterestGroupFlavor = "";
     return;
   }
+  if (parts[0] === "event" && !eventBoardAvailable()) {
+    changeBoard("home", "home");
+    return;
+  }
   if (parts[0] === "interest-group" && parts[1] && parts[2] === "flavor" && parts[3] && byInterestGroup.has(decodeURIComponent(parts[1]))) {
     changeBoard("interest-group", "interestGroup");
     const group = byInterestGroup.get(decodeURIComponent(parts[1]));
@@ -1372,13 +1388,33 @@ async function applyHash() {
     state.selectedBuilding = decodeURIComponent(parts[1]);
     return;
   }
+  if (parts[0] === "event" && eventBoardAvailable() && !parts[1]) {
+    changeBoard("event", "event");
+    state.selectedEvent = "";
+    return;
+  }
+  if (parts[0] === "event" && parts[1] && eventByKey.has(decodeURIComponent(parts[1]))) {
+    changeBoard("event", "event");
+    state.selectedEvent = decodeURIComponent(parts[1]);
+    return;
+  }
+  if (parts[0] === "goods" && parts[1] === "needs") {
+    changeBoard("goods", "goods");
+    state.goodsPanel = "needs";
+    state.needsTable = parts[2] === "wealth" ? "wealth" : "substitutes";
+    state.selectedGood = "";
+    if (!['substitutes', 'wealth'].includes(parts[2])) replaceHash("/goods/needs/substitutes");
+    return;
+  }
   if (parts[0] === "goods" && economyBoardAvailable("goods") && !parts[1]) {
     changeBoard("goods", "goods");
+    state.goodsPanel = "list";
     state.selectedGood = "";
     return;
   }
   if (parts[0] === "goods" && parts[1] && goodByKey.has(decodeURIComponent(parts[1]))) {
     changeBoard("goods", "goods");
+    state.goodsPanel = "list";
     state.selectedGood = decodeURIComponent(parts[1]);
     return;
   }
@@ -1436,10 +1472,13 @@ function updatePageChrome() {
   setOptionalText(els.pageTitle, title);
   document.title = title;
   const achievementAvailable = achievementBoardAvailable();
+  const eventAvailable = eventBoardAvailable();
   const buildingAvailable = economyBoardAvailable("building");
   const goodsAvailable = economyBoardAvailable("goods");
   document.querySelectorAll('[data-nav-view="achievement"]').forEach((button) => { button.hidden = !achievementAvailable; });
   document.querySelector('#viewSelect option[value="achievement"]')?.toggleAttribute("hidden", !achievementAvailable);
+  document.querySelectorAll('[data-nav-view="event"]').forEach((button) => { button.hidden = !eventAvailable; });
+  document.querySelector('#viewSelect option[value="event"]')?.toggleAttribute("hidden", !eventAvailable);
   document.querySelectorAll('[data-nav-view="building"]').forEach((button) => { button.hidden = !buildingAvailable; });
   document.querySelectorAll('[data-nav-view="goods"]').forEach((button) => { button.hidden = !goodsAvailable; });
   document.querySelector('#viewSelect option[value="building"]')?.toggleAttribute("hidden", !buildingAvailable);
@@ -1519,6 +1558,8 @@ function render() {
       : t("filter.strategicRegions");
   els.resourceFilterTitle.textContent = state.view === "company" ? t("filter.relatedBuildings") : t("filter.resources");
   els.searchInput.placeholder = searchPlaceholder();
+  if (els.eventSearchInput && state.view === "event" && els.eventSearchInput.value !== state.search) els.eventSearchInput.value = state.search;
+  if (els.eventFilters) els.eventFilters.hidden = state.view !== "event";
   renderSortOptions();
   renderStrategicRegionFilterOptions();
   renderGeographicRegionFilterOptions();
@@ -1527,6 +1568,7 @@ function render() {
   renderCompanyFilterOptions();
   renderIdeologyFilterOptions();
   renderLawFilterOptions();
+  renderEventFilterOptions();
   syncVictorianCenturyChangeFilter();
   syncFilterSectionOpenStates();
   renderMapControls();
@@ -1553,6 +1595,8 @@ function render() {
     renderTechnologyBoard();
   } else if (state.view === "achievement") {
     renderAchievementBoard();
+  } else if (state.view === "event") {
+    renderEventBoard();
   } else if (state.view === "building") {
     renderBuildingBoard();
   } else if (state.view === "goods") {
@@ -1560,7 +1604,7 @@ function render() {
   } else {
     renderCountryBoard();
   }
-  const boardManagesDetail = state.view === "home" || state.view === "interest-group" || state.view === "technology" || state.view === "achievement" || state.view === "building" || state.view === "goods" || state.view === "news";
+  const boardManagesDetail = state.view === "home" || state.view === "interest-group" || state.view === "technology" || state.view === "achievement" || state.view === "event" || state.view === "building" || state.view === "goods" || state.view === "news";
   if (!boardManagesDetail && state.view !== "changelog" && isDetailPageRoute()) {
     renderDetailForState();
   } else if (!boardManagesDetail) {
@@ -1575,7 +1619,8 @@ function isDetailPageRoute() {
 function detailRouteKey() {
   const [route, key] = location.hash.replace(/^#\/?/, "").split("/").filter(Boolean);
   if (!route || !key) return "";
-  return ["country", "culture", "state-region", "strategic-region", "geographic-region", "company", "ideology", "law", "technology", "achievement", "building", "goods"].includes(route) ? key : "";
+  if (route === "goods" && key === "needs") return "";
+  return ["country", "culture", "state-region", "strategic-region", "geographic-region", "company", "ideology", "law", "technology", "achievement", "event", "building", "goods"].includes(route) ? key : "";
 }
 
 function syncFilterSectionOpenStates() {

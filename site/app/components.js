@@ -2478,6 +2478,7 @@ function searchPlaceholder() {
   if (state.view === "company") return t("board.company.searchPlaceholder");
   if (state.view === "ideology") return t("board.ideology.searchPlaceholder");
   if (state.view === "law") return t("board.law.searchPlaceholder");
+  if (state.view === "event") return t("board.event.searchPlaceholder");
   return t("board.country.searchPlaceholder");
 }
 

@@ -1641,7 +1641,9 @@ body[data-view="law"][data-results-panel="collapsed"] .detail {
   }
 
   body[data-view="ideology"] .layout,
-  body[data-view="law"] .layout {
+  body[data-view="law"] .layout,
+  body[data-view="building"] .layout,
+  body[data-view="goods"] .layout {
     padding-top: 0;
   }
 

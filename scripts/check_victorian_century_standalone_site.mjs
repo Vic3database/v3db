@@ -11,7 +11,7 @@ const configFile = path.join(siteRoot, "victorian-century-config.js");
 const dataIndexFile = path.join(siteRoot, "data-index.js");
 const mapFile = path.join(siteRoot, "map-data.js");
 const updateScriptFile = path.join(root, "scripts", "check_victorian_century_update.mjs");
-const expectedChunks = ["country", "culture", "region", "company", "ideology", "law", "technology", "achievement", "building", "goods"];
+const expectedChunks = ["country", "culture", "region", "company", "ideology", "law", "technology", "achievement", "building", "goods", "needs"];
 const expectedModules = [
   "app/runtime.js",
   "app/i18n.js",
@@ -25,6 +25,7 @@ const expectedModules = [
   "app/tag-tooltip-definitions.js",
   "app/components.js",
   "app/achievements.js",
+  "app/needs.js",
   "app/economy.js",
   "app/bootstrap.js",
 ];
@@ -64,6 +65,13 @@ assert.doesNotMatch(html, /id="vcHomeEntry"/, "standalone site must not link to 
 for (const modulePath of expectedModules) {
   assert.match(html, new RegExp(`src="${escapeRegex(modulePath)}`), `page must load ${modulePath}`);
 }
+for (const relative of ["app/needs.js", "styles/needs.css", "data-needs.js", "locale-needs.zh-Hans.js", "locale-needs.en.js"]) {
+  const standaloneFile = path.join(siteRoot, relative);
+  const publishedFile = path.join(publishedRoot, relative);
+  assert(fs.existsSync(standaloneFile), `missing standalone VC needs file: ${relative}`);
+  assert(fs.existsSync(publishedFile), `missing published VC needs file: ${relative}`);
+  assert.equal(fs.readFileSync(publishedFile).equals(fs.readFileSync(standaloneFile)), true, `published VC needs file differs from standalone build: ${relative}`);
+}
 
 const config = readGlobal(configFile, "VICTORIAN_CENTURY_SITE_CONFIG");
 assert.equal(config?.siteTitle, "Victorian Century Database", "standalone configuration must set the site title");
@@ -85,6 +93,9 @@ for (const key of expectedChunks) {
     assert(fs.existsSync(path.join(siteRoot, file)), `missing ${key} chunk file ${file}`);
   }
 }
+const needsChunk = readGlobal(path.join(siteRoot, dataIndex.chunks.needs.files[0]), "VIC3_DATA_CHUNK");
+assert.equal(needsChunk?.needsData?.current?.needs?.length, 15, "VC needs chunk must contain the 15 current needs");
+assert.equal(needsChunk?.needsData?.baseline?.needs?.length, 15, "VC needs chunk must contain the base-game comparison baseline");
 assert.equal(dataIndex?.locales?.search_index?.path, "search-index.js", "VC data index must expose its bilingual search index");
 assert(fs.existsSync(path.join(siteRoot, dataIndex.locales.search_index.path)), "missing VC bilingual search index");
 const searchIndex = readGlobal(path.join(siteRoot, dataIndex.locales.search_index.path), "VIC3_SEARCH_INDEX");
