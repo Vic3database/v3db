@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 const root = process.cwd();
-const databaseDir = path.join(root, "database", "vic3_1.13.9");
+const databaseDir = path.join(root, "database", process.argv[2] || "vic3_1.13.9");
 const index = readJson(path.join(databaseDir, "index.json"));
 
 for (const key of [
@@ -26,7 +26,7 @@ const goods = readFile("goods");
 const prestigeGoods = readFile("prestige_goods");
 const excludedGraphicalBuildings = readFile("excluded_graphical_buildings");
 
-assert.equal(buildings.length, 101, "1.13.9 picture wall must contain 101 icon-bearing buildings");
+assert.equal(buildings.length, 101, "picture wall must contain 101 icon-bearing buildings");
 assert.equal(excludedGraphicalBuildings.length, 14, "only fourteen iconless decorative buildings may be excluded");
 assert.equal(buildings.length + excludedGraphicalBuildings.length, 115, "all 115 top-level building definitions must be accounted for");
 assert.equal(goods.length, 53, "all 53 base goods must be published");
@@ -49,6 +49,16 @@ assert.deepEqual(
 );
 
 const buildingByKey = new Map(buildings.map((item) => [item.key, item]));
+assert.deepEqual(
+  required(buildingByKey, "building_barrack", "barracks").aliases,
+  ["building_barracks"],
+  "building compatibility aliases must be preserved from the game definition",
+);
+assert.equal(
+  buildings.reduce((count, building) => count + (building.aliases || []).length, 0),
+  19,
+  "the 1.13.10 base database must preserve all nineteen building compatibility aliases",
+);
 const groupByKey = new Map(productionMethodGroups.map((item) => [item.key, item]));
 const methodByKey = new Map(productionMethods.map((item) => [item.key, item]));
 const conditionPairs = (key) => required(methodByKey, key, "production method").availability_conditions.map((condition) => [condition.kind, condition.raw]);

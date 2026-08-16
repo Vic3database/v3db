@@ -478,6 +478,8 @@ function main() {
     formables: formationRows,
     releasables: releaseRows,
     economy,
+    popNeeds,
+    buyPackages,
     localeCatalogs: {
       "zh-Hans": { ...Object.fromEntries(loc), ...extractorZhHans },
       en: { ...Object.fromEntries(locEn), ...extractorEn },
@@ -951,7 +953,7 @@ function loadPopNeeds(dirs, loc) {
 }
 
 function loadBuyPackages(dirs) {
-  const levelsByNeedKey = new Map();
+  const packagesByLevel = new Map();
   for (const file of listFiles(dirs)) {
     const root = parseScript(readText(file), file);
     for (const assignment of root.assignments) {
@@ -961,14 +963,30 @@ function loadBuyPackages(dirs) {
       if (!match || !node) continue;
       const level = Number(match[1]);
       const goodsNode = asNode(firstValue(node, "goods"));
+      const values = {};
       for (const item of goodsNode?.assignments || []) {
         const needKey = scriptEntryKey(item.key);
-        if (!levelsByNeedKey.has(needKey)) levelsByNeedKey.set(needKey, []);
-        levelsByNeedKey.get(needKey).push(level);
+        const value = toNumberOrNull(scalarFromValue(item.value));
+        if (value != null) values[needKey] = value;
       }
+      packagesByLevel.set(level, {
+        level,
+        political_strength: toNumberOrNull(firstScalar(node, "political_strength")),
+        values,
+        total: Object.values(values).reduce((sum, value) => sum + value, 0),
+        source_file: normalizePath(file),
+      });
     }
   }
-  return levelsByNeedKey;
+  const packages = [...packagesByLevel.values()].sort((left, right) => left.level - right.level);
+  const levelsByNeedKey = new Map();
+  for (const row of packages) {
+    for (const needKey of Object.keys(row.values)) {
+      if (!levelsByNeedKey.has(needKey)) levelsByNeedKey.set(needKey, []);
+      levelsByNeedKey.get(needKey).push(row.level);
+    }
+  }
+  return { levelsByNeedKey, packages };
 }
 
 function loadCountryDefinitions(dir) {
@@ -2069,7 +2087,7 @@ function loadEconomyData({
         obsession_demand_min: need.obsession_demand_min,
         obsession_demand_mult: need.obsession_demand_mult,
         prestige_goods_demand_increase: need.prestige_goods_demand_increase,
-        wealth_levels: [...(buyPackages.get(need.key) || [])].sort((left, right) => left - right),
+        wealth_levels: [...(buyPackages.levelsByNeedKey.get(need.key) || [])].sort((left, right) => left - right),
       })))
       .sort(sortByNameZh);
     good.obsessed_cultures = [...cultures.values()]
@@ -2280,6 +2298,9 @@ function loadBuildings(dirs, buildingGroups, resourceBuildingKinds, loc) {
     const displayName = rawName.includes("dummy building") ? "" : rawName;
     buildings.push({
       key,
+      aliases: nodeItems(asNode(firstValue(node, "aliases")) || { items: [] })
+        .map(scriptEntryKey)
+        .filter(Boolean),
       name_zh: displayName,
       name_fallback_zh: fallbackName,
       description_zh: loc.has(`${key}_desc`) ? locCleanName(loc, `${key}_desc`) : "",
@@ -4890,6 +4911,8 @@ function writeDatabase(dir, data) {
     formables,
     releasables,
     economy,
+    popNeeds,
+    buyPackages,
     localeCatalogs,
   } = data;
   const stateRegionByKey = new Map(stateRegionRows.map((stateRegion) => [stateRegion.key, stateRegion]));
@@ -5056,6 +5079,26 @@ function writeDatabase(dir, data) {
     prestigeGoods: [],
     excludedGraphicalBuildings: [],
   };
+  const popNeedRows = [...(popNeeds?.values() || [])]
+    .sort((left, right) => left.key.localeCompare(right.key, "en"))
+    .map((need) => ({
+      key: need.key,
+      name_zh: need.name_zh,
+      default_good_key: need.default_good_key,
+      obsession_demand_min: need.obsession_demand_min,
+      obsession_demand_mult: need.obsession_demand_mult,
+      prestige_goods_demand_increase: need.prestige_goods_demand_increase,
+      entries: need.entries,
+      source_file: need.source_file,
+    }));
+  const buyPackageRows = (buyPackages?.packages || []).map((row) => ({ ...row }));
+  const popNeedKeys = new Set(popNeedRows.map((need) => need.key));
+  for (const row of buyPackageRows) {
+    if (!Number.isFinite(row.political_strength)) throw new Error(`wealth_${row.level} is missing political_strength`);
+    for (const needKey of Object.keys(row.values || {})) {
+      if (!popNeedKeys.has(needKey)) throw new Error(`wealth_${row.level} references missing pop need: ${needKey}`);
+    }
+  }
   const originalFiles = {
     countries: countries,
     cultures: cultureRows,
@@ -5091,6 +5134,8 @@ function writeDatabase(dir, data) {
     production_methods: economyData.productionMethods,
     goods: economyData.goods,
     prestige_goods: economyData.prestigeGoods,
+    pop_needs: popNeedRows,
+    buy_packages: buyPackageRows,
     excluded_graphical_buildings: economyData.excludedGraphicalBuildings,
   };
   const projections = Object.fromEntries(Object.entries(localeCatalogs || {}).map(([locale, catalog]) => [
@@ -5139,6 +5184,8 @@ function writeDatabase(dir, data) {
       production_methods: "production_methods.json",
       goods: "goods.json",
       prestige_goods: "prestige_goods.json",
+      pop_needs: "pop_needs.json",
+      buy_packages: "buy_packages.json",
       excluded_graphical_buildings: "excluded_graphical_buildings.json",
     },
     locales: {
@@ -5174,6 +5221,8 @@ function writeDatabase(dir, data) {
       production_methods: economyData.productionMethods.length,
       goods: economyData.goods.length,
       prestige_goods: economyData.prestigeGoods.length,
+      pop_needs: popNeedRows.length,
+      buy_packages: buyPackageRows.length,
       excluded_graphical_buildings: economyData.excludedGraphicalBuildings.length,
     },
   };
