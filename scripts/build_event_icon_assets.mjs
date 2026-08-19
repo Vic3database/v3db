@@ -4,8 +4,10 @@ import os from "node:os";
 import path from "node:path";
 
 const root = process.cwd();
-const databaseDir = path.join(root, "database", "vic3_1.13.9");
-const siteRoot = path.join(root, "site");
+const args = parseArgs(process.argv.slice(2));
+const version = args.version || "1.13.9";
+const databaseDir = path.resolve(args.database || path.join(root, "database", `vic3_${version}`));
+const siteRoot = path.resolve(args.site || path.join(root, "site"));
 const index = readJson(path.join(databaseDir, "index.json"));
 const gameData = index.source_paths?.game_data;
 if (!gameData || !fs.statSync(gameData, { throwIfNoEntry: false })?.isDirectory()) throw new Error("Victoria 3 game data is unavailable");
@@ -54,3 +56,22 @@ function convert(manifestFile) {
 
 function normalize(value) { return String(value || "").replaceAll("\\", "/").replace(/^\/+/, ""); }
 function readJson(file) { return JSON.parse(fs.readFileSync(file, "utf8").replace(/^\uFEFF/, "")); }
+
+function parseArgs(values) {
+  const parsed = { version: "", database: "", site: "" };
+  for (let index = 0; index < values.length; index += 1) {
+    const value = values[index];
+    if (value === "--version" || value === "--database" || value === "--site") {
+      const key = value.slice(2);
+      parsed[key] = values[index + 1] || "";
+      if (!parsed[key]) throw new Error(`Missing value for ${value}`);
+      index += 1;
+    } else if (value === "--help" || value === "-h") {
+      console.log("Usage: node scripts/build_event_icon_assets.mjs [--version <version>] [--database <dir>] [--site <dir>]");
+      process.exit(0);
+    } else {
+      throw new Error(`Unknown argument: ${value}`);
+    }
+  }
+  return parsed;
+}

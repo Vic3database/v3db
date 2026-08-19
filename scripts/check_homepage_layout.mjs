@@ -21,21 +21,29 @@ const icons = [
   "manufacturies.png",
   "law_enforcement.png",
 ];
+const contentIcons = [
+  "assets/event-icons/event_icons/event_default.webp",
+  "assets/event-icons/event_icons/event_protest.webp",
+  "assets/event-icons/event_icons/event_default_option.webp",
+  "assets/home/icon_achievements_enabled.png",
+];
 const categories = ["domestic", "society", "economy", "technology", "game"];
 
 expect(homeFunction.includes("const entries = ["), "homepage should define its entry data");
-expect((homeFunction.match(/icon: "/g) || []).length === 11, "homepage should define the eleven published topbar entries");
-for (const view of ["country", "law", "ideology", "interest-group", "culture", "region", "company", "building", "goods", "technology", "achievement"]) {
+expect((homeFunction.match(/icon: "/g) || []).length === 14, "homepage should define the fourteen published entries");
+for (const view of ["country", "law", "ideology", "interest-group", "culture", "region", "company", "building", "goods", "technology", "journal", "event", "decision", "achievement"]) {
   expect(homeFunction.includes(`view: "${view}"`), `homepage should retain the ${view} entry route`);
 }
 expect(homeFunction.includes("home-entry-grid"), "homepage should render an entry grid");
 expect(homeFunction.includes("home-category"), "homepage should render categorized entry sections");
-expect((homeFunction.match(/category: "/g) || []).length === 11, "homepage should classify all published topbar entries");
+expect((homeFunction.match(/category: "/g) || []).length === 14, "homepage should classify all published entries");
 for (const category of categories) {
   expect(homeFunction.includes(`category: "${category}"`), `homepage should include the ${category} category`);
 }
 expect(homeFunction.includes('label: "nav.domestic"'), "homepage should use the topbar domestic group label");
 expect(homeFunction.includes('label: "nav.gameContent"'), "homepage should use the topbar game-content group label");
+const topbarGameOrder = ["data-nav-view=\"journal\"", "data-nav-view=\"event\"", "data-nav-view=\"decision\"", "data-nav-view=\"achievement\""].map((needle) => indexSource.indexOf(needle));
+expect(topbarGameOrder.every((index) => index >= 0) && topbarGameOrder.every((index, position) => position === 0 || index > topbarGameOrder[position - 1]), "topbar game-content entries should order journal, event, decision, achievement");
 expect(!homeFunction.includes("pending: true"), "homepage should not render entries absent from the topbar");
 expect(!homeFunction.includes('dataCount("countries", countries)'), "homepage entry cards should not display country counts");
 expect(!homeFunction.includes('dataCount("ideologies", ideologies)'), "homepage entry cards should not display ideology counts");
@@ -48,6 +56,7 @@ expect(homeFunction.includes('view: "country"') && !homeFunction.includes('text:
 expect(indexSource.includes('id="homeWelcome"'), "homepage should define a welcome panel outside the navigation list");
 expect(indexSource.includes('id="vcHomeEntry"'), "homepage should include a Victorian Century entry");
 expect(indexSource.includes('href="vc/index.html"'), "homepage VC entry should use a relative vc path");
+expect(indexSource.includes('src="assets/home/victorian-century.webp"'), "homepage VC entry should use the Workshop thumbnail WebP");
 expect(
   indexSource.indexOf('id="homeWelcome"') < indexSource.indexOf('id="vcHomeEntry"')
     && indexSource.indexOf('id="vcHomeEntry"') < indexSource.indexOf('class="results"'),
@@ -80,6 +89,9 @@ expect(homeFunction.includes("renderHomeNewsHtml") && homeNewsFunction.includes(
 expect(homeNewsFunction.includes("home-news-tabs"), "homepage news panel should render category tabs");
 expect(homeNewsFunction.includes('t("news.more")'), "homepage news panel should provide a localized more link");
 expect(homeFunction.includes('const categories = ['), "homepage should define the five topbar category cards");
+const gameEntryOrder = ["view: \"journal\"", "view: \"event\"", "view: \"decision\"", "view: \"achievement\""].map((needle) => homeFunction.indexOf(needle));
+expect(gameEntryOrder.every((index) => index >= 0) && gameEntryOrder.every((index, position) => position === 0 || index > gameEntryOrder[position - 1]), "homepage game-content entries should order journal, event, decision, achievement");
+for (const icon of contentIcons) expect(homeFunction.includes(`icon: "${icon}"`), `homepage should reference ${icon}`);
 expect(!homeFunction.includes("const categoryRows ="), "homepage should not merge categories into paired rows");
 expect(homeFunction.includes('class="home-category-card"'), "homepage should render each category as an independent card");
 expect(!homeFunction.includes('categoryEntries.length'), "homepage category headings should not display redundant entry counts");
@@ -113,6 +125,10 @@ for (const icon of icons) {
   expect(homeFunction.includes(`assets/home/${icon}`), `homepage should reference ${icon}`);
   expect(fs.existsSync(path.join(root, "site", "assets", "home", icon)), `homepage asset should exist: ${icon}`);
 }
+for (const icon of ["victorian-century.webp", ...contentIcons.map((value) => value.replace(/^assets\//, ""))]) {
+  const assetPath = icon.includes("/") ? path.join(root, "site", "assets", icon) : path.join(root, "site", "assets", "home", icon);
+  expect(fs.existsSync(assetPath), `homepage asset should exist: ${icon}`);
+}
 
 if (failures.length) {
   for (const failure of failures) console.error(`- ${failure}`);
@@ -121,8 +137,8 @@ if (failures.length) {
 
 console.log(JSON.stringify({
   homepage_layout: "ok",
-  entries: 11,
-  icons: icons.length,
+  entries: 14,
+  icons: icons.length + contentIcons.length,
 }, null, 2));
 
 function readText(relativePath) {

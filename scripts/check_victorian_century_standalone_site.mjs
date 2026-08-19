@@ -11,13 +11,18 @@ const configFile = path.join(siteRoot, "victorian-century-config.js");
 const dataIndexFile = path.join(siteRoot, "data-index.js");
 const mapFile = path.join(siteRoot, "map-data.js");
 const updateScriptFile = path.join(root, "scripts", "check_victorian_century_update.mjs");
-const expectedChunks = ["country", "culture", "region", "company", "ideology", "law", "technology", "achievement", "building", "goods", "needs"];
+const expectedChunks = ["country", "culture", "region", "company", "ideology", "law", "technology", "achievement", "building", "goods", "needs", "content"];
 const expectedModules = [
   "app/runtime.js",
   "app/i18n.js",
   "app/data.js",
   "app/ui.js",
   "app/company-location-rules.js",
+  "app/company-solver-core-fallback.js",
+  "app/company-solver-async-fallback.js",
+  "app/company-solver.js",
+  "app/company-composer-core.js",
+  "app/company-composer.js",
   "app/boards.js",
   "app/filters.js",
   "app/presentation.js",
@@ -25,9 +30,26 @@ const expectedModules = [
   "app/tag-tooltip-definitions.js",
   "app/components.js",
   "app/achievements.js",
+  "app/content-dynamic-text.js",
+  "app/content-country-links.js",
+  "app/events.js",
+  "app/journals.js",
+  "app/decisions.js",
   "app/needs.js",
   "app/economy.js",
   "app/bootstrap.js",
+];
+const expectedCompanyToolFiles = [
+  "app/company-solver-core.mjs",
+  "app/company-solver-core-fallback.js",
+  "app/company-solver-async-fallback.js",
+  "app/company-solver-worker.js",
+  "app/company-solver.js",
+  "app/company-composer-core.js",
+  "app/company-composer.js",
+  "styles.css",
+  "styles/records.css",
+  "styles/shell.css",
 ];
 
 assert(fs.existsSync(htmlFile), "missing Victorian Century index.html");
@@ -51,6 +73,8 @@ for (const relative of ["index.html", "data-index.js", "map-data.js", "victorian
 
 const html = fs.readFileSync(htmlFile, "utf8");
 const publishedHtml = fs.readFileSync(path.join(publishedRoot, "index.html"), "utf8");
+const standaloneFilters = fs.readFileSync(path.join(siteRoot, "app", "filters.js"), "utf8");
+const publishedFilters = fs.readFileSync(path.join(publishedRoot, "app", "filters.js"), "utf8");
 assert.match(html, /<title>Victorian Century Database<\/title>/, "page title must identify Victorian Century");
 assert.match(html, /href="vc-theme\.css\?v=20260807-wine-plum-evergreen4"/, "standalone page must load the solid cool-olive theme after base styles");
 assert.match(html, /src="victorian-century-config\.js/, "page must load the standalone configuration");
@@ -58,14 +82,37 @@ assert.match(publishedHtml, /src="victorian-century-config\.js/, "published VC p
 assert.doesNotMatch(html, /id="versionSelect"/, "standalone page must not render a version selector");
 assert.match(html, /id="standaloneLibrarySelect"/, "standalone page must offer a library return selector");
 assert.match(html, /<option value="victorian-century" data-i18n="library\.victorianCentury" selected>Victorian Century<\/option>/, "standalone selector must identify the current VC library");
-assert.match(html, /<option value="vic3" data-i18n="library\.vic3">Victoria 3 原版 1\.13\.9<\/option>/, "standalone selector must offer the main library");
+assert.match(html, /<option value="vic3" data-i18n="library\.vic3">Victoria 3 原版 1\.13\.11<\/option>/, "standalone selector must offer the main library");
 assert.doesNotMatch(html, /versionGroupSelect|announcement-data\.js|news-data\.js|changelogLink|changelog\.html/, "standalone page must not load version, announcement, news, or changelog features");
 assert.doesNotMatch(html, /src="data\.js/, "module front end must not load the compatibility data bundle");
 assert.doesNotMatch(html, /id="vcHomeEntry"/, "standalone site must not link to itself");
+assert.doesNotMatch(html, /data-nav-view="content"|app\/content\.js/, "standalone site must omit the legacy content board");
+assert(!fs.existsSync(path.join(siteRoot, "app", "content.js")), "standalone site must remove the legacy content renderer");
+assert.match(html, /app\/filters\.js\?v=20260818-company-filter-exclusions1/, "standalone VC page must load the company-filter exclusion release");
+assert.match(publishedHtml, /app\/filters\.js\?v=20260818-company-filter-exclusions1/, "published VC page must load the company-filter exclusion release");
+assert.match(html, /styles\.css\?v=20260819-company-usage-collapse1/);
+assert.match(publishedHtml, /styles\.css\?v=20260819-company-usage-collapse1/);
+assert.match(html, /app\/company-solver\.js\?v=20260819-company-prestige-search1/, "standalone VC page must load the prestige-search fix");
+assert.match(html, /app\/company-composer-core\.js\?v=20260819-company-overlap1/, "standalone VC page must load the duplicate-coverage composer core release");
+assert.match(html, /app\/company-composer\.js\?v=20260819-company-overlap1/, "standalone VC page must load the duplicate-coverage composer release");
+assert.match(publishedHtml, /app\/company-solver\.js\?v=20260819-company-prestige-search1/, "published VC page must load the prestige-search fix");
+assert.match(publishedHtml, /app\/company-composer-core\.js\?v=20260819-company-overlap1/, "published VC page must load the duplicate-coverage composer core release");
+assert.match(publishedHtml, /app\/company-composer\.js\?v=20260819-company-overlap1/, "published VC page must load the duplicate-coverage composer release");
+assert.equal(publishedFilters, standaloneFilters, "published VC filters must match the standalone build");
+assert.match(standaloneFilters, /new Set\(\["building_gold_field", "subsistence_buildings"\]\)/, "VC company filters must hide gold fields and subsistence buildings");
 for (const modulePath of expectedModules) {
   assert.match(html, new RegExp(`src="${escapeRegex(modulePath)}`), `page must load ${modulePath}`);
 }
-for (const relative of ["app/needs.js", "styles/needs.css", "data-needs.js", "locale-needs.zh-Hans.js", "locale-needs.en.js"]) {
+for (const relative of expectedCompanyToolFiles) {
+  const sourceFile = path.join(root, "site", relative);
+  const standaloneFile = path.join(siteRoot, relative);
+  const publishedFile = path.join(publishedRoot, relative);
+  assert(fs.existsSync(standaloneFile), `missing standalone VC company tool: ${relative}`);
+  assert(fs.existsSync(publishedFile), `missing published VC company tool: ${relative}`);
+  assert.equal(fs.readFileSync(standaloneFile).equals(fs.readFileSync(sourceFile)), true, `standalone VC company tool differs from source: ${relative}`);
+  assert.equal(fs.readFileSync(publishedFile).equals(fs.readFileSync(standaloneFile)), true, `published VC company tool differs from standalone: ${relative}`);
+}
+for (const relative of ["app/needs.js", "styles/needs.css", "app/content-country-links.js", "styles/content-associations.css", "data-needs.js", "locale-needs.zh-Hans.js", "locale-needs.en.js"]) {
   const standaloneFile = path.join(siteRoot, relative);
   const publishedFile = path.join(publishedRoot, relative);
   assert(fs.existsSync(standaloneFile), `missing standalone VC needs file: ${relative}`);
@@ -84,7 +131,7 @@ assert(config.webpAssetPaths.includes("assets/companies/benz_cie.png"), "standal
 
 const dataIndex = readGlobal(dataIndexFile, "VIC3_DATA_INDEX");
 assert.equal(dataIndex?.meta?.dataset_name, "Victorian Century", "data index must retain the VC dataset name");
-assert.equal(dataIndex?.meta?.victoria3_version, "1.13.9", "data index must retain the VC game version");
+assert.equal(dataIndex?.meta?.victoria3_version, "1.13.11", "data index must retain the VC game version");
 for (const key of expectedChunks) {
   const chunk = dataIndex?.chunks?.[key];
   assert(chunk, `missing ${key} data chunk`);
@@ -111,6 +158,7 @@ assert.equal(boyarFlavors[0]?.countryTags?.sort().join(","), "MOL,ROM,WAL", "VC 
 for (const locale of ["zh-Hans", "en"]) {
   for (const key of expectedChunks) {
     const localeChunk = dataIndex?.locales?.chunks?.[locale]?.[key];
+    if (key === "content") continue;
     assert(localeChunk, `missing ${locale} ${key} locale chunk`);
     assert(Array.isArray(localeChunk.files) && localeChunk.files.length, `missing ${locale} ${key} locale files`);
     for (const entry of localeChunk.files) {
@@ -121,6 +169,20 @@ for (const locale of ["zh-Hans", "en"]) {
 for (const relative of ["locales/manifest.js", "locales/ui.zh-Hans.js", "locales/ui.en.js"]) {
   assert(fs.existsSync(path.join(siteRoot, relative)), `missing VC interface locale file ${relative}`);
 }
+for (const relative of ["data-content.js"]) {
+  const standaloneFile = path.join(siteRoot, relative);
+  const publishedFile = path.join(publishedRoot, relative);
+  assert(fs.existsSync(standaloneFile), `missing standalone VC content file: ${relative}`);
+  assert(fs.existsSync(publishedFile), `missing published VC content file: ${relative}`);
+  assert.equal(fs.readFileSync(publishedFile).equals(fs.readFileSync(standaloneFile)), true, `published VC content file differs from standalone build: ${relative}`);
+}
+const contentChunk = readGlobal(path.join(siteRoot, "data-content.js"), "VIC3_DATA_CHUNK");
+assert.equal(contentChunk?.journalEntries?.length, 858, "VC content chunk must contain merged journal entries");
+assert.equal(contentChunk?.contentEvents?.length, 2947, "VC content chunk must contain merged events");
+assert.equal(contentChunk?.decisions?.length, 102, "VC content chunk must contain merged decisions");
+assert(contentChunk?.contentEvents?.some((event) => event.sources?.includes("vc")), "VC content chunk must expose VC event provenance");
+assert.equal(Object.keys(contentChunk?.contentByCountry || {}).length, 94, "VC content chunk must expose the country reverse index");
+assert((contentChunk?.contentByCountry?.GBR?.events || []).length > 0, "VC content chunk must link Britain to flavor events");
 
 const mapData = readGlobal(mapFile, "VIC3_MAP_DATA");
 assert.equal(mapData?.width, 8192, "VC map width must be 8192");

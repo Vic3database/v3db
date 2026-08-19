@@ -4,11 +4,12 @@ import vm from "node:vm";
 import { extractModifierNames, parseModifierDefinitions } from "./event_effects.mjs";
 
 const eventSource = fs.readFileSync("site/app/events.js", "utf8");
-const eventDataSource = fs.readFileSync("site/versions/1.13.9/data-events.js", "utf8");
-const localeSource = fs.readFileSync("site/versions/1.13.9/locale-events.zh-Hans.js", "utf8");
-const englishLocaleSource = fs.readFileSync("site/versions/1.13.9/locale-events.en.js", "utf8");
+const version = process.argv[2] || "1.13.9";
+const eventDataSource = fs.readFileSync(`site/versions/${version}/data-events.js`, "utf8");
+const localeSource = fs.readFileSync(`site/versions/${version}/locale-events.zh-Hans.js`, "utf8");
+const englishLocaleSource = fs.readFileSync(`site/versions/${version}/locale-events.en.js`, "utf8");
 const gapReport = fs.readFileSync("docs/audits/1.13.9-event-modifier-localization-gaps.md", "utf8");
-const events = JSON.parse(fs.readFileSync("database/vic3_1.13.9/events.json", "utf8"));
+const events = JSON.parse(fs.readFileSync(`database/vic3_${version}/events.json`, "utf8"));
 const event = events.find((item) => item.id === "1848.1");
 const option = event.options.find((item) => item.name_key === "1848.1.b");
 

@@ -8,7 +8,7 @@ function solverT(key, fallback, args) {
 }
 
 function companySolverAvailable() {
-  return companies.length > 0 && (Boolean(standaloneSiteConfig) || loadedDataVersion === "1.13.10");
+  return companies.length > 0 && (Boolean(standaloneSiteConfig) || loadedDataVersion === "1.13.11");
 }
 
 async function setCompanySolverView() {
@@ -386,8 +386,8 @@ function renderCompanySolverBoard() {
   if (els.companySolverDetailPane) els.companySolverDetailPane.hidden = false;
   if (!companySolverAvailable()) {
     els.resultCount.textContent = "";
-    els.activeHint.textContent = t("board.company.solverUnavailable", "产业组合求解器仅支持原版 1.13.10");
-    els.countryList.innerHTML = '<p class="empty">' + escapeHtml(t("board.company.solverUnavailable", "产业组合求解器仅支持原版 1.13.10")) + "</p>";
+    els.activeHint.textContent = t("board.company.solverUnavailable", "产业组合求解器仅支持原版 1.13.11");
+    els.countryList.innerHTML = '<p class="empty">' + escapeHtml(t("board.company.solverUnavailable", "产业组合求解器仅支持原版 1.13.11")) + "</p>";
     return;
   }
   const solver = state.companySolver;

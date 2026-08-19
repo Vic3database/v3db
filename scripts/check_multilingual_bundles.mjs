@@ -5,7 +5,7 @@ import path from "node:path";
 import vm from "node:vm";
 
 const args = parseArgs(process.argv.slice(2));
-const versionDir = path.resolve(args["site-version"] || "site/versions/1.13.9");
+const versionDir = path.resolve(args["site-version"] || "site/versions/1.13.11");
 const index = readGlobal(path.join(versionDir, "data-index.js"), "VIC3_DATA_INDEX");
 assert(index.locales, "data-index.js lacks locales");
 assert.deepEqual(Array.from(index.locales.supported || []), ["zh-Hans", "en"]);

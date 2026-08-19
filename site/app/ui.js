@@ -121,6 +121,12 @@ function bindEvents() {
     state.globalSearchActiveIndex = 0;
     renderGlobalSearchDialogResults();
   });
+  els.globalSearchDetailedToggle?.addEventListener("change", () => {
+    state.globalSearchDetailed = els.globalSearchDetailedToggle.checked;
+    state.globalSearchActiveIndex = 0;
+    if (state.globalSearchDetailed) ensureGlobalSearchDetailCache();
+    renderGlobalSearchDialogResults();
+  });
   els.globalSearchLegacyToggle?.addEventListener("change", () => {
     state.globalSearchIncludeLegacy = els.globalSearchLegacyToggle.checked;
     renderGlobalSearchDialogResults();
@@ -1135,6 +1141,7 @@ async function openGlobalSearchDialog() {
   els.globalSearchDialog.hidden = false;
   document.body.classList.add("global-search-dialog-open");
   if (els.globalSearchDialogInput) els.globalSearchDialogInput.value = state.globalSearch || "";
+  if (els.globalSearchDetailedToggle) els.globalSearchDetailedToggle.checked = state.globalSearchDetailed;
   if (els.globalSearchLegacyToggle) els.globalSearchLegacyToggle.checked = state.globalSearchIncludeLegacy;
   renderGlobalSearchDialogResults();
   requestAnimationFrame(() => els.globalSearchDialogInput?.focus());
@@ -1420,6 +1427,25 @@ async function applyHash() {
     state.selectedEvent = decodeURIComponent(parts[1]);
     return;
   }
+  if (parts[0] === "journal" && journalBoardAvailable()) {
+    changeBoard("journal", "journal");
+    state.selectedJournal = parts[1] ? decodeURIComponent(parts[1]) : "";
+    return;
+  }
+  if (parts[0] === "decision" && decisionBoardAvailable()) {
+    changeBoard("decision", "decision");
+    state.selectedDecision = parts[1] ? decodeURIComponent(parts[1]) : "";
+    return;
+  }
+  if (parts[0] === "content") {
+    const kind = ["journal", "event", "decision"].includes(parts[1]) ? parts[1] : "journal";
+    replaceHash(`/${kind}${parts[2] ? `/${encodeURIComponent(decodeURIComponent(parts[2]))}` : ""}`);
+    changeBoard(kind, kind);
+    if (kind === "journal") state.selectedJournal = parts[2] ? decodeURIComponent(parts[2]) : "";
+    if (kind === "decision") state.selectedDecision = parts[2] ? decodeURIComponent(parts[2]) : "";
+    if (kind === "event") state.selectedEvent = parts[2] ? decodeURIComponent(parts[2]) : "";
+    return;
+  }
   if (parts[0] === "goods" && parts[1] === "needs") {
     changeBoard("goods", "goods");
     state.goodsPanel = "needs";
@@ -1501,6 +1527,10 @@ function updatePageChrome() {
   document.querySelector('#viewSelect option[value="achievement"]')?.toggleAttribute("hidden", !achievementAvailable);
   document.querySelectorAll('[data-nav-view="event"]').forEach((button) => { button.hidden = !eventAvailable; });
   document.querySelector('#viewSelect option[value="event"]')?.toggleAttribute("hidden", !eventAvailable);
+  document.querySelectorAll('[data-nav-view="journal"]').forEach((button) => { button.hidden = !journalBoardAvailable(); });
+  document.querySelectorAll('[data-nav-view="decision"]').forEach((button) => { button.hidden = !decisionBoardAvailable(); });
+  document.querySelector('#viewSelect option[value="journal"]')?.toggleAttribute("hidden", !journalBoardAvailable());
+  document.querySelector('#viewSelect option[value="decision"]')?.toggleAttribute("hidden", !decisionBoardAvailable());
   document.querySelectorAll('[data-nav-view="building"]').forEach((button) => { button.hidden = !buildingAvailable; });
   document.querySelectorAll('[data-nav-view="goods"]').forEach((button) => { button.hidden = !goodsAvailable; });
   document.querySelector('#viewSelect option[value="building"]')?.toggleAttribute("hidden", !buildingAvailable);
@@ -1584,6 +1614,8 @@ function render() {
   els.searchInput.placeholder = searchPlaceholder();
   if (els.eventSearchInput && state.view === "event" && els.eventSearchInput.value !== state.search) els.eventSearchInput.value = state.search;
   if (els.eventFilters) els.eventFilters.hidden = state.view !== "event";
+  if (els.journalFilters) els.journalFilters.hidden = state.view !== "journal";
+  if (els.decisionFilters) els.decisionFilters.hidden = state.view !== "decision";
   renderSortOptions();
   renderStrategicRegionFilterOptions();
   renderGeographicRegionFilterOptions();
@@ -1621,6 +1653,10 @@ function render() {
     renderAchievementBoard();
   } else if (state.view === "event") {
     renderEventBoard();
+  } else if (state.view === "journal") {
+    renderJournalBoard();
+  } else if (state.view === "decision") {
+    renderDecisionBoard();
   } else if (state.view === "building") {
     renderBuildingBoard();
   } else if (state.view === "goods") {
@@ -1628,7 +1664,7 @@ function render() {
   } else {
     renderCountryBoard();
   }
-  const boardManagesDetail = state.view === "home" || state.view === "interest-group" || state.view === "technology" || state.view === "achievement" || state.view === "event" || state.view === "building" || state.view === "goods" || state.view === "news";
+  const boardManagesDetail = state.view === "home" || state.view === "interest-group" || state.view === "technology" || state.view === "achievement" || state.view === "event" || state.view === "journal" || state.view === "decision" || state.view === "building" || state.view === "goods" || state.view === "news";
   if (!boardManagesDetail && state.view !== "changelog" && isDetailPageRoute()) {
     renderDetailForState();
   } else if (!boardManagesDetail && state.detailKind !== "companyComposer") {
@@ -1645,7 +1681,7 @@ function detailRouteKey() {
   if (!route || !key) return "";
   if (route === "goods" && key === "needs") return "";
   if (route === "company" && ["solver", "composer"].includes(key)) return "";
-  return ["country", "culture", "state-region", "strategic-region", "geographic-region", "company", "ideology", "law", "technology", "achievement", "event", "building", "goods"].includes(route) ? key : "";
+  return ["country", "culture", "state-region", "strategic-region", "geographic-region", "company", "ideology", "law", "technology", "achievement", "event", "journal", "decision", "building", "goods"].includes(route) ? key : "";
 }
 
 function syncFilterSectionOpenStates() {

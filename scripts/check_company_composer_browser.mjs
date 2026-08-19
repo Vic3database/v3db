@@ -16,7 +16,7 @@ try {
   for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
     const page = await openPage(viewport);
     try {
-      await page.goto(server.url + "/index.html?version=1.13.10&lang=zh-Hans#/company");
+      await page.goto(server.url + "/index.html?version=1.13.11&lang=zh-Hans#/company");
       await page.waitFor(() => document.querySelector("#companyComposerEntry:not([hidden])"), "company composer entry");
       const regularCompanyFilterKeys = await page.evaluate(() => Array.from(document.querySelectorAll("[data-resource-filter]"), (node) => node.dataset.resourceFilter));
       assert.equal(regularCompanyFilterKeys.includes("building_gold_field"), false, "regular company filters must hide gold fields");
@@ -184,7 +184,7 @@ try {
   }
   const regionPage = await openPage({ width: 1200, height: 800 });
   try {
-    await regionPage.goto(server.url + "/index.html?version=1.13.10&lang=zh-Hans#/region");
+    await regionPage.goto(server.url + "/index.html?version=1.13.11&lang=zh-Hans#/region");
     await regionPage.waitFor(() => document.body.dataset.view === "region" && document.querySelectorAll("[data-resource-filter]").length > 0, "region resource filters");
     const regionFilterKeys = await regionPage.evaluate(() => Array.from(document.querySelectorAll("[data-resource-filter]"), (node) => node.dataset.resourceFilter));
     assert.equal(regionFilterKeys.includes("building_gold_field"), true, "region filters must keep gold fields");
@@ -201,7 +201,7 @@ try {
   }
   const englishPage = await openPage({ width: 1200, height: 800 });
   try {
-    await englishPage.goto(server.url + "/index.html?version=1.13.10&lang=en#/company/composer");
+    await englishPage.goto(server.url + "/index.html?version=1.13.11&lang=en#/company/composer");
     await englishPage.waitFor(() => document.body.dataset.companyComposer === "true", "english composer route");
     assert.match(await englishPage.evaluate(() => document.body.innerText), /Combined buildings/);
   } finally {

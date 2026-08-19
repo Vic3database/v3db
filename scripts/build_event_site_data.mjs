@@ -8,11 +8,13 @@ import { eventGroupNames } from "./event_group_names.mjs";
 import { classifyEventTags } from "./event_tags.mjs";
 
 const root = process.cwd();
-const version = "1.13.9";
-const sourceFile = path.join(root, "database", "vic3_1.13.9", "events.json");
-const journalSourceFile = path.join(root, "database", "vic3_1.13.9", "journal_entries.json");
-const databaseIndexFile = path.join(root, "database", "vic3_1.13.9", "index.json");
-const versionPath = path.join(root, "site", "versions", version);
+const args = parseArgs(process.argv.slice(2));
+const version = args.version || "1.13.9";
+const databasePath = path.resolve(args.database || path.join(root, "database", `vic3_${version}`));
+const versionPath = path.resolve(args.site || path.join(root, "site", "versions", version));
+const sourceFile = path.join(databasePath, "events.json");
+const journalSourceFile = path.join(databasePath, "journal_entries.json");
+const databaseIndexFile = path.join(databasePath, "index.json");
 const databaseIndex = JSON.parse(fs.readFileSync(databaseIndexFile, "utf8").replace(/^\uFEFF/, ""));
 const gameDataPath = databaseIndex.source_paths?.game_data || "";
 const modifierDefinitions = loadModifierDefinitions(gameDataPath);
@@ -28,7 +30,8 @@ const eventKindContext = buildEventKindContext(sourceEvents, sourceJournals);
 const events = sourceEvents
   .map((event) => toEvent(event, eventKindContext))
   .sort((left, right) => left.key.localeCompare(right.key, undefined, { numeric: true }));
-if (events.length !== 2236) throw new Error(`1.13.9 游戏事件数量应为 2236，实际为 ${events.length}`);
+const expectedEvents = version === "1.13.9" ? 2236 : null;
+if (expectedEvents !== null && events.length !== expectedEvents) throw new Error(`${version} 游戏事件数量应为 ${expectedEvents}，实际为 ${events.length}`);
 if (!events.some((event) => event.key === "1848.1")) throw new Error("缺少 1848.1");
 
 const eventGroups = [...new Set(events.map((event) => event.namespace || String(event.key || "").split(".")[0]).filter(Boolean))]
@@ -60,7 +63,9 @@ function toEvent(source, eventKindContext) {
     }));
     return { name_key: option.name_key || "", default_option: Boolean(option.default_option), script, modifiers };
   });
-  const kindEvidence = classifyEventEvidence(source, eventKindContext);
+  const kindEvidence = source.content_kind && Array.isArray(source.country_scope)
+    ? { kind: source.content_kind, countries: source.country_scope }
+    : classifyEventEvidence(source, eventKindContext);
   return {
     id: `event:${source.id}`,
     key: source.id,
@@ -142,3 +147,22 @@ function writeDataChunk(file, value) { fs.writeFileSync(file, `window.VIC3_DATA_
 function writeLocaleChunk(file, locale, messages) { const id = `${locale}:event:locale-events`; fs.writeFileSync(file, `window.VIC3_LOCALE_CHUNKS = window.VIC3_LOCALE_CHUNKS || {};\nwindow.VIC3_LOCALE_CHUNKS[${JSON.stringify(id)}] = ${JSON.stringify({ locale, messages })};\n`, "utf8"); }
 function updateDataIndex({ dataFile, localeFiles }) { const indexFile = path.join(versionPath, "data-index.js"); const sandbox = { window: {} }; vm.runInNewContext(fs.readFileSync(indexFile, "utf8"), sandbox, { filename: indexFile }); const index = sandbox.window.VIC3_DATA_INDEX; index.chunks.event = { files: [path.basename(dataFile)], keys: ["events", "eventGroups"], counts: { events: events.length, groups: eventGroups.length } }; for (const [locale, file] of Object.entries(localeFiles)) { const bucket = index.locales.chunks[locale] || (index.locales.chunks[locale] = {}); bucket.event = { files: [{ id: `${locale}:event:locale-events`, path: path.basename(file), sha256: sha256(fs.readFileSync(file)), missing: 0 }], missing: 0 }; } fs.writeFileSync(indexFile, `window.VIC3_DATA_INDEX = ${JSON.stringify(index)};\n`, "utf8"); }
 function sha256(content) { return crypto.createHash("sha256").update(content).digest("hex"); }
+
+function parseArgs(values) {
+  const parsed = { version: "", database: "", site: "" };
+  for (let index = 0; index < values.length; index += 1) {
+    const value = values[index];
+    if (value === "--version" || value === "--database" || value === "--site") {
+      const key = value.slice(2);
+      parsed[key] = values[index + 1] || "";
+      if (!parsed[key]) throw new Error(`Missing value for ${value}`);
+      index += 1;
+    } else if (value === "--help" || value === "-h") {
+      console.log("Usage: node scripts/build_event_site_data.mjs [--version <version>] [--database <dir>] [--site <dir>]");
+      process.exit(0);
+    } else {
+      throw new Error(`Unknown argument: ${value}`);
+    }
+  }
+  return parsed;
+}

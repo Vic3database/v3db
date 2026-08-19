@@ -25,12 +25,13 @@ const productionMethods = readFile("production_methods");
 const goods = readFile("goods");
 const prestigeGoods = readFile("prestige_goods");
 const excludedGraphicalBuildings = readFile("excluded_graphical_buildings");
+const isVictorianCentury = index.dataset_name === "Victorian Century";
 
 assert.equal(buildings.length, 101, "picture wall must contain 101 icon-bearing buildings");
 assert.equal(excludedGraphicalBuildings.length, 14, "only fourteen iconless decorative buildings may be excluded");
 assert.equal(buildings.length + excludedGraphicalBuildings.length, 115, "all 115 top-level building definitions must be accounted for");
 assert.equal(goods.length, 53, "all 53 base goods must be published");
-assert.equal(prestigeGoods.length, 72, "all 72 prestige goods must be published");
+assert.equal(prestigeGoods.length, isVictorianCentury ? 98 : 72, isVictorianCentury ? "Victorian Century must publish all 98 prestige goods" : "all 72 base-game prestige goods must be published");
 assert(groups.length > 0, "building groups must be published");
 assert(productionMethodGroups.length > 0, "production method groups must be published");
 assert(productionMethods.length > 0, "production methods must be published");
@@ -44,7 +45,9 @@ const productionEffectScalingCounts = productionMethods
   }, {});
 assert.deepEqual(
   productionEffectScalingCounts,
-  { workforce_scaled: 974, level_scaled: 761, unscaled: 182 },
+  isVictorianCentury
+    ? { workforce_scaled: 976, level_scaled: 761, unscaled: 189 }
+    : { workforce_scaled: 974, level_scaled: 761, unscaled: 182 },
   "all production effects must preserve their game-defined scaling mode",
 );
 

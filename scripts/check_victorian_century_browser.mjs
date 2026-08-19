@@ -23,6 +23,7 @@ const chrome = spawn(chromePath, [
 try {
   const page = await openPage({ width: 1440, height: 1000 });
   for (const route of routes) await checkEconomyWall(page, route);
+  await checkCompanyResourceFilters(page);
   await checkEnglishConstruction(page);
   await checkEnglishBanana(page);
   await checkAutomobiles(page, "zh-Hans");
@@ -37,10 +38,25 @@ try {
     victorian_century_browser: "ok",
     routes,
     locales: ["zh-Hans", "en"],
-    verified: ["economy-walls", "change-filters", "construction-method", "banana-method", "benz-prestige-good", "starting-culture-obsessions", "production-goods-flow", "production-summary-icons", "production-scaling-groups", "wood-localization"],
+    verified: ["economy-walls", "change-filters", "company-resource-filters", "construction-method", "banana-method", "benz-prestige-good", "starting-culture-obsessions", "production-goods-flow", "production-summary-icons", "production-scaling-groups", "wood-localization"],
   }, null, 2));
 } finally {
   chrome.kill();
+}
+
+async function checkCompanyResourceFilters(page) {
+  await page.goto(localizedRoute("zh-Hans", "company"));
+  await page.waitFor(() => document.body.dataset.view === "company" && document.querySelectorAll("[data-resource-filter]").length > 0, "VC company resource filters");
+  const companyFilterKeys = await page.evaluate(() => Array.from(document.querySelectorAll("[data-resource-filter]"), (node) => node.dataset.resourceFilter));
+  assert.equal(companyFilterKeys.includes("building_gold_field"), false, "VC company filters must hide gold fields");
+  assert.equal(companyFilterKeys.includes("subsistence_buildings"), false, "VC company filters must hide subsistence buildings");
+  assert.equal(companyFilterKeys.includes("building_gold_mine"), true, "VC company filters must keep gold mines");
+
+  await page.goto(localizedRoute("zh-Hans", "region"));
+  await page.waitFor(() => document.body.dataset.view === "region" && document.querySelectorAll("[data-resource-filter]").length > 0, "VC region resource filters");
+  const regionFilterKeys = await page.evaluate(() => Array.from(document.querySelectorAll("[data-resource-filter]"), (node) => node.dataset.resourceFilter));
+  assert.equal(regionFilterKeys.includes("building_gold_field"), true, "VC region filters must keep gold fields");
+  assert.equal(regionFilterKeys.includes("subsistence_buildings"), true, "VC region filters must keep subsistence buildings");
 }
 
 async function checkEconomyWall(page, route) {

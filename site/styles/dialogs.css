@@ -228,7 +228,8 @@ body.detail-page .detail-back-button {
   font-size: var(--text-base);
 }
 
-.global-search-legacy-toggle {
+.global-search-legacy-toggle,
+.global-search-detailed-toggle {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -238,6 +239,26 @@ body.detail-page .detail-back-button {
   font-weight: 700;
 }
 
+.global-search-options {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+}
+
+.global-search-option-description,
+.global-search-match-excerpt {
+  color: var(--muted);
+  font-family: var(--font-ui);
+  font-size: var(--text-xs);
+}
+
+.global-search-match-excerpt {
+  display: block;
+  overflow-wrap: anywhere;
+  line-height: 1.4;
+}
+
 .global-search-dialog-results {
   min-height: 120px;
   max-height: min(650px, 68vh);
@@ -245,6 +266,8 @@ body.detail-page .detail-back-button {
   overflow-x: hidden;
   overflow-y: auto;
   display: grid;
+  grid-auto-rows: max-content;
+  align-content: start;
   gap: 8px;
   padding-right: 2px;
 }

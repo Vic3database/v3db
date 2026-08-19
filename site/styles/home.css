@@ -968,6 +968,8 @@ button.home-entry:hover {
 .home-mod-database-icon {
   width: 30px;
   height: 30px;
+  object-fit: contain;
+  border-radius: 6px;
 }
 
 .home-mod-database-copy {

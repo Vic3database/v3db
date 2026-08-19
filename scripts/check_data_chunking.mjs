@@ -5,14 +5,15 @@ import vm from "node:vm";
 import { readSiteAppSource } from "./site_frontend_sources.mjs";
 
 const root = process.cwd();
-const versionDir = path.join(root, "site", "versions", "1.13.9");
+const version = process.argv[2] || "1.13.9";
+const versionDir = path.join(root, "site", "versions", version);
 const indexFile = path.join(versionDir, "data-index.js");
 const versionsFile = path.join(root, "site", "versions.js");
 
 assert(fs.existsSync(indexFile), "missing data index");
 
 const index = readGlobal(indexFile, "VIC3_DATA_INDEX");
-assert.equal(index?.meta?.victoria3_version, "1.13.9", "index should retain dataset metadata");
+assert.equal(index?.meta?.victoria3_version, version, "index should retain dataset metadata");
 assert.equal(fs.existsSync(path.join(versionDir, "data.js")), false, "complete data.js should not remain in the published version bundle");
 assert.deepEqual(Array.from(index?.locales?.supported || []), ["zh-Hans", "en"], "data index must publish supported locales");
 assert(index?.locales?.search_index?.path, "data index must publish the search index");
@@ -31,6 +32,7 @@ const expectedChunks = {
   building: ["buildings", "buildingGroups", "productionMethodGroups", "productionMethods"],
   goods: ["goods", "prestigeGoods"],
   needs: ["needsData"],
+  ...(version !== "1.13.9" ? { content: ["journalEntries", "journalEntryGroups", "contentEvents", "decisions", "contentByCountry"] } : {}),
 };
 
 for (const [key, keys] of Object.entries(expectedChunks)) {
@@ -46,6 +48,10 @@ for (const [key, keys] of Object.entries(expectedChunks)) {
   }
   assert.deepEqual(Array.from(chunkKeys).sort(), keys.slice().sort(), `${key} chunk files expose unexpected fields`);
   for (const locale of index.locales.supported) {
+    if (key === "content") {
+      assert(index.locales.content?.source, "content chunk must publish its source hash");
+      continue;
+    }
     const localeChunk = index.locales.chunks?.[locale]?.[key];
     assert(localeChunk?.files?.length, `missing ${locale}/${key} locale chunk`);
     for (const entry of localeChunk.files) {
@@ -77,7 +83,7 @@ for (const tag of ["ABU", "KOR"]) {
 }
 assert(/function ensureDataChunksForRoute/.test(appSource), "app must select chunks from the current route");
 assert(/function ensureDataChunks\(chunkKeys\)/.test(appSource), "app must load requested chunks");
-assert(/data_index:\s*"versions\/1\.13\.9\/data-index\.js"/.test(versionSource), "version entry must point to the data index");
+assert(new RegExp(`data_index:\\s*"versions/${version.replaceAll(".", "\\.")}\\/data-index\\.js"`).test(versionSource), "version entry must point to the data index");
 assert(/async function openGlobalSearchDialog\(\)[\s\S]*ensureDataChunks\(Object\.keys\(dataIndex\?\.chunks/.test(appSource), "global search must load every searchable chunk");
 assert(/for \(const key of pending\)/.test(appSource), "data chunks must load sequentially because they share a browser global");
 assert(/versions\/\$\{loadedDataVersion\}/.test(appSource), "chunk URLs must use the selected version");

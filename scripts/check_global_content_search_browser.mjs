@@ -13,7 +13,7 @@ const vcServer = await startPreviewServer(path.join(root, "Victorian Century Dat
 const reports = [];
 
 try {
-  reports.push(await verifySite(`${mainServer.url}/index.html?version=1.13.10&lang=zh-Hans#/home`, "original"));
+  reports.push(await verifySite(`${mainServer.url}/index.html?version=1.13.11&lang=zh-Hans#/home`, "original"));
   reports.push(await verifySite(`${vcServer.url}/index.html?lang=zh-Hans#/home`, "vc"));
   console.log(JSON.stringify({ global_content_search_browser: "ok", reports }, null, 2));
 } finally {

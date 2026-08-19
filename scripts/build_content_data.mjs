@@ -2,8 +2,8 @@ import fs from "node:fs";
 import path from "node:path";
 
 const repoRoot = process.cwd();
-const gameRoot = process.env.VIC3_GAME_ROOT || "D:/SteamLibrary/steamapps/common/Victoria 3/game";
-const outputRoot = path.join(repoRoot, "database", "vic3_1.13.9");
+const gameRoot = process.env.CONTENT_SOURCE_ROOT || process.env.VIC3_GAME_ROOT || "D:/SteamLibrary/steamapps/common/Victoria 3/game";
+const outputRoot = process.env.CONTENT_OUTPUT_ROOT || path.join(repoRoot, "database", "vic3_1.13.9");
 const sourceRoot = path.join(gameRoot);
 
 function readText(file) {
@@ -47,6 +47,7 @@ function parseTopLevelDefinitions(text, kind, relativeFile) {
     rows.push({
       id: current.id,
       script_key: current.scriptKey,
+      operation: current.operation || undefined,
       namespace: current.namespace || undefined,
       source_file: normalizedFile,
       source_line: current.line,
@@ -66,12 +67,13 @@ function parseTopLevelDefinitions(text, kind, relativeFile) {
       if (namespaceMatch) namespace = namespaceMatch[1];
     }
     if (depth === 0 && !current) {
-      const match = withoutComment.match(/^\s*([A-Za-z0-9_.-]+)\s*=\s*\{/);
+      const match = withoutComment.match(/^\s*(?:(REPLACE_OR_CREATE|REPLACE|CREATE):)?([A-Za-z0-9_.-]+)\s*=\s*\{/i);
       if (match) {
-        const eventId = kind === "events" && namespace && !match[1].includes(".")
-          ? `${namespace}.${match[1]}`
-          : match[1];
-        current = { id: eventId, scriptKey: match[1], line: lineIndex + 1, namespace };
+        const scriptKey = match[2];
+        const eventId = kind === "events" && namespace && !scriptKey.includes(".")
+          ? `${namespace}.${scriptKey}`
+          : scriptKey;
+        current = { id: eventId, scriptKey, line: lineIndex + 1, namespace, operation: match[1]?.toUpperCase() || "" };
       }
     }
     const code = withoutComment.replace(/"(?:\\.|[^"\\])*"/g, "");
@@ -103,10 +105,13 @@ function localeFiles(kind) {
   const folders = { en: "english", zhHans: "simp_chinese" };
   const maps = {};
   for (const [locale, folder] of Object.entries(folders)) {
-    const directory = path.join(sourceRoot, "localization", folder);
-    const files = listLocalizationFiles(directory, folder);
+    const fallbackRoots = String(process.env.CONTENT_FALLBACK_LOCALIZATION_ROOTS || "").split(path.delimiter).filter(Boolean);
+    const directories = [...fallbackRoots, sourceRoot].map((root) => path.join(root, "localization", folder)).filter(fs.existsSync);
     const map = new Map();
-    for (const file of files) for (const [key, value] of parseLocalization(file)) map.set(key, value);
+    for (const directory of directories) {
+      const files = listLocalizationFiles(directory, folder);
+      for (const file of files) for (const [key, value] of parseLocalization(file)) if (value || !map.has(key)) map.set(key, value);
+    }
     maps[locale] = map;
   }
   localeFiles.cache = maps;
@@ -224,7 +229,8 @@ function extractTriggeredEventIds(raw) {
 
 function enrichRow(row, kind) {
   let definition;
-  try { definition = firstAssignment(parseScript(row.raw, row.source_file), row.script_key)?.value; }
+  const definitionKey = row.operation ? `${row.operation}:${row.script_key}` : row.script_key;
+  try { definition = firstAssignment(parseScript(row.raw, row.source_file), definitionKey)?.value; }
   catch { definition = null; }
   if (!definition?.assignments) return row;
   if (kind === "journal_entries") return {
@@ -296,6 +302,13 @@ function localize(row, maps, kind) {
     const values = {};
     for (const [field, key] of Object.entries(keys)) if (map.has(key)) values[field] = map.get(key);
     if (kind === "events") {
+      for (const field of ["title", "desc", "flavor"]) {
+        if (values[field]) continue;
+        const dynamicValues = [...new Set([...blockRaw(row.raw || "", field).matchAll(/\bdesc\s*=\s*([A-Za-z0-9_.-]+)/g)]
+          .map((match) => map.get(match[1]))
+          .filter(Boolean))];
+        if (dynamicValues.length) values[field] = dynamicValues.join("／");
+      }
       const options = {};
       for (const option of row.options || []) {
         if (option.name_key && map.has(option.name_key)) options[option.name_key] = map.get(option.name_key);
@@ -319,14 +332,15 @@ function collect(kind, relativeDir, localizationKind) {
   });
 }
 
-function collectJournalEntryGroups() {
+function collectJournalEntryGroups(journalEntries = []) {
   const maps = localeFiles("journal_entry_groups");
   const directory = path.join(sourceRoot, "common/journal_entry_groups");
-  return listTxt(directory).flatMap((file) => {
+  const defined = listTxt(directory).flatMap((file) => {
     const relativeFile = path.relative(sourceRoot, file);
     return parseTopLevelDefinitions(readText(file), "journal_entry_groups", relativeFile).map((row) => {
       let definition;
-      try { definition = firstAssignment(parseScript(row.raw, row.source_file), row.script_key)?.value; }
+      const definitionKey = row.operation ? `${row.operation}:${row.script_key}` : row.script_key;
+      try { definition = firstAssignment(parseScript(row.raw, row.source_file), definitionKey)?.value; }
       catch { definition = null; }
       const locales = {};
       for (const [locale, map] of Object.entries(maps)) locales[locale] = map.has(row.id) ? { name: map.get(row.id) } : {};
@@ -338,6 +352,27 @@ function collectJournalEntryGroups() {
       };
     });
   });
+  const byId = new Map(defined.map((row) => [row.id, row]));
+  for (const id of new Set(journalEntries.map((row) => row.group).filter(Boolean))) {
+    if (byId.has(id)) continue;
+    const locales = {};
+    for (const [locale, map] of Object.entries(maps)) locales[locale] = map.has(id) ? { name: map.get(id) } : {};
+    byId.set(id, {
+      id,
+      script_key: id,
+      source_file: "",
+      source_line: 0,
+      raw: "",
+      content_class: "game",
+      is_test: false,
+      is_debug: false,
+      context: "none",
+      updates_strategic_region_stances: false,
+      locales,
+      inferred_from_journal_entries: true,
+    });
+  }
+  return [...byId.values()].sort((left, right) => left.id.localeCompare(right.id, undefined, { numeric: true }));
 }
 
 function localizationCoverage(rows, fields) {
@@ -361,7 +396,7 @@ function countBy(rows, key) {
 const journalEntries = collect("journal_entries", "common/journal_entries", "journal_entries");
 const events = collect("events", "events", "events");
 const decisions = collect("decisions", "common/decisions", "decisions");
-const journalEntryGroups = collectJournalEntryGroups();
+const journalEntryGroups = collectJournalEntryGroups(process.env.CONTENT_INFER_REFERENCED_JOURNAL_GROUPS === "1" ? journalEntries : []);
 const sourceManifest = {};
 for (const [kind, relativeDir, rows] of [
   ["journal_entries", "common/journal_entries", journalEntries],
@@ -414,8 +449,8 @@ for (const [name, rows] of Object.entries({ journal_entries: journalEntries, eve
 }
 const index = {
   schema_version: 1,
-  dataset: "Victoria 3 original content",
-  version: "1.13.9",
+  dataset: process.env.CONTENT_DATASET || "Victoria 3 original content",
+  version: process.env.CONTENT_VERSION || "1.13.9",
   generated_at: new Date().toISOString(),
   game_path: gameRoot.replaceAll("\\", "/"),
   files: {

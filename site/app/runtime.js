@@ -26,6 +26,11 @@ let technologies = [];
 let technologyEras = [];
 let achievements = [];
 let events = [];
+let journalEntries = [];
+let journalEntryGroups = [];
+let contentEvents = [];
+let decisions = [];
+let contentByCountry = {};
 let buildings = [];
 let buildingGroups = [];
 let productionMethodGroups = [];
@@ -35,6 +40,7 @@ let prestigeGoods = [];
 let needsData = null;
 let mapData = null;
 let siteTitle = "Vicdata";
+let globalSearchDetailCache = null;
 
 let byTag = new Map();
 let byCulture = new Map();
@@ -133,6 +139,7 @@ const state = {
   globalSearchDialogOpen: false,
   infoDialog: "",
   globalSearchIncludeLegacy: false,
+  globalSearchDetailed: false,
   globalSearchActiveIndex: 0,
   changelogBoard: "all",
   changelogSearch: "",
@@ -224,6 +231,11 @@ const state = {
   selectedTechnology: "",
   selectedAchievement: "",
   selectedEvent: "",
+  selectedJournal: "",
+  selectedDecision: "",
+  journalSourceKinds: new Set(),
+  journalChangeKinds: new Set(),
+  decisionSourceKinds: new Set(),
   eventTypes: new Set(),
   eventFlavorKinds: new Set(),
   eventTags: new Set(),
@@ -633,6 +645,8 @@ const viewLabels = {
   technology: "nav.technology",
   achievement: "nav.achievement",
   event: "nav.event",
+  journal: "nav.journal",
+  decision: "nav.decision",
   building: "nav.building",
   goods: "nav.goods",
   changelog: "nav.changelog",
@@ -780,6 +794,7 @@ const els = {
   globalSearchDialog: document.querySelector("#globalSearchDialog"),
   globalSearchDialogInput: document.querySelector("#globalSearchDialogInput"),
   globalSearchDialogResults: document.querySelector("#globalSearchDialogResults"),
+  globalSearchDetailedToggle: document.querySelector("#globalSearchDetailedToggle"),
   globalSearchLegacyToggle: document.querySelector("#globalSearchLegacyToggle"),
   globalSearchCloseButton: document.querySelector("#globalSearchCloseButton"),
   settingsNavButton: document.querySelector("#settingsNavButton"),
@@ -825,9 +840,21 @@ const els = {
   eventTypeFilters: document.querySelector("#eventTypeFilters"),
   eventFlavorFilters: document.querySelector("#eventFlavorFilters"),
   eventTagFilters: document.querySelector("#eventTagFilters"),
+  journalFilters: document.querySelector("#journalFilters"),
+  journalSearchInput: document.querySelector("#journalSearchInput"),
+  journalResetButton: document.querySelector("#journalResetButton"),
+  journalSourceFilters: document.querySelector("#journalSourceFilters"),
+  journalChangeFilters: document.querySelector("#journalChangeFilters"),
+  journalGroupNav: document.querySelector("#journalGroupNav"),
+  decisionFilters: document.querySelector("#decisionFilters"),
+  decisionSearchInput: document.querySelector("#decisionSearchInput"),
+  decisionResetButton: document.querySelector("#decisionResetButton"),
+  decisionSourceFilters: document.querySelector("#decisionSourceFilters"),
+  decisionGroupNav: document.querySelector("#decisionGroupNav"),
   eventFilters: document.querySelector("#eventFilters"),
   eventSearchInput: document.querySelector("#eventSearchInput"),
   eventResetButton: document.querySelector("#eventResetButton"),
+  eventCoverage: document.querySelector("#eventCoverage"),
   eventGroupNav: document.querySelector("#eventGroupNav"),
   commonLawIdeologyFilter: document.querySelector("#commonLawIdeologyFilter"),
   victorianCenturyChangeFilterSection: document.querySelector("#victorianCenturyChangeFilterSection"),

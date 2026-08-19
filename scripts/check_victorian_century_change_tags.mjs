@@ -6,7 +6,8 @@ import path from "node:path";
 import vm from "node:vm";
 
 const root = process.cwd();
-const baselineDatabase = path.join(root, "database", "vic3_1.13.9");
+const baselineVersion = process.env.VICTORIA3_VERSION || "1.13.11";
+const baselineDatabase = path.join(root, "database", `vic3_${baselineVersion}`);
 const victorianCenturyDatabase = process.env.VICTORIAN_CENTURY_DATABASE || path.join(root, "database", "victorian_century");
 const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "vicdata-vc-change-tags-"));
 const baselineOut = path.join(tempRoot, "baseline");
@@ -120,7 +121,31 @@ function changeSummary(baseline, current) {
       }
     }
   }
+  summary.buildings = buildingChangeSummary(baseline, current);
   summary.stateTraits = stateTraitChangeSummary(baseline.stateRegions, current.stateRegions);
+  return summary;
+}
+
+function buildingChangeSummary(baseline, current) {
+  const baselineByKey = new Map((baseline.buildings || []).map((item) => [item.key, item]));
+  const baselineMethods = new Map((baseline.productionMethods || []).map((item) => [item.key, item]));
+  const changedMethods = new Set((current.productionMethods || [])
+    .filter((item) => baselineMethods.has(item.key) && stableJson(normalizeForComparison(item)) !== stableJson(normalizeForComparison(baselineMethods.get(item.key))))
+    .map((item) => item.key));
+  const changedGroups = new Map((current.productionMethodGroups || []).map((group) => [group.key, group.production_method_keys || []]));
+  const summary = { added: 0, adjusted: 0 };
+  for (const item of current.buildings || []) {
+    const before = baselineByKey.get(item.key);
+    if (!before) {
+      summary.added += 1;
+      continue;
+    }
+    const direct = stableJson(normalizeForComparison(item)) !== stableJson(normalizeForComparison(before));
+    const inherited = (item.production_method_group_keys || [])
+      .flatMap((groupKey) => changedGroups.get(groupKey) || [])
+      .some((methodKey) => changedMethods.has(methodKey));
+    if (direct || inherited) summary.adjusted += 1;
+  }
   return summary;
 }
 

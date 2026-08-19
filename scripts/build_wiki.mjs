@@ -373,9 +373,26 @@ function applyVictorianCenturyChangeTags(siteData, baselineData) {
     tagged[field] = markVictorianCenturyChanges(siteData[field], baselineData[field], keyField, field === "technologies");
   }
   tagged.stateRegions = markVictorianCenturyStateTraitChanges(tagged.stateRegions, baselineData.stateRegions);
+  tagged.buildings = markBuildingsWithChangedProductionMethods(tagged.buildings, tagged.productionMethodGroups, tagged.productionMethods);
   tagged.cultures = markVictorianCenturyCultureTraitReferences(tagged.cultures, tagged.cultureTraits, tagged.cultureTraitGroups);
   tagged.countries = markVictorianCenturyCountryTraitReferences(tagged.countries, tagged.cultureTraits, tagged.cultureTraitGroups);
   return tagged;
+}
+
+function markBuildingsWithChangedProductionMethods(buildings, productionMethodGroups, productionMethods) {
+  const changedMethods = new Set((productionMethods || [])
+    .filter((method) => method?.vc_change_kind === "adjusted")
+    .map((method) => method.key));
+  const changedGroups = new Map((productionMethodGroups || [])
+    .map((group) => [group.key, group.production_method_keys || []]));
+  return (buildings || []).map((building) => {
+    const methodKeys = (building.production_method_group_keys || [])
+      .flatMap((groupKey) => changedGroups.get(groupKey) || [])
+      .filter((key) => changedMethods.has(key));
+    if (!methodKeys.length) return building;
+    const fields = [...new Set([...(building.vc_change_fields || []), "production_method_values"])].sort((left, right) => left.localeCompare(right));
+    return { ...building, vc_change_kind: building.vc_change_kind || "adjusted", vc_change_fields: fields };
+  });
 }
 
 function markVictorianCenturyChanges(items, baselineItems, keyField, ignoreTechnologyReferences = false) {

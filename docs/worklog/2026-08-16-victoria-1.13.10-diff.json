@@ -1,0 +1,59 @@
+{
+  "base": {
+    "old": "1.13.9",
+    "new": "1.13.10"
+  },
+  "files": {
+    "journal_entries": {
+      "old_count": 419,
+      "new_count": 419,
+      "added": [],
+      "removed": [],
+      "raw_changed": [
+        "je_agricultural_development"
+      ],
+      "localization_changed": []
+    },
+    "events": {
+      "old_count": 2261,
+      "new_count": 2264,
+      "added": [
+        "treaty_port_inheritance_events.1",
+        "treaty_port_inheritance_events.2",
+        "treaty_port_inheritance_events.3"
+      ],
+      "removed": [],
+      "raw_changed": [
+        "algeria_events.8",
+        "society_tech_events.104"
+      ],
+      "localization_changed": [
+        "culture_brazil.4",
+        "culture_brazil.5",
+        "culture_brazil.6",
+        "culture_south_america.1",
+        "negotiation.1",
+        "india_events.2",
+        "mughal.1",
+        "mughal.7",
+        "sikh_empire.1",
+        "conscription_laws.1",
+        "persia_events.2",
+        "persia_events.3",
+        "persia_events.7",
+        "lobby_proposal.1",
+        "lobby_proposal.2",
+        "lobby_proposal.3",
+        "lobby_proposal.4"
+      ]
+    },
+    "decisions": {
+      "old_count": 60,
+      "new_count": 60,
+      "added": [],
+      "removed": [],
+      "raw_changed": [],
+      "localization_changed": []
+    }
+  }
+}\n

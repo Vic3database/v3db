@@ -81,7 +81,7 @@ async function loadVersion(version, options = {}) {
 }
 
 function dataChunksForView(view) {
-  if (view === "country") return ["country", "culture", "region", "ideology", "law"];
+  if (view === "country") return ["country", "culture", "region", "ideology", "law", "content"];
   if (view === "culture") return ["culture", "region", "country"];
   if (view === "region") return ["region", "country", "culture", "company"];
   if (view === "company") return ["company", "region", "country"];
@@ -90,7 +90,9 @@ function dataChunksForView(view) {
   if (view === "law") return ["law", "ideology", "country"];
   if (view === "technology") return ["technology"];
   if (view === "achievement") return ["achievement"];
-  if (view === "event") return ["event"];
+  if (view === "event") return standaloneSiteConfig ? ["content", "country"] : ["event", "country"];
+  if (view === "journal" || view === "decision") return ["content", "country"];
+  if (view === "content") return ["content"]; // Compatibility routes load the shared data before redirecting.
   if (view === "building") return ["building", "goods"];
   if (view === "goods") return ["goods"];
   return [];
@@ -119,7 +121,7 @@ async function ensureDataChunksForRoute() {
 
 function routeView() {
   const segment = location.hash.replace(/^#\/?/, "").split("/")[0];
-  if (["country", "culture", "region", "company", "ideology", "interest-group", "law", "technology", "achievement", "event", "building", "goods"].includes(segment)) return segment;
+  if (["country", "culture", "region", "company", "ideology", "interest-group", "law", "technology", "achievement", "event", "journal", "decision", "content", "building", "goods"].includes(segment)) return segment;
   if (["news", "changelog"].includes(segment)) return segment;
   if (["state-region", "strategic-region", "geographic-region"].includes(segment)) return "region";
   return "home";
@@ -219,6 +221,7 @@ function loadScriptValue(src, globalName) {
 
 function applyLoadedDataset(nextData, nextMapData, options = {}) {
   data = nextData || {};
+  globalSearchDetailCache = null;
   countries = data.countries || [];
   cultures = data.cultures || [];
   cultureTraits = data.cultureTraits || [];
@@ -236,7 +239,13 @@ function applyLoadedDataset(nextData, nextMapData, options = {}) {
   technologies = data.technologies || [];
   technologyEras = data.technologyEras || [];
   achievements = data.achievements || [];
-  events = data.events || [];
+  events = data.events || data.contentEvents || [];
+  journalEntries = data.journalEntries || [];
+  journalEntryGroups = data.journalEntryGroups || [];
+  contentEvents = data.contentEvents || [];
+  decisions = data.decisions || [];
+  contentByCountry = data.contentByCountry || {};
+  if (standaloneSiteConfig && data.contentEvents?.length) events = data.contentEvents;
   buildings = data.buildings || [];
   buildingGroups = data.buildingGroups || [];
   productionMethodGroups = data.productionMethodGroups || [];
@@ -260,7 +269,8 @@ function applyLoadedDataset(nextData, nextMapData, options = {}) {
   lawGroupByKey = new Map(lawGroups.map((group) => [group.key, group]));
   technologyByKey = new Map(technologies.map((technology) => [technology.key, technology]));
   achievementByKey = new Map(achievements.map((achievement) => [achievement.key, achievement]));
-  eventByKey = new Map(events.map((event) => [event.key, event]));
+  eventByKey = new Map(events.map((event) => [event.key || event.id, { ...event, key: event.key || event.id, script: event.script || { trigger: event.trigger_raw || "", immediate: event.immediate_raw || "" }, loc: event.loc || { title: event.title_key, desc: event.desc_key, flavor: event.flavor_key, options: Object.fromEntries((event.options || []).map((option) => [option.name_key, option.name_key])) } }]));
+  events = [...eventByKey.values()];
   buildingRecordByKey = new Map(buildings.map((building) => [building.key, building]));
   buildingGroupByKey = new Map(buildingGroups.map((group) => [group.key, group]));
   productionMethodGroupByKey = new Map(productionMethodGroups.map((group) => [group.key, group]));
@@ -401,6 +411,7 @@ function resetDatasetState() {
   state.selectedGlobalResult = "";
   if (els.searchInput) els.searchInput.value = "";
   if (els.globalSearchDialogInput) els.globalSearchDialogInput.value = "";
+  if (els.globalSearchDetailedToggle) els.globalSearchDetailedToggle.checked = state.globalSearchDetailed;
   if (els.globalSearchLegacyToggle) els.globalSearchLegacyToggle.checked = false;
   hasInitializedFilterSections = false;
 }

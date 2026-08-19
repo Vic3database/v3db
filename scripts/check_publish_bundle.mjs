@@ -43,13 +43,13 @@ for (const file of [...appSections, ...styleSections]) requiredFiles.add(file);
 if (!config) {
   failures.push("site/versions.js does not define window.VIC3_VERSION_CONFIG");
 } else {
-  if (config.default_version !== "1.13.10") {
-    failures.push(`default_version should be 1.13.10, got ${config.default_version || ""}`);
+  if (config.default_version !== "1.13.11") {
+    failures.push(`default_version should be 1.13.11, got ${config.default_version || ""}`);
   }
 
   const versions = config.versions || [];
-  if (versions.length !== 2 || !versions.some((item) => item.version === "1.13.10") || !versions.some((item) => item.version === "1.13.9")) {
-    failures.push(`versions should contain 1.13.10 and 1.13.9, got ${versions.map((item) => item.version).join(", ")}`);
+  if (versions.length !== 3 || !versions.some((item) => item.version === "1.13.11") || !versions.some((item) => item.version === "1.13.10") || !versions.some((item) => item.version === "1.13.9")) {
+    failures.push(`versions should contain 1.13.11, 1.13.10, and 1.13.9, got ${versions.map((item) => item.version).join(", ")}`);
   }
 
   for (const entry of versions) {
@@ -62,7 +62,7 @@ if (!config) {
   }
 }
 
-const defaultVersion = config?.default_version || "1.13.10";
+const defaultVersion = config?.default_version || "1.13.11";
 const data = readChunkedData(path.join(siteRoot, "versions", defaultVersion), defaultVersion);
 const buildingIconFileByKey = readAppObject("buildingIconFileByKey");
 const companyDlcOptions = readAppArray("companyDlcOptions");

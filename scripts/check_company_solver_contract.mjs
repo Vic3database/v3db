@@ -48,7 +48,7 @@ assert.match(solver, /catch \(error\)/);
 assert.match(solver, /COMPANY_SOLVER_CORE/);
 assert.match(solver, /runCompanySolverFallback/);
 assert.match(solver, /solveCompanyCombinationsAsync/);
-assert.match(solver, /companies\.length > 0 && \(Boolean\(standaloneSiteConfig\) \|\| loadedDataVersion === "1\.13\.10"\)/, "solver must support base 1.13.10 and standalone VC data");
+assert.match(solver, /companies\.length > 0 && \(Boolean\(standaloneSiteConfig\) \|\| loadedDataVersion === "1\.13\.11"\)/, "solver must support base 1.13.11 and standalone VC data");
 assert.match(solver, /worker\.terminate\(\);[\s\S]*runCompanySolverFallback/);
 assert.match(read("site/app/ui.js"), /typeof companySolverAvailable === ["']function["']/);
 for (const marker of ["data-company-solver-building", "data-company-solver-run", "data-company-solver-page", "data-company-solver-open"]) {

@@ -6,7 +6,7 @@ import { readSiteAppSource } from "./site_frontend_sources.mjs";
 
 const root = process.cwd();
 const outputs = [
-  "site/versions/1.13.10",
+  "site/versions/1.13.11",
   "site/vc",
   "Victorian Century Database",
 ];
@@ -59,8 +59,9 @@ const app = readSiteAppSource(root);
 const zh = fs.readFileSync(path.join(root, "site", "locales", "ui.zh-Hans.js"), "utf8");
 const en = fs.readFileSync(path.join(root, "site", "locales", "ui.en.js"), "utf8");
 assert.match(html, /id="globalSearchDetailedToggle"/, "global search must expose a detailed-search toggle");
-assert.match(html, /styles\.css\?v=20260816-global-search-row-height1/, "styles.css must use the global-search-row-height cache version");
-for (const asset of ["locales/manifest.js", "app/runtime.js", "app/ui.js"]) {
+assert.match(html, /styles\.css\?v=20260819-company-usage-collapse1/, "styles.css must use the current stylesheet cache version");
+assert.match(html, /locales\/manifest\.js\?v=20260819-company-overlap1/, "locales manifest must use the current cache version");
+for (const asset of ["app/runtime.js", "app/ui.js"]) {
   assert.match(html, new RegExp(`${asset.replaceAll(".", "\\.")}\\?v=20260816-global-content-search1`), `${asset} must use the global-content-search cache version`);
 }
 for (const asset of ["app/boards.js", "app/presentation.js"]) {

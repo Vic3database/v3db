@@ -131,10 +131,10 @@ function renderHomeBoard() {
     { category: "economy", label: "nav.building", view: "building", icon: "assets/home/manufacturies.png" },
     { category: "economy", label: "nav.goods", view: "goods", icon: "assets/home/grand_strategy_games_prestige.png" },
     { category: "technology", label: "nav.technology", view: "technology", icon: "assets/home/academia.png" },
+    { category: "game", label: "nav.journal", view: "journal", icon: "assets/event-icons/event_icons/event_default.webp" },
+    { category: "game", label: "nav.event", view: "event", icon: "assets/event-icons/event_icons/event_protest.webp" },
+    { category: "game", label: "nav.decision", view: "decision", icon: "assets/event-icons/event_icons/event_default_option.webp" },
     { category: "game", label: "nav.achievement", view: "achievement", icon: "assets/home/icon_achievements_enabled.png" },
-    { category: "game", label: "nav.event", view: "event", icon: "assets/home/event_portrait.png" },
-    { category: "game", label: "nav.journal", view: "journal", icon: "assets/home/event_portrait.png" },
-    { category: "game", label: "nav.decision", view: "decision", icon: "assets/home/event_default.png" },
   ];
   const availableEntries = entries;
   const categories = [

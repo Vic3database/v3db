@@ -60,12 +60,12 @@ assert.match(functionSource(mapSource, "drawMapLabels"), /"subsistenceBuildings"
 assert.match(functionSource(mapSource, "mapTooltipRowsForView"), /state\.mapMode === "subsistenceBuildings"/, "the subsistence map must use dedicated tooltip rows");
 assert.match(mapStylesSource, /\.subsistence-building-map-legend/, "the subsistence-building legend must have responsive styles");
 assert.match(mapStylesSource, /linear-gradient\(90deg, var\(--subsistence-building-map-color-low\), var\(--subsistence-building-map-color-high\)\)/, "each legend entry must visibly show its arable-land color gradient");
-assert.match(indexSource, /styles\.css\?v=20260806-subsistence-polish1/, "main entry must invalidate the updated subsistence-map styles");
-assert.match(indexSource, /app\/runtime\.js\?v=20260806-subsistence-polish1/, "main entry must invalidate the updated subsistence-map runtime");
-assert.match(indexSource, /app\/i18n\.js\?v=20260806-subsistence-polish1/, "main entry must invalidate the updated subsistence-map localization loader");
-assert.match(indexSource, /app\/filters\.js\?v=20260806-subsistence-polish1/, "main entry must invalidate the resource-filter ordering");
-assert.match(indexSource, /app\/components\.js\?v=20260805-subsistence-gradient1/, "main entry must invalidate the updated subsistence-map components");
-assert.match(indexSource, /app\/ui\.js\?v=20260805-subsistence-map1/, "main entry must invalidate subsistence-map UI");
+assert.match(indexSource, /styles\.css\?v=20260819-company-usage-collapse1/, "main entry must invalidate the current shared styles");
+assert.match(indexSource, /app\/runtime\.js\?v=20260816-global-content-search1/, "main entry must invalidate the current runtime");
+assert.match(indexSource, /app\/i18n\.js\?v=20260811-goods-needs2/, "main entry must invalidate the current localization loader");
+assert.match(indexSource, /app\/filters\.js\?v=20260818-company-filter-exclusions1/, "main entry must invalidate the current resource filters");
+assert.match(indexSource, /app\/components\.js\?v=20260809-global-search-media1/, "main entry must invalidate the current components");
+assert.match(indexSource, /app\/ui\.js\?v=20260816-global-content-search1/, "main entry must invalidate the current UI");
 assert.match(indexSource, /app\/map\.js\?v=20260806-subsistence-polish1/, "main entry must invalidate the updated subsistence-map script");
 
 console.log(JSON.stringify({ subsistence_building_map: "entry-ok", buildingTypes: actualBuildingKeys }, null, 2));

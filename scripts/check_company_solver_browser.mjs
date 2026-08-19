@@ -17,7 +17,7 @@ try {
   for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
     const page = await openPage(viewport);
     try {
-      await page.goto(server.url + "/index.html?version=1.13.10&lang=zh-Hans#/company/solver");
+      await page.goto(server.url + "/index.html?version=1.13.11&lang=zh-Hans#/company/solver");
       await page.waitFor(() => document.body.dataset.view === "company" && document.querySelectorAll("[data-company-solver-building]").length === 48, "solver entry");
       assert.equal(await page.evaluate(() => Boolean(document.querySelector("#companySolverTopbarButton"))), false, "solver must not be in topbar");
       await page.click('[data-nav-view="company"]');
@@ -145,7 +145,7 @@ try {
   }
   const heavyFilePage = await openPage({ width: 1200, height: 800 });
   try {
-    const fileUrl = pathToFileURL(path.join(root, "site", "index.html")).href + "?version=1.13.10&lang=zh-Hans#/company/solver";
+    const fileUrl = pathToFileURL(path.join(root, "site", "index.html")).href + "?version=1.13.11&lang=zh-Hans#/company/solver";
     await heavyFilePage.goto(fileUrl);
     await heavyFilePage.waitFor(() => document.body.dataset.view === "company" && document.querySelectorAll("[data-company-solver-building]").length === 48, "heavy file solver entry");
     for (const key of ["building_coal_mine", "building_iron_mine", "building_steel_mill", "building_tooling_workshop"]) await heavyFilePage.click("[data-company-solver-building='" + key + "']");
@@ -158,7 +158,7 @@ try {
   }
   const englishPage = await openPage({ width: 1200, height: 800 });
   try {
-    await englishPage.goto(server.url + "/index.html?version=1.13.10&lang=en#/company/solver");
+    await englishPage.goto(server.url + "/index.html?version=1.13.11&lang=en#/company/solver");
     await englishPage.click('[data-nav-view="company"]');
     await englishPage.waitFor(() => document.querySelector("#companySolverEntry:not([hidden])"), "localized solver entry");
     await englishPage.waitFor(() => document.querySelector("#companySolverEntry")?.textContent.includes("Industry combinations"), "localized solver entry text");

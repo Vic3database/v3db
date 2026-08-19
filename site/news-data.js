@@ -1,5 +1,21 @@
 window.VIC3_NEWS_DATA = [
   {
+    "id": "patch-1.13.11",
+    "category": "patch",
+    "label": "版本更新",
+    "title": "1.13.11",
+    "date": "2026-08-19",
+    "url": "https://steamstore-a.akamaihd.net/news/externalpost/steam_community_announcements/1841579228662409"
+  },
+  {
+    "id": "patch-1.13.10",
+    "category": "patch",
+    "label": "版本更新",
+    "title": "1.13.10",
+    "date": "2026-08-12",
+    "url": "https://vic3.paradoxwikis.com/Patch_1.13.X#1.13.10"
+  },
+  {
     "id": "patch-1.13.9",
     "category": "patch",
     "label": "版本更新",

@@ -2,11 +2,12 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import vm from "node:vm";
 
-const file = "site/versions/1.13.9/data-events.js";
+const version = process.argv[2] || "1.13.9";
+const file = `site/versions/${version}/data-events.js`;
 const sandbox = { window: {} };
 vm.runInNewContext(fs.readFileSync(file, "utf8"), sandbox, { filename: file });
 const events = sandbox.window.VIC3_DATA_CHUNK?.events || [];
-assert.equal(events.length, 2236, "event tag contract must inspect all game events");
+assert.equal(events.length, version === "1.13.9" ? 2236 : 2239, "event tag contract must inspect all game events");
 
 const allowed = ["legislation", "journal", "character", "politics", "war-diplomacy", "economy-production", "technology", "society-culture", "disaster-disease", "country-territory", "election"];
 const counts = Object.fromEntries(allowed.map((tag) => [tag, 0]));

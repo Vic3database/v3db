@@ -6,20 +6,10 @@ const GROUP_COVERAGE_THRESHOLD = 0.8;
 // These namespaces are named for a country-specific historical chain even when
 // the country scope is carried by an on-action or a journal entry rather than
 // written as c:TAG in each event.
-const COUNTRY_SPECIFIC_NAMESPACES = new Set([
-  "acw_events",
-  "acw_je_events",
-  "algeria_events",
-  "federation_of_india",
-  "fsa_events",
-]);
-const COUNTRY_SPECIFIC_NAMESPACE_TAGS = {
-  acw_events: ["CSA", "FSA", "USA"],
-  acw_je_events: ["CSA", "FSA", "USA"],
-  algeria_events: ["ALD", "FRA"],
-  federation_of_india: ["BHT", "BIC"],
-  fsa_events: ["FSA", "USA"],
-};
+const COUNTRY_SPECIFIC_NAMESPACES = new Set(Object.keys(STABLE_EVENT_GROUP_COUNTRIES));
+const COUNTRY_SPECIFIC_NAMESPACE_TAGS = Object.fromEntries(
+  Object.entries(STABLE_EVENT_GROUP_COUNTRIES).map(([namespace, entry]) => [namespace, entry.countries]),
+);
 
 export function extractCountryTags(text) {
   const result = new Set();
@@ -112,3 +102,4 @@ function addMapSet(map, key, value) {
   values.add(value);
   map.set(key, values);
 }
+import { STABLE_EVENT_GROUP_COUNTRIES } from "./content_country_scope_overrides.mjs";

@@ -17,6 +17,7 @@ assertFile(path.join(targetSite, "map-data.js"), "VC map index");
 assertFile(path.join(targetSite, "assets", "map", "provinces.png"), "VC province map");
 
 const copied = [];
+fs.rmSync(path.join(targetSite, "app", "content.js"), { force: true });
 copyDirectory(path.join(sourceSite, "app"), path.join(targetSite, "app"), copied);
 copyDirectory(path.join(sourceSite, "styles"), path.join(targetSite, "styles"), copied);
 copyDirectory(path.join(sourceSite, "locales"), path.join(targetSite, "locales"), copied);
@@ -24,6 +25,7 @@ copyFile(path.join(sourceSite, "styles.css"), path.join(targetSite, "styles.css"
 copyFile(path.join(sourceSite, "victorian-century-theme.css"), path.join(targetSite, "vc-theme.css"), copied);
 copyAssets(path.join(sourceSite, "assets"), path.join(targetSite, "assets"), copied);
 runEconomyAssetBuild(args.python, args.vcDatabase);
+runContentBuild(args.vcDatabase);
 if (!args.skipVcAssets) runVcAssetSync(args.python, args.vcDatabase);
 writeStandaloneFiles(copied);
 publishStandaloneSite(copied);
@@ -125,7 +127,7 @@ function buildStandaloneHtml(sourceHtml) {
           <img class="lucide-icon" src="assets/lucide/icons/milestone.svg" alt="" aria-hidden="true">
           <select id="standaloneLibrarySelect" aria-label="资料库切换" data-i18n-aria-label="ui.librarySwitch">
             <option value="victorian-century" data-i18n="library.victorianCentury" selected>Victorian Century</option>
-            <option value="vic3" data-i18n="library.vic3">Victoria 3 原版 1.13.10</option>
+            <option value="vic3" data-i18n="library.vic3">Victoria 3 原版 1.13.11</option>
           </select>
         </label>`)
     .replace(/\s*<label class="global-search-legacy-toggle">[\s\S]*?<\/label>/, "")
@@ -166,6 +168,11 @@ function runVcAssetSync(explicitPython, explicitDatabase) {
   if (result.status !== 0) {
     throw new Error(`VC asset sync failed using ${python}:\n${result.stdout}\n${result.stderr}`.trim());
   }
+}
+
+function runContentBuild(explicitDatabase) {
+  const result = spawnSync(process.execPath, [path.join(root, "scripts", "build_victorian_century_content_site_data.mjs"), "--database", path.resolve(explicitDatabase || path.join(root, "database", "victorian_century")), "--site", targetSite], { cwd: root, encoding: "utf8", shell: false });
+  if (result.error || result.status !== 0) throw new Error(`VC content site build failed:\n${result.error?.message || ""}\n${result.stdout}\n${result.stderr}`.trim());
 }
 
 function runEconomyAssetBuild(explicitPython, explicitDatabase) {

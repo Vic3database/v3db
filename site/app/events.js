@@ -1,5 +1,5 @@
 function eventBoardAvailable() {
-  return Boolean(dataIndex?.chunks?.event || events.length);
+  return Boolean(dataIndex?.chunks?.event || (standaloneSiteConfig && dataIndex?.chunks?.content) || events.length);
 }
 
 function eventTypeName(type) {
@@ -17,10 +17,7 @@ function eventFlavorKindName(kind) {
 }
 
 function eventCountryScopeHtml(event) {
-  const countriesInScope = (event.country_scope || []).map((tag) => countryRefLabel({ tag })).filter(Boolean);
-  return countriesInScope.length
-    ? `<section class="event-country-scope"><h3>${escapeHtml(t("board.event.countryScope"))}</h3><div class="event-country-scope-list">${countriesInScope.map((name) => `<span>${escapeHtml(name)}</span>`).join("")}</div></section>`
-    : "";
+  return relatedCountriesHtml(event);
 }
 
 const EVENT_TAG_KEYS = ["legislation", "journal", "character", "politics", "war-diplomacy", "economy-production", "technology", "society-culture", "disaster-disease", "country-territory", "election"];
@@ -33,12 +30,20 @@ function eventIconUrl(event) {
 }
 
 function eventText(event, field, fallback = "") {
-  return event?.loc?.[field] ? t(event.loc[field], fallback) : fallback;
+  const locale = localeRuntime.current === "zh-Hans" ? "zhHans" : localeRuntime.current;
+  const embedded = event?.locales?.[locale]?.[field] || event?.locales?.en?.[field];
+  if (embedded) return embedded;
+  if (event?.loc?.[field]) return translateMessage(event.loc[field], fallback);
+  return fallback;
 }
 
 function eventOptionText(event, option, index) {
+  const locale = localeRuntime.current === "zh-Hans" ? "zhHans" : localeRuntime.current;
+  const embedded = event?.locales?.[locale]?.options?.[option.name_key] || event?.locales?.en?.options?.[option.name_key];
+  if (embedded) return embedded;
   const key = event.loc?.options?.[option.name_key || `option_${index + 1}`];
-  return key ? t(key, option.name_key || t("board.event.unnamedOption")) : (option.name_key || t("board.event.unnamedOption"));
+  if (key) return translateMessage(key, "") || t("board.event.unnamedOption");
+  return t("board.event.unnamedOption");
 }
 
 function eventModifierLabel(effect) {
@@ -62,11 +67,11 @@ function eventModifierEffectsHtml(option) {
 
 function eventOptionDetailHtml(event, option, index) {
   const label = eventOptionText(event, option, index);
-  return `<article class="event-option-card"><header><span class="event-option-number">${index + 1}</span><strong>${escapeHtml(label)}</strong>${option.default_option ? `<span class="event-option-default">${escapeHtml(t("board.event.defaultOption"))}</span>` : ""}</header>${eventModifierEffectsHtml(option)}<details class="event-option-script"><summary>查看原始脚本</summary><pre>${escapeHtml(option.script || t("board.event.noScript"))}</pre></details></article>`;
+  return `<article class="event-option-card"><header><span class="event-option-number">${index + 1}</span><strong>${readableContentHtml(label)}</strong>${option.default_option ? `<span class="event-option-default">${escapeHtml(t("board.event.defaultOption"))}</span>` : ""}</header>${eventModifierEffectsHtml(option)}<details class="event-option-script"><summary>查看原始脚本</summary><pre>${escapeHtml(option.script || t("board.event.noScript"))}</pre></details></article>`;
 }
 
 function eventSearchText(event) {
-  return [event.key, event.script_key, event.event_type, eventTypeName(event.event_type), eventText(event, "title", event.title_key || event.key), eventText(event, "desc", event.desc_key || ""), eventText(event, "flavor", event.flavor_key || ""), event.source_file, event.script?.trigger, event.script?.immediate, ...(event.options || []).flatMap((option, index) => [option.name_key, eventOptionText(event, option, index), option.script])].filter(Boolean).join(" ").toLowerCase();
+  return [event.key || event.id, event.script_key, event.event_type, eventTypeName(event.event_type), eventText(event, "title", event.key || event.id), eventText(event, "desc", ""), eventText(event, "flavor", ""), event.source_file, event.script?.trigger || event.trigger_raw, event.script?.immediate || event.immediate_raw, ...(event.options || []).flatMap((option, index) => [option.name_key, eventOptionText(event, option, index), option.script || option.raw])].filter(Boolean).join(" ").toLowerCase();
 }
 
 function eventVisible(event) {
@@ -87,7 +92,9 @@ function eventGroupName(event) {
 
 function eventGroupTitle(eventOrGroup) {
   const group = typeof eventOrGroup === "string" ? eventOrGroup : eventGroupName(eventOrGroup);
-  return t(`event-group:${group}`, group);
+  const row = typeof eventOrGroup === "string" ? events.find((event) => eventGroupName(event) === group) : eventOrGroup;
+  const locale = localeRuntime.current === "zh-Hans" ? "zhHans" : localeRuntime.current;
+  return row?.group_locales?.[locale] || row?.group_locales?.en || t(`event-group:${group}`, group);
 }
 /* const names = {
     "1848": "1848年革命",
@@ -265,6 +272,7 @@ function renderEventGroupNavigation(groups) {
 
 function renderEventFilterOptions() {
   if (!els.eventTypeFilters || !els.eventFlavorFilters || !els.eventTagFilters) return;
+  if (els.eventCoverage) els.eventCoverage.textContent = t("board.event.coverage", { count: localizedNumber(events.length) });
   const types = [...new Set(events.map((event) => event.event_type || "(empty)"))].sort((left, right) => localizedCompare(eventTypeName(left), eventTypeName(right)));
   const allPressed = state.eventTypes.size === 0;
   els.eventTypeFilters.innerHTML = `<button class="filter-token event-type-filter" type="button" data-event-type="" aria-pressed="${allPressed}">${escapeHtml(t("board.event.allTypes"))}</button>${types.map((type) => `<button class="filter-token event-type-filter" type="button" data-event-type="${escapeHtml(type)}" aria-pressed="${state.eventTypes.has(type)}">${escapeHtml(eventTypeName(type))}</button>`).join("")}`;
@@ -340,10 +348,10 @@ function renderEventBoard() {
 
 /* function eventCardHtml(event) {
   const selected = event.key === state.selectedEvent;
-  const title = eventText(event, "title", event.title_key || event.key);
+  const title = eventText(event, "title", event.key || event.id);
   const icon = eventIconUrl(event);
-  const options = (event.options || []).map((option, index) => `<span class="event-option" data-event-option>${escapeHtml(eventOptionText(event, option, index))}</span>`).join("");
-  return `<button class="event-card" type="button" data-event-id="${escapeHtml(event.key)}" data-event-kind="${eventFlavorKind(event)}" aria-pressed="${selected}"><span class="event-card-icon" aria-hidden="true">${icon ? `<img class="event-icon" src="${escapeHtml(icon)}" alt="">` : "◇"}</span><span class="event-card-copy"><strong>${escapeHtml(title)}</strong><small class="event-card-meta">${escapeHtml(event.key)} · ${escapeHtml(eventTypeName(event.event_type))}</small>${options ? `<span class="event-card-options">${options}</span>` : ""}</span></button>`;
+  const options = (event.options || []).map((option, index) => `<span class="event-option" data-event-option>${readableContentHtml(eventOptionText(event, option, index))}</span>`).join("");
+  return `<button class="event-card" type="button" data-event-id="${escapeHtml(event.key)}" data-event-kind="${eventFlavorKind(event)}" aria-pressed="${selected}"><span class="event-card-icon" aria-hidden="true">${icon ? `<img class="event-icon" src="${escapeHtml(icon)}" alt="">` : "◇"}</span><span class="event-card-copy"><strong>${readableContentHtml(title)}</strong><small class="event-card-meta">${escapeHtml(event.key)} · ${escapeHtml(eventTypeName(event.event_type))}</small>${options ? `<span class="event-card-options">${options}</span>` : ""}</span></button>`;
 } */
 
 function renderEventDetail(event) {
@@ -352,13 +360,13 @@ function renderEventDetail(event) {
     return;
   }
   const scriptSections = [["trigger", "board.event.trigger"], ["immediate", "board.event.immediate"]].filter(([key]) => event.script?.[key]);
-  const title = eventText(event, "title", event.title_key || event.key);
+  const title = eventText(event, "title", event.key || event.id);
   const desc = eventText(event, "desc", event.desc_key || "");
   const flavor = eventText(event, "flavor", event.flavor_key || "");
   const eventIds = event.triggered_event_ids || [];
   const image = [event.event_image?.video && `${t("board.event.video")}: ${event.event_image.video}`, event.event_image?.texture && `${t("board.event.texture")}: ${event.event_image.texture}`].filter(Boolean);
   const icon = eventIconUrl(event);
-  els.detail.innerHTML = `<article class="event-detail"><header class="event-detail-head"><span class="event-detail-icon" aria-hidden="true">${icon ? `<img class="event-icon" src="${escapeHtml(icon)}" alt="">` : "◇"}</span><div><p>${escapeHtml(eventTypeName(event.event_type))}</p><h2>${escapeHtml(title)}</h2><code>${escapeHtml(event.key)}</code></div><button type="button" data-event-back aria-label="${escapeHtml(t("board.event.closeDetail"))}">×</button></header><div class="event-detail-meta"><span>${escapeHtml(t("board.event.placement", { value: event.placement || t("board.event.unspecified") }))}</span>${event.duration ? `<span>${escapeHtml(t("board.event.duration", { value: event.duration }))}</span>` : ""}${event.hidden ? `<span>${escapeHtml(t("board.event.hidden"))}</span>` : ""}</div>${desc ? `<section class="event-description"><h3>${escapeHtml(t("board.event.description"))}</h3><p>${escapeHtml(desc)}</p></section>` : ""}${flavor ? `<section class="event-flavor-section"><h3>${escapeHtml(t("board.event.flavor"))}</h3><p class="event-flavor">${escapeHtml(flavor)}</p></section>` : ""}${image.length ? `<section><h3>${escapeHtml(t("board.event.eventImage"))}</h3><div class="event-image-meta">${image.map((item) => `<code>${escapeHtml(item)}</code>`).join("")}</div></section>` : ""}<section class="event-source"><h3>${escapeHtml(t("board.event.source"))}</h3><code>${escapeHtml(event.source_file)}:${escapeHtml(event.source_line)}</code></section>${eventIds.length ? `<section><h3>${escapeHtml(t("board.event.triggeredEvents"))}</h3><div class="event-event-ids">${eventIds.map((id) => `<code>${escapeHtml(id)}</code>`).join("")}</div></section>` : ""}<section class="event-script-sections"><h3>${escapeHtml(t("board.event.scripts"))}</h3>${scriptSections.map(([key, label]) => `<details open><summary>${escapeHtml(t(label))}</summary><pre>${escapeHtml(event.script[key])}</pre></details>`).join("") || `<p>${escapeHtml(t("board.event.noScripts"))}</p>`}</section><section class="event-options"><h3>${escapeHtml(t("board.event.optionsTitle", { count: event.options.length }))}</h3><div class="event-option-card-list">${event.options.map((option, index) => eventOptionDetailHtml(event, option, index)).join("") || `<p>${escapeHtml(t("board.event.noOptions"))}</p>`}</div></section></article>`;
+  els.detail.innerHTML = `<article class="event-detail"><header class="event-detail-head"><span class="event-detail-icon" aria-hidden="true">${icon ? `<img class="event-icon" src="${escapeHtml(icon)}" alt="">` : "◇"}</span><div><p>${escapeHtml(eventTypeName(event.event_type))}</p><h2>${readableContentHtml(title)}</h2><code>${escapeHtml(event.key)}</code></div><button type="button" data-event-back aria-label="${escapeHtml(t("board.event.closeDetail"))}">×</button></header><div class="event-detail-meta"><span>${escapeHtml(t("board.event.placement", { value: event.placement || t("board.event.unspecified") }))}</span>${event.duration ? `<span>${escapeHtml(t("board.event.duration", { value: event.duration }))}</span>` : ""}${event.hidden ? `<span>${escapeHtml(t("board.event.hidden"))}</span>` : ""}</div>${desc ? `<section class="event-description"><h3>${escapeHtml(t("board.event.description"))}</h3><p>${readableContentHtml(desc)}</p></section>` : ""}${flavor ? `<section class="event-flavor-section"><h3>${escapeHtml(t("board.event.flavor"))}</h3><p class="event-flavor">${readableContentHtml(flavor)}</p></section>` : ""}${image.length ? `<section><h3>${escapeHtml(t("board.event.eventImage"))}</h3><div class="event-image-meta">${image.map((item) => `<code>${escapeHtml(item)}</code>`).join("")}</div></section>` : ""}<section class="event-source"><h3>${escapeHtml(t("board.event.source"))}</h3><code>${escapeHtml(event.source_file)}:${escapeHtml(event.source_line)}</code></section>${eventIds.length ? `<section><h3>${escapeHtml(t("board.event.triggeredEvents"))}</h3><div class="event-event-ids">${eventIds.map((id) => `<code>${escapeHtml(id)}</code>`).join("")}</div></section>` : ""}<section class="event-script-sections"><h3>${escapeHtml(t("board.event.scripts"))}</h3>${scriptSections.map(([key, label]) => `<details open><summary>${escapeHtml(t(label))}</summary><pre>${escapeHtml(event.script[key])}</pre></details>`).join("") || `<p>${escapeHtml(t("board.event.noScripts"))}</p>`}</section><section class="event-options"><h3>${escapeHtml(t("board.event.optionsTitle", { count: event.options.length }))}</h3><div class="event-option-card-list">${event.options.map((option, index) => eventOptionDetailHtml(event, option, index)).join("") || `<p>${escapeHtml(t("board.event.noOptions"))}</p>`}</div></section></article>`;
   els.detail.querySelector(".event-detail-head")?.insertAdjacentHTML("afterend", `<div class="event-detail-tags">${(event.tags || []).map(eventTagHtml).join("")}</div>`);
   els.detail.querySelector(".event-detail-meta")?.insertAdjacentHTML("beforeend", `<span>${escapeHtml(eventFlavorKindName(eventFlavorKind(event)))}</span>`);
   els.detail.querySelector(".event-detail-meta")?.insertAdjacentHTML("afterend", eventCountryScopeHtml(event));
@@ -367,8 +375,8 @@ function renderEventDetail(event) {
 
 function eventCardHtml(event) {
   const selected = event.key === state.selectedEvent;
-  const title = eventText(event, "title", event.title_key || event.key);
+  const title = eventText(event, "title", event.key || event.id);
   const icon = eventIconUrl(event);
-  const options = (event.options || []).map((option, index) => `<span class="event-option" data-event-option>${escapeHtml(eventOptionText(event, option, index))}</span>`).join("");
-  return `<button class="event-card" type="button" data-event-id="${escapeHtml(event.key)}" data-event-kind="${eventFlavorKind(event)}" aria-pressed="${selected}"><span class="event-card-icon" aria-hidden="true">${icon ? `<img class="event-icon" src="${escapeHtml(icon)}" alt="">` : "◇"}</span><span class="event-card-copy"><strong>${escapeHtml(title)}</strong><small class="event-card-meta">${escapeHtml(event.key)} · ${escapeHtml(eventTypeName(event.event_type))}</small><span class="event-card-markers">${(event.tags || []).map(eventTagHtml).join("")}</span>${options ? `<span class="event-card-options">${options}</span>` : ""}</span></button>`;
+  const options = (event.options || []).map((option, index) => `<span class="event-option" data-event-option>${readableContentHtml(eventOptionText(event, option, index))}</span>`).join("");
+  return `<button class="event-card" type="button" data-event-id="${escapeHtml(event.key)}" data-event-kind="${eventFlavorKind(event)}" aria-pressed="${selected}"><span class="event-card-icon" aria-hidden="true">${icon ? `<img class="event-icon" src="${escapeHtml(icon)}" alt="">` : "◇"}</span><span class="event-card-copy"><strong>${readableContentHtml(title)}</strong><small class="event-card-meta">${escapeHtml(event.key)} · ${escapeHtml(eventTypeName(event.event_type))}</small><span class="event-card-markers">${(event.tags || []).map(eventTagHtml).join("")}</span>${options ? `<span class="event-card-options">${options}</span>` : ""}</span></button>`;
 }

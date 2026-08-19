@@ -200,10 +200,12 @@
 
 ## 更新日志
 
-[Steam：Victoria 3 新闻与公告](https://store.steampowered.com/news/app/529340)收录官方发布公告。本表按 Wiki 的版本历史整理，涵盖正式版 1.0.3 至 1.13.9 的 77 次更新；版本号链接通向相应的更新说明页。
+[Steam：Victoria 3 新闻与公告](https://store.steampowered.com/news/app/529340)收录官方发布公告。本表按 Wiki 的版本历史整理，涵盖正式版 1.0.3 至 1.13.11 的 79 次更新；版本号链接通向相应的更新说明页。
 
 | 版本 | 发布日期 | 校验码 | 类型及说明 |
 | --- | --- | --- | --- |
+| [1.13.11](https://steamstore-a.akamaihd.net/news/externalpost/steam_community_announcements/1841579228662409) | 2026-08-19 | a47f | 热修复；本站当前原版数据基线 |
+| [1.13.10](https://vic3.paradoxwikis.com/Patch_1.13.X#1.13.10) | 2026-08-12 | — | 版本更新；此前原版数据基线 |
 | [1.13.9](https://vic3.paradoxwikis.com/Patch_1.13.X#1.13.9) | 2026-06-25 | b2e3 | 热修复 |
 | [1.13.8](https://vic3.paradoxwikis.com/Patch_1.13.X#1.13.8) | 2026-05-28 | ce22 | 热修复 |
 | [1.13.7](https://vic3.paradoxwikis.com/Patch_1.13.X#1.13.7) | 2026-05-27 | f369 | 热修复 |

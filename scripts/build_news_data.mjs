@@ -17,6 +17,8 @@ const items = definitions.flatMap((definition) => parseSection(source, definitio
 assert(items.some((item) => item.id === "diary-1"), "developer diary #1 is missing");
 assert(items.some((item) => item.id === "diary-184"), "developer diary #184 is missing");
 assert(items.some((item) => item.id === "patch-1.13.9"), "patch 1.13.9 is missing");
+assert(items.some((item) => item.id === "patch-1.13.10"), "patch 1.13.10 is missing");
+assert(items.some((item) => item.id === "patch-1.13.11"), "patch 1.13.11 is missing");
 assert(items.some((item) => item.id === "other-76"), "official video #76 is missing");
 
 items.sort((left, right) => right.date.localeCompare(left.date) || left.id.localeCompare(right.id));

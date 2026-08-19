@@ -28,26 +28,26 @@ try {
   assert.deepEqual(await page.locator("#librarySelect option").evaluateAll((options) => (
     options.map((option) => ({ value: option.value, text: option.textContent.trim() }))
   )), [
-    { value: "vic3", text: "Victoria 3 原版 1.13.9" },
+    { value: "vic3", text: "Victoria 3 原版 1.13.11" },
     { value: "victorian-century", text: "Victorian Century" },
   ]);
 
   await Promise.all([
-    page.waitForURL(vcUrl, { timeout: 20000 }),
+    page.waitForURL((url) => url.pathname.endsWith("/vc/index.html") && url.searchParams.get("lang") === "zh-Hans", { timeout: 20000 }),
     page.locator("#vcHomeEntry").click(),
   ]);
   await page.waitForSelector("#countryList .home-category-card", { timeout: 20000 });
   assert.equal(await page.title(), "首页 - Victorian Century Database");
 
   await Promise.all([
-    page.waitForURL(mainIndexUrl, { timeout: 20000 }),
+    page.waitForURL((url) => url.pathname.endsWith("/index.html") && url.searchParams.get("lang") === "zh-Hans", { timeout: 20000 }),
     page.selectOption("#standaloneLibrarySelect", "vic3"),
   ]);
   await page.waitForSelector("#librarySelect", { timeout: 20000 });
 
   await page.goto(homeUrl, { waitUntil: "networkidle", timeout: 45000 });
   await Promise.all([
-    page.waitForURL(vcUrl, { timeout: 20000 }),
+    page.waitForURL((url) => url.pathname.endsWith("/vc/index.html") && url.searchParams.get("lang") === "zh-Hans", { timeout: 20000 }),
     page.selectOption("#librarySelect", "victorian-century"),
   ]);
   await page.waitForSelector("#countryList .home-category-card", { timeout: 20000 });

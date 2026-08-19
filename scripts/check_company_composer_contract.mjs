@@ -26,7 +26,7 @@ assert.match(localeManifest, /locales\/ui\.zh-Hans\.js\?v=20260819-company-overl
 assert.match(localeManifest, /locales\/ui\.en\.js\?v=20260819-company-overlap1/);
 assert.match(sources, /app\/company-composer-core\.js/);
 assert.match(sources, /app\/company-composer\.js/);
-assert.match(composer, /companies\.length > 0 && \(Boolean\(standaloneSiteConfig\) \|\| loadedDataVersion === "1\.13\.10"\)/, "composer must support base 1.13.10 and standalone VC data");
+assert.match(composer, /companies\.length > 0 && \(Boolean\(standaloneSiteConfig\) \|\| loadedDataVersion === "1\.13\.11"\)/, "composer must support base 1.13.11 and standalone VC data");
 assert.match(ui, /parts\[0\] === ["']company["'] && parts\[1\] === ["']composer["']/);
 assert.match(ui, /dataset\.companyComposer/);
 assert.match(ui, /parts\[1\] === ["']composer["']/);

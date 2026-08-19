@@ -6,7 +6,7 @@ function companyComposerT(key, fallback, args = {}) {
 }
 
 function companyComposerAvailable() {
-  return companies.length > 0 && (Boolean(standaloneSiteConfig) || loadedDataVersion === "1.13.10");
+  return companies.length > 0 && (Boolean(standaloneSiteConfig) || loadedDataVersion === "1.13.11");
 }
 
 function companyComposerState() {
@@ -156,9 +156,9 @@ function renderCompanyComposerBoard() {
   if (els.companySolverDetailPane) els.companySolverDetailPane.hidden = true;
   if (!companyComposerAvailable() || !companyComposerUseCore()) {
     els.resultCount.textContent = "";
-    els.activeHint.textContent = companyComposerT("board.company.composer.unavailable", "公司建筑组合器仅支持原版 1.13.10。");
+    els.activeHint.textContent = companyComposerT("board.company.composer.unavailable", "公司建筑组合器仅支持原版 1.13.11。");
     els.countryList.className = "country-list company-composer-results";
-    els.countryList.innerHTML = `<p class="empty">${escapeHtml(companyComposerT("board.company.composer.unavailable", "公司建筑组合器仅支持原版 1.13.10。"))}</p>`;
+    els.countryList.innerHTML = `<p class="empty">${escapeHtml(companyComposerT("board.company.composer.unavailable", "公司建筑组合器仅支持原版 1.13.11。"))}</p>`;
     els.detail.innerHTML = "";
     return;
   }

@@ -10,7 +10,7 @@ const DEFAULTS = {
   appId: "529340",
   workshopId: "3219394272",
   datasetName: "Victorian Century",
-  version: "1.13.9",
+  version: "1.13.11",
   gamePath: "D:\\SteamLibrary\\steamapps\\common\\Victoria 3",
   modPath: "D:\\SteamLibrary\\steamapps\\workshop\\content\\529340\\3219394272",
   databaseDir: path.join(PROJECT_DIR, "database", "victorian_century"),
@@ -168,9 +168,20 @@ async function runUpdate(config, { skipMap }) {
   ], PROJECT_DIR);
 
   await runCommand(process.execPath, [
+    path.join(PROJECT_DIR, "scripts", "build_victorian_century_content.mjs"),
+  ], PROJECT_DIR, {
+    env: {
+      ...process.env,
+      VIC3_GAME_ROOT: resolveContentRoot(config.gamePath),
+      VICTORIAN_CENTURY_MOD_ROOT: resolveContentRoot(config.modPath),
+      VICTORIA3_VERSION: config.version,
+    },
+  });
+
+  await runCommand(process.execPath, [
     path.join(PROJECT_DIR, "scripts", "build_wiki.mjs"),
     "--database", config.databaseDir,
-    "--baseline-database", path.join(PROJECT_DIR, "database", "vic3_1.13.9"),
+    "--baseline-database", path.join(PROJECT_DIR, "database", `vic3_${config.version}`),
     "--out", config.siteDir,
   ], PROJECT_DIR);
 
@@ -195,12 +206,13 @@ async function runUpdate(config, { skipMap }) {
   ], PROJECT_DIR);
 }
 
-function runCommand(command, commandArgs, cwd) {
+function runCommand(command, commandArgs, cwd, options = {}) {
   return new Promise((resolve, reject) => {
     const child = spawn(command, commandArgs, {
       cwd,
       stdio: "inherit",
       shell: false,
+      env: options.env || process.env,
     });
     child.on("error", reject);
     child.on("close", (code) => {
