@@ -8,6 +8,7 @@
       selectedCompanies,
       buildingGroups: buildingSummary.groups,
       unclassifiedBuildingKeys: buildingSummary.unclassifiedBuildingKeys,
+      buildingSources: buildingSummary.buildingSources,
       extensionRows: extensionRows(selectedCompanies, normalizedExtensions),
       prestigeGoods: uniqueReferencedItems(selectedCompanies, "possible_prestige_goods"),
       cultures: uniqueReferencedItems(selectedCompanies, "referenced_cultures"),
@@ -39,9 +40,15 @@
 
   function summarizeBuildings(companies, selectedExtensions, buildingGroups) {
     const selectedKeys = new Set();
+    const buildingSources = {};
     for (const company of companies) {
-      for (const item of company.building_types || []) if (item?.key) selectedKeys.add(item.key);
-      if (selectedExtensions[company.key]) selectedKeys.add(selectedExtensions[company.key]);
+      const companyBuildingKeys = new Set((company.building_types || []).map((item) => item?.key).filter(Boolean));
+      if (selectedExtensions[company.key]) companyBuildingKeys.add(selectedExtensions[company.key]);
+      for (const key of companyBuildingKeys) {
+        selectedKeys.add(key);
+        if (!buildingSources[key]) buildingSources[key] = [];
+        buildingSources[key].push(company.key);
+      }
     }
     const classifiedKeys = new Set();
     const groups = [];
@@ -53,6 +60,7 @@
     return {
       groups,
       unclassifiedBuildingKeys: [...selectedKeys].filter((key) => !classifiedKeys.has(key)),
+      buildingSources,
     };
   }
 

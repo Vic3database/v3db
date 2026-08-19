@@ -1630,6 +1630,30 @@ function renderRegionMapForCurrentFilters() {
 }
 
 function renderCompanyBoard() {
+  if (state.detailKind === "companySolver") {
+    if (els.companySolverEntry) els.companySolverEntry.hidden = true;
+    if (els.companyComposerEntry) els.companyComposerEntry.hidden = true;
+    renderCompanySolverBoard();
+    return;
+  }
+  if (state.detailKind === "companyComposer") {
+    if (els.companySolverEntry) els.companySolverEntry.hidden = true;
+    if (els.companyComposerEntry) els.companyComposerEntry.hidden = true;
+    if (els.companySolverDetailPane) els.companySolverDetailPane.hidden = true;
+    renderCompanyComposerBoard();
+    return;
+  }
+  if (els.companySolverDetailPane) els.companySolverDetailPane.hidden = true;
+  if (els.companySolverEntry) {
+    const available = typeof companySolverAvailable === "function" && companySolverAvailable();
+    els.companySolverEntry.hidden = !available;
+    els.companySolverEntry.innerHTML = available ? '<button type="button" class="company-solver-entry-button" data-company-solver-entry><span><strong>' + escapeHtml(t("board.company.solverEntry", "产业组合")) + '</strong><small>' + escapeHtml(t("board.company.solverDescription", "选择希望覆盖的建筑，查找公司组合。")) + '</small></span><span aria-hidden="true">→</span></button>' : "";
+  }
+  if (els.companyComposerEntry) {
+    const available = typeof companyComposerAvailable === "function" && companyComposerAvailable();
+    els.companyComposerEntry.hidden = !available;
+    els.companyComposerEntry.innerHTML = available ? '<button type="button" class="company-solver-entry-button" data-company-composer-entry><span><strong>' + escapeHtml(t("board.company.composer.entry", "公司建筑组合器")) + '</strong><small>' + escapeHtml(t("board.company.composer.description", "选择公司并查看固定建筑、可选扩展与合并效果。")) + '</small></span><span aria-hidden="true">→</span></button>' : "";
+  }
   const filtered = companies.filter(matchesCompanyFilters).sort(sortCompanies);
   if (state.selectedCompany && !byCompany.has(state.selectedCompany)) state.selectedCompany = "";
   if (!isDetailPageRoute() && state.selectedCompany && !filtered.some((company) => company.key === state.selectedCompany)) state.selectedCompany = "";
@@ -1979,6 +2003,10 @@ function renderTechnologyDetail(technology) {
 
 function renderDetailForState() {
   const activeDetailRouteKey = detailRouteKey();
+  if (state.detailKind === "companySolver") {
+    renderCompanySolverDetail();
+    return;
+  }
   if (state.detailKind === "law" && lawByKey.has(state.selectedLaw)) {
     renderLawDetail(lawByKey.get(state.selectedLaw));
     return;

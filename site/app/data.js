@@ -99,6 +99,7 @@ function dataChunksForView(view) {
 function dataChunksForCurrentRoute() {
   const chunkKeys = dataChunksForView(routeView());
   const parts = location.hash.replace(/^#\/?/, "").split("/").filter(Boolean);
+  if (parts[0] === "company" && ["solver", "composer"].includes(parts[1])) chunkKeys.push("building", "goods");
   if (parts[0] === "region" && parts[1] === "resource") chunkKeys.push("building");
   if (parts[0] === "goods" && parts[1] === "needs") chunkKeys.push("needs");
   return [...new Set(chunkKeys)];
@@ -383,6 +384,8 @@ function resetDatasetState() {
   state.selectedStrategicRegion = "";
   state.selectedGeographicRegion = "";
   state.selectedCompany = "";
+  state.companyComposer.selectedCompanyKeys = [];
+  state.companyComposer.selectedExtensions = {};
   state.selectedIdeology = "";
   state.selectedLaw = "";
   state.selectedEvent = "";

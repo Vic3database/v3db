@@ -1308,6 +1308,28 @@ async function applyHash() {
     changeBoard("company", "company");
     return;
   }
+  if (parts[0] === "company" && parts[1] === "solver" && typeof companySolverAvailable === "function" && companySolverAvailable()) {
+    changeBoard("company", "companySolver");
+    state.selectedCompany = "";
+    renderCompanySolverBoard();
+    return;
+  }
+  if (parts[0] === "company" && parts[1] === "solver") {
+    changeBoard("company", "company");
+    replaceHash("/company");
+    return;
+  }
+  if (parts[0] === "company" && parts[1] === "composer" && typeof companyComposerAvailable === "function" && companyComposerAvailable()) {
+    changeBoard("company", "companyComposer");
+    state.selectedCompany = "";
+    render();
+    return;
+  }
+  if (parts[0] === "company" && parts[1] === "composer") {
+    changeBoard("company", "company");
+    replaceHash("/company");
+    return;
+  }
   if (parts[0] === "company" && parts[1] && byCompany.has(decodeURIComponent(parts[1]))) {
     changeBoard("company", "company");
     state.selectedCompany = decodeURIComponent(parts[1]);
@@ -1527,6 +1549,8 @@ function updatePanelToggleState() {
 function render() {
   hideTransientOverlays();
   document.body.dataset.view = state.view;
+  document.body.dataset.companySolver = String(state.detailKind === "companySolver");
+  document.body.dataset.companyComposer = String(state.detailKind === "companyComposer");
   document.body.dataset.countryMobileMap = String(state.countryMobileMapOpen);
   document.body.dataset.countryMobileFilters = String(state.countryMobileFiltersOpen);
   document.body.dataset.countryMobileDetail = String(state.view === "country" && isDetailPageRoute() ? "open" : "closed");
@@ -1607,7 +1631,7 @@ function render() {
   const boardManagesDetail = state.view === "home" || state.view === "interest-group" || state.view === "technology" || state.view === "achievement" || state.view === "event" || state.view === "building" || state.view === "goods" || state.view === "news";
   if (!boardManagesDetail && state.view !== "changelog" && isDetailPageRoute()) {
     renderDetailForState();
-  } else if (!boardManagesDetail) {
+  } else if (!boardManagesDetail && state.detailKind !== "companyComposer") {
     els.detail.innerHTML = "";
   }
 }
@@ -1620,6 +1644,7 @@ function detailRouteKey() {
   const [route, key] = location.hash.replace(/^#\/?/, "").split("/").filter(Boolean);
   if (!route || !key) return "";
   if (route === "goods" && key === "needs") return "";
+  if (route === "company" && ["solver", "composer"].includes(key)) return "";
   return ["country", "culture", "state-region", "strategic-region", "geographic-region", "company", "ideology", "law", "technology", "achievement", "event", "building", "goods"].includes(route) ? key : "";
 }
 

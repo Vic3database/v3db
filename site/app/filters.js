@@ -78,6 +78,15 @@ function matchesCompanyFilters(company) {
   return matchesSearchBlob(companySearchBlob(company));
 }
 
+function matchesCompanyComposerFilters(company) {
+  if (!matchesVictorianCenturyChange(company)) return false;
+  if (!matchesCompanyResourceFilters(company)) return false;
+  if (!matchesCompanyKindFilters(company)) return false;
+  if (!matchesCompanyPrestigeFilters(company)) return false;
+  if (!matchesCompanyDlcFilters(company)) return false;
+  return matchesSearchBlob(companySearchBlob(company));
+}
+
 function matchesCompanyGeographicRegionFilter(company) {
   if (state.view !== "company" || !state.selectedGeographicRegion) return true;
   const region = byGeographicRegion.get(state.selectedGeographicRegion);
@@ -712,7 +721,12 @@ function ideologyGroupIconToken(group, checked = false) {
 }
 
 function visibleResourceFilterGroups() {
-  if (state.view === "company") return resourceFilterGroups;
+  if (state.view === "company") {
+    const excludedKeys = new Set(["building_gold_field", "subsistence_buildings"]);
+    return resourceFilterGroups
+      .map((group) => ({ ...group, filters: (group.filters || []).filter((filter) => !excludedKeys.has(filter.key)) }))
+      .filter((group) => group.filters.length);
+  }
   const groups = resourceFilterGroups.filter((group) => !group.companyOnly);
   const merged = [];
   const agricultureFilters = [];

@@ -22,7 +22,7 @@ const buildingGroups = [
 const companies = [
   {
     key: "company_alpha",
-    building_types: [{ key: "building_coal_mine" }, { key: "building_tooling_workshop" }],
+    building_types: [{ key: "building_coal_mine" }, { key: "building_tooling_workshop" }, { key: "building_tooling_workshop" }],
     extension_building_types: [{ key: "building_steel_mill" }, { key: "building_railway" }],
     possible_prestige_goods: [{ key: "prestige_tool" }],
     referenced_cultures: [{ key: "culture_han" }],
@@ -54,6 +54,15 @@ const companies = [
     referenced_countries: [],
     prosperity_modifiers: [],
   },
+  {
+    key: "company_delta",
+    building_types: [],
+    extension_building_types: [{ key: "building_tooling_workshop" }],
+    possible_prestige_goods: [],
+    referenced_cultures: [],
+    referenced_countries: [],
+    prosperity_modifiers: [],
+  },
 ];
 
 const summary = composeCompanyBuildings({
@@ -74,6 +83,14 @@ assert.deepEqual(Array.from(summary.buildingGroups, (group) => [group.key, Array
   ["heavy_military", ["building_steel_mill"]],
 ], "fixed and selected extension buildings deduplicate and follow the directory order");
 assert.deepEqual(Array.from(summary.unclassifiedBuildingKeys), ["building_unclassified"], "unlisted building keys remain observable to the caller");
+assert.deepEqual(JSON.parse(JSON.stringify(summary.buildingSources)), {
+  building_iron_mine: ["company_beta"],
+  building_tooling_workshop: ["company_beta", "company_alpha"],
+  building_coal_mine: ["company_alpha"],
+  building_wheat_farm: ["company_gamma"],
+  building_unclassified: ["company_gamma"],
+  building_steel_mill: ["company_alpha"],
+}, "building sources deduplicate each company and retain selection order");
 assert.deepEqual(JSON.parse(JSON.stringify(summary.extensionRows)), [
   { companyKey: "company_alpha", optionKeys: ["building_steel_mill", "building_railway"], selectedExtensionKey: "building_steel_mill" },
   { companyKey: "company_gamma", optionKeys: ["building_railway"], selectedExtensionKey: "" },
@@ -98,5 +115,20 @@ const cleared = composeCompanyBuildings({
   buildingGroups,
 });
 assert.equal(cleared.buildingGroups.some((group) => group.buildingKeys.includes("building_steel_mill")), false, "clearing an extension removes it from the building summary");
+
+const extensionOverlap = composeCompanyBuildings({
+  companies,
+  selectedCompanyKeys: ["company_beta", "company_delta"],
+  selectedExtensions: { company_delta: "building_tooling_workshop" },
+  buildingGroups,
+});
+assert.deepEqual(Array.from(extensionOverlap.buildingSources.building_tooling_workshop), ["company_beta", "company_delta"], "a selected extension contributes its company to building coverage");
+const extensionCleared = composeCompanyBuildings({
+  companies,
+  selectedCompanyKeys: ["company_beta", "company_delta"],
+  selectedExtensions: {},
+  buildingGroups,
+});
+assert.deepEqual(Array.from(extensionCleared.buildingSources.building_tooling_workshop), ["company_beta"], "clearing an extension removes its company from building coverage");
 
 console.log("company composer core checks passed");

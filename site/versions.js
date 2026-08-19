@@ -1,8 +1,8 @@
 window.VIC3_VERSION_CONFIG = {
   site_title: "Vicdata",
-  default_version: "1.13.9",
+  default_version: "1.13.10",
   libraries: [
-    { id: "vic3", label: "Victoria 3 1.13.9", labelKey: "library.vic3", href: "./" },
+    { id: "vic3", label: "Victoria 3 1.13.10", labelKey: "library.vic3", href: "./" },
     { id: "victorian-century", label: "Victorian Century", labelKey: "library.victorianCentury", href: "vc/index.html" },
   ],
   version_groups: [
@@ -15,6 +15,12 @@ window.VIC3_VERSION_CONFIG = {
     },
   ],
   versions: [
+    {
+      version: "1.13.10",
+      label: "1.13.10",
+      data_index: "versions/1.13.10/data-index.js",
+      map_data: "versions/1.13.10/map-data.js?v=20260816-1.13.10",
+    },
     {
       version: "1.13.9",
       label: "1.13.9",

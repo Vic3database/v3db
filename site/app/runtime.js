@@ -192,6 +192,31 @@ const state = {
   selectedStrategicRegion: "",
   selectedGeographicRegion: "",
   selectedCompany: "",
+  companySolver: {
+    selectedBuildings: new Set(),
+    status: "idle",
+    requestId: 0,
+    page: 1,
+    pageCount: 0,
+    total: 0,
+    solutions: [],
+    allSolutions: [],
+    companyUsage: [],
+    usageOpen: false,
+    selectedPrestigeGoods: new Set(),
+    prestigeFilterOpen: false,
+    companyCount: 1,
+    autoCompanyCount: true,
+    unrestrictedOnly: false,
+    excludeConstructionCompany: false,
+    progress: { visited: 0, solutions: 0, found: 0 },
+    selectedSolution: null,
+    error: "",
+  },
+  companyComposer: {
+    selectedCompanyKeys: [],
+    selectedExtensions: {},
+  },
   selectedIdeology: "",
   selectedInterestGroup: "",
   selectedInterestGroupFlavor: "",
@@ -544,6 +569,16 @@ const resourceFilterGroups = [
   },
 ];
 
+const companySolverBuildingGroups = [
+  { key: "resources", labelKey: "board.company.solverGroup.resources", filters: ["building_coal_mine", "building_iron_mine", "building_lead_mine", "building_sulfur_mine", "building_gold_mine", "building_fishing_wharf", "building_whaling_station", "building_logging_camp", "building_rubber_plantation", "building_oil_rig"] },
+  { key: "agriculture", labelKey: "board.company.solverGroup.agriculture", filters: ["building_wheat_farm", "building_rye_farm", "building_rice_farm", "building_maize_farm", "building_millet_farm", "building_livestock_ranch", "building_vineyard", "building_coffee_plantation", "building_tea_plantation", "building_tobacco_plantation", "building_opium_plantation", "building_banana_plantation", "building_sugar_plantation", "building_silk_plantation", "building_cotton_plantation", "building_dye_plantation"] },
+  { key: "light_industry", labelKey: "board.company.solverGroup.lightIndustry", filters: ["building_glassworks", "building_textile_mill", "building_tooling_workshop", "building_furniture_manufactory", "building_food_industry", "building_shipyard", "building_paper_mill"] },
+  { key: "heavy_military", labelKey: "board.company.solverGroup.heavyMilitary", filters: ["building_electrics_industry", "building_motor_industry", "building_chemical_plant", "building_synthetics_plant", "building_steel_mill", "building_automotive_industry", "building_explosives_factory", "building_munition_plant", "building_artillery_foundry", "building_arms_industry"] },
+  { key: "infrastructure", labelKey: "board.company.solverGroup.infrastructure", filters: ["building_power_plant", "building_port", "building_trade_center", "building_railway", "building_art_academy"] },
+].map((group) => ({ ...group, items: group.filters.map((buildingKey) => ({ buildingKey })) }));
+
+const companySolverBuildingByKey = new Map(companySolverBuildingGroups.flatMap((group) => group.items.map((item) => [item.buildingKey, item])));
+
 const resourceFilterByKey = new Map(resourceFilterGroups.flatMap((group) => (
   group.filters.map((filter) => [filter.key, filter])
 )));
@@ -822,6 +857,9 @@ const els = {
   mapTooltip: document.querySelector("#mapTooltip"),
   leftPanelToggle: document.querySelector("#leftPanelToggle"),
   bottomPanelToggle: document.querySelector("#bottomPanelToggle"),
+  companySolverEntry: document.querySelector("#companySolverEntry"),
+  companyComposerEntry: document.querySelector("#companyComposerEntry"),
+  companySolverDetailPane: document.querySelector("#companySolverDetailPane"),
   countryList: document.querySelector("#countryList"),
   detail: document.querySelector("#detail"),
   conceptTooltip: document.querySelector("#conceptTooltip"),

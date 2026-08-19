@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Vicdata</title>
-    <link rel="stylesheet" href="styles.css?v=20260816-global-search-row-height1">
+    <link rel="stylesheet" href="styles.css?v=20260819-company-usage-collapse1">
     <link rel="icon" type="image/png" sizes="16x16" href="assets/brand/favicon-16.png?v=20260720-v">
     <link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png?v=20260720-v">
     <link rel="apple-touch-icon" sizes="180x180" href="assets/brand/apple-touch-icon.png">
@@ -350,6 +350,8 @@
             <option value="states" data-i18n="sort.states">按开局州数</option>
           </select>
         </div>
+        <div id="companySolverEntry" class="company-solver-entry" hidden></div>
+        <div id="companyComposerEntry" class="company-solver-entry" hidden></div>
         <div id="countryList" class="country-list"></div>
       </section>
 
@@ -363,6 +365,7 @@
       </section>
 
       <article id="detail" class="detail" aria-live="polite"></article>
+      <div id="companySolverDetailPane" class="company-solver-detail-pane" hidden></div>
       <div id="conceptTooltip" class="concept-tooltip" hidden></div>
       <div id="globalSearchDialog" class="global-search-backdrop" hidden>
         <section class="global-search-dialog" role="dialog" aria-modal="true" aria-labelledby="globalSearchDialogTitle">
@@ -404,14 +407,19 @@
     <script src="news-data.js?v=20260718-news3"></script>
     <script src="assets/flags/country-flags.js?v=20260712-all-flags2"></script>
     <script src="assets/victorian-century-flags.js?v=20260729-country-flags1"></script>
-    <script src="locales/manifest.js?v=20260816-global-content-search1"></script>
-    <script src="app/runtime.js?v=20260816-global-content-search1"></script>
+    <script src="locales/manifest.js?v=20260819-company-overlap1"></script>
+    <script src="app/runtime.js?v=20260819-company-tools1"></script>
     <script src="app/i18n.js?v=20260811-goods-needs2"></script>
-    <script src="app/data.js?v=20260811-goods-needs2"></script>
-    <script src="app/ui.js?v=20260816-global-content-search1"></script>
+    <script src="app/data.js?v=20260819-company-tools1"></script>
+    <script src="app/ui.js?v=20260819-company-tools1"></script>
     <script src="app/company-location-rules.js?v=20260718-company-location2"></script>
-    <script src="app/boards.js?v=20260816-global-search-aliases1"></script>
-    <script src="app/filters.js?v=20260806-subsistence-polish1"></script>
+    <script src="app/company-solver-core-fallback.js?v=20260819-company-prestige-search1"></script>
+    <script src="app/company-solver-async-fallback.js?v=20260819-company-prestige-search1"></script>
+    <script src="app/company-solver.js?v=20260819-company-prestige-search1"></script>
+    <script src="app/company-composer-core.js?v=20260819-company-overlap1"></script>
+    <script src="app/company-composer.js?v=20260819-company-overlap1"></script>
+    <script src="app/boards.js?v=20260819-company-tools1"></script>
+    <script src="app/filters.js?v=20260818-company-filter-exclusions1"></script>
     <script src="app/presentation.js?v=20260816-global-search-aliases1"></script>
     <script src="app/map.js?v=20260806-subsistence-polish1"></script>
     <script src="app/tag-tooltip-definitions.js?v=20260804-vc-english-economy1"></script>

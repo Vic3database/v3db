@@ -30,6 +30,10 @@ const requiredFiles = new Set([
   "locales/ui.zh-Hans.js",
   "locales/ui.en.js",
 ]);
+requiredFiles.add("app/company-solver-core.mjs");
+requiredFiles.add("app/company-solver-core-fallback.js");
+requiredFiles.add("app/company-solver-async-fallback.js");
+requiredFiles.add("app/company-solver-worker.js");
 for (const relative of ["vc/index.html", "vc/data-index.js", "vc/map-data.js", "vc/victorian-century-config.js", "vc/assets/map/provinces.png"]) {
   requiredFiles.add(relative);
 }
@@ -39,13 +43,13 @@ for (const file of [...appSections, ...styleSections]) requiredFiles.add(file);
 if (!config) {
   failures.push("site/versions.js does not define window.VIC3_VERSION_CONFIG");
 } else {
-  if (config.default_version !== "1.13.9") {
-    failures.push(`default_version should be 1.13.9, got ${config.default_version || ""}`);
+  if (config.default_version !== "1.13.10") {
+    failures.push(`default_version should be 1.13.10, got ${config.default_version || ""}`);
   }
 
   const versions = config.versions || [];
-  if (versions.length !== 1 || versions[0]?.version !== "1.13.9") {
-    failures.push(`versions should contain only 1.13.9, got ${versions.map((item) => item.version).join(", ")}`);
+  if (versions.length !== 2 || !versions.some((item) => item.version === "1.13.10") || !versions.some((item) => item.version === "1.13.9")) {
+    failures.push(`versions should contain 1.13.10 and 1.13.9, got ${versions.map((item) => item.version).join(", ")}`);
   }
 
   for (const entry of versions) {
@@ -58,7 +62,8 @@ if (!config) {
   }
 }
 
-const data = readChunkedData(path.join(siteRoot, "versions", "1.13.9"));
+const defaultVersion = config?.default_version || "1.13.10";
+const data = readChunkedData(path.join(siteRoot, "versions", defaultVersion), defaultVersion);
 const buildingIconFileByKey = readAppObject("buildingIconFileByKey");
 const companyDlcOptions = readAppArray("companyDlcOptions");
 const prestigeGoodIconOverrides = readAppMap("prestigeGoodIconOverrides");
@@ -112,7 +117,7 @@ console.log(JSON.stringify({
   versions: (config?.versions || []).map((entry) => entry.version),
 }, null, 2));
 
-function readChunkedData(versionDir) {
+function readChunkedData(versionDir, version) {
   const indexFile = path.join(versionDir, "data-index.js");
   if (!fs.existsSync(indexFile)) return {};
   const dataSandbox = { window: {} };
@@ -121,7 +126,7 @@ function readChunkedData(versionDir) {
   const data = { meta: index.meta || {} };
   for (const chunk of Object.values(index.chunks || {})) {
     for (const file of chunk.files || []) {
-      addRequired(`versions/1.13.9/${file}`);
+      addRequired(`versions/${version}/${file}`);
       const chunkFile = path.join(versionDir, file);
       const chunkSandbox = { window: {} };
       vm.runInNewContext(fs.readFileSync(chunkFile, "utf8"), chunkSandbox, { filename: chunkFile });
@@ -131,10 +136,10 @@ function readChunkedData(versionDir) {
       }
     }
   }
-  addRequired(`versions/1.13.9/${index.locales?.search_index?.path || ""}`);
+  addRequired(`versions/${version}/${index.locales?.search_index?.path || ""}`);
   for (const localeChunks of Object.values(index.locales?.chunks || {})) {
     for (const chunk of Object.values(localeChunks || {})) {
-      for (const entry of chunk.files || []) addRequired(`versions/1.13.9/${entry.path}`);
+      for (const entry of chunk.files || []) addRequired(`versions/${version}/${entry.path}`);
     }
   }
   return data;

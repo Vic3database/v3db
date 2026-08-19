@@ -125,7 +125,7 @@ function buildStandaloneHtml(sourceHtml) {
           <img class="lucide-icon" src="assets/lucide/icons/milestone.svg" alt="" aria-hidden="true">
           <select id="standaloneLibrarySelect" aria-label="资料库切换" data-i18n-aria-label="ui.librarySwitch">
             <option value="victorian-century" data-i18n="library.victorianCentury" selected>Victorian Century</option>
-            <option value="vic3" data-i18n="library.vic3">Victoria 3 原版 1.13.9</option>
+            <option value="vic3" data-i18n="library.vic3">Victoria 3 原版 1.13.10</option>
           </select>
         </label>`)
     .replace(/\s*<label class="global-search-legacy-toggle">[\s\S]*?<\/label>/, "")
