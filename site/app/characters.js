@@ -7,7 +7,12 @@ const CHARACTER_GENDER_OPTIONS = [
   ["female", "enum.gender.female"],
   ["male", "enum.gender.male"],
 ];
+const CHARACTER_PAGE_SIZE = 100;
 let characterBoardEventsBound = false;
+
+function resetCharacterPage() {
+  state.characterPage = 1;
+}
 
 function historicalCharacterName(character) {
   if (!character) return "";
@@ -118,12 +123,26 @@ function bindCharacterBoardEvents() {
     const button = event.target.closest("[data-character-source]");
     if (!button) return;
     toggleSetValue(state.characterSources, button.dataset.characterSource);
+    resetCharacterPage();
     render();
   });
   els.characterGenderFilters?.addEventListener("click", (event) => {
     const button = event.target.closest("[data-character-gender]");
     if (!button) return;
     toggleSetValue(state.characterGenders, button.dataset.characterGender);
+    resetCharacterPage();
+    render();
+  });
+  els.countryList?.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-character-page]");
+    if (!button || !els.countryList.contains(button) || button.disabled) return;
+    const totalPages = Math.ceil(historicalCharacterListLength() / CHARACTER_PAGE_SIZE);
+    const requested = button.dataset.characterPage === "previous"
+      ? state.characterPage - 1
+      : button.dataset.characterPage === "next"
+        ? state.characterPage + 1
+        : Number(button.dataset.characterPage);
+    state.characterPage = Math.max(1, Math.min(totalPages || 1, requested));
     render();
   });
 }
@@ -131,6 +150,27 @@ function bindCharacterBoardEvents() {
 function toggleSetValue(set, value) {
   if (set.has(value)) set.delete(value);
   else set.add(value);
+}
+
+function historicalCharacterListLength() {
+  return historicalCharacters.filter(matchesHistoricalCharacterFilters).length;
+}
+
+function characterPagination(total, page) {
+  const pageCount = Math.ceil(total / CHARACTER_PAGE_SIZE);
+  if (pageCount <= 1) return "";
+  const start = (page - 1) * CHARACTER_PAGE_SIZE + 1;
+  const end = Math.min(page * CHARACTER_PAGE_SIZE, total);
+  const pageButtons = Array.from({ length: pageCount }, (_, index) => {
+    const pageNumber = index + 1;
+    return `<button class="character-pagination-page" type="button" data-character-page="${pageNumber}" aria-current="${pageNumber === page ? "page" : "false"}">${pageNumber}</button>`;
+  }).join("");
+  return `<nav class="character-pagination" aria-label="${escapeHtml(t("board.character.pagination.label"))}">
+    <button class="character-pagination-control" type="button" data-character-page="previous" aria-label="${escapeHtml(t("board.character.pagination.previous"))}"${page <= 1 ? " disabled" : ""}>${escapeHtml(t("board.character.pagination.previous"))}</button>
+    <span class="character-pagination-pages">${pageButtons}</span>
+    <button class="character-pagination-control" type="button" data-character-page="next" aria-label="${escapeHtml(t("board.character.pagination.next"))}"${page >= pageCount ? " disabled" : ""}>${escapeHtml(t("board.character.pagination.next"))}</button>
+    <span class="character-pagination-summary">${escapeHtml(t("board.character.pagination.summary", { start: localizedNumber(start), end: localizedNumber(end), count: localizedNumber(total), page: localizedNumber(page), pages: localizedNumber(pageCount) }))}</span>
+  </nav>`;
 }
 
 function renderCharacterBoard() {
@@ -143,11 +183,17 @@ function renderCharacterBoard() {
       return left.key.localeCompare(right.key);
     });
   if (state.selectedCharacter && !byHistoricalCharacter.has(state.selectedCharacter)) state.selectedCharacter = "";
-  const visible = filtered.slice(0, 220);
+  const pageCount = Math.ceil(filtered.length / CHARACTER_PAGE_SIZE);
+  state.characterPage = Math.max(1, Math.min(pageCount || 1, Number(state.characterPage) || 1));
+  const page = state.characterPage;
+  const visible = filtered.slice((page - 1) * CHARACTER_PAGE_SIZE, page * CHARACTER_PAGE_SIZE);
+  const pagination = characterPagination(filtered.length, page);
   els.resultCount.textContent = t("board.character.resultCount", { count: localizedNumber(filtered.length) });
   els.activeHint.textContent = state.search ? t("search.activeQuery", { query: state.search }) : "";
   els.countryList.className = "country-list character-list";
-  els.countryList.innerHTML = visible.length ? visible.map((character) => characterListRow(character)).join("") : `<p class="empty">${escapeHtml(t("search.noResults"))}</p>`;
+  els.countryList.innerHTML = visible.length
+    ? `${pagination}${visible.map((character) => characterListRow(character)).join("")}${pagination}`
+    : `<p class="empty">${escapeHtml(t("search.noResults"))}</p>`;
   bindCharacterListEvents();
   els.detail.innerHTML = isDetailPageRoute() ? renderHistoricalCharacterDetail(byHistoricalCharacter.get(state.selectedCharacter)) : "";
 }

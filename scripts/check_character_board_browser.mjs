@@ -64,7 +64,7 @@ try {
       })(),
     }));
     assert.equal(characterBoard.view, "character");
-    assert.equal(characterBoard.rows, 220, "character board should cap the list at 220 rows");
+    assert.equal(characterBoard.rows, 100, "character board should cap each page at 100 rows");
     assert.equal(characterBoard.map, "none", "character board should hide the map");
     assert.equal(characterBoard.viewSwitch, "none", "character board should not show the map board switcher");
     assert.equal(characterBoard.foreignFilters, 0, "character board should only show character filters");
@@ -86,6 +86,45 @@ try {
     assert.doesNotMatch(characterBoard.row.identityText, /(?:^|\s)(?:ig|ideology)_[a-z0-9_]+/i, "identity labels should use localized names");
     assert.equal(characterBoard.nav, true, "name-pool navigation should be present");
     assert.match(characterBoard.count, /1[，,]?983|1983/, "character count should report all templates");
+    const pagination = await desktop.evaluate(() => ({
+      controls: document.querySelectorAll(".character-pagination").length,
+      pages: document.querySelectorAll(".character-pagination-page").length,
+      current: document.querySelector('.character-pagination-page[aria-current="page"]')?.textContent.trim() || "",
+      nextDisabled: document.querySelector('[data-character-page="next"]')?.disabled ?? true,
+    }));
+    assert.equal(pagination.controls, 2, "character list should render pagination above and below the rows");
+    assert.equal(pagination.pages / pagination.controls, 20, "1983 characters should produce 20 pages at 100 rows per page");
+    assert.equal(pagination.current, "1", "character list should start on page 1");
+    assert.equal(pagination.nextDisabled, false, "the first page should enable the next control");
+
+    const firstPageKey = await desktop.evaluate(() => document.querySelector("[data-character-key]")?.dataset.characterKey || "");
+    await desktop.evaluate(() => document.querySelector('[data-character-page="next"]')?.click());
+    await desktop.waitFor(() => document.querySelector('.character-pagination-page[aria-current="page"]')?.textContent.trim() === "2", "character page 2");
+    const secondPage = await desktop.evaluate(() => ({
+      firstKey: document.querySelector("[data-character-key]")?.dataset.characterKey || "",
+      rows: document.querySelectorAll("[data-character-key]").length,
+      current: document.querySelector('.character-pagination-page[aria-current="page"]')?.textContent.trim() || "",
+    }));
+    assert.equal(secondPage.rows, 100, "page 2 should also contain at most 100 rows");
+    assert.notEqual(secondPage.firstKey, firstPageKey, "page 2 should show a different first character");
+    assert.equal(secondPage.current, "2", "page 2 should be marked current");
+
+    await desktop.evaluate(() => document.querySelector('[data-character-source="starting"]')?.click());
+    await desktop.waitFor(() => document.querySelector('.character-pagination-page[aria-current="page"]')?.textContent.trim() === "1", "filtered character page 1");
+    assert.equal(await desktop.evaluate(() => document.querySelector('.character-pagination-page[aria-current="page"]')?.textContent.trim() || ""), "1", "character filters should reset pagination to page 1");
+
+    await desktop.evaluate(() => document.querySelector("[data-character-key]")?.click());
+    await desktop.waitFor(() => Boolean(document.querySelector(".character-detail")), "character detail");
+    const characterDetail = await desktop.evaluate(() => ({ hash: location.hash, fields: document.querySelector(".character-detail")?.textContent || "" }));
+    assert.match(characterDetail.hash, /^#\/character\//);
+    assert.match(characterDetail.fields, /DNA/);
+    assert.match(characterDetail.fields, /开局历史|Starting history/);
+    await desktop.evaluate(() => document.querySelector('[data-detail-back="character"]')?.click());
+    await desktop.waitFor(() => Boolean(document.querySelector("[data-character-key]")), "character list after detail back");
+    assert.equal(await desktop.evaluate(() => document.querySelector('.character-pagination-page[aria-current="page"]')?.textContent.trim() || ""), "1", "returning from detail should keep the filtered page");
+
+    await desktop.evaluate(() => document.querySelector('[data-character-source="starting"]')?.click());
+    await desktop.waitFor(() => document.querySelector('[data-character-source="starting"]')?.getAttribute("aria-pressed") === "false", "clear character source filter");
 
     const historicalImageTag = await desktop.evaluate(() => ({
       text: document.querySelector('[data-character-key="ada_lovelace_template"] .tag-historical-image')?.textContent.trim() || "",
@@ -96,13 +135,6 @@ try {
     const einsteinImageTag = await desktop.evaluate(() => document.querySelector('[data-character-key="albert_einstein_template"] .tag-historical-image')?.textContent.trim() || "");
     assert.match(einsteinImageTag, /有史实图片|Historical image/, "manually reviewed Einstein should show the historical-image tag");
     if (screenshotDir) await desktop.screenshot(path.join(screenshotDir, "historical-character-list.png"));
-
-    await desktop.evaluate(() => document.querySelector("[data-character-key]")?.click());
-    await desktop.waitFor(() => Boolean(document.querySelector(".character-detail")), "character detail");
-    const characterDetail = await desktop.evaluate(() => ({ hash: location.hash, fields: document.querySelector(".character-detail")?.textContent || "" }));
-    assert.match(characterDetail.hash, /^#\/character\//);
-    assert.match(characterDetail.fields, /DNA/);
-    assert.match(characterDetail.fields, /开局历史|Starting history/);
 
     await desktop.goto(`http://127.0.0.1:${port}/index.html#/character/ada_lovelace_template`);
     await desktop.waitFor(() => {

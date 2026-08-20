@@ -183,6 +183,7 @@ function bindEvents() {
   });
   els.searchInput.addEventListener("input", () => {
     state.search = els.searchInput.value.trim().toLowerCase();
+    if (state.view === "character") state.characterPage = 1;
     state.countryMobileSearchDraft = els.searchInput.value;
     state.cultureMobileSearchDraft = els.searchInput.value;
     state.globalSearchColorRestoreTag = "";
@@ -373,6 +374,7 @@ function bindEvents() {
 
   els.sortSelect.addEventListener("change", () => {
     state.sort = els.sortSelect.value;
+    if (state.view === "character") state.characterPage = 1;
     render();
   });
   els.mapModeSelect.addEventListener("change", () => {
@@ -629,6 +631,7 @@ function submitMobileCountrySearch(input) {
   state.countryMobileSearchDraft = query;
   if (query.trim().toLowerCase() === state.search) return;
   state.search = query.trim().toLowerCase();
+  if (state.view === "character") state.characterPage = 1;
   state.globalSearchColorRestoreTag = "";
   if (els.searchInput) els.searchInput.value = query;
   render();
@@ -639,6 +642,7 @@ function submitMobileCultureSearch(input) {
   state.cultureMobileSearchDraft = query;
   if (query.trim().toLowerCase() === state.search) return;
   state.search = query.trim().toLowerCase();
+  if (state.view === "character") state.characterPage = 1;
   state.globalSearchColorRestoreTag = "";
   if (els.searchInput) els.searchInput.value = query;
   render();
@@ -1104,6 +1108,7 @@ function searchConcept(target) {
   state.globalSearch = "";
   state.selectedGlobalResult = "";
   state.search = text.trim().toLowerCase();
+  if (state.view === "character") state.characterPage = 1;
   els.searchInput.value = text.trim();
   if (els.globalSearchDialogInput) els.globalSearchDialogInput.value = "";
   render();

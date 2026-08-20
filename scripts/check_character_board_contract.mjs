@@ -43,6 +43,10 @@ assert.match(styles, /grid-template-columns: var\(--role-filter-width\) minmax\(
 assert.match(styles, /filter-section:not\(\.character-only\)/, "character board must isolate its filters");
 assert.match(styles, /grid-template-columns: none !important/, "character rows must not inherit the country grid template");
 assert.match(characters, /character_trait:\$\{normalized\}\.name/, "character traits must use the character localization namespace");
+assert.match(characters, /const CHARACTER_PAGE_SIZE = 100/, "character board must cap each page at 100 rows");
+assert.match(characters, /state\.characterPage/, "character board must keep the current page in state");
+assert.match(characters, /filtered\.slice\(/, "character board must paginate after filtering and sorting");
+assert.match(characters, /data-character-page=/, "character board must render pagination controls");
 assert.match(search, /"kind":"character"/, "search index must include characters");
 assert.match(search, /"kind":"namePool"/, "search index must include name pools");
 assert.match(boards, /kind === "character"/, "global search must navigate to characters");

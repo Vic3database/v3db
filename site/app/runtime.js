@@ -207,6 +207,7 @@ const state = {
   selectedBuilding: "",
   selectedGood: "",
   selectedCharacter: "",
+  characterPage: 1,
   selectedNamePool: "",
   characterSources: new Set(),
   characterGenders: new Set(),

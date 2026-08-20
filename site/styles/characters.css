@@ -98,6 +98,59 @@ body[data-view="name-pool"]:not(.detail-page) .detail {
   min-width: 0;
 }
 
+.character-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 4px 0;
+}
+
+.character-pagination-pages {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.character-pagination button {
+  min-width: 34px;
+  min-height: 32px;
+  padding: 5px 9px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--ink);
+  background: var(--surface);
+  font: inherit;
+  cursor: pointer;
+}
+
+.character-pagination button:hover:not(:disabled),
+.character-pagination button[aria-current="page"] {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.character-pagination button[aria-current="page"] {
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  font-weight: 700;
+}
+
+.character-pagination button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.character-pagination-summary {
+  min-width: 0;
+  color: var(--muted);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
 .character-list .character-row,
 .name-pool-list .name-pool-row {
   display: flex !important;

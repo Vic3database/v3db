@@ -382,6 +382,7 @@ function resetDatasetState() {
   state.selectedBuilding = "";
   state.selectedGood = "";
   state.selectedCharacter = "";
+  state.characterPage = 1;
   state.selectedNamePool = "";
   state.characterSources.clear();
   state.characterGenders.clear();
