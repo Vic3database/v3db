@@ -38,6 +38,12 @@ let productionMethods = [];
 let goods = [];
 let prestigeGoods = [];
 let needsData = null;
+let historicalCharacters = [];
+let historicalCharacterStats = {};
+let historicalCharacterImages = [];
+let historicalCharacterImageStats = {};
+let namePools = [];
+let namePoolStats = {};
 let mapData = null;
 let siteTitle = "Vicdata";
 let globalSearchDetailCache = null;
@@ -62,6 +68,9 @@ let productionMethodGroupByKey = new Map();
 let productionMethodByKey = new Map();
 let goodByKey = new Map();
 let prestigeGoodByKey = new Map();
+let byHistoricalCharacter = new Map();
+let byHistoricalCharacterImage = new Map();
+let byNamePool = new Map();
 let stateTraitByKey = new Map();
 let stateTraitRegionsByKey = new Map();
 let buildingByKey = new Map();
@@ -241,6 +250,11 @@ const state = {
   eventTags: new Set(),
   selectedBuilding: "",
   selectedGood: "",
+  selectedCharacter: "",
+  characterPage: 1,
+  selectedNamePool: "",
+  characterSources: new Set(),
+  characterGenders: new Set(),
   economySearch: "",
   goodsPanel: "list",
   needsTable: "substitutes",
@@ -649,6 +663,8 @@ const viewLabels = {
   decision: "nav.decision",
   building: "nav.building",
   goods: "nav.goods",
+  character: "nav.character",
+  "name-pool": "nav.namePool",
   changelog: "nav.changelog",
   news: "nav.news",
 };
@@ -889,5 +905,7 @@ const els = {
   companySolverDetailPane: document.querySelector("#companySolverDetailPane"),
   countryList: document.querySelector("#countryList"),
   detail: document.querySelector("#detail"),
+  characterSourceFilters: document.querySelector("#characterSourceFilters"),
+  characterGenderFilters: document.querySelector("#characterGenderFilters"),
   conceptTooltip: document.querySelector("#conceptTooltip"),
 };

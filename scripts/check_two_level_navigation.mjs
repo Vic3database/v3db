@@ -59,12 +59,12 @@ assert.ok(/\.topbar-nav-group\s*\{[\s\S]*position:\s*relative/.test(foundationSo
 assert.ok(/\.topbar-nav-popover\s*\{[\s\S]*position:\s*absolute/.test(foundationSource), "desktop submenu needs a popover layout");
 assert.ok(/\.topbar-nav-group\.is-current\s*>\s*\.topbar-nav-summary/.test(foundationSource), "active topbar category needs a visible state");
 assert.ok(/@media\s*\(max-width:\s*760px\)[\s\S]*\.topbar-nav-popover\s*\{[\s\S]*position:\s*static/.test(shellSource), "narrow screens need inline click-disclosure submenus");
-assert.ok(/styles\.css\?v=20260810-topbar-cache1/.test(indexSource), "topbar stylesheet cache version is stale");
+assert.ok(/styles\.css\?v=20260813-character-images1/.test(indexSource), "topbar stylesheet cache version is stale");
 assert.ok(/styles\/foundation\.css\?v=20260810-topbar-cache1/.test(stylesheetSource), "topbar foundation stylesheet cache version is stale");
 assert.ok(/styles\/shell\.css\?v=20260810-topbar-cache1/.test(stylesheetSource), "topbar responsive stylesheet cache version is stale");
 assert.ok(/app\/ui\.js\?v=20260810-interest-group-tooltip-layout1/.test(indexSource), "topbar UI script cache version is stale");
-assert.ok(/app\/i18n\.js\?v=20260810-global-search-interest-group-flavors1/.test(indexSource), "topbar localization runtime cache version is stale");
-assert.ok(/v=20260810-global-search-interest-group-flavors1/.test(i18nSource), "dynamic locale loading cache version is stale");
+assert.ok(/app\/i18n\.js\?v=20260813-character-images1/.test(indexSource), "topbar localization runtime cache version is stale");
+assert.ok(/v=20260813-character-images1/.test(i18nSource), "dynamic locale loading cache version is stale");
 assert.ok(vcBuildSource.includes('/<link rel="stylesheet" href="styles\\.css\\?v=[^"]+"\\s*\\/?>/'), "Victorian Century builder must match the base stylesheet independently of its cache version");
 
 console.log(JSON.stringify({

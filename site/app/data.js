@@ -13,6 +13,7 @@ async function init() {
   initDisplaySettings();
   renderFilterOptions();
   bindEvents();
+  bindCharacterBoardEvents?.();
   els.homeGuideButton?.addEventListener("click", () => openInfoDialog("about"));
   await applyHash();
   render();
@@ -95,6 +96,8 @@ function dataChunksForView(view) {
   if (view === "content") return ["content"]; // Compatibility routes load the shared data before redirecting.
   if (view === "building") return ["building", "goods"];
   if (view === "goods") return ["goods"];
+  if (view === "character") return ["character", "culture", "ideology"];
+  if (view === "name-pool") return ["name-pool", "culture"];
   return [];
 }
 
@@ -121,7 +124,7 @@ async function ensureDataChunksForRoute() {
 
 function routeView() {
   const segment = location.hash.replace(/^#\/?/, "").split("/")[0];
-  if (["country", "culture", "region", "company", "ideology", "interest-group", "law", "technology", "achievement", "event", "journal", "decision", "content", "building", "goods"].includes(segment)) return segment;
+  if (["country", "culture", "region", "company", "ideology", "interest-group", "law", "technology", "achievement", "event", "journal", "decision", "content", "building", "goods", "character", "name-pool"].includes(segment)) return segment;
   if (["news", "changelog"].includes(segment)) return segment;
   if (["state-region", "strategic-region", "geographic-region"].includes(segment)) return "region";
   return "home";
@@ -253,6 +256,12 @@ function applyLoadedDataset(nextData, nextMapData, options = {}) {
   goods = data.goods || [];
   prestigeGoods = data.prestigeGoods || [];
   needsData = data.needsData || null;
+  historicalCharacters = data.historicalCharacters || [];
+  historicalCharacterStats = data.historicalCharacterStats || {};
+  historicalCharacterImages = data.historicalCharacterImages || [];
+  historicalCharacterImageStats = data.historicalCharacterImageStats || {};
+  namePools = data.namePools || [];
+  namePoolStats = data.namePoolStats || {};
   mapData = nextMapData || null;
   siteTitle = versionConfig?.site_title || data.meta?.site_title || data.meta?.dataset_name || "Vicdata";
 
@@ -277,6 +286,11 @@ function applyLoadedDataset(nextData, nextMapData, options = {}) {
   productionMethodByKey = new Map(productionMethods.map((method) => [method.key, method]));
   goodByKey = new Map(goods.map((good) => [good.key, good]));
   prestigeGoodByKey = new Map(prestigeGoods.map((good) => [good.key, good]));
+  byHistoricalCharacter = new Map(historicalCharacters.map((character) => [character.key, character]));
+  byHistoricalCharacterImage = new Map(historicalCharacterImages.flatMap((person) => (
+    (person.character_keys || []).map((key) => [key, person])
+  )));
+  byNamePool = new Map(namePools.map((pool) => [pool.key, pool]));
   cultureTraitByKey = new Map(cultureTraits.map((trait) => [trait.key, trait]));
   cultureTraitGroupByKey = new Map(cultureTraitGroups.map((group) => [group.key, group]));
   buildSemanticTagIndexes();
@@ -401,6 +415,11 @@ function resetDatasetState() {
   state.selectedEvent = "";
   state.selectedBuilding = "";
   state.selectedGood = "";
+  state.selectedCharacter = "";
+  state.characterPage = 1;
+  state.selectedNamePool = "";
+  state.characterSources.clear();
+  state.characterGenders.clear();
   state.economySearch = "";
   state.goodsPanel = "list";
   state.needsTable = "substitutes";

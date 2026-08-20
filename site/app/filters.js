@@ -430,7 +430,11 @@ function sortCountriesByTag(a, b) {
 }
 
 function renderSortOptions() {
-  const options = state.view === "culture"
+  const options = state.view === "character"
+    ? [["key", t("sort.key")], ["name", t("sort.name")], ["birth", t("sort.birth")]]
+    : state.view === "name-pool"
+      ? [["key", t("sort.key")], ["name", t("sort.name")], ["count", t("sort.count")]]
+      : state.view === "culture"
     ? [
       ["key", t("sort.key")],
       ["name", t("sort.name")],

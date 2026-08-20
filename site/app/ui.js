@@ -189,6 +189,7 @@ function bindEvents() {
   });
   els.searchInput.addEventListener("input", () => {
     state.search = els.searchInput.value.trim().toLowerCase();
+    if (state.view === "character") state.characterPage = 1;
     state.countryMobileSearchDraft = els.searchInput.value;
     state.cultureMobileSearchDraft = els.searchInput.value;
     state.globalSearchColorRestoreTag = "";
@@ -391,6 +392,7 @@ function bindEvents() {
 
   els.sortSelect.addEventListener("change", () => {
     state.sort = els.sortSelect.value;
+    if (state.view === "character") state.characterPage = 1;
     render();
   });
   els.mapModeSelect.addEventListener("change", () => {
@@ -444,6 +446,8 @@ function bindEvents() {
     state.includeIndustryCharter = false;
     state.companyPrestigeGoods.clear();
     state.companyDlcs.clear();
+    state.characterSources.clear();
+    state.characterGenders.clear();
     state.ideologyTypes.clear();
     state.ideologyGroups.clear();
     state.ideologyOccurrences.clear();
@@ -645,6 +649,7 @@ function submitMobileCountrySearch(input) {
   state.countryMobileSearchDraft = query;
   if (query.trim().toLowerCase() === state.search) return;
   state.search = query.trim().toLowerCase();
+  if (state.view === "character") state.characterPage = 1;
   state.globalSearchColorRestoreTag = "";
   if (els.searchInput) els.searchInput.value = query;
   render();
@@ -655,6 +660,7 @@ function submitMobileCultureSearch(input) {
   state.cultureMobileSearchDraft = query;
   if (query.trim().toLowerCase() === state.search) return;
   state.search = query.trim().toLowerCase();
+  if (state.view === "character") state.characterPage = 1;
   state.globalSearchColorRestoreTag = "";
   if (els.searchInput) els.searchInput.value = query;
   render();
@@ -1120,6 +1126,7 @@ function searchConcept(target) {
   state.globalSearch = "";
   state.selectedGlobalResult = "";
   state.search = text.trim().toLowerCase();
+  if (state.view === "character") state.characterPage = 1;
   els.searchInput.value = text.trim();
   if (els.globalSearchDialogInput) els.globalSearchDialogInput.value = "";
   render();
@@ -1284,6 +1291,26 @@ async function applyHash() {
   if (parts[0] === "culture" && parts[1] && byCulture.has(decodeURIComponent(parts[1]))) {
     changeBoard("culture", "culture");
     state.selectedCulture = decodeURIComponent(parts[1]);
+    return;
+  }
+  if (parts[0] === "character" && !parts[1]) {
+    changeBoard("character", "character");
+    state.selectedCharacter = "";
+    return;
+  }
+  if (parts[0] === "character" && parts[1] && byHistoricalCharacter.has(decodeURIComponent(parts[1]))) {
+    changeBoard("character", "character");
+    state.selectedCharacter = decodeURIComponent(parts[1]);
+    return;
+  }
+  if (parts[0] === "name-pool" && !parts[1]) {
+    changeBoard("name-pool", "namePool");
+    state.selectedNamePool = "";
+    return;
+  }
+  if (parts[0] === "name-pool" && parts[1] && byNamePool.has(decodeURIComponent(parts[1]))) {
+    changeBoard("name-pool", "namePool");
+    state.selectedNamePool = decodeURIComponent(parts[1]);
     return;
   }
   if (parts[0] === "region") {
@@ -1481,6 +1508,8 @@ async function setView(view) {
     state.selectedInterestGroup = "";
     state.selectedInterestGroupFlavor = "";
   }
+  if (view === "character") state.selectedCharacter = "";
+  if (view === "name-pool") state.selectedNamePool = "";
   replaceHash(`/${view}`);
   await ensureDataChunksForRoute();
   renderStrategicRegionFilterOptions();
@@ -1637,6 +1666,10 @@ function render() {
     renderChangelogBoard();
   } else if (state.view === "culture") {
     renderCultureBoard();
+  } else if (state.view === "character") {
+    renderCharacterBoard();
+  } else if (state.view === "name-pool") {
+    renderNamePoolBoard();
   } else if (state.view === "region") {
     renderRegionBoard();
   } else if (state.view === "company") {
@@ -1664,7 +1697,7 @@ function render() {
   } else {
     renderCountryBoard();
   }
-  const boardManagesDetail = state.view === "home" || state.view === "interest-group" || state.view === "technology" || state.view === "achievement" || state.view === "event" || state.view === "journal" || state.view === "decision" || state.view === "building" || state.view === "goods" || state.view === "news";
+  const boardManagesDetail = state.view === "home" || state.view === "interest-group" || state.view === "technology" || state.view === "achievement" || state.view === "event" || state.view === "journal" || state.view === "decision" || state.view === "building" || state.view === "goods" || state.view === "news" || state.view === "character" || state.view === "name-pool";
   if (!boardManagesDetail && state.view !== "changelog" && isDetailPageRoute()) {
     renderDetailForState();
   } else if (!boardManagesDetail && state.detailKind !== "companyComposer") {
@@ -1681,7 +1714,7 @@ function detailRouteKey() {
   if (!route || !key) return "";
   if (route === "goods" && key === "needs") return "";
   if (route === "company" && ["solver", "composer"].includes(key)) return "";
-  return ["country", "culture", "state-region", "strategic-region", "geographic-region", "company", "ideology", "law", "technology", "achievement", "event", "journal", "decision", "building", "goods"].includes(route) ? key : "";
+  return ["country", "culture", "state-region", "strategic-region", "geographic-region", "company", "ideology", "law", "technology", "achievement", "event", "journal", "decision", "building", "goods", "character", "name-pool"].includes(route) ? key : "";
 }
 
 function syncFilterSectionOpenStates() {

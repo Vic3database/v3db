@@ -1,0 +1,2789 @@
+{
+  "schema_version": 2,
+  "reviews": [
+    {
+      "character_keys": [
+        "albert_einstein_template"
+      ],
+      "wikidata_id": "Q937",
+      "file_title": "File:Einstein 1921 by F Schmutzer - restoration.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file identifies Albert Einstein in a 1921 photograph by Ferdinand Schmutzer."
+    },
+    {
+      "character_keys": [
+        "JAP_yosano_akiko"
+      ],
+      "wikidata_id": "Q464104",
+      "file_title": "File:Akiko Yosano.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photograph of Akiko Yosano published by the Eastern Culture Association in 1933 or 1934."
+    },
+    {
+      "character_keys": [
+        "RUS_alexander_fyodorovich_kerensky"
+      ],
+      "wikidata_id": "Q48211",
+      "file_title": "File:Alexandre Fiodorovitch Kerenski, 1881-1970 (cropped).jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a cropped single-person photograph of Alexander Kerensky dated 23 May 1943."
+    },
+    {
+      "character_keys": [
+        "RUS_alexandra_mikhailovna_kollontai"
+      ],
+      "wikidata_id": "Q179558",
+      "file_title": "File:Alexandra Kollontai 1946.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photograph of Alexandra Kollontai dated 10 June 1946."
+    },
+    {
+      "character_keys": [
+        "usa_andrew_jackson_template"
+      ],
+      "wikidata_id": "Q11817",
+      "file_title": "File:Andrew jackson head.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a cropped single-person painted portrait of Andrew Jackson by Ralph Eleaser Whiteside Earl."
+    },
+    {
+      "character_keys": [
+        "BIC_bhimrao_ramji_ambedkar"
+      ],
+      "wikidata_id": "Q231690",
+      "file_title": "File:Dr. Bhimrao Ambedkar.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photographic portrait of B. R. Ambedkar dated after 1948 or in the 1950s."
+    },
+    {
+      "character_keys": [
+        "mex_juarez_character_template"
+      ],
+      "wikidata_id": "Q182276",
+      "file_title": "File:Benito Juarez (cropped).jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a cropped single-person photographic portrait of Benito Juarez."
+    },
+    {
+      "character_keys": [
+        "gbr_disraeli_character_template"
+      ],
+      "wikidata_id": "Q82006",
+      "file_title": "File:Benjamin Disraeli (1804–1881) cropped.png",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a cropped single-person photograph of Benjamin Disraeli by Cornelius Jabez Hughes dated 22 July 1878."
+    },
+    {
+      "character_keys": [
+        "GBR_friedrich_engels"
+      ],
+      "wikidata_id": "Q34787",
+      "file_title": "File:Friedrich Engels portrait (cropped).jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a cropped single-person photograph of Friedrich Engels by William Hall dated May 1877."
+    },
+    {
+      "character_keys": [
+        "agitator_giuseppe_mazzini"
+      ],
+      "wikidata_id": "Q187336",
+      "file_title": "File:Giuseppe Mazzini.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photographic portrait of Giuseppe Mazzini dated 1860."
+    },
+    {
+      "character_keys": [
+        "usa_henry_ford"
+      ],
+      "wikidata_id": "Q8768",
+      "file_title": "File:Henry ford 1919.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photograph of Henry Ford by Fred Hartsook dated 1919."
+    },
+    {
+      "character_keys": [
+        "BIC_amy_carmichael"
+      ],
+      "wikidata_id": "Q481824",
+      "file_title": "File:Amy Carmichael with children2.jpg",
+      "decision": "reject",
+      "type": "",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image shows Amy Carmichael with a child and is not a single-person portrait."
+    },
+    {
+      "character_keys": ["HUN_abraham_ganz"],
+      "wikidata_id": "Q117463",
+      "file_title": "File:Ganz abraham.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person printed portrait of Ábrahám Ganz with a direct Wikidata image statement and public-domain license."
+    },
+    {
+      "character_keys": ["can_adams_george_archibald"],
+      "wikidata_id": "Q351904",
+      "file_title": "File:Adams George Archibald.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photographic portrait of Adams George Archibald with structured depicts evidence and public-domain license."
+    },
+    {
+      "character_keys": ["POR_afonso_costa"],
+      "wikidata_id": "Q383401",
+      "file_title": "File:Afonso Costa.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photograph of Afonso Costa dated 1904 with structured depicts evidence and public-domain license."
+    },
+    {
+      "character_keys": ["sar_general_chiodo"],
+      "wikidata_id": "Q2827089",
+      "file_title": "File:Agostino Chiodo.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photographic portrait of Agostino Chiodo with structured depicts evidence and public-domain license."
+    },
+    {
+      "character_keys": ["BEL_Albert_Joseph_Goblet_d_Alviella"],
+      "wikidata_id": "Q533339",
+      "file_title": "File:Albert Goblet.png",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person printed portrait of Albert Joseph Goblet d'Alviella with a direct Wikidata image statement and public-domain license."
+    },
+    {
+      "character_keys": ["bel_general_prisse"],
+      "wikidata_id": "Q782120",
+      "file_title": "File:Albert-Florent-Joseph Prisse.png",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person printed portrait of Albert-Florent-Joseph Prisse with a direct Wikidata image statement and public-domain license."
+    },
+    {
+      "character_keys": ["pru_general_von_roon"],
+      "wikidata_id": "Q77281",
+      "file_title": "File:Count Albrecht von Roon circa 1870.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photograph of Albrecht von Roon dated circa 1870 with a direct Wikidata image statement and public-domain license."
+    },
+    {
+      "character_keys": ["RUS_alexander_ageevich_abaza"],
+      "wikidata_id": "Q551333",
+      "file_title": "File:Alexander Ag. Abaza.jpeg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photograph of Alexander Abaza dated 1895 with a direct Wikidata image statement and public-domain license."
+    },
+    {
+      "character_keys": ["AST_alexander_berry"],
+      "wikidata_id": "Q4718350",
+      "file_title": "File:AlexanderBerry02.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photographic copy print of Alexander Berry dated 1912 with structured depicts evidence and public-domain license."
+    },
+    {
+      "character_keys": ["RUS_alexander_ivanovich_guchkov"],
+      "wikidata_id": "Q2083549",
+      "file_title": "File:Александр Иванович Гучков - Finnish Heritage Agency (JOKAOT4SK1917 19-8) (cropped).jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a cropped single-person photograph of Alexander Guchkov dated 12 May 1917 with a direct Wikidata image statement and CC BY 4.0 license."
+    },
+    {
+      "character_keys": ["RUS_alexander_ivanovich_konovalov"],
+      "wikidata_id": "Q2633276",
+      "file_title": "File:Alexander Konovalov.jpeg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photograph of Alexander Konovalov dated 1917 with structured depicts evidence and public-domain license."
+    },
+    {
+      "character_keys": ["GRE_alexandros_koumoundouros"],
+      "wikidata_id": "Q708318",
+      "file_title": "File:Alexandros Koumoundouros.png",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person 19th-century oil portrait of Alexandros Koumoundouros by Spiridon Vikatos with structured depicts evidence and public-domain license."
+    },
+    {
+      "character_keys": ["agitator_alexandru_bogdan_pitesti"],
+      "wikidata_id": "Q2834278",
+      "file_title": "File:Correggio, Alexandru Bogdan-Piteşti.jpg",
+      "decision": "reject",
+      "type": "",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person drawing, outside the approved photograph, painting and print types for this batch."
+    },
+    {
+      "character_keys": ["ECU_alfredo_baquerizo_moreno"],
+      "wikidata_id": "Q2026643",
+      "file_title": "File:Alfredo Baquerizo Moreno.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photograph of Alfredo Baquerizo Moreno from the 1910s with a direct Wikidata image statement and public-domain license."
+    },
+    {
+      "character_keys": ["GRE_general_anastasios_papoulas"],
+      "wikidata_id": "Q2528529",
+      "file_title": "File:Papoulas Anastasios.JPG",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photograph of Anastasios Papoulas from circa 1920 with a direct Wikidata image statement and public-domain license."
+    },
+    {
+      "character_keys": ["GRE_anastasios_polyzoidis"],
+      "wikidata_id": "Q3563112",
+      "file_title": "File:Anastasios Polyzoidis.png",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person printed portrait of Anastasios Polyzoidis with structured depicts evidence and a copyrighted free-use license."
+    },
+    {
+      "character_keys": ["SWE_anders_danielsson"],
+      "wikidata_id": "Q5616737",
+      "file_title": "File:Anders Danielsson(1784-1839).jpg",
+      "decision": "reject",
+      "type": "",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a drawing by Maria Röhl, outside the approved photograph, painting and print types for this batch."
+    },
+    {
+      "character_keys": ["SWE_anders_ericsson"],
+      "wikidata_id": "Q5715009",
+      "file_title": "File:Anders Ericsson SPA 1798 (cropped).jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a cropped single-person photographic portrait of Anders Ericsson with a direct Wikidata image statement and CC BY 4.0 license."
+    },
+    {
+      "character_keys": ["GRE_andreas_syggros"],
+      "wikidata_id": "Q500875",
+      "file_title": "File:Andreas Syggros.JPG",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person printed portrait of Andreas Syggros dated 1900 with a direct Wikidata image statement and public-domain license."
+    },
+    {
+      "character_keys": ["net_general_michiels"],
+      "wikidata_id": "Q2498138",
+      "file_title": "File:Michiels, AV.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person printed portrait of Andreas Victor Michiels by W. R. van Hoevell dated 1850 with a direct Wikidata image statement and public-domain license."
+    },
+    {
+      "character_keys": ["BOL_Andres_de_Santa_Cruz"],
+      "wikidata_id": "Q467959",
+      "file_title": "File:Andrés de Santa Cruz. Ugalde, Manuel. c. 1835, Andrés de Santa Cruz collection, La Paz.png",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person 19th-century painting of Andrés de Santa Cruz by Manuel Ugalde with structured depicts evidence and public-domain license."
+    },
+    {
+      "character_keys": ["GBR_andrew_scott_waugh"],
+      "wikidata_id": "Q507301",
+      "file_title": "File:Andrew Scott Waugh 1861.jpg",
+      "decision": "reject",
+      "type": "",
+      "reviewed_at": "2026-08-13",
+      "reason": "The file is a crop from a group photograph of the Survey of India, so the image context is not a single-person portrait."
+    },
+    {
+      "character_keys": ["BRZ_anesia_cauacu"],
+      "wikidata_id": "Q8202231",
+      "file_title": "File:Anésia Cauaçu.jpg",
+      "decision": "reject",
+      "type": "",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image shows Anésia Cauaçu with her daughter and is not a single-person portrait."
+    },
+    {
+      "character_keys": ["URU_angel_muniz"],
+      "wikidata_id": "Q6173348",
+      "file_title": "File:Rojo y Blanco Año I Numero VII Pagina 32 recorte 03.png",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person printed portrait of Ángel Muniz in a public-domain periodical scan."
+    },
+    {
+      "character_keys": ["AUS_anselm_salomon_von_rothschild"],
+      "wikidata_id": "Q569582",
+      "file_title": "File:Anselm Salomon Rothschild.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person printed portrait of Anselm Salomon von Rothschild by Friedrich Lieder from circa 1830 with a public-domain license."
+    },
+    {
+      "character_keys": ["SPA_anselmo_lorenzo"],
+      "wikidata_id": "Q174770",
+      "file_title": "File:Anselmo lorenzo.png",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person portrait of Anselmo Lorenzo with a direct Wikidata image statement and public-domain license."
+    },
+    {
+      "character_keys": ["POR_antonio_de_serpa_pimentel"],
+      "wikidata_id": "Q558201",
+      "file_title": "File:Serpa Pimentel.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person printed portrait of António de Serpa Pimentel with a direct Wikidata image statement and public-domain license."
+    },
+    {
+      "character_keys": ["PEU_antonio_gutierrez_de_la_fuente"],
+      "wikidata_id": "Q2332396",
+      "file_title": "File:Agutierrezf.png",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person portrait painting of Antonio Gutiérrez de la Fuente dated 1829 with structured identity evidence and public-domain license."
+    },
+    {
+      "character_keys": ["CUB_antonio_maceo"],
+      "wikidata_id": "Q554264",
+      "file_title": "File:Antonio Maceo.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photograph of Antonio Maceo with structured identity evidence and public-domain license."
+    },
+    {
+      "character_keys": ["GRE_antonios_kriezis"],
+      "wikidata_id": "Q177296",
+      "file_title": "File:Kriezis.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person portrait painting of Antonios Kriezis with structured identity evidence and public-domain license."
+    },
+    {
+      "character_keys": ["CLM_aristides_fernandez"],
+      "wikidata_id": "Q23823817",
+      "file_title": "File:Arístides Fernández.png",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person printed portrait of Arístides Fernández with structured identity evidence and public-domain license."
+    },
+    {
+      "character_keys": ["DEN_arnold_peter_moller"],
+      "wikidata_id": "Q695944",
+      "file_title": "File:Father and son (7258728476).jpg",
+      "decision": "reject",
+      "type": "",
+      "reviewed_at": "2026-08-13",
+      "reason": "The file shows Arnold Peter Møller with his son and is not a single-person portrait."
+    },
+    {
+      "character_keys": ["PRG_arsenio_lopez_decoud"],
+      "wikidata_id": "Q5706415",
+      "file_title": "File:Arsenio López Decoud.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photographic portrait of Arsenio López Decoud with structured identity evidence and public-domain license."
+    },
+    {
+      "character_keys": ["GBR_arthur_james_cook"],
+      "wikidata_id": "Q22017451",
+      "file_title": "File:Arthur E. Cook (1924).png",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photographic portrait of Arthur Cook dated 1924 with structured identity evidence and public-domain license."
+    },
+    {
+      "character_keys": ["CHL_arturo_vial"],
+      "wikidata_id": "Q5488925",
+      "file_title": "File:Fernandez Vial.png",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photographic portrait of Arturo Fernández Vial with structured identity evidence and public-domain license."
+    },
+    {
+      "character_keys": ["HAW_asa_thurston"],
+      "wikidata_id": "Q18921120",
+      "file_title": "File:Asa Thurston.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photographic portrait of Asa Thurston with structured identity evidence and public-domain license."
+    },
+    {
+      "character_keys": ["pru_general_von_goeben"],
+      "wikidata_id": "Q65591",
+      "file_title": "File:August Karl Von Goeben.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photographic portrait of August Karl von Goeben with structured identity evidence and public-domain license."
+    },
+    {
+      "character_keys": ["fra_admiral_boue_de_lapeyrere"],
+      "wikidata_id": "Q2871099",
+      "file_title": "File:Auguste Boué de Lapeyrère.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photograph of Augustin Boué de Lapeyrère with a direct Wikidata image statement and public-domain license."
+    },
+    {
+      "character_keys": ["can_augustin-norbert_morin"],
+      "wikidata_id": "Q329231",
+      "file_title": "File:Augustin Norbert Morin (HS85-10-16599).jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a photographic reproduction of a single-person portrait painting of Augustin-Norbert Morin by Théophile Hamel."
+    },
+    {
+      "character_keys": ["CLM_avelino_rosas"],
+      "wikidata_id": "Q2873422",
+      "file_title": "File:Avelino Rosas.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photographic portrait of Avelino Rosas with structured identity evidence and public-domain license."
+    },
+    {
+      "character_keys": ["trs_avram_iancu"],
+      "wikidata_id": "Q720450",
+      "file_title": "File:Avram Iancu, cca. 1865.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photograph of Avram Iancu dated circa 1865 with a direct Wikidata image statement and public-domain license."
+    },
+    {
+      "character_keys": ["mug_bakht_khan"],
+      "wikidata_id": "Q3774267",
+      "file_title": "File:General Bakht Khan.jpg",
+      "decision": "reject",
+      "type": "",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image depicts a statue rather than Bakht Khan himself."
+    },
+    {
+      "character_keys": ["SPA_baldomero_espartero"],
+      "wikidata_id": "Q434529",
+      "file_title": "File:Baldomero Espartero cropped.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a cropped single-person photograph of Baldomero Espartero dated circa 1865 with a direct Wikidata image statement and public-domain license."
+    },
+    {
+      "character_keys": ["PEU_bartoleme_herrera"],
+      "wikidata_id": "Q2886118",
+      "file_title": "File:BartolomeHerrera1.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person printed portrait of Bartolomé Herrera with structured identity evidence and public-domain license."
+    },
+    {
+      "character_keys": ["BOL_bautista_saavedra_mallea"],
+      "wikidata_id": "Q811928",
+      "file_title": "File:SAAVEDRA B.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photograph of Bautista Saavedra with structured identity evidence and public-domain license."
+    },
+    {
+      "character_keys": ["HAI_beaubrun_ardouin"],
+      "wikidata_id": "Q2893123",
+      "file_title": "File:Beaubrun Ardouin.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photographic portrait of Beaubrun Ardouin dated circa 1865 with structured identity evidence and public-domain license."
+    },
+    {
+      "character_keys": ["USA_benjamin_tucker"],
+      "wikidata_id": "Q505871",
+      "file_title": "File:Benjamin Tucker.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person studio photograph of Benjamin Tucker made before 1893 with structured identity evidence and public-domain license."
+    },
+    {
+      "character_keys": ["fra_admiral_jaureguiberry"],
+      "wikidata_id": "Q259435",
+      "file_title": "File:Jean Bernard Jauréguiberry.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photographic portrait of Bernard Jauréguiberry with structured identity evidence and public-domain license."
+    },
+    {
+      "character_keys": ["prg_general_caballero"],
+      "wikidata_id": "Q738679",
+      "file_title": "File:Bernardino Caballero.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photographic portrait of Bernardino Caballero dated circa 1890 with structured identity evidence and public-domain license."
+    },
+    {
+      "character_keys": ["BRZ_bernardo_pereira_de_vasconcelos"],
+      "wikidata_id": "Q12082349",
+      "file_title": "File:BernardoPereiradeVasconcelos.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The image is a single-person photograph of Bernardo Pereira de Vasconcelos dated 1850 with structured identity evidence and public-domain license."
+    },
+    {
+      "character_keys": ["BIC_bipin_chandra_pal"],
+      "wikidata_id": "Q684198",
+      "file_title": "File:Bipin Chandra Pal.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain photograph identified as Bipin Chandra Pal, dated to the 1910s."
+    },
+    {
+      "character_keys": ["PRU_bruno_bauer"],
+      "wikidata_id": "Q76878",
+      "file_title": "File:Bruno Bauer.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain portrait print identified as Bruno Bauer."
+    },
+    {
+      "character_keys": ["JAP_suzuki_bunji"],
+      "wikidata_id": "Q11648895",
+      "file_title": "File:Bunji Suzuki.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain photograph of Bunji Suzuki from the Bain News Service collection."
+    },
+    {
+      "character_keys": ["tur_butrus_al_bustani"],
+      "wikidata_id": "Q710866",
+      "file_title": "File:Al Mu'allim Butrus al-Bustani.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain portrait identified as Butrus al-Bustani."
+    },
+    {
+      "character_keys": ["VNZ_carlo_castelli"],
+      "wikidata_id": "Q21480512",
+      "file_title": "File:Carlos Castelli (cropped).jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain portrait of Carlo Castelli, identified in the file description as a military portrait painted by Arturo Santana."
+    },
+    {
+      "character_keys": ["PAP_carlo_emanuele_muzzarelli"],
+      "wikidata_id": "Q5041499",
+      "file_title": "File:Carlo Emanuele Muzzarelli.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain portrait identified as Cardinal Carlo Emanuele Muzzarelli."
+    },
+    {
+      "character_keys": ["CUB_carlos_manuel_de_cespedes"],
+      "wikidata_id": "Q452070",
+      "file_title": "File:Carlos Manuel de Cespedes.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain portrait identified as Carlos Manuel de Céspedes del Castillo."
+    },
+    {
+      "character_keys": ["BOL_Casimiro_Olaneta"],
+      "wikidata_id": "Q2917464",
+      "file_title": "File:Casimiro Olañeta.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain portrait identified as Casimiro Olañeta."
+    },
+    {
+      "character_keys": ["PRG_cecilio_baez"],
+      "wikidata_id": "Q860978",
+      "file_title": "File:CECILIO BAEZ.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain photograph identified as Cecilio Báez González, dated circa 1905."
+    },
+    {
+      "character_keys": ["PAN_chand_kaur"],
+      "wikidata_id": "Q5070876",
+      "file_title": "File:Maharani Chand Kaur.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons description identifies this public-domain single-person gouache portrait as Maharani Chand Kaur, circa 1850."
+    },
+    {
+      "character_keys": ["FRA_charles_baudin"],
+      "wikidata_id": "Q1063698",
+      "file_title": "File:Portrait-Charles-Baudin.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain nineteenth-century portrait identified as Charles Baudin."
+    },
+    {
+      "character_keys": ["BEL_Charles_de_Brouck_Ere"],
+      "wikidata_id": "Q1066539",
+      "file_title": "File:Charles de Brouckère.png",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain portrait print identified as Charles de Brouckère."
+    },
+    {
+      "character_keys": ["USA_charles_finney"],
+      "wikidata_id": "Q532375",
+      "file_title": "File:Charles g finney.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain nineteenth-century portrait print identified as Charles Grandison Finney."
+    },
+    {
+      "character_keys": ["FRA_charles_frederick_worth"],
+      "wikidata_id": "Q454330",
+      "file_title": "File:Charles Frédéric Worth.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain photograph of Charles Frédéric Worth by Nadar, dated 1892."
+    },
+    {
+      "character_keys": ["GBR_charles_granville_bruce"],
+      "wikidata_id": "Q177346",
+      "file_title": "File:Charles Granville Bruce (1866-1939).jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain portrait of Charles Granville Bruce painted by George Percy Jacomb-Hood in 1913."
+    },
+    {
+      "character_keys": ["GBR_charles_ogle"],
+      "wikidata_id": "Q7526276",
+      "file_title": "File:Admiral Sir Charles Ogle, Bart - Amiral sir Charles Ogle, Bart.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain portrait of Charles Ogle by Cornelius Durham, dated 1850."
+    },
+    {
+      "character_keys": ["HAI_charles_riviere_herard"],
+      "wikidata_id": "Q605428",
+      "file_title": "File:Charles Rivière-Hérard.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain portrait print of Haitian president Charles Rivière-Hérard from an 1888 reference work."
+    },
+    {
+      "character_keys": ["NVS_colin_campbell"],
+      "wikidata_id": "Q5144954",
+      "file_title": "File:Sir Colin Campbell by William Salter.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain oil portrait of Colin Campbell by William Salter."
+    },
+    {
+      "character_keys": ["GRE_constantine_paparrigopoulos"],
+      "wikidata_id": "Q2449920",
+      "file_title": "File:Paparrigopoulos.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain portrait identified as Constantine Paparrigopoulos."
+    },
+    {
+      "character_keys": ["CHL_cornelio_saavedra_rodriguez"],
+      "wikidata_id": "Q4233309",
+      "file_title": "File:Cornelio Saavedra Rodríguez 2.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain portrait identified as Chilean military and politician Cornelio Saavedra Rodríguez."
+    },
+    {
+      "character_keys": ["GBR_cosmo_gordon_lang"],
+      "wikidata_id": "Q336344",
+      "file_title": "File:Archb. York LCCN2014716215.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain photograph of Cosmo Gordon Lang from the Bain News Service collection, dated circa 1920."
+    },
+    {
+      "character_keys": ["BRZ_custodio_de_melo"],
+      "wikidata_id": "Q2017507",
+      "file_title": "File:L'amiral de Mello, commandant la flotte devant Rio-de-Janeiro.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain illustrated portrait identified as Brazilian admiral Custódio José de Melo."
+    },
+    {
+      "character_keys": ["gbr_admiral_beatty"],
+      "wikidata_id": "Q335013",
+      "file_title": "File:Military at White House, Washington, D.C. LCCN2016890938.jpg",
+      "decision": "reject",
+      "type": "",
+      "reviewed_at": "2026-08-13",
+      "reason": "The file is a military group photograph at the White House; it does not provide a single-person portrait of David Beatty."
+    },
+    {
+      "character_keys": ["CTR_david_canabarro"],
+      "wikidata_id": "Q3018181",
+      "file_title": "File:David Canabarro.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain portrait identified as David Canabarro."
+    },
+    {
+      "character_keys": ["BIC_debendranath_tagore"],
+      "wikidata_id": "Q3020852",
+      "file_title": "File:Devendranath Tagore 1925.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-13",
+      "reason": "The Commons file is a single-person public-domain photograph of Debendranath Tagore, dated 1925."
+    },
+    {
+      "character_keys": ["ECU_diego_noboa"],
+      "wikidata_id": "Q1821930",
+      "file_title": "File:Diego Noboa Arteta.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is a single-person public-domain nineteenth-century portrait identified as Diego Noboa y Arteta."
+    },
+    {
+      "character_keys": ["agitator_dmitry_ivanovich_pisarev", "RUS_dimitry_pisarev"],
+      "wikidata_id": "Q378753",
+      "file_title": "File:Dimitri Pisarev.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is a single-person public-domain photographic portrait of Dmitry Pisarev from the George Kennan Papers."
+    },
+    {
+      "character_keys": ["BIC_dwarkanath_tagore"],
+      "wikidata_id": "Q1268423",
+      "file_title": "File:Dwarkanath Tagore.jpg",
+      "decision": "reject",
+      "type": "",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is categorized as a drawing of Dwarkanath Tagore, outside the approved photograph, painting and print types."
+    },
+    {
+      "character_keys": ["PAP_edoardo_fabbri"],
+      "wikidata_id": "Q55227282",
+      "file_title": "File:Edoardo Fabbri.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is a single-person public-domain nineteenth-century portrait of Count Edoardo Fabbri."
+    },
+    {
+      "character_keys": ["RUS_egor_frantsevich_kankrin"],
+      "wikidata_id": "Q67147",
+      "file_title": "File:Kankrin Egor Francevich.png",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is a single-person public-domain portrait print from the 1913 Military Encyclopedia, identified as Yegor Kankrin."
+    },
+    {
+      "character_keys": ["trs_elek_nopcsa"],
+      "wikidata_id": "Q42340923",
+      "file_title": "File:Nopcsa Elek (1775-1862).png",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is a single-person public-domain portrait identified as Elek Nopcsa, dated circa 1850."
+    },
+    {
+      "character_keys": ["CHL_elias_lafertte"],
+      "wikidata_id": "Q509548",
+      "file_title": "File:Elías Lafferte.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is a single-person public-domain photograph of Elías Lafferte Gaviño published by Revista Zig-Zag in 1938."
+    },
+    {
+      "character_keys": ["BOL_eliodoro_camacho"],
+      "wikidata_id": "Q1329583",
+      "file_title": "File:Eliodoro Camacho en 1879.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is a single-person public-domain photograph of Eliodoro Camacho dated 1879."
+    },
+    {
+      "character_keys": ["CHL_eliodoro_yanez"],
+      "wikidata_id": "Q5361200",
+      "file_title": "File:Eleodoro Yañez.jpeg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is a single-person public-domain photograph of Eliodoro Yáñez from the early twentieth century."
+    },
+    {
+      "character_keys": ["ECU_eloy_alfaro"],
+      "wikidata_id": "Q378158",
+      "file_title": "File:Eloy Alfaro2.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is a single-person public-domain photograph of José Eloy Alfaro Delgado dated circa 1910."
+    },
+    {
+      "character_keys": ["PEU_emilio_lisson"],
+      "wikidata_id": "Q5371895",
+      "file_title": "File:Emilio Lisson Chaves.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file identifies a single-person public-domain reproduction of a portrait painting of Emilio Lissón Chaves."
+    },
+    {
+      "character_keys": ["PEU_enrique_lopez_albujar"],
+      "wikidata_id": "Q2679389",
+      "file_title": "File:Enrique López Albújar.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is a single-person public-domain portrait photograph of Peruvian writer Enrique López Albújar."
+    },
+    {
+      "character_keys": ["CHL_erasmo_escala_arriagada"],
+      "wikidata_id": "Q5384929",
+      "file_title": "File:Erasmo Escala.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is a single-person public-domain portrait of Erasmo Escala Arriagada from the late nineteenth century."
+    },
+    {
+      "character_keys": ["POR_ernesto_hintze_ribeiro"],
+      "wikidata_id": "Q321214",
+      "file_title": "File:Hintze Ribeiro.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is a single-person public-domain portrait identified as Ernesto Hintze Ribeiro."
+    },
+    {
+      "character_keys": ["agitator_ernst_rohm"],
+      "wikidata_id": "Q58583",
+      "file_title": "File:Bundesarchiv Bild 102-15282A, Ernst Röhm.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is a single-person photograph of Ernst Röhm by Georg Pahl, dated 1933, under a reusable license."
+    },
+    {
+      "character_keys": ["CHL_estanislao_del_canto_arteaga"],
+      "wikidata_id": "Q5848821",
+      "file_title": "File:Estanislao del Canto Arteaga.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is a single-person public-domain portrait of Estanislao del Canto Arteaga."
+    },
+    {
+      "character_keys": ["sar_general_de_sonnaz"],
+      "wikidata_id": "Q3129249",
+      "file_title": "File:Ettore De Sonnaz.jpg",
+      "decision": "reject",
+      "type": "",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is explicitly identified as a drawing of Ettore de Sonnaz, outside the approved photograph, painting and print types."
+    },
+    {
+      "character_keys": ["PRC_eugene_varlin"],
+      "wikidata_id": "Q2426660",
+      "file_title": "File:Varlin-eugene.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is a single-person public-domain portrait identified as Eugène Varlin."
+    },
+    {
+      "character_keys": ["sar_general_bava"],
+      "wikidata_id": "Q3060974",
+      "file_title": "File:Eusebio Bava.gif",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is categorized as an engraved single-person portrait of Eusebio Bava and is public domain."
+    },
+    {
+      "character_keys": ["VNZ_ezequiel_zamora"],
+      "wikidata_id": "Q1361614",
+      "file_title": "File:Ezequielzamora.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is a single-person public-domain portrait identified as Venezuelan military figure Ezequiel Zamora."
+    },
+    {
+      "character_keys": ["RUS_fabian_gottlieb_von_bellingshausen"],
+      "wikidata_id": "Q76754",
+      "file_title": "File:Bellinsgauzen Faddey.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is a single-person portrait identified as Fabian Gottlieb von Bellingshausen and has a reusable CC BY-SA license."
+    },
+    {
+      "character_keys": ["pan_fakir_aziz_ud-din"],
+      "wikidata_id": "Q13113567",
+      "file_title": "File:Sketch of Fakir Azizuddin, former foreign minister of the Sikh Empire, published in 'The Court and Camp of Runjeet Sing' by Henry Colburn, ca.1840.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is a public-domain published portrait sketch explicitly identified as Fakir Azizuddin, circa 1840."
+    },
+    {
+      "character_keys": ["ECU_frederico_gonzalez_suarez"],
+      "wikidata_id": "Q5441010",
+      "file_title": "File:Federico Gonzáles Suárez, por César Villacrés (1906).jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons description identifies this public-domain single-person oil portrait of Federico González Suárez by César Villacrés, dated 1906."
+    },
+    {
+      "character_keys": ["HUN_ferenc_deak"],
+      "wikidata_id": "Q508823",
+      "file_title": "File:Portrait of Ferenc Deák.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons description identifies this public-domain single-person original photograph of Ferenc Deák by Ede Ellinger, dated circa 1870–1875."
+    },
+    {
+      "character_keys": ["HUN_ferenc_kolcsey"],
+      "wikidata_id": "Q440057",
+      "file_title": "File:Kolcsey ferenc.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is a single-person public-domain portrait of Ferenc Kölcsey by Anton Einsle."
+    },
+    {
+      "character_keys": ["VNZ_fermin_toro"],
+      "wikidata_id": "Q3621891",
+      "file_title": "File:Antonio Herrera Toro 1897 000.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons description identifies this public-domain 1897 oil-on-canvas portrait of Fermín Toro by Antonio Herrera Toro."
+    },
+    {
+      "character_keys": ["ONT_francis_bond_head"],
+      "wikidata_id": "Q1441408",
+      "file_title": "File:Portrait of Francis Bond Head.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is a public-domain printed portrait of Francis Bond Head, with painter, engraver and publisher credited."
+    },
+    {
+      "character_keys": ["ORA_francis_william_reitz"],
+      "wikidata_id": "Q726327",
+      "file_title": "File:WFReitz CHM VA0957.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is an official single-person portrait of Orange Free State president Francis William Reitz, dated to his 1888–1895 term."
+    },
+    {
+      "character_keys": ["ECU_francisco_aguirre_abad"],
+      "wikidata_id": "Q21041509",
+      "file_title": "File:Aguirre Abad, Dr. Francisco Javier.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is a single-person image tied directly to Francisco Aguirre Abad and carries a reusable CC BY-SA 3.0 license."
+    },
+    {
+      "character_keys": ["BRZ_francisco_escobar"],
+      "wikidata_id": "Q30611210",
+      "file_title": "File:FranciscoEscobarPrefeito.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons description identifies a single-person photograph of Francisco Escobar as mayor, dated 1909."
+    },
+    {
+      "character_keys": ["VNZ_francisco_linares_alcantara"],
+      "wikidata_id": "Q2497665",
+      "file_title": "File:Sketch Linares Alcántara.jpg",
+      "decision": "reject",
+      "type": "",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons description explicitly identifies the file as a sketch of a portrait of Francisco Linares Alcántara, outside the approved image types."
+    },
+    {
+      "character_keys": ["UCA_francisco_morazan"],
+      "wikidata_id": "Q332111",
+      "file_title": "File:General Francisco Morazán.JPG",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is a public-domain historic portrait of Francisco Morazán reproduced from an 1838 publication."
+    },
+    {
+      "character_keys": ["SPA_francisco_savalls"],
+      "wikidata_id": "Q3397627",
+      "file_title": "File:Savalls1.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is a single-person public-domain portrait identified as Francisco Savalls y Massot and dated 1872."
+    },
+    {
+      "character_keys": ["DEI_Frans_David_Cochius"],
+      "wikidata_id": "Q2092779",
+      "file_title": "File:Cochius, Frans David.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is a single-person public-domain portrait of Frans David Cochius by P. H. K. van Schendel."
+    },
+    {
+      "character_keys": ["TRN_frans_lion_cachet"],
+      "wikidata_id": "Q13034743",
+      "file_title": "File:FL Cachet.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file identifies a single-person nineteenth-century photograph of Frans Lion Cachet."
+    },
+    {
+      "character_keys": ["net_general_list"],
+      "wikidata_id": "Q2793043",
+      "file_title": "File:Frederik Carel List.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons title and description identify this public-domain single-person portrait of Frederik Carel List."
+    },
+    {
+      "character_keys": ["SWI_friedrich_ludwig_keller"],
+      "wikidata_id": "Q124208",
+      "file_title": "File:Friedrich Ludwig Keller (1799-1860).jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons description identifies a single-person public-domain portrait of Friedrich Ludwig Keller."
+    },
+    {
+      "character_keys": ["HUN_gabor_baross"],
+      "wikidata_id": "Q450178",
+      "file_title": "File:Baross Gábor Morelli.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons description identifies this public-domain portrait of Gábor Baross as an engraving by Gustav Morelli, dated 1892."
+    },
+    {
+      "character_keys": ["JAP_nagaoka_gaishi"],
+      "wikidata_id": "Q11652027",
+      "file_title": "File:Lieutenant General Gaishi Nagaoka.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is a public-domain old photograph of Lieutenant General Gaishi Nagaoka from the 1930s."
+    },
+    {
+      "character_keys": ["BER_ganpat_rao_gaekwad_template"],
+      "wikidata_id": "Q16066150",
+      "file_title": "File:Ganpat Rao Gaekwad.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is a single-person public-domain portrait identified as Ganpat Rao Gaekwad."
+    },
+    {
+      "character_keys": ["can_george_brown"],
+      "wikidata_id": "Q642382",
+      "file_title": "File:George Brown.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is a single-person public-domain photograph of Canadian politician George Brown from Library and Archives Canada."
+    },
+    {
+      "character_keys": ["AST_george_fife_angas"],
+      "wikidata_id": "Q1507341",
+      "file_title": "File:George Fife Angas.jpg",
+      "decision": "reject",
+      "type": "",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons description explicitly identifies the file as a sketch of George Fife Angas, outside the approved image types."
+    },
+    {
+      "character_keys": ["GBR_george_holyoake"],
+      "wikidata_id": "Q719365",
+      "file_title": "File:Holyoake2.JPG",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons description identifies a single-person public-domain portrait photograph of George Jacob Holyoake in later life."
+    },
+    {
+      "character_keys": ["AST_george_strickland_kingston"],
+      "wikidata_id": "Q3101945",
+      "file_title": "File:Portrait of the Hon. Sir George Stickland Kingston(GN00283).jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is a single-person portrait of George Strickland Kingston dated 1857, with a CC0 license and photographer credit."
+    },
+    {
+      "character_keys": ["fra_georges_sorel_character_template"],
+      "wikidata_id": "Q313666",
+      "file_title": "File:Georges Sorel.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file identifies a single-person early twentieth-century portrait of Georges Sorel and is public domain."
+    },
+    {
+      "character_keys": ["GRE_georgios_kountouriotis"],
+      "wikidata_id": "Q660508",
+      "file_title": "File:Georgios Kountouriotis.png",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons categories identify this public-domain 1860 single-person oil portrait of Georgios Kountouriotis by Dionysios Tsokos."
+    },
+    {
+      "character_keys": ["GRE_georgios_psyllas"],
+      "wikidata_id": "Q15981073",
+      "file_title": "File:Georgios Psillas.JPG",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file is a public-domain portrait reproduced in the 1881 Greek illustrated reference work."
+    },
+    {
+      "character_keys": ["ITA_giovanni_agnelli"],
+      "wikidata_id": "Q315610",
+      "file_title": "File:Agnelli.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons description identifies a single-person public-domain portrait of Giovanni Agnelli."
+    },
+    {
+      "character_keys": ["ITA_giovanni_ansaldo"],
+      "wikidata_id": "Q3766422",
+      "file_title": "File:Giovanni Ansaldo .jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons file identifies a single-person 1853 portrait of Giovanni Ansaldo and is public domain."
+    },
+    {
+      "character_keys": ["agitator_giovanni_gentile"],
+      "wikidata_id": "Q312295",
+      "file_title": "File:Giovanni Gentile.png",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons description identifies a single-person portrait of philosopher Giovanni Gentile from the early twentieth century."
+    },
+    {
+      "character_keys": ["SER_gligorije_vozarevic"],
+      "wikidata_id": "Q12750244",
+      "file_title": "File:Gligorije Vozarević knjižar (cropped).JPG",
+      "decision": "reject",
+      "type": "",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a cropped modern graphic from a commemorative plaque in Belgrade, not a historical photograph, portrait painting or print."
+    },
+    {
+      "character_keys": ["CHL_gregorio_urrutia_venegas"],
+      "wikidata_id": "Q5885554",
+      "file_title": "File:GralUrrutia.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain photographic portrait of Gregorio Urrutia."
+    },
+    {
+      "character_keys": ["PEU_guillermo_billinghurst"],
+      "wikidata_id": "Q136790",
+      "file_title": "File:Guillermo Billingurst 6.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person painted portrait identified as Guillermo Billinghurst and carries a reusable CC BY-SA 3.0 license."
+    },
+    {
+      "character_keys": ["KAS_gulab_singh"],
+      "wikidata_id": "Q12446041",
+      "file_title": "File:Maharaja Gulab Singh of Jammu and Kashmir.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons description identifies this public-domain Indian portrait painting as Maharaja Gulab Singh, made circa 1846."
+    },
+    {
+      "character_keys": ["BIC_haji_shariatullah"],
+      "wikidata_id": "Q5639930",
+      "file_title": "File:Haji Shariatullah.jpg",
+      "decision": "reject",
+      "type": "",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate has no identified author or supported image type, and the rendered image cannot be verified as a historical photograph, portrait painting or print."
+    },
+    {
+      "character_keys": ["NOR_hans_riddervold"],
+      "wikidata_id": "Q947202",
+      "file_title": "File:Hans Riddervold.png",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person mid-nineteenth-century public-domain portrait identified as Hans Riddervold."
+    },
+    {
+      "character_keys": ["pan_hari_singh_nalwa"],
+      "wikidata_id": "Q3631373",
+      "file_title": "File:Hari Singh Nalwa british museum.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons description identifies this public-domain Indian painting as General Hari Singh Nalwa seated in full armor."
+    },
+    {
+      "character_keys": ["JAP_oshio_heihachiro"],
+      "wikidata_id": "Q1056715",
+      "file_title": "File:Oshio Heihachiro.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a public-domain nineteenth-century portrait painting of Ōshio Heihachirō by Kikuchi Yōsai."
+    },
+    {
+      "character_keys": ["AUS_heinrich_oberwinder"],
+      "wikidata_id": "Q1598409",
+      "file_title": "File:Heinrich Oberwinder.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain photograph of Heinrich Oberwinder dated circa 1900."
+    },
+    {
+      "character_keys": ["can_henri_bourassa"],
+      "wikidata_id": "Q3130733",
+      "file_title": "File:Henri bourassa.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain photograph of Canadian politician Henri Bourassa dated July 1917."
+    },
+    {
+      "character_keys": ["POR_henrique_de_barros_gomes"],
+      "wikidata_id": "Q5716802",
+      "file_title": "File:Henrique de Barros Gomes 1886.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain printed portrait of Henrique de Barros Gomes from the illustrated periodical O Ocidente."
+    },
+    {
+      "character_keys": ["POR_hermenegildo_capelo"],
+      "wikidata_id": "Q1250265",
+      "file_title": "File:Hermenegildo Carlos de Brito Capêlo (cropped).jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a cropped single-person public-domain photograph of Hermenegildo Capelo made before 1917."
+    },
+    {
+      "character_keys": ["BOL_hilarion_daza_groselle"],
+      "wikidata_id": "Q492024",
+      "file_title": "File:Hilarion Daza Groselle.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Bolivian president Hilarión Daza, dated circa 1879."
+    },
+    {
+      "character_keys": ["BEL_hippolyte_metdepenningen"],
+      "wikidata_id": "Q2833532",
+      "file_title": "File:Hippolyte Metdepenningen.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain nineteenth-century portrait photograph identified as Hippolyte Metdepenningen."
+    },
+    {
+      "character_keys": ["tur_admiral_hobart"],
+      "wikidata_id": "Q608043",
+      "file_title": "File:Augustus Charles Hobart-Hampden - Project Gutenberg eText 16296.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain printed portrait of Augustus Charles Hobart-Hampden from a Project Gutenberg source."
+    },
+    {
+      "character_keys": ["JAP_iesato_tokugawa"],
+      "wikidata_id": "Q672741",
+      "file_title": "File:Tokugawa Iesato.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a public-domain old photograph of the young Tokugawa Iesato by Suzuki Shin'ichi II."
+    },
+    {
+      "character_keys": ["URU_Ignacio_Oribe"],
+      "wikidata_id": "Q5913459",
+      "file_title": "File:Gral. Ignacio Abdón del Corazón de Jesús Oribe y Viana.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons description identifies this public-domain single-person painted portrait as Uruguayan general Ignacio Oribe."
+    },
+    {
+      "character_keys": ["mex_general_zaragoza"],
+      "wikidata_id": "Q558759",
+      "file_title": "File:Ignacio Zaragoza.png",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons description identifies this public-domain nineteenth-century oil-on-canvas portrait as General Ignacio Zaragoza."
+    },
+    {
+      "character_keys": ["JAP_ii_naonori"],
+      "wikidata_id": "Q7270239",
+      "file_title": "File:Ii Naonori.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The Commons description explicitly identifies the candidate as a public-domain portrait photograph of Ii Naonori."
+    },
+    {
+      "character_keys": ["JAP_ii_naotada"],
+      "wikidata_id": "Q11161278",
+      "file_title": "File:Naotada Ii.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain old photograph of Ii Naotada dated October 1913."
+    },
+    {
+      "character_keys": ["GRE_ioannis_makriyannis"],
+      "wikidata_id": "Q2658023",
+      "file_title": "File:Makrygiannis.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait identified as Ioannis Makriyannis."
+    },
+    {
+      "character_keys": ["agitator_ion_dragoumis"],
+      "wikidata_id": "Q737889",
+      "file_title": "File:Ion Dragoumis.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Ion Dragoumis from the early twentieth century."
+    },
+    {
+      "character_keys": ["BRZ_irineu_evangelista_de_sousa"],
+      "wikidata_id": "Q1791167",
+      "file_title": "File:Irineu evangelista de sousa the viscount of maua.png",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait painting of Irineu Evangelista de Sousa by Édouard Viénot, dated circa 1872."
+    },
+    {
+      "character_keys": ["USA_isaac_hull"],
+      "wikidata_id": "Q2422525",
+      "file_title": "File:Captain Isaac Hull USN(1773-1843).jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait of Captain Isaac Hull held by the United States Navy."
+    },
+    {
+      "character_keys": ["CIR_Ismail_Berzeg"],
+      "wikidata_id": "Q15640229",
+      "file_title": "File:IsmailBerzegCircassia.png",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person 1840 portrait painting of Ismail Berzeg by Grigory Gagarin under a reusable CC BY-SA 4.0 license."
+    },
+    {
+      "character_keys": ["HUN_istvan_karolyi"],
+      "wikidata_id": "Q1123485",
+      "file_title": "File:Károlyi István.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain lithographic portrait of István Károlyi by József Molnár, dated 1837."
+    },
+    {
+      "character_keys": ["HUN_istvan_szechenyi"],
+      "wikidata_id": "Q279397",
+      "file_title": "File:István Széchenyi.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain oil-on-canvas portrait of István Széchenyi by Friedrich von Amerling."
+    },
+    {
+      "character_keys": ["GBR_james_elphinstone_erskine"],
+      "wikidata_id": "Q6133501",
+      "file_title": "File:James Elphinstone Erskine.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of James Elphinstone Erskine dated circa 1884."
+    },
+    {
+      "character_keys": ["ONT_james_fitzgibbon"],
+      "wikidata_id": "Q1680388",
+      "file_title": "File:James FitzGibbon - Project Gutenberg eText 18025.png",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain printed portrait of James FitzGibbon reproduced by Project Gutenberg."
+    },
+    {
+      "character_keys": ["AST_james_stirling"],
+      "wikidata_id": "Q1360030",
+      "file_title": "File:Jamesstirling.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain printed portrait identified as Governor James Stirling and dated before 1866."
+    },
+    {
+      "character_keys": ["ORA_johannes_brand"],
+      "wikidata_id": "Q1390594",
+      "file_title": "File:Johannes Brand00.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Johannes Henricus Brand from the Cape Archives."
+    },
+    {
+      "character_keys": ["TRN_jan_viljoen"],
+      "wikidata_id": "Q20979821",
+      "file_title": "File:Jan Viljoen.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph identified as Jan Viljoen and dated before 1893."
+    },
+    {
+      "character_keys": ["rus_jaroslaw_dabrowski_character_template"],
+      "wikidata_id": "Q465213",
+      "file_title": "File:Illustration from Żywot jenerała Jarosława Dąbrowskiego (cropped).jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain printed portrait of Jarosław Dąbrowski from an 1878 biography."
+    },
+    {
+      "character_keys": ["BIC_jawaharlal_nehru"],
+      "wikidata_id": "Q1047",
+      "file_title": "File:Jawaharlal Nehru, circa 1925.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Jawaharlal Nehru made by the Keystone View Company circa 1925."
+    },
+    {
+      "character_keys": ["FRA_jean_de_orleans"],
+      "wikidata_id": "Q578791",
+      "file_title": "File:Jean d'Orléans (1874-1940).jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person CC0 portrait photograph identified as Jean d'Orléans, Duke of Guise."
+    },
+    {
+      "character_keys": ["FRA_jean-francois_mocquard"],
+      "wikidata_id": "Q3165782",
+      "file_title": "File:Mocquard ILN.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain printed portrait of Jean-François Mocquard published in The Illustrated London News in 1864."
+    },
+    {
+      "character_keys": ["QUE_jean-jacques_lartigue"],
+      "wikidata_id": "Q3166327",
+      "file_title": "File:Jean-Jacques Lartigue.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait identified as Bishop Jean-Jacques Lartigue."
+    },
+    {
+      "character_keys": ["HAI_jean_pierre_boyer"],
+      "wikidata_id": "Q449421",
+      "file_title": "File:President Jean-Pierre Boyer of Haiti (Hispaniola Unification Regime) Portrait.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait of Haitian president Jean-Pierre Boyer dated 1825."
+    },
+    {
+      "character_keys": ["BIC_jiddu_krishnamurti"],
+      "wikidata_id": "Q179266",
+      "file_title": "File:Jiddu Krishnamurti 01.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Jiddu Krishnamurti from the Library of Congress."
+    },
+    {
+      "character_keys": ["VNZ_joaquin_crespo"],
+      "wikidata_id": "Q2497541",
+      "file_title": "File:JoaquinCrespo.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain printed portrait categorized and identified as Venezuelan president Joaquín Crespo."
+    },
+    {
+      "character_keys": ["BEL_John_Cockerill"],
+      "wikidata_id": "Q707591",
+      "file_title": "File:John Cockerill Industrieller.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait identified as industrialist John Cockerill."
+    },
+    {
+      "character_keys": ["AST_john_hindmarsh"],
+      "wikidata_id": "Q1371649",
+      "file_title": "File:Governor John Hindmarsh.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain printed portrait identified as Governor John Hindmarsh."
+    },
+    {
+      "character_keys": ["GBR_john_hughes"],
+      "wikidata_id": "Q328225",
+      "file_title": "File:1894. Portrait of John Hughes, founder of Hughesovka (cropped).jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait of John Hughes, founder of Hughesovka, dated 1894."
+    },
+    {
+      "character_keys": ["SAF_john_paterson"],
+      "wikidata_id": "Q6252034",
+      "file_title": "File:JohnPaterson.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Cape politician John Paterson from the Port Elizabeth Public Library."
+    },
+    {
+      "character_keys": ["PHL_john_philip"],
+      "wikidata_id": "Q1701417",
+      "file_title": "File:Portrait of Revd. John Philip D.D (4669882).jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain stipple engraving of missionary John Philip, dated 1829."
+    },
+    {
+      "character_keys": ["LIB_john_brown_russwurm"],
+      "wikidata_id": "Q3181134",
+      "file_title": "File:John B. Russwurm.png",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain printed portrait of John Brown Russwurm scanned from The Afro-American Press and Its Editors."
+    },
+    {
+      "character_keys": ["NOR_jonas_anton_hielm"],
+      "wikidata_id": "Q947935",
+      "file_title": "File:Jonas Anton Hielm - norwegischer Politiker.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain printed portrait identified as Norwegian politician Jonas Anton Hielm."
+    },
+    {
+      "character_keys": ["PEU_jorge_de_benavente_y_macoaga"],
+      "wikidata_id": "Q9012959",
+      "file_title": "File:Jorge de Benavente.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain reproduction of a nineteenth-century painted portrait of Archbishop Jorge de Benavente y Macoaga."
+    },
+    {
+      "character_keys": ["CHL_jorge_gonzalez_von_marees"],
+      "wikidata_id": "Q560727",
+      "file_title": "File:Jorge González Von Marées color.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph identified as Chilean politician Jorge González von Marées, dated circa 1940."
+    },
+    {
+      "character_keys": ["BOL_Jose_Ballivian"],
+      "wikidata_id": "Q734711",
+      "file_title": "File:José Ballivián.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait identified as Bolivian president José Ballivián."
+    },
+    {
+      "character_keys": ["PHI_jose_burgos"],
+      "wikidata_id": "Q983553",
+      "file_title": "File:Jose burgos PG.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain printed portrait of José Burgos from the 1922 book Mga Dakilang Pilipino."
+    },
+    {
+      "character_keys": ["SPA_jose_canalejas"],
+      "wikidata_id": "Q365309",
+      "file_title": "File:José Canalejas (cropped).png",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a cropped single-person public-domain portrait photograph of José Canalejas made by the Bain News Service in 1910."
+    },
+    {
+      "character_keys": ["CUB_jose_de_la_luz_y_caballero"],
+      "wikidata_id": "Q6294346",
+      "file_title": "File:José de la Luz y Caballero.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person painted portrait identified as José de la Luz y Caballero under a reusable CC BY-SA 4.0 license."
+    },
+    {
+      "character_keys": ["agitator_jose_do_patrocinio"],
+      "wikidata_id": "Q359451",
+      "file_title": "File:José do Patrocínio.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of José do Patrocínio dated circa 1900."
+    },
+    {
+      "character_keys": ["PRG_jose_felix_estigarribia"],
+      "wikidata_id": "Q379670",
+      "file_title": "File:Jose Estigarribia.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of José Félix Estigarribia dated circa August 1939."
+    },
+    {
+      "character_keys": ["VNZ_jose_gil_fortoul"],
+      "wikidata_id": "Q2585455",
+      "file_title": "File:Gil Fortoul BNV.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of José Gil Fortoul from the late nineteenth or early twentieth century."
+    },
+    {
+      "character_keys": ["VNZ_jose_gregorio_monagas"],
+      "wikidata_id": "Q2080751",
+      "file_title": "File:JoseGregorioMonagas.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait painting of José Gregorio Monagas by Martín Tovar y Tovar, dated 1874."
+    },
+    {
+      "character_keys": ["ARG_jose_hernandez"],
+      "wikidata_id": "Q377623",
+      "file_title": "File:José Hernández.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Argentine writer José Hernández dated circa 1875."
+    },
+    {
+      "character_keys": ["CLM_jose_hilario_lopez"],
+      "wikidata_id": "Q2580777",
+      "file_title": "File:General José Hilario López.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of General José Hilario López by Nadar, dated circa 1857."
+    },
+    {
+      "character_keys": ["SPA_jose_lopez_dominguez"],
+      "wikidata_id": "Q1236352",
+      "file_title": "File:José López Domínguez (Palacio del Senado de España).jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain oil-on-canvas portrait of José López Domínguez by José Moreno Carbonero, dated 1907."
+    },
+    {
+      "character_keys": ["CHL_jose_manuel_pinto_arias"],
+      "wikidata_id": "Q5942252",
+      "file_title": "File:José Manuel Pinto Arias.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person portrait photograph of José Manuel Pinto Arias supplied by the Library of the National Congress of Chile under CC BY 3.0 CL."
+    },
+    {
+      "character_keys": ["prg_general_bruguez", "PRG_jose_maria_bruguez"],
+      "wikidata_id": "Q115139281",
+      "file_title": "File:Gral. Jose Maria Bruguez.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person historical portrait photograph identified as Paraguayan general José María Bruguez under a reusable CC BY-SA 4.0 license."
+    },
+    {
+      "character_keys": ["BOL_jose_maria_de_acha"],
+      "wikidata_id": "Q886251",
+      "file_title": "File:JoseMariaAcha.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait identified as Bolivian president José María de Achá."
+    },
+    {
+      "character_keys": ["SPC_jose_maria_de_orbe_y_elio"],
+      "wikidata_id": "Q9014539",
+      "file_title": "File:Valdespina-magues.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain printed portrait of José María de Orbe y Elío by Isidoro Magués from an 1837 publication."
+    },
+    {
+      "character_keys": ["BOL_jose_maria_linares"],
+      "wikidata_id": "Q888590",
+      "file_title": "File:José María Linares.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait identified as Bolivian president José María Linares."
+    },
+    {
+      "character_keys": ["CLM_jose_maria_melo"],
+      "wikidata_id": "Q2580790",
+      "file_title": "File:Jose Maria Melo 1.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait identified as Colombian president José María Melo, dated circa 1850."
+    },
+    {
+      "character_keys": ["BOL_Jose_Miguel_de_Velasco"],
+      "wikidata_id": "Q373873",
+      "file_title": "File:José Miguel de Velasco Franco - bolivianischer Präsident.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait identified as Bolivian president José Miguel de Velasco."
+    },
+    {
+      "character_keys": ["BRZ_jose_oiticica"],
+      "wikidata_id": "Q6293593",
+      "file_title": "File:Jose Oiticica.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Brazilian anarchist José Oiticica from the 1910s."
+    },
+    {
+      "character_keys": ["SPA_jose_osorio_y_silva"],
+      "wikidata_id": "Q5940663",
+      "file_title": "File:Jose Osorio y Silva, duque de Sesto.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph identified as José Osorio y Silva, Duke of Sesto."
+    },
+    {
+      "character_keys": ["PEU_jose_pardo_y_barreda"],
+      "wikidata_id": "Q136632",
+      "file_title": "File:José Pardo y Barreda.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of José Pardo y Barreda from the Library of Congress National Photo Company Collection."
+    },
+    {
+      "character_keys": ["POR_jose_relvas"],
+      "wikidata_id": "Q957617",
+      "file_title": "File:José Relvas.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph identified as Portuguese politician José Relvas and dated before 1923."
+    },
+    {
+      "character_keys": ["POR_almeida_neto"],
+      "wikidata_id": "Q941091",
+      "file_title": "File:José Sebastião Neto - Cópia.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain historical photograph of Cardinal José Sebastião de Almeida Neto dated before 1920."
+    },
+    {
+      "character_keys": ["CHL_jose_victorino_lastarria"],
+      "wikidata_id": "Q5946038",
+      "file_title": "File:J V Lastarria-2.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a retouched single-person public-domain portrait photograph identified as Chilean writer and politician José Victorino Lastarria."
+    },
+    {
+      "character_keys": ["AUS_josef_peukert"],
+      "wikidata_id": "Q87653",
+      "file_title": "File:Peukert Portrait.png",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph identified as Austrian anarchist Josef Peukert, dated circa 1890."
+    },
+    {
+      "character_keys": ["GBR_joseph_chamberlain"],
+      "wikidata_id": "Q315999",
+      "file_title": "File:Picture of Joseph Chamberlain.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Joseph Chamberlain by James Russell and Sons, printed circa 1895."
+    },
+    {
+      "character_keys": ["usa_joshua_norton_character_template"],
+      "wikidata_id": "Q299204",
+      "file_title": "File:His-Imperial-Majesty-Emperor-Norton-I-portrait-crop.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a restored and cropped single-person public-domain portrait photograph identified as Joshua Norton."
+    },
+    {
+      "character_keys": ["KAB_josiah_harlan"],
+      "wikidata_id": "Q166047",
+      "file_title": "File:JosiahHarlan.png",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph identified as Josiah Harlan by the exact Wikidata image statement and Commons person category."
+    },
+    {
+      "character_keys": ["HUN_jozsef_szell"],
+      "wikidata_id": "Q47516014",
+      "file_title": "File:Széll József 1801-1871.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain photographic portrait identified as Hungarian official József Széll in an 1899 publication."
+    },
+    {
+      "character_keys": ["ARG_juan_andres_gelly_y_obes"],
+      "wikidata_id": "Q3810765",
+      "file_title": "File:Juan Andrés Gelly y Obes.JPG",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of General Juan Andrés Gelly y Obes reproduced in an Argentine history publication."
+    },
+    {
+      "character_keys": ["URU_Juan_Antonio_Lavalleja"],
+      "wikidata_id": "Q649615",
+      "file_title": "File:Juan Antonio Lavalleja.png",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain oil portrait of Juan Antonio Lavalleja by Jean-Philippe Goulu from the National Historical Museum of Uruguay."
+    },
+    {
+      "character_keys": ["VNZ_juan_cristostomo_falcon"],
+      "wikidata_id": "Q887139",
+      "file_title": "File:Carpeta asociada 023.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Juan Crisóstomo Falcón dated to the 1860s."
+    },
+    {
+      "character_keys": ["ARG_juan_del_campillo"],
+      "wikidata_id": "Q5576683",
+      "file_title": "File:Juan del Campillo.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait identified as Argentine politician Juan del Campillo and dated 1854."
+    },
+    {
+      "character_keys": ["DOM_juan_pablo_duarte"],
+      "wikidata_id": "Q188122",
+      "file_title": "File:Juan pablo duarte diez.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain oil portrait of Juan Pablo Duarte by Dominican artist Abelardo Rodríguez Urdaneta."
+    },
+    {
+      "character_keys": ["SPA_juan_vazquez_de_mella"],
+      "wikidata_id": "Q3324630",
+      "file_title": "File:Juan Vazquez de Mella-01.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph identified as Juan Vázquez de Mella, dated circa 1915."
+    },
+    {
+      "character_keys": ["VNZ_juan_vicente_gomez"],
+      "wikidata_id": "Q317990",
+      "file_title": "File:Juan Vicente Gómez.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Juan Vicente Gómez published in Revista Selecta in September 1909."
+    },
+    {
+      "character_keys": ["PEU_julio_cesar_arana_del_aguila"],
+      "wikidata_id": "Q6309203",
+      "file_title": "File:Julio C. Arana.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Julio César Arana from the National Library of Peru, dated circa 1912."
+    },
+    {
+      "character_keys": ["ARG_julio_de_vedia"],
+      "wikidata_id": "Q5955903",
+      "file_title": "File:Julio de Vedia.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Argentine general Julio de Vedia dated circa 1872."
+    },
+    {
+      "character_keys": ["ARG_Justo_Jose_de_Urquiza"],
+      "wikidata_id": "Q336247",
+      "file_title": "File:Daguerrotipo de Justo José de Urquiza (recorte).jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a cropped single-person public-domain daguerreotype portrait of Justo José de Urquiza attributed to Charles DeForest Fredricks."
+    },
+    {
+      "character_keys": ["AUS_karl_freiherr_von_vogelsang"],
+      "wikidata_id": "Q71102",
+      "file_title": "File:Karlfvonvogelsang.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain printed portrait identified as Karl Freiherr von Vogelsang."
+    },
+    {
+      "character_keys": ["agitator_karl_liebknecht"],
+      "wikidata_id": "Q75886",
+      "file_title": "File:Karl Liebknecht portrait (cropped).jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a cropped single-person public-domain portrait photograph of Karl Liebknecht made before 1919."
+    },
+    {
+      "character_keys": ["mon_kenjo_jankoviC_"],
+      "wikidata_id": "Q12759635",
+      "file_title": "File:Krsto (Kenjo) Stankov Janković 35c.png",
+      "decision": "reject",
+      "type": "",
+      "reviewed_at": "2026-08-14",
+      "reason": "The only current candidate is a nineteenth-century portrait sketch without evidence that it is a photograph, portrait painting or print."
+    },
+    {
+      "character_keys": ["BIC_khudiram_bose"],
+      "wikidata_id": "Q2642110",
+      "file_title": "File:Khudiram Bose.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Khudiram Bose made before 1908."
+    },
+    {
+      "character_keys": ["aus_klemens_von_metternich"],
+      "wikidata_id": "Q45662",
+      "file_title": "File:Klemens von Metternich by Lawrence.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait of Klemens von Metternich by Thomas Lawrence, dated 1815 and held in the Royal Collection."
+    },
+    {
+      "character_keys": ["HUN_general_lajos_aulich"],
+      "wikidata_id": "Q506929",
+      "file_title": "File:Aulich Lajos 1.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain nineteenth-century printed portrait of Lajos Aulich by Vincent Grimm."
+    },
+    {
+      "character_keys": ["HUN_lajos_kossuth"],
+      "wikidata_id": "Q157040",
+      "file_title": "File:Portrait of Lajos Kossuth, 1852.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain daguerreotype portrait of Lajos Kossuth by Southworth and Hawes, dated 1852."
+    },
+    {
+      "character_keys": ["SWE_lars_johan_hierta"],
+      "wikidata_id": "Q4353611",
+      "file_title": "File:Hierta.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait identified as Swedish publisher Lars Johan Hierta."
+    },
+    {
+      "character_keys": ["swe_lars_magnus_ericsson"],
+      "wikidata_id": "Q711309",
+      "file_title": "File:LM Ericsson 1890-tal.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Lars Magnus Ericsson from the 1890s."
+    },
+    {
+      "character_keys": ["DEN_lauritz_nicolai_hvidt"],
+      "wikidata_id": "Q1993568",
+      "file_title": "File:Lauritz Nicolai Hvidt.png",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain historical portrait photograph identified as Danish politician Lauritz Nicolai Hvidt."
+    },
+    {
+      "character_keys": ["HUN_leo_frankel"],
+      "wikidata_id": "Q700018",
+      "file_title": "File:Leó Frankel.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Leó Frankel made before 1896."
+    },
+    {
+      "character_keys": ["URU_lorenzo_latorre"],
+      "wikidata_id": "Q885848",
+      "file_title": "File:LorenzoLatorre1875.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph identified as Uruguayan president Lorenzo Latorre in a historical periodical."
+    },
+    {
+      "character_keys": ["TRN_louis_tregardt"],
+      "wikidata_id": "Q3263213",
+      "file_title": "File:Louis Tregardt, Voortrekkermonument, b.jpg",
+      "decision": "reject",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a 2013 photograph of Louis Tregardt as depicted on the Voortrekker Monument frieze, outside the approved two-dimensional historical image types."
+    },
+    {
+      "character_keys": ["agitator_louise_michel"],
+      "wikidata_id": "Q216092",
+      "file_title": "File:Louise Michel, grayscale.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Louise Michel dated circa 1880."
+    },
+    {
+      "character_keys": ["MEX_lucas_alaman"],
+      "wikidata_id": "Q507298",
+      "file_title": "File:Lucas Alamán, portrait.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait of Lucas Alamán dated between 1830 and 1832."
+    },
+    {
+      "character_keys": ["SWE_ludvig_nobel"],
+      "wikidata_id": "Q706189",
+      "file_title": "File:Ludvig Nobel.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain historical portrait photograph identified as Ludvig Immanuel Nobel."
+    },
+    {
+      "character_keys": ["AUS_ludwig_boltzmann"],
+      "wikidata_id": "Q84296",
+      "file_title": "File:Boltzmann-Ludwig.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Ludwig Boltzmann dated 1902."
+    },
+    {
+      "character_keys": ["sar_general_cadorna"],
+      "wikidata_id": "Q333809",
+      "file_title": "File:Luigi Cadorna 02.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Luigi Cadorna dated 1917."
+    },
+    {
+      "character_keys": ["POR_luis_do_rego_barreto"],
+      "wikidata_id": "Q10321788",
+      "file_title": "File:Luís do Rêgo Barreto.png",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain nineteenth-century Portuguese painted portrait of Luís do Rego Barreto."
+    },
+    {
+      "character_keys": ["ASM_maniram_dewan_template"],
+      "wikidata_id": "Q6749854",
+      "file_title": "File:Maniram Dewan.jpg",
+      "decision": "reject",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a retouched portrait uploaded as self-published work in 2016 without a source, author or date for the underlying historical image."
+    },
+    {
+      "character_keys": ["VNZ_manuel_antonio_matos"],
+      "wikidata_id": "Q5992206",
+      "file_title": "File:Manuel Antonio Matos.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait identified as Venezuelan politician Manuel Antonio Matos."
+    },
+    {
+      "character_keys": ["POR_manuel_da_silva_passos"],
+      "wikidata_id": "Q1596681",
+      "file_title": "File:Passos Manuel.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain nineteenth-century painted portrait of Manuel da Silva Passos in the Museu Nacional de Soares dos Reis."
+    },
+    {
+      "character_keys": ["CHL_manuel_garcia_banqueda"],
+      "wikidata_id": "Q6752596",
+      "file_title": "File:Manuel Garcia Banqueda2.jpg",
+      "decision": "reject",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate was uploaded as self-published work in 2022 without a source, author, date or supported type for the underlying historical image."
+    },
+    {
+      "character_keys": ["PEU_manuel_ignacio_de_vivanco"],
+      "wikidata_id": "Q732926",
+      "file_title": "File:Vivanco1.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain printed portrait of Manuel Ignacio de Vivanco reproduced from the El Comercio archive."
+    },
+    {
+      "character_keys": ["ARG_manuel_leiva"],
+      "wikidata_id": "Q5993452",
+      "file_title": "File:Manuel Leiva.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain historical portrait photograph identified as Argentine politician Manuel Leiva."
+    },
+    {
+      "character_keys": ["PEU_manuel_menendez"],
+      "wikidata_id": "Q2004270",
+      "file_title": "File:Manuel Menéndez.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait of Peruvian president Manuel Menéndez from the El Comercio archive."
+    },
+    {
+      "character_keys": ["CHL_Manuel_Rengifo"],
+      "wikidata_id": "Q9028079",
+      "file_title": "File:Manuel Rengifo.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain printed portrait identified as Chilean politician Manuel Rengifo."
+    },
+    {
+      "character_keys": ["PEU_Manuel_Salazar_y_Baquijano"],
+      "wikidata_id": "Q2044416",
+      "file_title": "File:Manuel Salazar y Baquijano.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain reproduction of a nineteenth-century painted portrait of Manuel Salazar y Baquíjano."
+    },
+    {
+      "character_keys": ["nor_thrane_template"],
+      "wikidata_id": "Q581903",
+      "file_title": "File:Marcus Thrane.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain printed portrait identified as Norwegian labour leader Marcus Thrane."
+    },
+    {
+      "character_keys": ["CLM_maria_cano"],
+      "wikidata_id": "Q3296428",
+      "file_title": "File:María de los Ángeles Cano Márquez.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain photograph of María Cano made by Melitón Rodríguez in 1926."
+    },
+    {
+      "character_keys": ["ARG_mariano_jose_de_escalada"],
+      "wikidata_id": "Q5997806",
+      "file_title": "File:Mariano José de Escalada.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain nineteenth-century printed portrait of Mariano José de Escalada by Manuel Pla y Valor."
+    },
+    {
+      "character_keys": ["ARG_Mariano_Medrano"],
+      "wikidata_id": "Q5997837",
+      "file_title": "File:Mariano Medrano 2.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain nineteenth-century printed portrait of Mariano Medrano by Manuel Pla y Valor."
+    },
+    {
+      "character_keys": ["BOL_mariano_melgarejo"],
+      "wikidata_id": "Q734622",
+      "file_title": "File:MarianoMelgarejo.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait identified as Bolivian president Mariano Melgarejo."
+    },
+    {
+      "character_keys": ["FRA_mathieu_de_la_drome"],
+      "wikidata_id": "Q3298925",
+      "file_title": "File:Mathieu, Antoine Philippe.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain printed portrait of Mathieu de la Drôme published in L'Illustration in 1865 after a photograph by Antony Thouret fils."
+    },
+    {
+      "character_keys": ["BAV_max_stirner"],
+      "wikidata_id": "Q76725",
+      "file_title": "File:Max Stirner-k.jpg",
+      "decision": "reject",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is an enlarged crop from Friedrich Engels's group cartoon of Die Freien, outside the approved single-person historical image types."
+    },
+    {
+      "character_keys": ["sax_general_von_hausen"],
+      "wikidata_id": "Q67160",
+      "file_title": "File:Max von Hausen (1846-1922).jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain historical portrait photograph identified as German general Max von Hausen."
+    },
+    {
+      "character_keys": ["URU_maximo_tajes"],
+      "wikidata_id": "Q879013",
+      "file_title": "File:MaximoTajes.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Máximo Tajes from the 1890s, published in Rojo y Blanco in 1901."
+    },
+    {
+      "character_keys": ["AUS_michael_thonet"],
+      "wikidata_id": "Q60229",
+      "file_title": "File:Michael Thonet.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Michael Thonet dated circa 1855."
+    },
+    {
+      "character_keys": ["POR_miguel_maximiliano_de_braganca_template"],
+      "wikidata_id": "Q2083842",
+      "file_title": "File:Miguel of Braganza.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Prince Miguel of Braganza from the late nineteenth or early twentieth century."
+    },
+    {
+      "character_keys": ["PEU_miguel_iglesias"],
+      "wikidata_id": "Q645188",
+      "file_title": "File:Miguel Iglesias colaboracionista con Chile.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain historical portrait photograph identified as Peruvian president Miguel Iglesias."
+    },
+    {
+      "character_keys": ["SPA_miguel_lobo_malagamba"],
+      "wikidata_id": "Q6014613",
+      "file_title": "File:Almirante Miguel Lobo.png",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain engraved portrait of Miguel Lobo y Malagamba published in La Ilustración Española y Americana in 1876."
+    },
+    {
+      "character_keys": ["HUN_mihaly_tancsics"],
+      "wikidata_id": "Q713534",
+      "file_title": "File:Táncsics Mihály Rusz.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain engraving of Mihály Táncsics by Károly Rusz, published in Vasárnapi Ujság in 1868."
+    },
+    {
+      "character_keys": ["RUS_mikhail_lazarev"],
+      "wikidata_id": "Q186203",
+      "file_title": "File:Lazarev MP by Schwede rectangle.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait of Mikhail Lazarev by Robert Schwede, dated 1844 and held by the Hermitage Museum."
+    },
+    {
+      "character_keys": ["mon_general_mirko_petrovic_njegos"],
+      "wikidata_id": "Q1282940",
+      "file_title": "File:Vojvoda Mirko Petrović-Njegoš (1863, Beaufort).png",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person printed portrait of Mirko Petrović-Njegoš from Emily Anne Beaufort's 1864 travel book under a CC0 license."
+    },
+    {
+      "character_keys": ["BIC_mithuben_petit"],
+      "wikidata_id": "Q31436151",
+      "file_title": "File:Mithuben Petit 5 April 1930 (cropped).jpg",
+      "decision": "reject",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is cropped from a group photograph of the Salt March with Mahatma Gandhi and does not retain single-person portrait context."
+    },
+    {
+      "character_keys": ["per_mohammad_shah_qajar_template"],
+      "wikidata_id": "Q558231",
+      "file_title": "File:Portrait of Muhammad Shah Qadjar - MV 6700 - v1.JPG",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain oil portrait of Mohammad Shah Qajar by Muhammad Hasan Afshar, dated 1837–1838 and held by the Louvre."
+    },
+    {
+      "character_keys": ["BIC_muhammad_ali_jinnah"],
+      "wikidata_id": "Q160554",
+      "file_title": "File:Jinnah1945c.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Muhammad Ali Jinnah published in 1945."
+    },
+    {
+      "character_keys": ["CIR_Muhammad_Amin_Asiyalav"],
+      "wikidata_id": "Q4308767",
+      "file_title": "File:Muhammad (Asiyalo) Amin ibn Hajjio al-Honodi al-Daghestani.gif",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain historical portrait photograph identified as Muhammad-Amin Asiyalav and dated before 1900."
+    },
+    {
+      "character_keys": ["JAP_matsumae_nagahiro"],
+      "wikidata_id": "Q8514285",
+      "file_title": "File:Matsumae Nagahiro.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain Japanese old photograph of Matsumae Nagahiro held by Hokkaido University Library."
+    },
+    {
+      "character_keys": ["BOL_narciso_campero"],
+      "wikidata_id": "Q3309380",
+      "file_title": "File:NARCISO CAMPERO LEYES.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait identified as Bolivian president Narciso Campero."
+    },
+    {
+      "character_keys": ["pan_nau_nihal_singh"],
+      "wikidata_id": "Q6981064",
+      "file_title": "File:Nau Nihal Singh.jpg",
+      "decision": "reject",
+      "reviewed_at": "2026-08-14",
+      "reason": "The file description explicitly identifies the candidate as a portrait sketch by Godfrey Thomas Vigne, outside the approved image types."
+    },
+    {
+      "character_keys": ["SPA_nazario_equia"],
+      "wikidata_id": "Q3328255",
+      "file_title": "File:Eguía - Magués.jpg",
+      "decision": "reject",
+      "reviewed_at": "2026-08-14",
+      "reason": "The file description explicitly identifies the candidate as a drawing by Isidoro Magués, outside the approved image types."
+    },
+    {
+      "character_keys": ["GRE_neophytos_metaxas"],
+      "wikidata_id": "Q4317264",
+      "file_title": "File:Neofytos Metaxa.JPG",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person printed portrait identified as Neophytos Metaxas under a CC BY-SA 3.0 license."
+    },
+    {
+      "character_keys": ["ARG_nicanor_caceres"],
+      "wikidata_id": "Q6041856",
+      "file_title": "File:General Don Nicanor Cáceres.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain printed portrait of Nicanor Cáceres reproduced from a 1910 book on the Paraguayan War."
+    },
+    {
+      "character_keys": ["fra_general_changarnier"],
+      "wikidata_id": "Q569416",
+      "file_title": "File:Nicolas Changarnier.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain nineteenth-century printed portrait of Nicolas Changarnier by Auguste-Charles Lemoine after a photograph by Pierre Petit."
+    },
+    {
+      "character_keys": ["RUS_nikolay_putilov"],
+      "wikidata_id": "Q4384321",
+      "file_title": "File:Путилов Николай Иванович.jpg",
+      "decision": "approve",
+      "type": "print",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain printed portrait of Nikolay Putilov by Petr Borel, published in Vsemirnaya Illyustratsia in 1880."
+    },
+    {
+      "character_keys": ["mon_general_novica_cerovic"],
+      "wikidata_id": "Q1269148",
+      "file_title": "File:Novica cerovic.jpg",
+      "decision": "approve",
+      "type": "painting",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain painted portrait of Novica Cerović by Ferdo Quiquerez, dated 1889."
+    },
+    {
+      "character_keys": ["PAT_orelie_antoine_de_tounens"],
+      "wikidata_id": "Q886786",
+      "file_title": "File:Orélie Antoine de Tounens.jpeg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain historical portrait photograph identified as Orélie-Antoine de Tounens from the late nineteenth century."
+    },
+    {
+      "character_keys": ["JAP_hamaguchi_osachi"],
+      "wikidata_id": "Q351661",
+      "file_title": "File:Hamaguchi Osachi 1.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain Japanese old photograph of Osachi Hamaguchi made before 1931 and held by the National Diet Library."
+    },
+    {
+      "character_keys": ["tur_general_osman_nuri"],
+      "wikidata_id": "Q546595",
+      "file_title": "File:Osman nuripasa.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Osman Nuri Pasha by Abdullah Frères, dated 1895."
+    },
+    {
+      "character_keys": ["ARG_pablo_ricchieri"],
+      "wikidata_id": "Q7121738",
+      "file_title": "File:Pablo ricchieri by witcomb.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain portrait photograph of Pablo Ricchieri by Alexander Witcomb, dated 1904 and categorized in the Witcomb collection."
+    },
+    {
+      "character_keys": ["BIC_pandita_ramabai_sarasvati"],
+      "wikidata_id": "Q94889",
+      "file_title": "File:Pandita Ramabai Sarasvati 1858-1922 front-page-portrait.jpg",
+      "decision": "approve",
+      "type": "photograph",
+      "reviewed_at": "2026-08-14",
+      "reason": "The candidate is a single-person public-domain frontispiece portrait photograph identified as Pandita Ramabai."
+    }
+  ],
+  "person_reviews": [
+    {
+      "character_keys": ["BIC_mithuben_petit"],
+      "wikidata_ids": ["Q31436151"],
+      "candidate_file_titles": ["File:Mithuben Petit 5 April 1930 (cropped).jpg"],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-14",
+      "reason": "The only current candidate is cropped from a group photograph of the Salt March."
+    },
+    {
+      "character_keys": ["pan_nau_nihal_singh"],
+      "wikidata_ids": ["Q6981064"],
+      "candidate_file_titles": ["File:Nau Nihal Singh.jpg"],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-14",
+      "reason": "The only current candidate is explicitly identified as a portrait sketch, outside the approved image types."
+    },
+    {
+      "character_keys": ["SPA_nazario_equia"],
+      "wikidata_ids": ["Q3328255"],
+      "candidate_file_titles": ["File:Eguía - Magués.jpg"],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-14",
+      "reason": "The only current candidate is explicitly identified as a drawing, outside the approved image types."
+    },
+    {
+      "character_keys": ["TRN_louis_tregardt"],
+      "wikidata_ids": ["Q3263213"],
+      "candidate_file_titles": ["File:Louis Tregardt, Voortrekkermonument, b.jpg"],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-14",
+      "reason": "The only current candidate is a modern photograph of a figure on the Voortrekker Monument frieze."
+    },
+    {
+      "character_keys": ["ASM_maniram_dewan_template"],
+      "wikidata_ids": ["Q6749854"],
+      "candidate_file_titles": ["File:Maniram Dewan.jpg"],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-14",
+      "reason": "The only current candidate lacks a verifiable source, author and date for the underlying historical image."
+    },
+    {
+      "character_keys": ["CHL_manuel_garcia_banqueda"],
+      "wikidata_ids": ["Q6752596"],
+      "candidate_file_titles": ["File:Manuel Garcia Banqueda2.jpg"],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-14",
+      "reason": "The only current candidate lacks a source, author, date and supported historical image type."
+    },
+    {
+      "character_keys": ["BAV_max_stirner"],
+      "wikidata_ids": ["Q76725"],
+      "candidate_file_titles": ["File:Max Stirner-k.jpg"],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-14",
+      "reason": "The only current candidate is a crop from a group cartoon, outside the approved image types."
+    },
+    {
+      "character_keys": ["mon_kenjo_jankoviC_"],
+      "wikidata_ids": ["Q12759635"],
+      "candidate_file_titles": ["File:Krsto (Kenjo) Stankov Janković 35c.png"],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-14",
+      "reason": "The only current candidate is a portrait sketch without evidence of an approved image type."
+    },
+    {
+      "character_keys": ["SER_gligorije_vozarevic"],
+      "wikidata_ids": ["Q12750244"],
+      "candidate_file_titles": ["File:Gligorije Vozarević knjižar (cropped).JPG"],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-14",
+      "reason": "The only current candidate is a cropped modern graphic from a commemorative plaque, outside the approved image types."
+    },
+    {
+      "character_keys": ["BIC_haji_shariatullah"],
+      "wikidata_ids": ["Q5639930"],
+      "candidate_file_titles": ["File:Haji Shariatullah.jpg"],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-14",
+      "reason": "The only current candidate lacks an identified author and a verifiable approved image type."
+    },
+    {
+      "character_keys": ["VNZ_francisco_linares_alcantara"],
+      "wikidata_ids": ["Q2497665"],
+      "candidate_file_titles": ["File:Sketch Linares Alcántara.jpg"],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-14",
+      "reason": "The only current candidate is explicitly identified as a sketch, outside the approved image types."
+    },
+    {
+      "character_keys": ["AST_george_fife_angas"],
+      "wikidata_ids": ["Q1507341"],
+      "candidate_file_titles": ["File:George Fife Angas.jpg"],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-14",
+      "reason": "The only current candidate is explicitly identified as a sketch, outside the approved image types."
+    },
+    {
+      "character_keys": ["BIC_dwarkanath_tagore"],
+      "wikidata_ids": ["Q1268423"],
+      "candidate_file_titles": ["File:Dwarkanath Tagore.jpg"],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-14",
+      "reason": "The only current candidate is explicitly categorized as a drawing, outside the approved image types."
+    },
+    {
+      "character_keys": ["sar_general_de_sonnaz"],
+      "wikidata_ids": ["Q3129249"],
+      "candidate_file_titles": ["File:Ettore De Sonnaz.jpg"],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-14",
+      "reason": "The only current candidate is explicitly described as a drawing, outside the approved image types."
+    },
+    {
+      "character_keys": ["gbr_admiral_beatty"],
+      "wikidata_ids": ["Q335013"],
+      "candidate_file_titles": ["File:Military at White House, Washington, D.C. LCCN2016890938.jpg"],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-13",
+      "reason": "The only current candidate is a military group photograph rather than a single-person portrait."
+    },
+    {
+      "character_keys": [
+        "BIC_amy_carmichael"
+      ],
+      "wikidata_ids": [
+        "Q481824"
+      ],
+      "candidate_file_titles": [
+        "File:Amy Carmichael with children2.jpg"
+      ],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-13",
+      "reason": "The only current candidate is a group image."
+    },
+    {
+      "character_keys": ["agitator_alexandru_bogdan_pitesti"],
+      "wikidata_ids": ["Q2834278"],
+      "candidate_file_titles": ["File:Correggio, Alexandru Bogdan-Piteşti.jpg"],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-13",
+      "reason": "The only current candidate is a drawing, outside the approved image types."
+    },
+    {
+      "character_keys": ["SWE_anders_danielsson"],
+      "wikidata_ids": ["Q5616737"],
+      "candidate_file_titles": ["File:Anders Danielsson(1784-1839).jpg"],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-13",
+      "reason": "The only current candidate is a drawing, outside the approved image types."
+    },
+    {
+      "character_keys": ["GBR_andrew_scott_waugh"],
+      "wikidata_ids": ["Q507301"],
+      "candidate_file_titles": ["File:Andrew Scott Waugh 1861.jpg"],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-13",
+      "reason": "The only current candidate is cropped from a group photograph and is not a single-person portrait."
+    },
+    {
+      "character_keys": ["BRZ_anesia_cauacu"],
+      "wikidata_ids": ["Q8202231"],
+      "candidate_file_titles": ["File:Anésia Cauaçu.jpg"],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-13",
+      "reason": "The only current candidate shows Anésia Cauaçu with her daughter."
+    },
+    {
+      "character_keys": ["DEN_arnold_peter_moller"],
+      "wikidata_ids": ["Q695944"],
+      "candidate_file_titles": ["File:Father and son (7258728476).jpg"],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-13",
+      "reason": "The only current candidate shows Arnold Peter Møller with his son."
+    },
+    {
+      "character_keys": ["mug_bakht_khan"],
+      "wikidata_ids": ["Q3774267"],
+      "candidate_file_titles": ["File:General Bakht Khan.jpg"],
+      "decision": "no_eligible_image",
+      "reviewed_at": "2026-08-13",
+      "reason": "The only current candidate depicts a statue rather than Bakht Khan himself."
+    }
+  ]
+}

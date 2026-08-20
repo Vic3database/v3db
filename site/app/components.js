@@ -2474,6 +2474,8 @@ function clampNumber(value, min, max) {
 
 function searchPlaceholder() {
   if (state.view === "culture") return t("board.culture.searchPlaceholder");
+  if (state.view === "character") return t("board.character.searchPlaceholder");
+  if (state.view === "name-pool") return t("board.namePool.searchPlaceholder");
   if (state.view === "region") return t("board.region.searchPlaceholder");
   if (state.view === "company") return t("board.company.searchPlaceholder");
   if (state.view === "ideology") return t("board.ideology.searchPlaceholder");

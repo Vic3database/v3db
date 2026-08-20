@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Vicdata</title>
-    <link rel="stylesheet" href="styles.css?v=20260819-company-usage-collapse1">
+    <link rel="stylesheet" href="styles.css?v=20260820-character-pagination1">
     <link rel="icon" type="image/png" sizes="16x16" href="assets/brand/favicon-16.png?v=20260720-v">
     <link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png?v=20260720-v">
     <link rel="apple-touch-icon" sizes="180x180" href="assets/brand/apple-touch-icon.png">
@@ -28,6 +28,8 @@
             <summary class="topbar-nav-summary"><span data-i18n="nav.society">社会</span></summary>
             <div class="topbar-nav-popover">
               <button class="topbar-nav-item" type="button" data-nav-view="culture"><span data-i18n="nav.culture">文化</span></button>
+              <button class="topbar-nav-item" type="button" data-nav-view="character"><span data-i18n="nav.character">角色</span></button>
+              <button class="topbar-nav-item" type="button" data-nav-view="name-pool"><span data-i18n="nav.namePool">姓名池</span></button>
             </div>
           </details>
           <details class="topbar-nav-group" data-nav-group="economy">
@@ -87,6 +89,8 @@
           <option value="achievement" data-i18n="nav.achievement">成就</option>
           <option value="building" data-i18n="nav.building">建筑</option>
           <option value="goods" data-i18n="nav.goods">商品</option>
+          <option value="character" data-i18n="nav.character">角色</option>
+          <option value="name-pool" data-i18n="nav.namePool">姓名池</option>
         </select>
       </div>
     </header>
@@ -162,6 +166,15 @@
           <div class="option-list">
             <button id="terrainMapViewButton" class="filter-token" type="button" aria-pressed="false" data-i18n="map.terrainView">地形视图</button>
           </div>
+        </details>
+
+        <details class="filter-section character-only">
+          <summary data-i18n="board.character.filter.source">来源</summary>
+          <div id="characterSourceFilters" class="option-list"></div>
+        </details>
+        <details class="filter-section character-only">
+          <summary data-i18n="board.character.filter.gender">性别</summary>
+          <div id="characterGenderFilters" class="option-list"></div>
         </details>
 
         <details id="victorianCenturyChangeFilterSection" class="filter-section" hidden>
@@ -424,6 +437,8 @@
     <script src="app/map.js?v=20260806-subsistence-polish1"></script>
     <script src="app/tag-tooltip-definitions.js?v=20260804-vc-english-economy1"></script>
     <script src="app/components.js?v=20260809-global-search-media1"></script>
+    <script src="app/characters.js?v=20260813-character-images1"></script>
+    <script src="app/name-pools.js?v=20260813-character-board1"></script>
     <script src="app/achievements.js?v=20260809-achievement-english-name1"></script>
     <script src="app/content-dynamic-text.js?v=20260816-readable-content1"></script>
     <script src="app/content-country-links.js?v=20260816-country-content1"></script>

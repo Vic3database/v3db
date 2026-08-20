@@ -63,14 +63,14 @@ assert.ok(fs.existsSync(path.join(root, "site", "assets", "technologies", "corpo
 const topbarNavigationItems = [...indexSource.matchAll(/<button class="topbar-nav-item"[^>]*>([\s\S]*?)<\/button>/g)];
 assert.ok(topbarNavigationItems.length > 0, "top navigation needs board entries");
 assert.ok(topbarNavigationItems.every(([, content]) => !/<img\b/.test(content)), "top navigation board entries must not contain icons");
-assert.match(indexSource, /styles\.css\?v=20260810-topbar-cache1/, "interest-group stylesheet cache version is stale");
+assert.match(indexSource, /styles\.css\?v=20260813-character-images1/, "interest-group stylesheet cache version is stale");
 assert.match(stylesEntrySource, /home\.css\?v=20260810-interest-group-tooltip-layout1/, "interest-group home stylesheet cache version is stale");
 for (const script of ["runtime", "ui"]) {
   assert.match(indexSource, new RegExp(`app/${script}\\.js\\?v=20260810-interest-group-tooltip-layout1`), `${script} cache version is stale`);
 }
 assert.match(indexSource, /app\/boards\.js\?v=20260810-interest-group-tooltip-layout1/, "interest-group board script cache version is stale");
-assert.match(indexSource, /app\/i18n\.js\?v=20260810-global-search-interest-group-flavors1/, "locale bootstrap cache version is stale");
-assert.match(i18nSource, /v=20260810-global-search-interest-group-flavors1/, "dynamic locale cache version is stale");
+assert.match(indexSource, /app\/i18n\.js\?v=20260813-character-images1/, "locale bootstrap cache version is stale");
+assert.match(i18nSource, /v=20260813-character-images1/, "dynamic locale cache version is stale");
 assert.match(appSource, /interestGroup\.singleCountryTraitVariant/, "single-country trait variants must use the interest-group and country naming template");
 assert.match(zhUi, /interestGroup\.singleCountryTraitVariant/, "Chinese single-country trait variant template is missing");
 assert.match(enUi, /interestGroup\.singleCountryTraitVariant/, "English single-country trait variant template is missing");
