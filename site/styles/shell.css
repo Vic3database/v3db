@@ -201,6 +201,15 @@ body {
   transition: left 0.16s ease;
 }
 
+.country-incorporation-map-legend {
+  position: absolute;
+  z-index: 4;
+  right: calc(12px + var(--results-panel-width) + 12px);
+  bottom: 18px;
+  left: calc(12px + var(--left-panel-width) + 12px);
+  transition: left 0.16s ease;
+}
+
 .panel-toggle {
   border-color: rgba(200, 164, 91, 0.24);
   background: var(--accent-blue);

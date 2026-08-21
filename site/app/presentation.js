@@ -336,17 +336,21 @@ function commitCountrySelection(countryTag) {
   state.detailKind = "country";
   replaceHash(selectionHashForCard("/country", "/country/" + encodeURIComponent(countryTag)));
   syncListSelection("data-country", previousTag, state.selectedTag);
-  renderMap(countryMapStateRegions(byTag.get(state.selectedTag)));
+  const selectedCountry = byTag.get(state.selectedTag);
+  renderMap(state.countryIncorporationMapEnabled && selectedCountry ? stateRegions : countryMapStateRegions(selectedCountry));
+  render();
 }
 
 function clearFilteredOutCountryMapSelection() {
   const previousTag = state.selectedTag;
   state.globalSearchColorRestoreTag = "";
   state.selectedTag = "";
+  state.countryIncorporationMapEnabled = false;
   state.detailKind = "country";
   replaceHash("/country");
   syncListSelection("data-country", previousTag, "");
   renderMap(countryMapStateRegions(null));
+  render();
 }
 
 function selectCountryCard(countryTag) {
