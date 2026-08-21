@@ -260,6 +260,7 @@ const state = {
   regionMapView: "default",
   mapMode: "resource",
   mapSubject: "",
+  countryIncorporationMapEnabled: false,
   theme: "votp",
 };
 
@@ -875,10 +876,12 @@ const els = {
   mapModeSelect: document.querySelector("#mapModeSelect"),
   mapSubjectSelect: document.querySelector("#mapSubjectSelect"),
   mapFitWidthButton: document.querySelector("#mapFitWidthButton"),
+  countryIncorporationMapButton: document.querySelector("#countryIncorporationMapButton"),
   mapResourceContext: document.querySelector("#mapResourceContext"),
   terrainMapViewButton: document.querySelector("#terrainMapViewButton"),
   terrainMapLegend: document.querySelector("#terrainMapLegend"),
   subsistenceBuildingMapLegend: document.querySelector("#subsistenceBuildingMapLegend"),
+  countryIncorporationMapLegend: document.querySelector("#countryIncorporationMapLegend"),
   mapViewport: document.querySelector("#mapViewport"),
   mapCanvas: document.querySelector("#mapCanvas"),
   mapTooltip: document.querySelector("#mapTooltip"),
