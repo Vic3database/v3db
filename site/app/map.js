@@ -11,6 +11,7 @@ function renderMapControls() {
   const terrainViewEnabled = state.view === "region" && state.regionMapView === "terrain";
   els.terrainMapViewButton?.setAttribute("aria-pressed", String(terrainViewEnabled));
   if (state.view === "ideology" || state.view === "law") {
+    renderMapCountryContext();
     renderMapResourceContext();
     renderTerrainMapLegend();
     renderSubsistenceBuildingMapLegend();
@@ -18,6 +19,7 @@ function renderMapControls() {
     return;
   }
   if (!els.mapModeSelect || !els.mapSubjectSelect) {
+    renderMapCountryContext();
     renderMapResourceContext();
     renderTerrainMapLegend();
     renderSubsistenceBuildingMapLegend();
@@ -32,10 +34,25 @@ function renderMapControls() {
   els.mapSubjectSelect.innerHTML = options.map((option) => (
     `<option value="${escapeHtml(option.value)}"${state.mapSubject === option.value ? " selected" : ""}>${escapeHtml(option.label)}</option>`
   )).join("");
+  renderMapCountryContext();
   renderMapResourceContext();
   renderTerrainMapLegend();
   renderSubsistenceBuildingMapLegend();
   renderCountryIncorporationMapLegend();
+}
+
+function renderMapCountryContext() {
+  if (!els.mapCountryContext) return;
+  const country = state.view === "country" ? byTag.get(state.selectedTag) : null;
+  if (!country) {
+    els.mapCountryContext.hidden = true;
+    els.mapCountryContext.textContent = "";
+    return;
+  }
+  const flag = countryFlagIconHtml(country, "map-country-context-flag");
+  const name = entityText(country) || country.tag;
+  els.mapCountryContext.hidden = false;
+  els.mapCountryContext.innerHTML = `${flag}<span class="map-country-context-name">${escapeHtml(name)}</span><span class="map-country-context-tag">${escapeHtml(country.tag)}</span>`;
 }
 
 function renderCountryIncorporationMapLegend() {

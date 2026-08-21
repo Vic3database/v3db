@@ -24,6 +24,15 @@ try {
   await page.goto(`${baseUrl}#/country/FRA`);
   await page.waitForSelector(".detail h2", "country detail");
   assert.equal(await page.evaluate(() => document.querySelector("#countryIncorporationMapButton").disabled), false, "toggle must enable after country selection");
+  await page.waitForSelector("#mapCountryContext:not([hidden])", "selected country context");
+  const countryContext = await page.evaluate(() => ({
+    name: document.querySelector("#mapCountryContext .map-country-context-name")?.textContent?.trim(),
+    tag: document.querySelector("#mapCountryContext .map-country-context-tag")?.textContent?.trim(),
+    flag: document.querySelector("#mapCountryContext .map-country-context-flag")?.getAttribute("src"),
+  }));
+  assert.ok(countryContext.name, "selected country context must show a localized country name");
+  assert.equal(countryContext.tag, "FRA", "selected country context must show the selected country tag");
+  assert.ok(countryContext.flag, "selected country context must show the selected country flag");
   const regionCount = await page.evaluate(() => stateRegions.length);
   await page.evaluate(() => document.querySelector("#countryIncorporationMapButton").click());
   await page.waitForSelector("#countryIncorporationMapLegend:not([hidden])", "incorporation legend");
