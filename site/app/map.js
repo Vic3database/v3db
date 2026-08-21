@@ -64,15 +64,26 @@ function renderCountryIncorporationMapLegend() {
     return;
   }
   const entries = [
-    [2, "map.countryIncorporation.years2"],
-    [5, "map.countryIncorporation.years5"],
-    [10, "map.countryIncorporation.years10"],
-    [15, "map.countryIncorporation.years15"],
-    [25, "map.countryIncorporation.years25"],
+    [2, "2年（文化本土）"],
+    [5, "5年（同传承、同语言）"],
+    [10, "10年（同传承或同语言）"],
+    [15, "15年（同传承组或同语言组）"],
+    [25, "25年（无共同传承组或语言组）"],
   ];
-  els.countryIncorporationMapLegend.innerHTML = entries.map(([years, labelKey]) => (
-    `<span class="country-incorporation-map-legend-item"><span class="country-incorporation-map-legend-swatch" style="--country-incorporation-map-color: ${escapeHtml(countryIncorporationColor(years, false))}" aria-hidden="true"></span>${escapeHtml(t(labelKey))}</span>`
+  els.countryIncorporationMapLegend.innerHTML = entries.map(([years, fallback]) => (
+    `<span class="country-incorporation-map-legend-item"><span class="country-incorporation-map-legend-swatch" style="--country-incorporation-map-color: ${escapeHtml(countryIncorporationColor(years, false))}" aria-hidden="true"></span>${escapeHtml(countryIncorporationLabel(years, fallback))}</span>`
   )).join("");
+}
+
+function countryIncorporationLabel(years, fallback = `${years}年`) {
+  const labels = {
+    2: "2年（文化本土）",
+    5: "5年（同传承、同语言）",
+    10: "10年（同传承或同语言）",
+    15: "15年（同传承组或同语言组）",
+    25: "25年（无共同传承组或语言组）",
+  };
+  return t(`map.countryIncorporation.years${years}`, labels[years] || fallback);
 }
 
 function renderTerrainMapLegend() {
@@ -523,7 +534,7 @@ function buildCountryIncorporationMapFeatures() {
       value: years,
       title: isSea
         ? t("map.countryIncorporation.sea", "海域")
-        : `${entityText(stateRegion) || stateRegion.key} · ${t(relation.labelKey, `${years}年`)}`,
+        : `${entityText(stateRegion) || stateRegion.key} · ${relation.labelKey === `map.countryIncorporation.years${years}` ? countryIncorporationLabel(years) : t(relation.labelKey, `${years}年`)}`,
       incorporation: relation,
     });
   }
@@ -1954,7 +1965,7 @@ function mapTooltipRowsForView(stateRegion, feature, ownerTag = "", terrainKey =
       [t("board.region.startingOwners", "开局归属"), refNames(stateRegion.starting_owners)],
       [t("map.currentProvinceOwner", "当前省份归属"), ownerTag ? countryNameWithTag(ownerTag) : ""],
       [t("board.region.homelandCultures", "本土文化"), refNames(stateRegion.homeland_cultures)],
-      [t("map.countryIncorporation.baseYears", "基础整合年数"), relation.years ? t(`map.countryIncorporation.years${relation.years}`, `${relation.years}年`) : ""],
+      [t("map.countryIncorporation.baseYears", "基础整合年数"), relation.years ? countryIncorporationLabel(relation.years) : ""],
     ]);
   }
   if (state.view === "country" || state.mapMode === "country") {

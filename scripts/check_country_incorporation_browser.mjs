@@ -49,6 +49,7 @@ try {
   assert.equal(result.mode, "countryIncorporation", "map mode must switch to incorporation");
   assert.equal(result.visibleCount, regionCount, "incorporation map must use all state regions");
   for (const label of ["2年", "5年", "10年", "15年", "25年"]) assert.ok(result.legend.includes(label), `${label} legend entry should be visible`);
+  assert.ok(!result.legend.includes("map.countryIncorporation."), "incorporation legend must not expose localization keys");
   assert.equal(result.legendState.hidden, false, "incorporation legend must not be hidden");
   assert.ok(result.legendState.width > 0 && result.legendState.height > 0, "incorporation legend must occupy visible space");
   await page.evaluate(() => { document.querySelector("#leftPanelToggle").click(); document.querySelector("#bottomPanelToggle").click(); });
