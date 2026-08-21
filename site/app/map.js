@@ -480,11 +480,11 @@ function buildMapFeatures() {
 }
 
 const COUNTRY_INCORPORATION_COLOR_BY_YEARS = Object.freeze({
-  2: "#2f7f64",
-  5: "#5f9e62",
-  10: "#c39a3d",
-  15: "#c8783e",
-  25: "#a94e4e",
+  2: "#1f5f8b",
+  5: "#3f7ea3",
+  10: "#6699b5",
+  15: "#93b6c8",
+  25: "#7a7f82",
 });
 
 function countryIncorporationColor(years, isSea) {
