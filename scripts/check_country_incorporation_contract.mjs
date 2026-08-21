@@ -14,11 +14,15 @@ assert.match(mapSource, /2:\s*"#[0-9a-fA-F]+"[\s\S]*5:\s*"#[0-9a-fA-F]+"[\s\S]*1
 const indexSource = fs.readFileSync(`${root}site\\index.html`, "utf8");
 assert.match(indexSource, /id="countryIncorporationMapButton"/, "country incorporation toggle should exist");
 assert.match(indexSource, /id="mapCountryContext"/, "country incorporation toolbar should expose the selected country context");
+assert.match(indexSource, /styles\.css\?v=20260822-country-context2/, "country context should invalidate the root stylesheet cache");
+const stylesSource = fs.readFileSync(`${root}site\\styles.css`, "utf8");
+assert.match(stylesSource, /styles\/map\.css\?v=20260822-country-context2/, "country context should invalidate the map stylesheet cache");
 assert.match(indexSource, /id="countryIncorporationMapLegend"/, "country incorporation legend container should exist");
 const runtimeSource = fs.readFileSync(`${root}site\\app\\runtime.js`, "utf8");
 assert.match(runtimeSource, /countryIncorporationMapEnabled:\s*false/, "country incorporation state should default off");
 assert.match(runtimeSource, /mapCountryContext: document\.querySelector\("#mapCountryContext"\)/, "runtime element table should expose the selected country context");
 assert.match(mapSource, /function renderMapCountryContext\s*\(/, "map controls should render the selected country context");
+assert.match(mapSource, /map-country-context-flag/, "map country context should use a dedicated flag class");
 const boardSource = fs.readFileSync(`${root}site\\app\\boards.js`, "utf8");
 assert.match(boardSource, /state\.countryIncorporationMapEnabled\s*&&\s*selectedCountry\s*\?\s*stateRegions/, "incorporation map should use all state regions");
 for (const localePath of [`${root}site\\locales\\ui.zh-Hans.js`, `${root}site\\locales\\ui.en.js`]) {

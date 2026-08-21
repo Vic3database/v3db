@@ -81,7 +81,8 @@
 .map-country-context {
   display: inline-flex;
   align-items: center;
-  min-width: 0;
+  width: fit-content;
+  min-width: 120px;
   max-width: min(300px, calc(100vw - 168px));
   min-height: 30px;
   overflow: hidden;
@@ -101,8 +102,13 @@
 }
 
 .map-country-context-flag {
+  display: block;
+  flex: none;
   width: 24px;
   height: 16px;
+  max-width: 24px;
+  max-height: 16px;
+  object-fit: cover;
 }
 
 .map-country-context-name {

@@ -25,14 +25,17 @@ try {
   await page.waitForSelector(".detail h2", "country detail");
   assert.equal(await page.evaluate(() => document.querySelector("#countryIncorporationMapButton").disabled), false, "toggle must enable after country selection");
   await page.waitForSelector("#mapCountryContext:not([hidden])", "selected country context");
+  await new Promise((resolve) => setTimeout(resolve, 500));
   const countryContext = await page.evaluate(() => ({
     name: document.querySelector("#mapCountryContext .map-country-context-name")?.textContent?.trim(),
     tag: document.querySelector("#mapCountryContext .map-country-context-tag")?.textContent?.trim(),
     flag: document.querySelector("#mapCountryContext .map-country-context-flag")?.getAttribute("src"),
+    flagStyle: (() => { const element = document.querySelector("#mapCountryContext .map-country-context-flag"); const style = element ? getComputedStyle(element) : null; return style ? { width: style.width, height: style.height, flex: style.flex } : null; })(),
   }));
   assert.ok(countryContext.name, "selected country context must show a localized country name");
   assert.equal(countryContext.tag, "FRA", "selected country context must show the selected country tag");
   assert.ok(countryContext.flag, "selected country context must show the selected country flag");
+  assert.deepEqual(countryContext.flagStyle, { width: "24px", height: "16px", flex: "0 0 auto" }, "selected country context flag must stay compact");
   const regionCount = await page.evaluate(() => stateRegions.length);
   await page.evaluate(() => document.querySelector("#countryIncorporationMapButton").click());
   await page.waitForSelector("#countryIncorporationMapLegend:not([hidden])", "incorporation legend");
