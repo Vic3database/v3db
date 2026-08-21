@@ -10,6 +10,7 @@ assert.match(mapSource, /function countryIncorporationYearsForCulture\s*\(/, "co
 assert.match(mapSource, /function countryIncorporationForStateRegion\s*\(/, "country incorporation state helper should exist");
 assert.match(mapSource, /countryIncorporationMapLegend/, "country incorporation legend should exist");
 assert.match(mapSource, /countryIncorporation/, "country incorporation map mode should exist");
+assert.match(mapSource, /2:\s*"#[0-9a-fA-F]+"[\s\S]*5:\s*"#[0-9a-fA-F]+"[\s\S]*10:\s*"#[0-9a-fA-F]+"[\s\S]*15:\s*"#[0-9a-fA-F]+"[\s\S]*25:\s*"#7a7f82"/, "incorporation colors should use one scale with a gray 25-year endpoint");
 const indexSource = fs.readFileSync(`${root}site\\index.html`, "utf8");
 assert.match(indexSource, /id="countryIncorporationMapButton"/, "country incorporation toggle should exist");
 assert.match(indexSource, /id="countryIncorporationMapLegend"/, "country incorporation legend container should exist");
