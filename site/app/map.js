@@ -480,10 +480,10 @@ function buildMapFeatures() {
 }
 
 const COUNTRY_INCORPORATION_COLOR_BY_YEARS = Object.freeze({
-  2: "#0b3c5d",
-  5: "#126e8a",
-  10: "#1fa3b4",
-  15: "#79d0d5",
+  2: "#7f2704",
+  5: "#b84a05",
+  10: "#e27a16",
+  15: "#f5bd68",
   25: "#7a7f82",
 });
 
