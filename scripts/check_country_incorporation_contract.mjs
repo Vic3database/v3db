@@ -28,7 +28,7 @@ for (const localePath of [`${root}site\\locales\\ui.zh-Hans.js`, `${root}site\\l
   }
 }
 
-const helperSource = mapSource.match(/function countryIncorporationYearsForCulture\s*\([\s\S]*?\n}\n/)[0];
+const helperSource = mapSource.match(/function countryIncorporationYearsForCulture\s*\([\s\S]*?\r?\n}\r?\n/)[0];
 const context = {};
 vm.runInNewContext(`${helperSource}\nthis.countryIncorporationYearsForCulture = countryIncorporationYearsForCulture;`, context);
 const years = context.countryIncorporationYearsForCulture;
