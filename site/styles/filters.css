@@ -142,6 +142,10 @@ body:not([data-view="country"]) .country-only {
   display: none;
 }
 
+body:not([data-view="character"]) .character-only {
+  display: none;
+}
+
 body:not([data-view="region"]):not([data-view="company"]) .region-only {
   display: none;
 }

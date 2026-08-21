@@ -13,6 +13,7 @@ const boards = read("site/app/boards.js");
 const characters = read("site/app/characters.js");
 const pools = read("site/app/name-pools.js");
 const styles = read("site/styles/characters.css");
+const filters = read("site/styles/filters.css");
 const search = read("site/versions/1.13.9/search-index.js");
 
 assert.match(html, /data-nav-view="character"/, "missing character navigation entry");
@@ -41,6 +42,7 @@ assert.match(styles, /body\[data-view="character"\]/, "character board styles mi
 assert.match(styles, /body\[data-view="name-pool"\]/, "name-pool board styles missing");
 assert.match(styles, /grid-template-columns: var\(--role-filter-width\) minmax\(0, 1fr\) var\(--role-detail-width\)/, "role board must use its own three-column layout");
 assert.match(styles, /filter-section:not\(\.character-only\)/, "character board must isolate its filters");
+assert.match(filters, /body:not\(\[data-view="character"\]\) \.character-only/, "character-only filters must be hidden outside the character board");
 assert.match(styles, /grid-template-columns: none !important/, "character rows must not inherit the country grid template");
 assert.match(characters, /character_trait:\$\{normalized\}\.name/, "character traits must use the character localization namespace");
 assert.match(characters, /const CHARACTER_PAGE_SIZE = 100/, "character board must cap each page at 100 rows");
