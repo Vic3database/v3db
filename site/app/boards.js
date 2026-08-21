@@ -1538,11 +1538,17 @@ function renderCountryBoard() {
   if (state.selectedTag && !byTag.has(state.selectedTag)) state.selectedTag = "";
   if (!isDetailPageRoute() && state.selectedTag && !filtered.some((country) => country.tag === state.selectedTag)) state.selectedTag = "";
   const selectedCountry = byTag.get(state.selectedTag);
+  if (!selectedCountry) state.countryIncorporationMapEnabled = false;
+  if (els.countryIncorporationMapButton) {
+    const enabled = Boolean(selectedCountry);
+    els.countryIncorporationMapButton.disabled = !enabled;
+    els.countryIncorporationMapButton.setAttribute("aria-pressed", String(enabled && state.countryIncorporationMapEnabled));
+  }
   els.resultCount.textContent = t("board.country.resultCount", { count: localizedNumber(filtered.length) });
   els.activeHint.textContent = buildActiveHint(filtered.length);
   renderCountryList(filtered);
-  renderMap(countryMapStateRegions(selectedCountry));
-  focusCountryOnMap(selectedCountry);
+  renderMap(state.countryIncorporationMapEnabled && selectedCountry ? stateRegions : countryMapStateRegions(selectedCountry));
+  if (!state.countryIncorporationMapEnabled) focusCountryOnMap(selectedCountry);
   renderMobileCountryControls();
   if (state.countryMobileRestoreScrollPending) {
     state.countryMobileRestoreScrollPending = false;

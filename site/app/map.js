@@ -3,18 +3,25 @@ function renderMapControls() {
   els.mapFitWidthButton?.setAttribute("aria-label", mapResetLabel);
   els.mapFitWidthButton?.setAttribute("title", mapResetLabel);
   syncMapModeForView();
+  if (els.countryIncorporationMapButton) {
+    const available = state.view === "country" && Boolean(state.selectedTag);
+    els.countryIncorporationMapButton.disabled = !available;
+    els.countryIncorporationMapButton.setAttribute("aria-pressed", String(available && state.mapMode === "countryIncorporation"));
+  }
   const terrainViewEnabled = state.view === "region" && state.regionMapView === "terrain";
   els.terrainMapViewButton?.setAttribute("aria-pressed", String(terrainViewEnabled));
   if (state.view === "ideology" || state.view === "law") {
     renderMapResourceContext();
     renderTerrainMapLegend();
     renderSubsistenceBuildingMapLegend();
+    renderCountryIncorporationMapLegend();
     return;
   }
   if (!els.mapModeSelect || !els.mapSubjectSelect) {
     renderMapResourceContext();
     renderTerrainMapLegend();
     renderSubsistenceBuildingMapLegend();
+    renderCountryIncorporationMapLegend();
     return;
   }
   els.mapModeSelect.value = state.mapMode;
@@ -28,6 +35,27 @@ function renderMapControls() {
   renderMapResourceContext();
   renderTerrainMapLegend();
   renderSubsistenceBuildingMapLegend();
+  renderCountryIncorporationMapLegend();
+}
+
+function renderCountryIncorporationMapLegend() {
+  if (!els.countryIncorporationMapLegend) return;
+  const enabled = state.view === "country" && state.mapMode === "countryIncorporation" && Boolean(state.selectedTag);
+  els.countryIncorporationMapLegend.hidden = !enabled;
+  if (!enabled) {
+    els.countryIncorporationMapLegend.textContent = "";
+    return;
+  }
+  const entries = [
+    [2, "map.countryIncorporation.years2"],
+    [5, "map.countryIncorporation.years5"],
+    [10, "map.countryIncorporation.years10"],
+    [15, "map.countryIncorporation.years15"],
+    [25, "map.countryIncorporation.years25"],
+  ];
+  els.countryIncorporationMapLegend.innerHTML = entries.map(([years, labelKey]) => (
+    `<span class="country-incorporation-map-legend-item"><span class="country-incorporation-map-legend-swatch" style="--country-incorporation-map-color: ${escapeHtml(countryIncorporationColor(years, false))}" aria-hidden="true"></span>${escapeHtml(t(labelKey))}</span>`
+  )).join("");
 }
 
 function renderTerrainMapLegend() {
@@ -70,7 +98,7 @@ function syncMapModeForView() {
     return;
   }
   if (state.view === "country") {
-    state.mapMode = "country";
+    state.mapMode = state.selectedTag && state.countryIncorporationMapEnabled ? "countryIncorporation" : "country";
     state.mapSubject = "";
     return;
   }
@@ -122,7 +150,7 @@ function syncMapModeForView() {
 }
 
 function mapSubjectOptions(mode) {
-  if (mode === "country" || mode === "company" || mode === "cultureFilter" || mode === "resourceSelection" || mode === "strategicRegion" || mode === "terrain" || mode === "subsistenceBuildings") {
+  if (mode === "country" || mode === "countryIncorporation" || mode === "company" || mode === "cultureFilter" || mode === "resourceSelection" || mode === "strategicRegion" || mode === "terrain" || mode === "subsistenceBuildings") {
     return [{ value: state.mapSubject || "", label: automaticMapSubjectLabel(mode) }];
   }
   if (mode === "culture") {
@@ -230,6 +258,11 @@ function mapLayerSignature() {
     parts.push(`global:${state.globalSearchColorRestoreTag || ""}`);
     parts.push(`dim:${shouldDimUnfilteredCountries() ? 1 : 0}`);
     if (shouldDimUnfilteredCountries()) parts.push(`countries:${setSignature(mapRuntime.filteredCountryTags)}`);
+  }
+  if (state.mapMode === "countryIncorporation") {
+    const country = byTag.get(state.selectedTag);
+    parts.push(`selected:${state.selectedTag || ""}`);
+    parts.push(`primary:${(country?.primaryCultures || []).map((culture) => culture?.key || culture).sort().join(",")}`);
   }
   if (state.mapMode === "company") {
     parts.push(`companies:${objectKeySignature(mapRuntime.companyMapCompanies)}`);
@@ -368,8 +401,72 @@ function computeMapStateCenters(indexes, width, height, stateKeysByIndex) {
   return centers;
 }
 
+const COUNTRY_INCORPORATION_YEARS = Object.freeze([2, 5, 10, 15, 25]);
+
+function countryIncorporationYearsForCulture(primaryCultures, homelandCulture) {
+  if (!homelandCulture) return 25;
+  const homelandKey = homelandCulture.key || "";
+  for (const primaryCulture of primaryCultures || []) {
+    if (homelandKey && homelandKey === primaryCulture?.key) return 2;
+  }
+  for (const primaryCulture of primaryCultures || []) {
+    const sameHeritage = Boolean(
+      homelandCulture.heritage?.key
+      && homelandCulture.heritage.key === primaryCulture?.heritage?.key,
+    );
+    const sameLanguage = Boolean(
+      homelandCulture.language?.key
+      && homelandCulture.language.key === primaryCulture?.language?.key,
+    );
+    if (sameHeritage && sameLanguage) return 5;
+  }
+  for (const primaryCulture of primaryCultures || []) {
+    const sameHeritage = Boolean(
+      homelandCulture.heritage?.key
+      && homelandCulture.heritage.key === primaryCulture?.heritage?.key,
+    );
+    const sameLanguage = Boolean(
+      homelandCulture.language?.key
+      && homelandCulture.language.key === primaryCulture?.language?.key,
+    );
+    if (sameHeritage || sameLanguage) return 10;
+  }
+  for (const primaryCulture of primaryCultures || []) {
+    const sameHeritageGroup = Boolean(
+      homelandCulture.heritage?.group_key
+      && homelandCulture.heritage.group_key === primaryCulture?.heritage?.group_key,
+    );
+    const sameLanguageGroup = Boolean(
+      homelandCulture.language?.group_key
+      && homelandCulture.language.group_key === primaryCulture?.language?.group_key,
+    );
+    if (sameHeritageGroup || sameLanguageGroup) return 15;
+  }
+  return 25;
+}
+
+function countryIncorporationForStateRegion(stateRegion, selectedCountry) {
+  const homelandCultures = (stateRegion?.homeland_cultures || [])
+    .map((cultureRef) => byCulture.get(cultureRef?.key || cultureRef) || cultureRef)
+    .filter(Boolean);
+  const primaryCultures = (selectedCountry?.primaryCultures || [])
+    .map((cultureRef) => byCulture.get(cultureRef?.key || cultureRef) || cultureRef)
+    .filter(Boolean);
+  if (!homelandCultures.length) return { years: 25, labelKey: "map.countryIncorporation.noMatch", culture: null };
+  let best = null;
+  for (const culture of homelandCultures) {
+    const years = countryIncorporationYearsForCulture(primaryCultures, culture);
+    if (!best || years < best.years) best = { years, culture };
+  }
+  return {
+    ...best,
+    labelKey: `map.countryIncorporation.years${best.years}`,
+  };
+}
+
 function buildMapFeatures() {
   if (state.mapMode === "country") return buildCountryMapFeatures();
+  if (state.mapMode === "countryIncorporation") return buildCountryIncorporationMapFeatures();
   if (state.mapMode === "strategicRegion") return buildStrategicRegionMapFeatures();
   if (state.mapMode === "traitIcons") return buildTraitIconMapFeatures();
   if (state.mapMode === "terrain") return buildTerrainMapFeatures();
@@ -380,6 +477,40 @@ function buildMapFeatures() {
   if (state.mapMode === "culture") return buildCultureMapFeatures();
   if (state.mapMode === "trait") return buildTraitMapFeatures();
   return buildResourceMapFeatures();
+}
+
+const COUNTRY_INCORPORATION_COLOR_BY_YEARS = Object.freeze({
+  2: "#2f7f64",
+  5: "#5f9e62",
+  10: "#c39a3d",
+  15: "#c8783e",
+  25: "#a94e4e",
+});
+
+function countryIncorporationColor(years, isSea) {
+  return isSea ? MAP_SEA_COLOR : COUNTRY_INCORPORATION_COLOR_BY_YEARS[years] || COUNTRY_INCORPORATION_COLOR_BY_YEARS[25];
+}
+
+function buildCountryIncorporationMapFeatures() {
+  const selectedCountry = byTag.get(state.selectedTag);
+  const features = new Map();
+  for (const stateRegion of stateRegions) {
+    const isSea = isSeaStateRegion(stateRegion);
+    const relation = isSea
+      ? { years: 0, labelKey: "map.countryIncorporation.sea", culture: null }
+      : countryIncorporationForStateRegion(stateRegion, selectedCountry);
+    const years = relation.years || 25;
+    features.set(stateRegion.key, {
+      color: mapFeatureColor(stateRegion, countryIncorporationColor(years, isSea)),
+      active: !isSea && Boolean((stateRegion.homeland_cultures || []).length),
+      value: years,
+      title: isSea
+        ? t("map.countryIncorporation.sea", "海域")
+        : `${entityText(stateRegion) || stateRegion.key} · ${t(relation.labelKey, `${years}年`)}`,
+      incorporation: relation,
+    });
+  }
+  return features;
 }
 
 function loadStateTraitIconImages() {
@@ -1798,6 +1929,15 @@ function mapTooltipRowsForView(stateRegion, feature, ownerTag = "", terrainKey =
       [t("map.subsistenceBuilding", "自给建筑"), subsistenceBuildingLabel(buildingKey)],
       [t("board.region.arableLand", "耕地"), stateRegion.arable_land === null ? "" : String(stateRegion.arable_land)],
       [t("board.region.traits", "地区特质"), tooltipHtml(mapTooltipStateTraitHtml(stateRegion.traits || []))],
+    ]);
+  }
+  if (state.mapMode === "countryIncorporation") {
+    const relation = feature?.incorporation || countryIncorporationForStateRegion(stateRegion, byTag.get(state.selectedTag));
+    return compactTooltipRows([
+      [t("board.region.startingOwners", "开局归属"), refNames(stateRegion.starting_owners)],
+      [t("map.currentProvinceOwner", "当前省份归属"), ownerTag ? countryNameWithTag(ownerTag) : ""],
+      [t("board.region.homelandCultures", "本土文化"), refNames(stateRegion.homeland_cultures)],
+      [t("map.countryIncorporation.baseYears", "基础整合年数"), relation.years ? t(`map.countryIncorporation.years${relation.years}`, `${relation.years}年`) : ""],
     ]);
   }
   if (state.view === "country" || state.mapMode === "country") {

@@ -404,6 +404,11 @@ function bindEvents() {
     state.mapSubject = els.mapSubjectSelect.value;
     render();
   });
+  els.countryIncorporationMapButton?.addEventListener("click", () => {
+    if (state.view !== "country" || !state.selectedTag) return;
+    state.countryIncorporationMapEnabled = !state.countryIncorporationMapEnabled;
+    render();
+  });
   els.terrainMapViewButton?.addEventListener("click", () => {
     const enableTerrain = state.regionMapView !== "terrain";
     state.regionMapView = enableTerrain ? "terrain" : "default";
