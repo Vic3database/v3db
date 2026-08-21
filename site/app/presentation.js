@@ -338,6 +338,7 @@ function commitCountrySelection(countryTag) {
   syncListSelection("data-country", previousTag, state.selectedTag);
   const selectedCountry = byTag.get(state.selectedTag);
   renderMap(state.countryIncorporationMapEnabled && selectedCountry ? stateRegions : countryMapStateRegions(selectedCountry));
+  render();
 }
 
 function clearFilteredOutCountryMapSelection() {
@@ -349,6 +350,7 @@ function clearFilteredOutCountryMapSelection() {
   replaceHash("/country");
   syncListSelection("data-country", previousTag, "");
   renderMap(countryMapStateRegions(null));
+  render();
 }
 
 function selectCountryCard(countryTag) {
