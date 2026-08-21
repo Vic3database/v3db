@@ -78,6 +78,47 @@
   font-weight: 700;
 }
 
+.map-country-context {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  max-width: min(300px, calc(100vw - 168px));
+  min-height: 30px;
+  overflow: hidden;
+  gap: 6px;
+  padding: 3px 8px 3px 4px;
+  border: 1px solid rgba(200, 164, 91, 0.24);
+  border-radius: 6px;
+  color: #eef3ea;
+  background: rgba(28, 41, 35, 0.76);
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.map-country-context[hidden] {
+  display: none;
+}
+
+.map-country-context-flag {
+  width: 24px;
+  height: 16px;
+}
+
+.map-country-context-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.map-country-context-tag {
+  flex: 0 0 auto;
+  color: rgba(238, 243, 234, 0.76);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
 .map-resource-context[hidden] {
   display: none;
 }

@@ -893,6 +893,7 @@ const els = {
   mapSubjectSelect: document.querySelector("#mapSubjectSelect"),
   mapFitWidthButton: document.querySelector("#mapFitWidthButton"),
   countryIncorporationMapButton: document.querySelector("#countryIncorporationMapButton"),
+  mapCountryContext: document.querySelector("#mapCountryContext"),
   mapResourceContext: document.querySelector("#mapResourceContext"),
   terrainMapViewButton: document.querySelector("#terrainMapViewButton"),
   terrainMapLegend: document.querySelector("#terrainMapLegend"),
