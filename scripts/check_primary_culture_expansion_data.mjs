@@ -38,6 +38,34 @@ try {
   }]);
   assert.deepEqual(expansions.countries.BRZ.maximum_primary_cultures, ["brazilian", "portuguese"]);
   assert.equal(expansions.countries.GBR.maximum_primary_cultures, null);
+  assert.deepEqual(expansions.countries.SAF.maximum_primary_cultures, null);
+  assert.deepEqual(expansions.countries.SAF.maximum_primary_culture_sets, [
+    ["boer", "british"],
+    ["british", "griqua"],
+  ]);
+  assert.deepEqual(expansions.countries.SPA.added_primary_cultures, [
+    "aragonese",
+    "asturleonese",
+    "basque",
+    "caribeno",
+    "catalan",
+    "galician",
+  ]);
+  assert.equal(expansions.countries.FRA?.added_primary_cultures?.includes("turkish") ?? false, false);
+  assert.equal(expansions.countries.SPA?.added_primary_cultures?.includes("filipino_mestizo") ?? false, false);
+  assert.equal(expansions.countries.GCO?.added_primary_cultures?.includes("platinean") ?? false, false);
+  assert.equal(expansions.countries.PBC?.added_primary_cultures?.includes("platinean") ?? false, false);
+  assert.deepEqual(expansions.countries.AFG.maximum_primary_culture_sets, [
+    ["kho", "pashtun", "tajik"],
+    ["pashtun", "tajik", "turkmen", "uzbek"],
+    ["pashtun", "tajik", "uzbek"],
+  ]);
+  assert.ok(expansions.countries.IBE.added_primary_cultures.includes("catalan"));
+  assert.ok(expansions.countries.SPA.paths.some((item) => item.content_id === "amendment_reinstated_fueros" && item.culture === "basque"));
+  assert.ok(expansions.countries.SPA.paths.some((item) => item.content_id === "cuba_annex_effects" && item.culture === "caribeno"));
+  assert.ok(expansions.conditional_effects.some((item) => item.added_culture === "guarani" && item.content_id === "on_country_formed:paraguay_origin"));
+  assert.ok(expansions.countries.BHT.paths.some((item) => item.culture === "bengali" && item.content_id === "grant_indian_cultures"));
+  assert.ok(expansions.countries.BHT.paths.some((item) => item.culture === "kashmiri" && item.content_id === "india_home_rule_events.1:south_asian_homelands"));
   assert.deepEqual(expansions.countries.GBR.maximum_primary_culture_sets, [
     ["anglo_canadian", "british"],
     ["australian", "british"],
@@ -63,7 +91,9 @@ try {
   assert.ok(expansions.countries.AUS.paths.some((item) => item.effect_kind === "scripted_effect" && item.culture === "czech"));
   assert.ok(expansions.countries.BRZ.paths.some((item) => item.content_id === "lusofonia.3" && item.culture === "portuguese"));
   assert.equal(expansions.unresolved_effects.length, 0);
-  assert.deepEqual(expansions.conditional_effects, [{
+  assert.ok(expansions.conditional_effects.some((item) => item.added_culture === "han" && item.content_id === "boxer_rebellion_events.4"));
+  assert.ok(expansions.conditional_effects.some((item) => item.added_culture === "guarani" && item.content_id === "on_country_formed:paraguay_origin"));
+  assert.deepEqual(expansions.conditional_effects.find((item) => item.content_id === "boxer_rebellion_events.4"), {
     content_type: "event",
     content_id: "boxer_rebellion_events.4",
     added_culture: "han",
@@ -71,7 +101,7 @@ try {
     eligible_when: { primary_cultures_any: ["han", "manchu"] },
     source_file: "events/boxer_rebellion_events.txt",
     source_line: 331,
-  }]);
+  });
 
   const index = readJson(path.join(database, "index.json"));
   assert.equal(index.files.primary_culture_expansions, "primary_culture_expansions.json");
@@ -110,14 +140,23 @@ function run(script, args) {
 }
 
 function writeFixtureDatabase(directory) {
-  const cultures = ["ainu", "afro_american", "anglo_canadian", "argentine", "australian", "brazilian", "british", "czech", "dixie", "han", "japanese", "manchu", "platinean", "portuguese", "slovak", "south_german", "yankee"].map((key) => ({ key }));
+  const cultures = ["ainu", "afro_american", "anglo_canadian", "argentine", "aragonese", "asturleonese", "australian", "basque", "bengali", "boer", "brazilian", "british", "caribeno", "catalan", "czech", "dixie", "french", "galician", "griqua", "guarani", "han", "japanese", "kashmiri", "kho", "manchu", "nepali", "north_andean", "pashtun", "platinean", "portuguese", "slovak", "south_andean", "south_german", "spanish", "sinhala", "tajik", "turkmen", "ukrainian", "uzbek", "yankee"].map((key) => ({ key }));
   const countries = [
+    country("AFG", ["pashtun", "tajik"]),
     country("ARG", ["platinean"]),
     country("AUS", ["south_german"]),
+    country("BHT", ["bengali"]),
     country("BRZ", ["brazilian"]),
     country("CHI", ["manchu"]),
     country("GBR", ["british"]),
+    country("FRA", ["french"]),
+    country("GCO", ["north_andean"]),
+    country("IBE", ["spanish", "portuguese"]),
     country("JAP", ["japanese"]),
+    country("PBC", ["south_andean"]),
+    country("PLT", ["platinean"]),
+    country("SAF", ["british"]),
+    country("SPA", ["spanish"]),
     country("USA", ["yankee", "dixie"]),
   ];
   const events = [

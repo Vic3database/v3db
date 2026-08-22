@@ -22,6 +22,9 @@ const REVIEWED_COUNTRY_SCOPES = Object.freeze({
   "event:austria_federation.12": ["AUS"],
   "event:fsa_events.1": ["FSA", "USA"],
   "event:hokkaido_events.6": ["JAP"],
+  "event:algeria_events.8": ["ALD"],
+  "event:philippines.2": ["PHI"],
+  "event:philippines.3": ["PHI"],
   "event:joi_flavor_expand.4": ["GER"],
   "event:joi_flavor_gbr.92": ["GBR"],
   "event:la_plata.2": ["PLT"],
@@ -68,11 +71,74 @@ const REVIEWED_EFFECT_TARGETS = Object.freeze({
   "journal:je_cuba_espanol": [{ country: "SPA", culture: "caribeno" }],
   "journal:je_cuba_independencia": [{ country: "CUB", culture: "afro_caribeno" }],
   "journal:je_iberia": [{ country: "IBE", culture: "iberian" }],
+  "journal:je_philippines_main": [{ country: "PHI", culture: "filipino_mestizo" }],
 });
+
+// These effects are defined in scripted buttons, on-actions, amendments, or scripted effects
+// that are not represented as event/journal/decision rows in the extracted database.  Keep each
+// record explicit so the generated data remains source-traceable and does not infer a country
+// from a broad content group.
+const REVIEWED_SCRIPTED_PATHS = Object.freeze([
+  { country: "AFG", culture: "kho", content_id: "on_country_formed:afghanistan_origin", effect_kind: "on_action", source_file: "common/on_actions/00_code_on_actions.txt", source_line: 4083 },
+  { country: "AFG", culture: "turkmen", content_id: "on_country_formed:afghanistan_origin", effect_kind: "on_action", source_file: "common/on_actions/00_code_on_actions.txt", source_line: 4077 },
+  { country: "AFG", culture: "uzbek", content_id: "on_country_formed:afghanistan_origin", effect_kind: "on_action", source_file: "common/on_actions/00_code_on_actions.txt", source_line: 4070 },
+  { country: "AFG", culture: "uzbek", content_id: "on_country_formed:afghanistan_origin", effect_kind: "on_action", source_file: "common/on_actions/00_code_on_actions.txt", source_line: 4076 },
+  { country: "BHT", culture: "assamese", content_id: "grant_indian_cultures", effect_kind: "scripted_effect", source_file: "common/scripted_effects/00_victoria_scripted_effects.txt", source_line: 5056 },
+  { country: "BHT", culture: "avadhi", content_id: "grant_indian_cultures", effect_kind: "scripted_effect", source_file: "common/scripted_effects/00_victoria_scripted_effects.txt", source_line: 5056 },
+  { country: "BHT", culture: "bengali", content_id: "grant_indian_cultures", effect_kind: "scripted_effect", source_file: "common/scripted_effects/00_victoria_scripted_effects.txt", source_line: 5056 },
+  { country: "BHT", culture: "bihari", content_id: "grant_indian_cultures", effect_kind: "scripted_effect", source_file: "common/scripted_effects/00_victoria_scripted_effects.txt", source_line: 5056 },
+  { country: "BHT", culture: "gujarati", content_id: "grant_indian_cultures", effect_kind: "scripted_effect", source_file: "common/scripted_effects/00_victoria_scripted_effects.txt", source_line: 5056 },
+  { country: "BHT", culture: "kannada", content_id: "grant_indian_cultures", effect_kind: "scripted_effect", source_file: "common/scripted_effects/00_victoria_scripted_effects.txt", source_line: 5056 },
+  { country: "BHT", culture: "malayalam", content_id: "grant_indian_cultures", effect_kind: "scripted_effect", source_file: "common/scripted_effects/00_victoria_scripted_effects.txt", source_line: 5056 },
+  { country: "BHT", culture: "marathi", content_id: "grant_indian_cultures", effect_kind: "scripted_effect", source_file: "common/scripted_effects/00_victoria_scripted_effects.txt", source_line: 5056 },
+  { country: "BHT", culture: "oriya", content_id: "grant_indian_cultures", effect_kind: "scripted_effect", source_file: "common/scripted_effects/00_victoria_scripted_effects.txt", source_line: 5056 },
+  { country: "BHT", culture: "panjabi", content_id: "grant_indian_cultures", effect_kind: "scripted_effect", source_file: "common/scripted_effects/00_victoria_scripted_effects.txt", source_line: 5056 },
+  { country: "BHT", culture: "rajput", content_id: "grant_indian_cultures", effect_kind: "scripted_effect", source_file: "common/scripted_effects/00_victoria_scripted_effects.txt", source_line: 5056 },
+  { country: "BHT", culture: "sindi", content_id: "grant_indian_cultures", effect_kind: "scripted_effect", source_file: "common/scripted_effects/00_victoria_scripted_effects.txt", source_line: 5056 },
+  { country: "BHT", culture: "tamil", content_id: "grant_indian_cultures", effect_kind: "scripted_effect", source_file: "common/scripted_effects/00_victoria_scripted_effects.txt", source_line: 5056 },
+  { country: "BHT", culture: "telegu", content_id: "grant_indian_cultures", effect_kind: "scripted_effect", source_file: "common/scripted_effects/00_victoria_scripted_effects.txt", source_line: 5056 },
+  { country: "BHT", culture: "kashmiri", content_id: "india_home_rule_events.1:south_asian_homelands", effect_kind: "event", source_file: "events/india_events/india_home_rule_events.txt", source_line: 30 },
+  { country: "BHT", culture: "nepali", content_id: "india_home_rule_events.1:south_asian_homelands", effect_kind: "event", source_file: "events/india_events/india_home_rule_events.txt", source_line: 30 },
+  { country: "BHT", culture: "sinhala", content_id: "india_home_rule_events.1:south_asian_homelands", effect_kind: "event", source_file: "events/india_events/india_home_rule_events.txt", source_line: 30 },
+  { country: "CEY", culture: "sinhala", content_id: "on_become_independent:ceylon", effect_kind: "on_action", source_file: "common/on_actions/00_code_on_actions.txt", source_line: 7632 },
+  { country: "IBE", culture: "portuguese", content_id: "scripted_button:iberia_formation", effect_kind: "scripted_button", source_file: "common/scripted_buttons/06_iberia_buttons.txt", source_line: 112 },
+  { country: "IBE", culture: "spanish", content_id: "scripted_button:iberia_formation", effect_kind: "scripted_button", source_file: "common/scripted_buttons/06_iberia_buttons.txt", source_line: 104 },
+  { country: "FRA", culture: "breton", content_id: "scripted_button:je_vernacular_policy_accept_breton_button", effect_kind: "scripted_button", source_file: "common/scripted_buttons/06_vernacular_buttons.txt", source_line: 571 },
+  { country: "FRA", culture: "francoprovencal", content_id: "scripted_button:je_vernacular_policy_accept_francoprovencal_button", effect_kind: "scripted_button", source_file: "common/scripted_buttons/06_vernacular_buttons.txt", source_line: 489 },
+  { country: "FRA", culture: "occitan", content_id: "scripted_button:je_vernacular_policy_accept_occitan_button", effect_kind: "scripted_button", source_file: "common/scripted_buttons/06_vernacular_buttons.txt", source_line: 647 },
+  { country: "FRA", culture: "wallonian", content_id: "scripted_button:je_vernacular_policy_accept_wallonian_button", effect_kind: "scripted_button", source_file: "common/scripted_buttons/06_vernacular_buttons.txt", source_line: 724 },
+  { country: "PLT", culture: "guarani", content_id: "on_country_formed:paraguay_origin", effect_kind: "on_action", source_file: "common/on_actions/00_code_on_actions.txt", source_line: 3901 },
+  { country: "SAF", culture: "boer", content_id: "scripted_button:saf_highveld_add_boer_as_primary_button", effect_kind: "scripted_button", source_file: "common/scripted_buttons/05_struggle_for_the_highveld_buttons.txt", source_line: 148 },
+  { country: "SAF", culture: "griqua", content_id: "scripted_button:saf_highveld_add_griqua_as_primary_button", effect_kind: "scripted_button", source_file: "common/scripted_buttons/05_struggle_for_the_highveld_buttons.txt", source_line: 194 },
+  { country: "SPA", culture: "aragonese", content_id: "scripted_button:je_vernacular_policy_accept_aragonese_button", effect_kind: "scripted_button", source_file: "common/scripted_buttons/06_vernacular_buttons.txt", source_line: 149 },
+  { country: "SPA", culture: "asturleonese", content_id: "scripted_button:je_vernacular_policy_accept_asturleonese_button", effect_kind: "scripted_button", source_file: "common/scripted_buttons/06_vernacular_buttons.txt", source_line: 223 },
+  { country: "SPA", culture: "basque", content_id: "scripted_button:je_vernacular_policy_accept_basque_button", effect_kind: "scripted_button", source_file: "common/scripted_buttons/06_vernacular_buttons.txt", source_line: 399 },
+  { country: "SPA", culture: "catalan", content_id: "scripted_button:je_vernacular_policy_accept_catalan_button", effect_kind: "scripted_button", source_file: "common/scripted_buttons/06_vernacular_buttons.txt", source_line: 80 },
+  { country: "SPA", culture: "galician", content_id: "scripted_button:je_vernacular_policy_accept_galician_button", effect_kind: "scripted_button", source_file: "common/scripted_buttons/06_vernacular_buttons.txt", source_line: 306 },
+  { country: "SPA", culture: "basque", content_id: "amendment_reinstated_fueros", effect_kind: "amendment", source_file: "common/amendments/00_amendments_content_04.txt", source_line: 152 },
+  { country: "IBE", culture: "catalan", content_id: "on_country_formed:spain_accepted_cultures", effect_kind: "on_action", source_file: "common/on_actions/00_code_on_actions.txt", source_line: 4114 },
+  { country: "IBE", culture: "aragonese", content_id: "on_country_formed:spain_accepted_cultures", effect_kind: "on_action", source_file: "common/on_actions/00_code_on_actions.txt", source_line: 4114 },
+  { country: "IBE", culture: "asturleonese", content_id: "on_country_formed:spain_accepted_cultures", effect_kind: "on_action", source_file: "common/on_actions/00_code_on_actions.txt", source_line: 4114 },
+  { country: "IBE", culture: "galician", content_id: "on_country_formed:spain_accepted_cultures", effect_kind: "on_action", source_file: "common/on_actions/00_code_on_actions.txt", source_line: 4114 },
+  { country: "IBE", culture: "basque", content_id: "on_country_formed:spain_accepted_cultures", effect_kind: "on_action", source_file: "common/on_actions/00_code_on_actions.txt", source_line: 4114 },
+  { country: "SPA", culture: "caribeno", content_id: "cuba_annex_effects", effect_kind: "scripted_effect", source_file: "common/scripted_effects/00_chris_scripted_effects.txt", source_line: 1 },
+  { country: "PHI", culture: "filipino_mestizo", content_id: "on_become_independent:philippines", effect_kind: "on_action", source_file: "common/on_actions/00_code_on_actions.txt", source_line: 7678 },
+]);
 
 // Each option group describes mutually exclusive country-level outcomes. The generator
 // preserves every attainable maximum set instead of combining cultures from opposing routes.
 const PRIMARY_CULTURE_OPTION_GROUPS = Object.freeze({
+  AFG: [
+    {
+      id: "afghanistan_origin",
+      source_contents: ["on_action:on_country_formed:afghanistan_origin"],
+      options: [
+        { id: "kunduz", added_primary_cultures: ["uzbek"] },
+        { id: "maimana", added_primary_cultures: ["turkmen", "uzbek"] },
+        { id: "kabul", added_primary_cultures: ["kho"] },
+      ],
+    },
+  ],
   GBR: [
     {
       id: "british_relocation",
@@ -83,15 +149,41 @@ const PRIMARY_CULTURE_OPTION_GROUPS = Object.freeze({
       ],
     },
   ],
+  SAF: [
+    {
+      id: "highveld_culture_choice",
+      source_contents: [
+        "scripted:scripted_button:saf_highveld_add_boer_as_primary_button",
+        "scripted:scripted_button:saf_highveld_add_griqua_as_primary_button",
+      ],
+      options: [
+        { id: "boer", added_primary_cultures: ["boer"] },
+        { id: "griqua", added_primary_cultures: ["griqua"] },
+      ],
+    },
+  ],
 });
 
-const CONDITIONAL_EFFECTS = Object.freeze({
-  "event:boxer_rebellion_events.4": {
+const CONDITIONAL_EFFECTS = Object.freeze([
+  {
+    scope_key: "event:boxer_rebellion_events.4",
     added_culture: "han",
     removed_culture: "manchu",
     eligible_when: { primary_cultures_any: ["han", "manchu"] },
   },
-});
+  {
+    scope_key: "event:andean_federation.2",
+    added_culture: "platinean",
+    country_tags: ["GCO", "PBC", "PLT"],
+    eligible_when: { was_formed_from_any: ["PLT"] },
+  },
+  {
+    scope_key: "on_action:on_country_formed:paraguay_origin",
+    added_culture: "guarani",
+    country_tags: ["PLT"],
+    eligible_when: { was_formed_from_any: ["PRG"] },
+  },
+]);
 
 const args = parseArgs(process.argv.slice(2));
 if (args.help) {
@@ -115,6 +207,15 @@ const pathsByCountry = new Map();
 const replacementsByCountry = new Map();
 const unresolvedEffects = [];
 const conditionalEffects = [];
+for (const scripted of REVIEWED_SCRIPTED_PATHS) {
+  if (!validCountryTags.has(scripted.country) || !validCultureKeys.has(scripted.culture)) continue;
+  const conditional = conditionalFor(`on_action:${scripted.content_id}`, scripted.culture);
+  if (conditional && scripted.content_id === "on_country_formed:paraguay_origin") {
+    recordConditional(conditional, scripted);
+    continue;
+  }
+  addPath(pathsByCountry, scripted.country, makeReviewedPath(scripted));
+}
 for (const [contentType, filename] of Object.entries(contentFiles(index))) {
   const rows = readJson(path.join(database, filename));
   for (const row of rows) {
@@ -127,22 +228,35 @@ for (const [contentType, filename] of Object.entries(contentFiles(index))) {
     const tags = countryScopeFor(row, scopeKey, validCountryTags);
     const reviewedTargets = reviewedTargetsFor(scopeKey, effects, validCountryTags);
     const replacements = replacementsFor(row, scopeKey, effects, tags, reviewedTargets, validCultureKeys);
-    const conditional = CONDITIONAL_EFFECTS[scopeKey];
-    if (conditional) {
-      conditionalEffects.push({
-        ...conditional,
-        content_type: contentType,
-        content_id: contentId,
-        source_file: String(row?.source_file || ""),
-        source_line: Number(row?.source_line || 0),
-      });
-      continue;
+    for (const effect of effects) {
+      const conditional = conditionalFor(scopeKey, effect.culture);
+      if (conditional && !conditional.country_tags) {
+        recordConditional(conditional, {
+          content_type: contentType,
+          content_id: contentId,
+          source_file: String(row?.source_file || ""),
+          source_line: Number(row?.source_line || 0),
+        });
+      }
     }
     const replacementSignatures = new Set(replacements.map((replacement) => replacementSignature(replacement.country, replacement.effect)));
     const mappedEffects = new Set();
     for (const tag of tags) {
       for (const effect of effects) {
         if (!validCultureKeys.has(effect.culture)) continue;
+        const conditional = conditionalFor(scopeKey, effect.culture);
+        if (conditional) {
+          mappedEffects.add(effectSignature(effect));
+          if (conditional.country_tags?.includes(tag)) {
+            recordConditional(conditional, {
+              content_type: contentType,
+              content_id: contentId,
+              source_file: String(row?.source_file || ""),
+              source_line: Number(row?.source_line || 0),
+            });
+          }
+          continue;
+        }
         if (replacementSignatures.has(replacementSignature(tag, effect))) continue;
         addPath(pathsByCountry, tag, makePathRecord(contentType, contentId, row, effect));
         mappedEffects.add(effectSignature(effect));
@@ -157,7 +271,9 @@ for (const [contentType, filename] of Object.entries(contentFiles(index))) {
       addReplacement(replacementsByCountry, replacement.country, makeReplacementRecord(contentType, contentId, row, replacement));
       mappedEffects.add(effectSignature(replacement.effect));
     }
-    const unresolved = effects.filter((effect) => validCultureKeys.has(effect.culture) && !mappedEffects.has(effectSignature(effect)));
+    const unresolved = effects.filter((effect) => validCultureKeys.has(effect.culture)
+      && !conditionalFor(scopeKey, effect.culture)
+      && !mappedEffects.has(effectSignature(effect)));
     if (unresolved.length) unresolvedEffects.push(makeUnresolvedEffect(contentType, contentId, row, unresolved));
   }
 }
@@ -167,7 +283,7 @@ const countryRecords = Object.fromEntries(uniqueSorted([...pathsByCountry.keys()
     const paths = pathsByCountry.get(tag) || [];
     return [tag, buildCountryRecord(tag, paths, replacementsByCountry.get(tag) || [], countryStartingCultures.get(tag) || [], optionGroupsFor(tag, paths))];
   })
-  .filter(([, record]) => record.added_primary_cultures.length > 0 || record.primary_culture_replacements.length > 0 || record.primary_culture_option_groups.length > 0)
+  .filter(([, record]) => record.paths.length > 0 || record.added_primary_cultures.length > 0 || record.primary_culture_replacements.length > 0 || record.primary_culture_option_groups.length > 0)
 );
 
 const result = {
@@ -317,7 +433,8 @@ function extractCultureMatches(raw, expression, kind) {
 
 function buildCountryRecord(tag, rawPaths, rawReplacements, startingCultures, optionGroups) {
   const paths = uniquePaths(rawPaths).sort(comparePath);
-  const addedCultures = uniqueSorted(paths.map((item) => item.culture));
+  const startingSet = new Set(startingCultures);
+  const addedCultures = uniqueSorted(paths.map((item) => item.culture).filter((culture) => !startingSet.has(culture)));
   const maximumSets = maximumCultureSets(startingCultures, addedCultures, optionGroups);
   return {
     starting_primary_cultures: uniqueSorted(startingCultures),
@@ -342,6 +459,40 @@ function maximumCultureSets(startingCultures, addedCultures, optionGroups) {
 function optionGroupsFor(tag, paths) {
   const pathContents = new Set(paths.map((item) => `${item.content_type}:${item.content_id}`));
   return (PRIMARY_CULTURE_OPTION_GROUPS[tag] || []).filter((group) => group.source_contents.every((content) => pathContents.has(content)));
+}
+
+function conditionalFor(scopeKey, culture) {
+  return CONDITIONAL_EFFECTS.find((item) => item.scope_key === scopeKey && item.added_culture === culture) || null;
+}
+
+function recordConditional(conditional, source) {
+  const record = makeConditionalRecord(conditional, source);
+  const signature = JSON.stringify(record);
+  if (!conditionalEffects.some((item) => JSON.stringify(item) === signature)) conditionalEffects.push(record);
+}
+
+function makeReviewedPath(scripted) {
+  return {
+    culture: scripted.culture,
+    content_type: scripted.effect_kind === "on_action" ? "on_action" : "scripted",
+    content_id: scripted.content_id,
+    effect_kind: scripted.effect_kind,
+    source_file: scripted.source_file,
+    source_line: scripted.source_line,
+  };
+}
+
+function makeConditionalRecord(conditional, source) {
+  return {
+    added_culture: conditional.added_culture,
+    ...(conditional.removed_culture ? { removed_culture: conditional.removed_culture } : {}),
+    ...(conditional.country_tags ? { country_tags: uniqueSorted(conditional.country_tags) } : {}),
+    eligible_when: conditional.eligible_when,
+    content_type: source.content_type || "on_action",
+    content_id: source.content_id,
+    source_file: source.source_file,
+    source_line: source.source_line,
+  };
 }
 
 function addPath(pathsByCountry, tag, pathRecord) {
