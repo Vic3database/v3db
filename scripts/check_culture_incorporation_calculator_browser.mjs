@@ -23,6 +23,13 @@ async function verifySite(name, baseUrl, fullCoverage) {
     await page.goto(`${baseUrl}?lang=zh-Hans#/culture/incorporation`);
     await page.waitFor(() => Boolean(document.querySelector("[data-culture-incorporation-calculator]")), `${name} calculator`);
     assert.equal(await page.evaluate(() => document.querySelector("#cultureIncorporationPanel")?.hidden), false);
+    assert.notEqual(await page.evaluate(() => getComputedStyle(document.querySelector("#mapPanel")).display), "none", `${name} map should remain visible`);
+    const mapDiagnostic = await page.evaluate(() => { const panel = document.querySelector("#mapPanel").getBoundingClientRect(); const viewport = document.querySelector("#mapViewport").getBoundingClientRect(); const canvas = document.querySelector("#mapCanvas"); const ctx = canvas?.getContext("2d"); const sample = ctx?.getImageData(0, 0, 1, 1).data; return { panel: [panel.width, panel.height], viewport: [viewport.width, viewport.height], canvas: [canvas?.width, canvas?.height], ready: mapRuntime.ready, loading: mapRuntime.loading, error: mapRuntime.error, mapData: Boolean(mapData), runs: mapData?.runs?.length || 0, states: stateRegions.length, mode: state.mapMode, sample: sample ? [...sample] : [] }; });
+    assert.ok(mapDiagnostic.viewport[0] > 0 && mapDiagnostic.viewport[1] > 0, `${name} map viewport should have size`);
+    await page.waitFor(() => Boolean(mapRuntime.ready), `${name} map ready`);
+    await page.waitFor(() => { try { ensureMapLayer(); return Boolean(mapRuntime.layerCanvas); } catch (error) { window.__mapLayerError = String(error?.stack || error); return false; } }, `${name} map layer`);
+    const readyMap = await page.evaluate(() => { const canvas = document.querySelector("#mapCanvas"); const pixels = canvas?.getContext("2d")?.getImageData(0, 0, canvas.width, canvas.height).data || []; let nonTransparent = 0; for (let index = 3; index < pixels.length; index += 4) if (pixels[index] > 0) nonTransparent += 1; return { ready: mapRuntime.ready, layer: Boolean(mapRuntime.layerCanvas), nonTransparent }; });
+    assert.ok(readyMap.layer && readyMap.nonTransparent > 0, `${name} map should paint pixels`);
     assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector(".results")).display), "none");
     const initial = await page.evaluate(() => ({ selected: [...document.querySelectorAll("[data-incorporation-selected-culture]")].map((node) => node.dataset.incorporationSelectedCulture), candidates: [...document.querySelectorAll("[data-incorporation-candidate]")].map((node) => node.dataset.incorporationCandidate) }));
     assert.deepEqual(initial.selected, []);
@@ -94,7 +101,7 @@ async function openPage(viewport) {
     async evaluate(callback, ...args) { const result = await session.send("Runtime.evaluate", { expression: `(${callback})(${args.map((value) => JSON.stringify(value)).join(",")})`, returnByValue: true, awaitPromise: true }); if (result.exceptionDetails) throw new Error(result.exceptionDetails.exception?.description || result.exceptionDetails.text || "browser evaluation failed"); return result.result.value; },
     async click(selector) { await this.evaluate((targetSelector) => document.querySelector(targetSelector)?.click(), selector); },
     async text(selector) { return this.evaluate((targetSelector) => document.querySelector(targetSelector)?.innerText?.replace(/\s+/g, " ").trim() || "", selector); },
-    async waitFor(predicate, description, ...args) { const deadline = Date.now() + 20000; while (Date.now() < deadline) { if (await this.evaluate(predicate, ...args)) return; await new Promise((resolve) => setTimeout(resolve, 50)); } throw new Error(`${description} timed out`); },
+    async waitFor(predicate, description, ...args) { const deadline = Date.now() + 20000; while (Date.now() < deadline) { if (await this.evaluate(predicate, ...args)) return; await new Promise((resolve) => setTimeout(resolve, 50)); } throw new Error(`${description} timed out: ${await this.evaluate(() => window.__mapLayerError || "no diagnostic")}`); },
     close() { session.close(); },
   };
 }

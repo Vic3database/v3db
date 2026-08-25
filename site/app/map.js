@@ -562,9 +562,6 @@ function buildCultureIncorporationMapFeatures() {
       incorporation: relation,
     });
   }
-  if (state.mapMode === "cultureIncorporation") {
-    parts.push(`cultures:${setSignature(state.incorporationCalculatorAppliedCultures)}`);
-  }
   return features;
 }
 
