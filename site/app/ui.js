@@ -134,6 +134,15 @@ function bindEvents() {
   document.addEventListener("keydown", handleGlobalSearchDialogKeydown);
   document.addEventListener("keydown", handleInfoDialogKeydown);
   document.addEventListener("click", async (event) => {
+    const incorporationLink = event.target.closest("[data-incorporation-country]");
+    if (incorporationLink) {
+      event.preventDefault();
+      replaceHash("/culture/incorporation");
+      await applyHash();
+      incorporationCalculatorInitializeFromCountry(incorporationLink.dataset.incorporationCountry);
+      render();
+      return;
+    }
     const button = event.target.closest("[data-detail-back]");
     if (!button) return;
     if (button.matches("[data-country-mobile-detail-back]") && window.matchMedia("(max-aspect-ratio: 3 / 2)").matches) state.countryMobileRestoreScrollPending = true;
@@ -1295,7 +1304,7 @@ async function applyHash() {
   }
   if (parts[0] === "culture" && parts[1] === "incorporation") {
     changeBoard("culture", "cultureIncorporation");
-    incorporationCalculatorInitialize(parts[2] && byTag.has(parts[2].toUpperCase()) ? parts[2].toUpperCase() : "");
+    clearCultureIncorporationCalculatorState();
     return;
   }
   if (parts[0] === "culture" && parts[1] && byCulture.has(decodeURIComponent(parts[1]))) {

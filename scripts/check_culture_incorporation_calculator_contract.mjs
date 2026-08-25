@@ -11,7 +11,6 @@ const map = read("site/app/map.js");
 const indexHtml = read("site/index.html");
 const calculator = fs.existsSync(path.join(root, "site/app/culture-incorporation.js")) ? read("site/app/culture-incorporation.js") : "";
 
-assert.match(runtime, /incorporationCalculatorCountryTag: ""/);
 assert.match(runtime, /incorporationCalculatorCultures: new Set\(\)/);
 assert.match(runtime, /incorporationCalculatorAppliedCultures: new Set\(\)/);
 assert.match(ui, /parts\[1\] === "incorporation"/);
@@ -25,7 +24,10 @@ assert.match(calculator, /data-incorporation-selected-culture/);
 assert.match(calculator, /data-incorporation-candidate/);
 assert.match(calculator, /data-incorporation-start/);
 assert.match(calculator, /incorporationCalculatorAppliedCultures/);
-assert.match(calculator, /incorporationCalculatorSelectedCultureObjects/);
+assert.doesNotMatch(calculator, /data-incorporation-results/);
+assert.doesNotMatch(calculator, /board\.culture\.incorporation\.results/);
+assert.match(presentation, /data-incorporation-country/);
+assert.doesNotMatch(presentation, /culture\/incorporation\/\$\{/);
 
 const ausChunk = fs.readdirSync(path.join(root, "site/versions/1.13.11"))
   .filter((file) => /^data-countries-\d+\.js$/.test(file))

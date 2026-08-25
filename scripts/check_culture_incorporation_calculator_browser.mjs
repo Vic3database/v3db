@@ -20,13 +20,23 @@ try {
 async function verifySite(name, baseUrl, fullCoverage) {
   const page = await openPage({ width: 1440, height: 1000 });
   try {
-    await page.goto(`${baseUrl}?lang=zh-Hans#/culture/incorporation/AUS`);
+    await page.goto(`${baseUrl}?lang=zh-Hans#/culture/incorporation`);
     await page.waitFor(() => Boolean(document.querySelector("[data-culture-incorporation-calculator]")), `${name} calculator`);
     assert.equal(await page.evaluate(() => document.querySelector("#cultureIncorporationPanel")?.hidden), false);
     assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector(".results")).display), "none");
     const initial = await page.evaluate(() => ({ selected: [...document.querySelectorAll("[data-incorporation-selected-culture]")].map((node) => node.dataset.incorporationSelectedCulture), candidates: [...document.querySelectorAll("[data-incorporation-candidate]")].map((node) => node.dataset.incorporationCandidate) }));
-    assert.deepEqual(initial.selected, ["south_german"]);
-    for (const key of ["hungarian", "czech", "slovak"]) assert.ok(initial.candidates.includes(key), `${name} AUS candidates must include ${key}`);
+    assert.deepEqual(initial.selected, []);
+    assert.ok(initial.candidates.length > 0, `${name} standalone calculator should expose cultures`);
+    assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-incorporation-results]"))), false);
+    await page.goto(`${baseUrl}?lang=zh-Hans#/country/AUS`);
+    await page.waitFor(() => Boolean(document.querySelector("[data-incorporation-country='AUS']")), `${name} country calculator link`);
+    await page.click("[data-incorporation-country='AUS']");
+    await page.waitFor(() => Boolean(document.querySelector("[data-incorporation-selected-culture='south_german']")), `${name} AUS preload`);
+    const aus = await page.evaluate(() => ({ applied: [...state.incorporationCalculatorAppliedCultures], route: location.hash }));
+    assert.deepEqual(aus.applied, []);
+    assert.equal(aus.route, "#/culture/incorporation");
+    const candidateKeys = await page.evaluate(() => [...document.querySelectorAll("[data-incorporation-candidate]")].map((node) => node.dataset.incorporationCandidate));
+    for (const key of ["hungarian", "czech", "slovak"]) assert.ok(candidateKeys.includes(key), `${name} AUS candidates must include ${key}`);
     const beforeStart = await page.evaluate(() => ({ applied: [...(state.incorporationCalculatorAppliedCultures || [])], mode: state.mapMode }));
     await page.click("[data-incorporation-candidate='hungarian']");
     assert.deepEqual(await page.evaluate(() => [...(state.incorporationCalculatorAppliedCultures || [])]), beforeStart.applied);
@@ -36,19 +46,23 @@ async function verifySite(name, baseUrl, fullCoverage) {
     await page.waitFor(() => document.querySelectorAll("[data-incorporation-selected-culture]").length === 4, `${name} selected culture count`);
     await page.click("[data-incorporation-start]");
     assert.equal(await page.evaluate(() => state.mapMode), "cultureIncorporation");
-    assert.ok((await page.evaluate(() => document.querySelectorAll(".culture-incorporation-result-row").length)) > 0);
     await page.click("[data-incorporation-selected-culture='czech']");
     assert.equal(await page.evaluate(() => state.incorporationCalculatorCultures.has("czech")), false);
     await page.click("[data-incorporation-clear]");
     await page.waitFor(() => document.querySelectorAll("[data-incorporation-selected-culture]").length === 0, `${name} empty calculator`);
-    assert.ok((await page.text("[data-incorporation-results]")).length > 0, `${name} should retain the previous applied result until start`);
     await page.click("[data-incorporation-start]");
-    assert.ok((await page.text("[data-incorporation-results]")).includes("请选择文化") || (await page.text("[data-incorporation-results]")).includes("Select cultures"));
+    assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-incorporation-results]"))), false);
 
     if (fullCoverage) {
-      await page.goto(`${baseUrl}?lang=zh-Hans#/culture/incorporation/FRA`);
+      await page.goto(`${baseUrl}?lang=zh-Hans#/culture/incorporation`);
+      await page.goto(`${baseUrl}?lang=zh-Hans#/country/FRA`);
+      await page.waitFor(() => Boolean(document.querySelector("[data-incorporation-country='FRA']")), `${name} France link`);
+      await page.click("[data-incorporation-country='FRA']");
       await page.waitFor(() => Boolean(document.querySelector("[data-incorporation-selected-culture='french']")), `${name} France preload`);
-      await page.goto(`${baseUrl}?lang=zh-Hans#/culture/incorporation/AFG`);
+      await page.goto(`${baseUrl}?lang=zh-Hans#/culture/incorporation`);
+      await page.goto(`${baseUrl}?lang=zh-Hans#/country/AFG`);
+      await page.waitFor(() => Boolean(document.querySelector("[data-incorporation-country='AFG']")), `${name} Afghanistan link`);
+      await page.click("[data-incorporation-country='AFG']");
       await page.waitFor(() => Boolean(document.querySelector("[data-incorporation-candidate='turkmen']")), `${name} Afghanistan candidates`);
       await page.goto(`${baseUrl}?lang=zh-Hans#/country/AUS`);
       await page.waitFor(() => Boolean(document.querySelector("#countryIncorporationMapButton")), `${name} base country map`);
@@ -60,7 +74,7 @@ async function verifySite(name, baseUrl, fullCoverage) {
 
   const mobile = await openPage({ width: 442, height: 844 });
   try {
-    await mobile.goto(`${baseUrl}?lang=en#/culture/incorporation/AUS`);
+    await mobile.goto(`${baseUrl}?lang=en#/culture/incorporation`);
     await mobile.waitFor(() => Boolean(document.querySelector("[data-culture-incorporation-calculator]")), `${name} English mobile calculator`);
     const overflow = await mobile.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     assert.ok(overflow <= 1, `${name} calculator must not overflow horizontally: ${overflow}`);

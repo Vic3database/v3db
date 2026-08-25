@@ -261,7 +261,6 @@ const state = {
   mapMode: "resource",
   mapSubject: "",
   countryIncorporationMapEnabled: false,
-  incorporationCalculatorCountryTag: "",
   incorporationCalculatorCultures: new Set(),
   incorporationCalculatorAppliedCultures: new Set(),
   incorporationCalculatorCandidateCultures: new Map(),

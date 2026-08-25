@@ -563,7 +563,6 @@ function buildCultureIncorporationMapFeatures() {
     });
   }
   if (state.mapMode === "cultureIncorporation") {
-    parts.push(`selected:${state.incorporationCalculatorCountryTag || ""}`);
     parts.push(`cultures:${setSignature(state.incorporationCalculatorAppliedCultures)}`);
   }
   return features;
