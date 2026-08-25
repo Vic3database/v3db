@@ -261,7 +261,10 @@ const state = {
   mapMode: "resource",
   mapSubject: "",
   countryIncorporationMapEnabled: false,
-  countryIncorporationScenario: null,
+  incorporationCalculatorCountryTag: "",
+  incorporationCalculatorCultures: new Set(),
+  incorporationCalculatorCandidateCultures: new Map(),
+  incorporationCalculatorSearch: "",
   theme: "votp",
 };
 

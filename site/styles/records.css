@@ -1692,6 +1692,105 @@ body.results-collapsed .concept-tooltip {
   min-width: 0;
 }
 
+.culture-incorporation-calculator-list {
+  display: block;
+}
+
+.culture-incorporation-calculator {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+}
+
+.culture-incorporation-calculator-header h2,
+.culture-incorporation-calculator-header p,
+.culture-incorporation-calculator-section h3 {
+  margin: 0;
+}
+
+.culture-incorporation-calculator-section {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-raised);
+}
+
+.culture-incorporation-selected,
+.culture-incorporation-candidates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+.culture-incorporation-selected-tag,
+.culture-incorporation-candidate,
+.culture-incorporation-clear {
+  min-height: 30px;
+  padding: 5px 9px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--text-sm);
+}
+
+.culture-incorporation-candidate[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 15%, var(--surface));
+}
+
+.culture-incorporation-search {
+  width: 100%;
+  min-height: 34px;
+  padding: 6px 9px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+}
+
+.culture-incorporation-results {
+  display: grid;
+  gap: 5px;
+  max-height: 520px;
+  overflow: auto;
+}
+
+.culture-incorporation-result-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(100px, .6fr);
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+  padding: 7px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 60%, transparent);
+}
+
+.culture-incorporation-result-row span,
+.culture-incorporation-result-row small {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 560px) {
+  .culture-incorporation-calculator {
+    padding: 10px;
+  }
+  .culture-incorporation-result-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .culture-incorporation-result-row small {
+    grid-column: 1 / -1;
+  }
+}
+
 .country-primary-culture-scenario-button {
   justify-self: start;
   min-height: 28px;

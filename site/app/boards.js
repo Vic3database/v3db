@@ -1561,6 +1561,11 @@ function renderCountryBoard() {
 }
 
 function renderCultureBoard() {
+  if (state.detailKind === "cultureIncorporation") {
+    renderCultureIncorporationCalculator();
+    renderMap(stateRegions);
+    return;
+  }
   const filtered = cultures.filter(matchesCultureFilters).sort(sortCultures);
   if (state.selectedCulture && !byCulture.has(state.selectedCulture)) state.selectedCulture = "";
   if (!isDetailPageRoute() && state.selectedCulture && !filtered.some((culture) => culture.key === state.selectedCulture)) state.selectedCulture = "";

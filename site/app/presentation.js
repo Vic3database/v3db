@@ -1040,43 +1040,7 @@ function renderCountryDetail(country) {
   `;
 }
 
-function countryPrimaryCultureScenarioRecord(country, source, primaryCultures, groupId = "") {
-  const routeKey = groupId
-    ? `option:${groupId}:${source.id}`
-    : `route:${source.route_kind || "direct"}:${source.content_type || ""}:${source.content_id || ""}:${source.source_line || 0}`;
-  const titleCultures = source.added_primary_cultures || [source.culture || source.added_culture].filter(Boolean);
-  return {
-    countryTag: country.tag,
-    routeKey,
-    title: titleCultures.map((key) => entityText(byCulture.get(key) || { key }) || key).join("、") || source.id || routeKey,
-    kind: groupId ? "exclusive" : (source.route_kind || "direct"),
-    primaryCultures: [...new Set(primaryCultures)].sort(),
-    condition: source.eligible_when || (source.was_formed_from_any ? { was_formed_from_any: source.was_formed_from_any } : null),
-    source: {
-      groupId,
-      optionId: groupId ? source.id : "",
-      content_type: source.content_type || "",
-      content_id: source.content_id || "",
-      source_file: source.source_file || "",
-      source_line: Number(source.source_line || 0),
-    },
-  };
-}
-
-function countryPrimaryCultureScenarioForRoute(country, route) {
-  const cultures = new Set(country.primaryCultures || []);
-  if (route.removed_culture) cultures.delete(route.removed_culture);
-  if (route.culture || route.added_culture) cultures.add(route.culture || route.added_culture);
-  return countryPrimaryCultureScenarioRecord(country, route, [...cultures]);
-}
-
-function countryPrimaryCultureScenarioForOption(country, group, option) {
-  const cultures = new Set(country.primaryCultures || []);
-  for (const culture of option.added_primary_cultures || []) cultures.add(culture);
-  return countryPrimaryCultureScenarioRecord(country, option, [...cultures], group.id);
-}
-
-function countryPrimaryCultureScenarioRoutes(country) {
+function countryPrimaryCultureRoutes(country) {
   return [
     ...(country.primaryCultureExpansionPaths || []).map((path) => ({
       ...path,
@@ -1094,21 +1058,8 @@ function countryPrimaryCultureScenarioRoutes(country) {
   ];
 }
 
-function countryPrimaryCultureScenarioForRouteKey(country, routeKey) {
-  const route = countryPrimaryCultureScenarioRoutes(country).find((item) => {
-    const scenario = countryPrimaryCultureScenarioForRoute(country, item);
-    return scenario.routeKey === routeKey;
-  });
-  if (route) return countryPrimaryCultureScenarioForRoute(country, route);
-  for (const group of country.primaryCultureOptionGroups || []) {
-    const option = (group.options || []).find((item) => countryPrimaryCultureScenarioForOption(country, group, item).routeKey === routeKey);
-    if (option) return countryPrimaryCultureScenarioForOption(country, group, option);
-  }
-  return null;
-}
-
 function countryPrimaryCultureExpansionsHtml(country) {
-  const routes = countryPrimaryCultureScenarioRoutes(country);
+  const routes = countryPrimaryCultureRoutes(country);
   const uniqueRoutes = new Map();
   for (const route of routes) {
     if (!route?.culture) continue;
@@ -1178,21 +1129,11 @@ function countryPrimaryCultureRouteHtml(country, culture, route, cultureRef) {
       ${replacement}
       <p class="country-primary-culture-route-line"><strong>${escapeHtml(t("board.country.primaryCulturePath.source"))}${escapeHtml(t("ui.colon"))}</strong> ${escapeHtml(countryPrimaryCultureSourceType(route))} · ${escapeHtml(route.content_id || "")}</p>
       <p class="country-primary-culture-route-line"><strong>${escapeHtml(t("board.country.primaryCulturePath.file"))}${escapeHtml(t("ui.colon"))}</strong> ${escapeHtml(route.source_file || "")}${route.source_line ? `:${escapeHtml(String(route.source_line))}` : ""}</p>
-      ${countryPrimaryCultureScenarioButtonHtml(country, route)}
       ${countryPrimaryCultureExclusiveHtml(country, culture, route, cultureRef)}
     </article>
   `;
 }
 
-function countryPrimaryCultureScenarioButtonHtml(country, route) {
-  const optionScenario = (country.primaryCultureOptionGroups || []).flatMap((group) => (group.options || []).map((option) => ({ group, option })))
-    .filter(({ option }) => (option.added_primary_cultures || []).includes(route.culture))
-    .find(({ option }) => (route.eligible_when?.was_formed_from_any || []).some((origin) => (option.was_formed_from_any || []).includes(origin)));
-  const scenario = optionScenario
-    ? countryPrimaryCultureScenarioForOption(country, optionScenario.group, optionScenario.option)
-    : countryPrimaryCultureScenarioForRoute(country, route);
-  return `<button type="button" class="country-primary-culture-scenario-button" data-primary-culture-scenario-route="${escapeHtml(scenario.routeKey)}">${escapeHtml(t("map.countryIncorporation.scenarioView", "查看在这一情况下的整合时长"))}</button>`;
-}
 
 function countryPrimaryCultureConditionHtml(eligibleWhen, cultureRef) {
   const conditions = countryPrimaryCultureConditionParts(eligibleWhen, cultureRef);
@@ -1227,8 +1168,7 @@ function countryPrimaryCultureExclusiveHtml(country, culture, route, cultureRef)
         ${alternatives.map((option) => {
           const group = (country.primaryCultureOptionGroups || []).find((candidate) => candidate.options?.some((item) => JSON.stringify(item.added_primary_cultures || []) === JSON.stringify(option.added_primary_cultures || [])));
           const sourceOption = group?.options?.find((item) => JSON.stringify(item.added_primary_cultures || []) === JSON.stringify(option.added_primary_cultures || []));
-          const scenario = group && sourceOption ? countryPrimaryCultureScenarioForOption(country, group, sourceOption) : null;
-          return `<div class="country-primary-culture-exclusive-option">${cultureLinks(option.added_primary_cultures.map(cultureRef))}${scenario ? `<button type="button" class="country-primary-culture-scenario-button" data-primary-culture-scenario-route="${escapeHtml(scenario.routeKey)}">${escapeHtml(t("map.countryIncorporation.scenarioView", "查看在这一情况下的整合时长"))}</button>` : ""}</div>`;
+          return `<div class="country-primary-culture-exclusive-option">${cultureLinks(option.added_primary_cultures.map(cultureRef))}</div>`;
         }).join("")}
       </div>
     </div>

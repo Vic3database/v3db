@@ -134,23 +134,6 @@ function bindEvents() {
   document.addEventListener("keydown", handleGlobalSearchDialogKeydown);
   document.addEventListener("keydown", handleInfoDialogKeydown);
   document.addEventListener("click", async (event) => {
-    const scenarioButton = event.target.closest("[data-primary-culture-scenario-route]");
-    if (scenarioButton) {
-      const country = byTag.get(state.selectedTag);
-      const scenario = country ? countryPrimaryCultureScenarioForRouteKey(country, scenarioButton.dataset.primaryCultureScenarioRoute) : null;
-      if (scenario) {
-        state.countryIncorporationScenario = scenario;
-        state.countryIncorporationMapEnabled = true;
-        state.mapMode = "countryIncorporation";
-        render();
-      }
-      return;
-    }
-    if (event.target.closest("[data-country-incorporation-scenario-clear]")) {
-      clearCountryIncorporationScenario();
-      render();
-      return;
-    }
     const button = event.target.closest("[data-detail-back]");
     if (!button) return;
     if (button.matches("[data-country-mobile-detail-back]") && window.matchMedia("(max-aspect-ratio: 3 / 2)").matches) state.countryMobileRestoreScrollPending = true;
@@ -422,7 +405,7 @@ function bindEvents() {
   els.countryIncorporationMapButton?.addEventListener("click", () => {
     if (state.view !== "country" || !state.selectedTag) return;
     state.countryIncorporationMapEnabled = !state.countryIncorporationMapEnabled;
-    if (!state.countryIncorporationMapEnabled) state.countryIncorporationScenario = null;
+    if (!state.countryIncorporationMapEnabled) state.incorporationCalculatorCultures.clear();
     render();
   });
   els.terrainMapViewButton?.addEventListener("click", () => {
@@ -516,10 +499,6 @@ function bindEvents() {
   });
 }
 
-function clearCountryIncorporationScenario() {
-  state.countryIncorporationScenario = null;
-  state.countryIncorporationMapEnabled = false;
-}
 
 function bindPrimaryListEvents() {
   const selectRow = (row) => {
@@ -1307,6 +1286,11 @@ async function applyHash() {
   }
   if (parts[0] === "culture" && !parts[1]) {
     changeBoard("culture", "culture");
+    return;
+  }
+  if (parts[0] === "culture" && parts[1] === "incorporation") {
+    changeBoard("culture", "cultureIncorporation");
+    incorporationCalculatorInitialize(parts[2] && byTag.has(parts[2].toUpperCase()) ? parts[2].toUpperCase() : "");
     return;
   }
   if (parts[0] === "culture" && parts[1] && byCulture.has(decodeURIComponent(parts[1]))) {
