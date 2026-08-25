@@ -125,6 +125,35 @@ try {
     ["australian", "british"],
   ]);
   assert.equal(countriesByTag.get("GBR").maximumPrimaryCultures, null);
+  const franceCatalan = countriesByTag.get("FRA").primaryCultureConditionalPaths
+    .find((item) => item.culture === "catalan");
+  assert.deepEqual(JSON.parse(JSON.stringify(franceCatalan)), {
+    culture: "catalan",
+    eligible_when: {
+      country_or_was_formed_from_any: ["FRA"],
+      homeland_culture: "catalan",
+      culture_present: "catalan",
+      requires_variable: "chose_integration_var",
+      minimum_culture_acceptance: "acceptance_status_5",
+      one_of: ["vernacular_industrial_development", "vernacular_social_mobility"],
+    },
+    content_type: "scripted",
+    content_id: "scripted_button:je_vernacular_policy_accept_catalan_button",
+    effect_kind: "scripted_button",
+    source_file: "common/scripted_buttons/06_vernacular_buttons.txt",
+    source_line: 80,
+  });
+  assert.deepEqual(
+    ["GCO", "PBC", "PLT"].map((tag) => JSON.parse(JSON.stringify(
+      countriesByTag.get(tag).primaryCultureConditionalPaths.find((item) => item.culture === "platinean")?.eligible_when,
+    ))),
+    [{ was_formed_from_any: ["PLT"] }, { was_formed_from_any: ["PLT"] }, { was_formed_from_any: ["PLT"] }],
+  );
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(countriesByTag.get("PLT").primaryCultureConditionalPaths.find((item) => item.culture === "guarani")?.eligible_when)),
+    { was_formed_from_any: ["PRG"] },
+  );
+  assert.equal(countriesByTag.get("CHI")?.primaryCultureConditionalPaths?.length || 0, 0);
 
   console.log("primary culture expansion data contract passed");
 } finally {
@@ -168,6 +197,7 @@ function writeFixtureDatabase(directory) {
     event("independent_conditions", "events/independent_conditions.txt", 1, "option = { if = { add_primary_culture = cu:afro_american } if = { remove_primary_culture = cu:dixie } }", ["USA"]),
     event("lusofonia.3", "events/iberia_events/ip4_lusosphere_events.txt", 189, "c:BRZ ?= { add_primary_culture = cu:portuguese }"),
     event("joi_flavor_gbr.92", "events/joi_flavor_gbr.txt", 8938, "option = { add_primary_culture = cu:anglo_canadian } option = { add_primary_culture = cu:australian }"),
+    event("andean_federation.2", "events/brazil/gran_colombia.txt", 326, "option = { if = { add_primary_culture = cu:platinean } }", ["GCO", "PBC", "PLT"]),
     event("boxer_rebellion_events.4", "events/boxer_rebellion_events.txt", 331, "option = { add_primary_culture = cu:han remove_primary_culture = cu:manchu }"),
   ];
   const emptyCollections = {
