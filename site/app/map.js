@@ -297,6 +297,9 @@ function mapLayerSignature() {
     parts.push(`selected:${state.selectedTag || ""}`);
     parts.push(`primary:${(country?.primaryCultures || []).map((culture) => culture?.key || culture).sort().join(",")}`);
   }
+  if (state.mapMode === "cultureIncorporation") {
+    parts.push(`cultures:${setSignature(state.incorporationCalculatorAppliedCultures)}`);
+  }
   if (state.mapMode === "company") {
     parts.push(`companies:${objectKeySignature(mapRuntime.companyMapCompanies)}`);
   }

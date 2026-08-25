@@ -44,7 +44,7 @@ async function verifySite(name, baseUrl, fullCoverage) {
     assert.equal(aus.route, "#/culture/incorporation");
     const candidateKeys = await page.evaluate(() => [...document.querySelectorAll("[data-incorporation-candidate]")].map((node) => node.dataset.incorporationCandidate));
     for (const key of ["hungarian", "czech", "slovak"]) assert.ok(candidateKeys.includes(key), `${name} AUS candidates must include ${key}`);
-    const beforeStart = await page.evaluate(() => ({ applied: [...(state.incorporationCalculatorAppliedCultures || [])], mode: state.mapMode }));
+    const beforeStart = await page.evaluate(() => ({ applied: [...(state.incorporationCalculatorAppliedCultures || [])], mode: state.mapMode, layerSignature: mapRuntime.layerSignature }));
     await page.click("[data-incorporation-candidate='hungarian']");
     assert.deepEqual(await page.evaluate(() => [...(state.incorporationCalculatorAppliedCultures || [])]), beforeStart.applied);
     assert.equal(await page.evaluate(() => state.mapMode), beforeStart.mode);
@@ -53,6 +53,8 @@ async function verifySite(name, baseUrl, fullCoverage) {
     await page.waitFor(() => document.querySelectorAll("[data-incorporation-selected-culture]").length === 4, `${name} selected culture count`);
     await page.click("[data-incorporation-start]");
     assert.equal(await page.evaluate(() => state.mapMode), "cultureIncorporation");
+    assert.deepEqual(await page.evaluate(() => [...state.incorporationCalculatorAppliedCultures]), ["south_german", "hungarian", "czech", "slovak"]);
+    assert.notEqual(await page.evaluate(() => mapRuntime.layerSignature), beforeStart.layerSignature, `${name} map layer must refresh after calculation`);
     await page.click("[data-incorporation-selected-culture='czech']");
     assert.equal(await page.evaluate(() => state.incorporationCalculatorCultures.has("czech")), false);
     await page.click("[data-incorporation-clear]");

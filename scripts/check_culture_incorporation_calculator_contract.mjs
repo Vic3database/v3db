@@ -37,6 +37,8 @@ for (const key of ["hungarian", "czech", "slovak", "croat", "serb", "slovene", "
   assert.ok(ausChunk.includes(`"culture":"${key}"`), `AUS candidate data must retain ${key}`);
 }
 assert.match(map, /cultureIncorporation/);
+assert.match(map, /state\.mapMode === "cultureIncorporation"[\s\S]*incorporationCalculatorAppliedCultures/);
+assert.match(indexHtml, /app\/map\.js\?v=20260826-culture-incorporation-refresh1/);
 assert.match(calculator, /empty/);
 
 console.log("culture incorporation calculator contract passed");
