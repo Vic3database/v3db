@@ -596,6 +596,7 @@ function flattenDatabaseCountry(country, nameById, colorById, primaryCultureExpa
     ? primaryCultureExpansion.maximum_primary_culture_sets
     : [primaryCultures];
   const primaryCultureExpansionPaths = primaryCultureExpansion?.paths || [];
+  const primaryCultureConditionalPaths = primaryCultureExpansion?.conditional_primary_culture_paths || [];
   const primaryCultureReplacementPaths = primaryCultureExpansion?.primary_culture_replacements || [];
   const primaryCultureOptionGroups = primaryCultureExpansion?.primary_culture_option_groups || [];
   return {
@@ -621,8 +622,9 @@ function flattenDatabaseCountry(country, nameById, colorById, primaryCultureExpa
     primaryCultures,
     maximumPrimaryCultures,
     maximumPrimaryCultureSets,
-    hasPrimaryCultureExpansions: Boolean(primaryCultureExpansion?.added_primary_cultures?.length),
+    hasPrimaryCultureExpansions: Boolean(primaryCultureExpansionPaths.length || primaryCultureConditionalPaths.length || primaryCultureReplacementPaths.length),
     primaryCultureExpansionPaths,
+    primaryCultureConditionalPaths,
     primaryCultureReplacementPaths,
     primaryCultureOptionGroups,
     religion: country.religion?.key || "",

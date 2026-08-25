@@ -52,10 +52,10 @@ try {
     "galician",
   ]);
   assert.equal(expansions.countries.FRA?.added_primary_cultures?.includes("turkish") ?? false, false);
-  assert.ok(expansions.countries.FRA.paths.some((item) => item.culture === "catalan" && item.content_id === "scripted_button:je_vernacular_policy_accept_catalan_button"));
+  assert.ok(expansions.countries.FRA.conditional_primary_culture_paths.some((item) => item.culture === "catalan" && item.content_id === "scripted_button:je_vernacular_policy_accept_catalan_button"));
   assert.equal(expansions.countries.SPA?.added_primary_cultures?.includes("filipino_mestizo") ?? false, false);
-  assert.equal(expansions.countries.GCO?.added_primary_cultures?.includes("platinean") ?? false, false);
-  assert.equal(expansions.countries.PBC?.added_primary_cultures?.includes("platinean") ?? false, false);
+  assert.equal(expansions.countries.GCO?.added_primary_cultures?.includes("platinean") ?? false, true);
+  assert.equal(expansions.countries.PBC?.added_primary_cultures?.includes("platinean") ?? false, true);
   assert.deepEqual(expansions.countries.AFG.maximum_primary_culture_sets, [
     ["kho", "pashtun", "tajik"],
     ["pashtun", "tajik", "turkmen", "uzbek"],
@@ -118,7 +118,7 @@ try {
   assert.equal(austria.hasPrimaryCultureExpansions, true);
   assert.ok(austria.primaryCultureExpansionPaths.some((item) => item.effect_kind === "scripted_effect" && item.culture === "slovak"));
   const argentina = countriesByTag.get("ARG");
-  assert.equal(argentina.hasPrimaryCultureExpansions, false);
+  assert.equal(argentina.hasPrimaryCultureExpansions, true);
   assert.equal(argentina.primaryCultureReplacementPaths[0].added_culture, "argentine");
   assert.deepEqual(JSON.parse(JSON.stringify(countriesByTag.get("GBR").maximumPrimaryCultureSets)), [
     ["anglo_canadian", "british"],
