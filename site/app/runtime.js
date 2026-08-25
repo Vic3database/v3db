@@ -261,6 +261,7 @@ const state = {
   mapMode: "resource",
   mapSubject: "",
   countryIncorporationMapEnabled: false,
+  countryIncorporationScenario: null,
   theme: "votp",
 };
 

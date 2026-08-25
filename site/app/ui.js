@@ -134,6 +134,23 @@ function bindEvents() {
   document.addEventListener("keydown", handleGlobalSearchDialogKeydown);
   document.addEventListener("keydown", handleInfoDialogKeydown);
   document.addEventListener("click", async (event) => {
+    const scenarioButton = event.target.closest("[data-primary-culture-scenario-route]");
+    if (scenarioButton) {
+      const country = byTag.get(state.selectedTag);
+      const scenario = country ? countryPrimaryCultureScenarioForRouteKey(country, scenarioButton.dataset.primaryCultureScenarioRoute) : null;
+      if (scenario) {
+        state.countryIncorporationScenario = scenario;
+        state.countryIncorporationMapEnabled = true;
+        state.mapMode = "countryIncorporation";
+        render();
+      }
+      return;
+    }
+    if (event.target.closest("[data-country-incorporation-scenario-clear]")) {
+      clearCountryIncorporationScenario();
+      render();
+      return;
+    }
     const button = event.target.closest("[data-detail-back]");
     if (!button) return;
     if (button.matches("[data-country-mobile-detail-back]") && window.matchMedia("(max-aspect-ratio: 3 / 2)").matches) state.countryMobileRestoreScrollPending = true;
@@ -405,6 +422,7 @@ function bindEvents() {
   els.countryIncorporationMapButton?.addEventListener("click", () => {
     if (state.view !== "country" || !state.selectedTag) return;
     state.countryIncorporationMapEnabled = !state.countryIncorporationMapEnabled;
+    if (!state.countryIncorporationMapEnabled) state.countryIncorporationScenario = null;
     render();
   });
   els.terrainMapViewButton?.addEventListener("click", () => {
@@ -496,6 +514,11 @@ function bindEvents() {
     await applyHash();
     render();
   });
+}
+
+function clearCountryIncorporationScenario() {
+  state.countryIncorporationScenario = null;
+  state.countryIncorporationMapEnabled = false;
 }
 
 function bindPrimaryListEvents() {
@@ -1493,7 +1516,10 @@ async function setView(view) {
 }
 
 function changeBoard(view, detailKind) {
-  if (state.view !== view) resetBoardView();
+  if (state.view !== view) {
+    resetBoardView();
+    clearCountryIncorporationScenario();
+  }
   if (view !== "region") state.regionMapView = "default";
   state.view = view;
   state.detailKind = detailKind;
