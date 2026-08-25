@@ -543,6 +543,7 @@ window.VICDATA_UI_LOCALES.en = {
     "board.culture.incorporation.add": "Add",
     "board.culture.incorporation.remove": "Remove",
     "board.culture.incorporation.clear": "Clear cultures",
+    "board.culture.incorporation.start": "Start calculation",
     "board.culture.incorporation.results": "Incorporation results",
     "board.culture.incorporation.noCountry": "No country selected",
     "map.cultureIncorporation.empty": "Select cultures",

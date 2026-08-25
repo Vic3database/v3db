@@ -183,7 +183,7 @@ function syncMapModeForView() {
 }
 
 function mapSubjectOptions(mode) {
-  if (mode === "country" || mode === "countryIncorporation" || mode === "company" || mode === "cultureFilter" || mode === "resourceSelection" || mode === "strategicRegion" || mode === "terrain" || mode === "subsistenceBuildings") {
+  if (mode === "country" || mode === "countryIncorporation" || mode === "cultureIncorporation" || mode === "company" || mode === "cultureFilter" || mode === "resourceSelection" || mode === "strategicRegion" || mode === "terrain" || mode === "subsistenceBuildings") {
     return [{ value: state.mapSubject || "", label: automaticMapSubjectLabel(mode) }];
   }
   if (mode === "culture") {
@@ -548,7 +548,7 @@ function buildCountryIncorporationMapFeatures() {
 }
 
 function buildCultureIncorporationMapFeatures() {
-  const cultures = typeof incorporationCalculatorSelectedCultureObjects === "function" ? incorporationCalculatorSelectedCultureObjects() : [];
+  const cultures = [...(state.incorporationCalculatorAppliedCultures || [])].map((key) => byCulture.get(key) || { key }).filter(Boolean);
   const features = new Map();
   for (const stateRegion of stateRegions) {
     const isSea = isSeaStateRegion(stateRegion);
@@ -563,8 +563,8 @@ function buildCultureIncorporationMapFeatures() {
     });
   }
   if (state.mapMode === "cultureIncorporation") {
-    parts.push(`cultures:${[...(state.incorporationCalculatorCultures || [])].sort().join(",")}`);
-    parts.push(`country:${state.incorporationCalculatorCountryTag || ""}`);
+    parts.push(`selected:${state.incorporationCalculatorCountryTag || ""}`);
+    parts.push(`cultures:${setSignature(state.incorporationCalculatorAppliedCultures)}`);
   }
   return features;
 }

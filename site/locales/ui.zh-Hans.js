@@ -543,6 +543,7 @@ window.VICDATA_UI_LOCALES["zh-Hans"] = {
     "board.culture.incorporation.add": "加入",
     "board.culture.incorporation.remove": "移除",
     "board.culture.incorporation.clear": "清空文化",
+    "board.culture.incorporation.start": "开始计算",
     "board.culture.incorporation.results": "整合结果",
     "board.culture.incorporation.noCountry": "未选择国家",
     "map.cultureIncorporation.empty": "请选择文化",

@@ -1696,6 +1696,23 @@ body.results-collapsed .concept-tooltip {
   display: block;
 }
 
+.culture-incorporation-entry {
+  width: 100%;
+  margin-top: 8px;
+  padding: 7px 9px;
+  border: 1px solid var(--accent);
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+}
+
+.culture-incorporation-panel {
+  margin-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
 .culture-incorporation-calculator {
   display: grid;
   gap: 14px;
@@ -1791,17 +1808,10 @@ body.results-collapsed .concept-tooltip {
   }
 }
 
-.country-primary-culture-scenario-button {
-  justify-self: start;
-  min-height: 28px;
-  padding: 4px 8px;
-  border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--line));
-  border-radius: 4px;
-  background: color-mix(in srgb, var(--accent) 9%, transparent);
-  color: var(--ink);
-  cursor: pointer;
-  font: inherit;
-  font-size: var(--text-xs);
+.country-incorporation-calculator-link {
+  margin-left: 8px;
+  color: var(--accent);
+  white-space: nowrap;
 }
 
 .interest-group-card {

@@ -987,7 +987,7 @@ function renderCountryDetail(country) {
       ${field(t("board.country.tier", "国家位阶"), tagPill(countryTierLabel(country.tier), "tag-tier"))}
       ${field(t("board.country.standardColor", "标准色"), colorValue(country.colorHex, country.colorRgb))}
       ${field(t("board.country.unitColor", "部队颜色"), unitColorText(country))}
-      ${field(t("board.country.primaryCulture", "主流文化"), linkedTerms(country.primaryCultures, primaryCultureNames, "culture"))}
+      ${field(t("board.country.primaryCulture", "主流文化"), `${linkedTerms(country.primaryCultures, primaryCultureNames, "culture")} <a class="country-incorporation-calculator-link" href="#/culture/incorporation/${encodeURIComponent(country.tag)}">${escapeHtml(t("nav.cultureIncorporation", "整合时长"))}</a>`)}
       ${expandablePrimaryCultureHtml ? field(t("board.country.expandablePrimaryCultures", "可扩展的主流文化"), expandablePrimaryCultureHtml) : ""}
       ${field(t("board.country.locationStrategicRegions", "所在战略区域"), strategicRegionLinks(country.locationStrategicRegions))}
       ${field(t("board.country.locationStateRegions", "所在地域"), stateRegionLinks(country.locationStateRegions))}

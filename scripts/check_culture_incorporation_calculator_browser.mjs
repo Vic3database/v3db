@@ -22,19 +22,27 @@ async function verifySite(name, baseUrl, fullCoverage) {
   try {
     await page.goto(`${baseUrl}?lang=zh-Hans#/culture/incorporation/AUS`);
     await page.waitFor(() => Boolean(document.querySelector("[data-culture-incorporation-calculator]")), `${name} calculator`);
+    assert.equal(await page.evaluate(() => document.querySelector("#cultureIncorporationPanel")?.hidden), false);
+    assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector(".results")).display), "none");
     const initial = await page.evaluate(() => ({ selected: [...document.querySelectorAll("[data-incorporation-selected-culture]")].map((node) => node.dataset.incorporationSelectedCulture), candidates: [...document.querySelectorAll("[data-incorporation-candidate]")].map((node) => node.dataset.incorporationCandidate) }));
     assert.deepEqual(initial.selected, ["south_german"]);
     for (const key of ["hungarian", "czech", "slovak"]) assert.ok(initial.candidates.includes(key), `${name} AUS candidates must include ${key}`);
+    const beforeStart = await page.evaluate(() => ({ applied: [...(state.incorporationCalculatorAppliedCultures || [])], mode: state.mapMode }));
     await page.click("[data-incorporation-candidate='hungarian']");
+    assert.deepEqual(await page.evaluate(() => [...(state.incorporationCalculatorAppliedCultures || [])]), beforeStart.applied);
+    assert.equal(await page.evaluate(() => state.mapMode), beforeStart.mode);
     await page.click("[data-incorporation-candidate='czech']");
     await page.click("[data-incorporation-candidate='slovak']");
     await page.waitFor(() => document.querySelectorAll("[data-incorporation-selected-culture]").length === 4, `${name} selected culture count`);
+    await page.click("[data-incorporation-start]");
     assert.equal(await page.evaluate(() => state.mapMode), "cultureIncorporation");
     assert.ok((await page.evaluate(() => document.querySelectorAll(".culture-incorporation-result-row").length)) > 0);
     await page.click("[data-incorporation-selected-culture='czech']");
     assert.equal(await page.evaluate(() => state.incorporationCalculatorCultures.has("czech")), false);
     await page.click("[data-incorporation-clear]");
     await page.waitFor(() => document.querySelectorAll("[data-incorporation-selected-culture]").length === 0, `${name} empty calculator`);
+    assert.ok((await page.text("[data-incorporation-results]")).length > 0, `${name} should retain the previous applied result until start`);
+    await page.click("[data-incorporation-start]");
     assert.ok((await page.text("[data-incorporation-results]")).includes("请选择文化") || (await page.text("[data-incorporation-results]")).includes("Select cultures"));
 
     if (fullCoverage) {
@@ -69,7 +77,7 @@ async function openPage(viewport) {
   await session.send("Emulation.setDeviceMetricsOverride", { width: viewport.width, height: viewport.height, deviceScaleFactor: 1, mobile: viewport.width < 600 });
   return {
     async goto(url) { const loaded = session.next("Page.loadEventFired"); const hash = session.next("Page.navigatedWithinDocument"); await session.send("Page.navigate", { url }); await Promise.race([loaded, hash]); await new Promise((resolve) => setTimeout(resolve, 200)); },
-    async evaluate(callback, ...args) { const result = await session.send("Runtime.evaluate", { expression: `(${callback})(${args.map((value) => JSON.stringify(value)).join(",")})`, returnByValue: true, awaitPromise: true }); if (result.exceptionDetails) throw new Error(result.exceptionDetails.text || "browser evaluation failed"); return result.result.value; },
+    async evaluate(callback, ...args) { const result = await session.send("Runtime.evaluate", { expression: `(${callback})(${args.map((value) => JSON.stringify(value)).join(",")})`, returnByValue: true, awaitPromise: true }); if (result.exceptionDetails) throw new Error(result.exceptionDetails.exception?.description || result.exceptionDetails.text || "browser evaluation failed"); return result.result.value; },
     async click(selector) { await this.evaluate((targetSelector) => document.querySelector(targetSelector)?.click(), selector); },
     async text(selector) { return this.evaluate((targetSelector) => document.querySelector(targetSelector)?.innerText?.replace(/\s+/g, " ").trim() || "", selector); },
     async waitFor(predicate, description, ...args) { const deadline = Date.now() + 20000; while (Date.now() < deadline) { if (await this.evaluate(predicate, ...args)) return; await new Promise((resolve) => setTimeout(resolve, 50)); } throw new Error(`${description} timed out`); },

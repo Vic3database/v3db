@@ -149,6 +149,11 @@ function bindEvents() {
     await setView("culture");
     render();
   });
+  els.cultureIncorporationEntry?.addEventListener("click", async () => {
+    replaceHash("/culture/incorporation");
+    await applyHash();
+    render();
+  });
   els.regionViewButton?.addEventListener("click", async () => {
     await setView("region");
     render();
@@ -1601,10 +1606,11 @@ function render() {
   document.body.dataset.countryMobileDetail = String(state.view === "country" && isDetailPageRoute() ? "open" : "closed");
   document.body.dataset.cultureMobileMap = String(state.cultureMobileMapOpen);
   document.body.dataset.cultureMobileFilters = String(state.cultureMobileFiltersOpen);
-  document.body.dataset.cultureMobileDetail = String(state.view === "culture" && isDetailPageRoute() ? "open" : "closed");
+  document.body.dataset.cultureMobileDetail = String(state.view === "culture" && isDetailPageRoute() && state.detailKind !== "cultureIncorporation" ? "open" : "closed");
+  document.body.dataset.cultureIncorporation = String(state.view === "culture" && state.detailKind === "cultureIncorporation");
   if (els.homeWelcome) els.homeWelcome.hidden = state.view !== "home";
   if (els.homeLinks) els.homeLinks.hidden = state.view !== "home";
-  document.body.classList.toggle("detail-page", isDetailPageRoute());
+  document.body.classList.toggle("detail-page", isDetailPageRoute() && state.detailKind !== "cultureIncorporation");
   document.body.classList.toggle("global-search-active", Boolean(state.globalSearch));
   updatePageChrome();
   syncInfoDialogVisibility();

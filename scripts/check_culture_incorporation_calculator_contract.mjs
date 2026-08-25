@@ -13,6 +13,7 @@ const calculator = fs.existsSync(path.join(root, "site/app/culture-incorporation
 
 assert.match(runtime, /incorporationCalculatorCountryTag: ""/);
 assert.match(runtime, /incorporationCalculatorCultures: new Set\(\)/);
+assert.match(runtime, /incorporationCalculatorAppliedCultures: new Set\(\)/);
 assert.match(ui, /parts\[1\] === "incorporation"/);
 assert.match(calculator, /function incorporationCalculatorCandidates\(country\)/);
 assert.match(map, /function buildCultureIncorporationMapFeatures\(\)/);
@@ -22,6 +23,8 @@ assert.doesNotMatch(presentation, /data-primary-culture-scenario-route/);
 assert.doesNotMatch(ui, /data-country-incorporation-scenario-clear/);
 assert.match(calculator, /data-incorporation-selected-culture/);
 assert.match(calculator, /data-incorporation-candidate/);
+assert.match(calculator, /data-incorporation-start/);
+assert.match(calculator, /incorporationCalculatorAppliedCultures/);
 assert.match(calculator, /incorporationCalculatorSelectedCultureObjects/);
 
 const ausChunk = fs.readdirSync(path.join(root, "site/versions/1.13.11"))
