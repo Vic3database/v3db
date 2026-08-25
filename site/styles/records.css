@@ -1686,6 +1686,25 @@ body.results-collapsed .concept-tooltip {
   gap: 5px;
 }
 
+.country-primary-culture-exclusive-option {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.country-primary-culture-scenario-button {
+  justify-self: start;
+  min-height: 28px;
+  padding: 4px 8px;
+  border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--line));
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--text-xs);
+}
+
 .interest-group-card {
   border-left: 4px solid var(--interest-group-color, var(--accent));
   background: linear-gradient(90deg, color-mix(in srgb, var(--interest-group-color, var(--accent)) 14%, rgba(52, 49, 45, 0.9)), rgba(52, 49, 45, 0.9));

@@ -51,8 +51,9 @@ function renderMapCountryContext() {
   }
   const flag = countryFlagIconHtml(country, "map-country-context-flag");
   const name = entityText(country) || country.tag;
+  const scenario = state.countryIncorporationScenario?.countryTag === country.tag ? state.countryIncorporationScenario : null;
   els.mapCountryContext.hidden = false;
-  els.mapCountryContext.innerHTML = `${flag}<span class="map-country-context-name">${escapeHtml(name)}</span><span class="map-country-context-tag">${escapeHtml(country.tag)}</span>`;
+  els.mapCountryContext.innerHTML = `${flag}<span class="map-country-context-name">${escapeHtml(name)}</span><span class="map-country-context-tag">${escapeHtml(country.tag)}</span>${scenario ? `<span class="map-country-context-scenario">${escapeHtml(t("map.countryIncorporation.scenarioPrefix", "情景"))}：${escapeHtml(scenario.title)}</span><button type="button" class="map-country-context-reset" data-country-incorporation-scenario-clear>${escapeHtml(t("map.countryIncorporation.scenarioRestore", "恢复当前国家"))}</button>` : ""}`;
 }
 
 function renderCountryIncorporationMapLegend() {
@@ -291,6 +292,9 @@ function mapLayerSignature() {
     const country = byTag.get(state.selectedTag);
     parts.push(`selected:${state.selectedTag || ""}`);
     parts.push(`primary:${(country?.primaryCultures || []).map((culture) => culture?.key || culture).sort().join(",")}`);
+    const scenario = state.countryIncorporationScenario?.countryTag === state.selectedTag ? state.countryIncorporationScenario : null;
+    parts.push(`scenario:${scenario?.routeKey || ""}`);
+    parts.push(`scenarioCultures:${(scenario?.primaryCultures || []).join(",")}`);
   }
   if (state.mapMode === "company") {
     parts.push(`companies:${objectKeySignature(mapRuntime.companyMapCompanies)}`);
@@ -473,13 +477,19 @@ function countryIncorporationYearsForCulture(primaryCultures, homelandCulture) {
   return 25;
 }
 
+function countryIncorporationPrimaryCultures(selectedCountry) {
+  const scenario = state.countryIncorporationScenario;
+  const keys = scenario?.countryTag === selectedCountry?.tag
+    ? scenario.primaryCultures
+    : selectedCountry?.primaryCultures || [];
+  return keys.map((key) => byCulture.get(key) || { key }).filter(Boolean);
+}
+
 function countryIncorporationForStateRegion(stateRegion, selectedCountry) {
   const homelandCultures = (stateRegion?.homeland_cultures || [])
     .map((cultureRef) => byCulture.get(cultureRef?.key || cultureRef) || cultureRef)
     .filter(Boolean);
-  const primaryCultures = (selectedCountry?.primaryCultures || [])
-    .map((cultureRef) => byCulture.get(cultureRef?.key || cultureRef) || cultureRef)
-    .filter(Boolean);
+  const primaryCultures = countryIncorporationPrimaryCultures(selectedCountry);
   if (!homelandCultures.length) return { years: 25, labelKey: "map.countryIncorporation.noMatch", culture: null };
   let best = null;
   for (const culture of homelandCultures) {
@@ -1961,11 +1971,13 @@ function mapTooltipRowsForView(stateRegion, feature, ownerTag = "", terrainKey =
   }
   if (state.mapMode === "countryIncorporation") {
     const relation = feature?.incorporation || countryIncorporationForStateRegion(stateRegion, byTag.get(state.selectedTag));
+    const scenario = state.countryIncorporationScenario?.countryTag === state.selectedTag ? state.countryIncorporationScenario : null;
     return compactTooltipRows([
       [t("board.region.startingOwners", "开局归属"), refNames(stateRegion.starting_owners)],
       [t("map.currentProvinceOwner", "当前省份归属"), ownerTag ? countryNameWithTag(ownerTag) : ""],
       [t("board.region.homelandCultures", "本土文化"), refNames(stateRegion.homeland_cultures)],
       [t("map.countryIncorporation.baseYears", "基础整合年数"), relation.years ? countryIncorporationLabel(relation.years) : ""],
+      ...(scenario ? [[t("map.countryIncorporation.scenario", "计算情景"), scenario.title], [t("map.countryIncorporation.scenarioCondition", "前提"), scenario.condition ? t("map.countryIncorporation.scenarioConditionRecorded", "满足已记录条件后") : ""]] : []),
     ]);
   }
   if (state.view === "country" || state.mapMode === "country") {

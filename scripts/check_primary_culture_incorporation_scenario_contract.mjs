@@ -13,6 +13,10 @@ assert.match(presentation, /function countryPrimaryCultureScenarioForRoute\(coun
 assert.match(presentation, /function countryPrimaryCultureScenarioForOption\(country, group, option\)/);
 assert.match(map, /function countryIncorporationPrimaryCultures\(selectedCountry\)/);
 assert.match(runtime, /countryIncorporationScenario: null/);
+assert.match(presentation, /data-primary-culture-scenario-route/);
+assert.match(map, /data-country-incorporation-scenario-clear/);
+assert.match(map, /countryIncorporationScenario/);
+assert.match(map, /scenario.*primaryCultures|primaryCultures.*scenario/s);
 
 const scenarioSource = presentation.match(/function countryPrimaryCultureScenarioRecord\([\s\S]*?\n}\n\nfunction countryPrimaryCultureScenarioRoutes/);
 assert.ok(scenarioSource, "scenario helpers should be grouped before the expansion renderer");

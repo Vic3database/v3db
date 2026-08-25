@@ -1218,7 +1218,12 @@ function countryPrimaryCultureExclusiveHtml(country, culture, route, cultureRef)
     <div class="country-primary-culture-exclusive">
       <strong>${escapeHtml(t("board.country.primaryCulturePath.mutuallyExclusiveRoutes"))}${escapeHtml(t("ui.colon"))}</strong>
       <div class="country-primary-culture-exclusive-options">
-        ${alternatives.map((option) => cultureLinks(option.added_primary_cultures.map(cultureRef))).join("")}
+        ${alternatives.map((option) => {
+          const group = (country.primaryCultureOptionGroups || []).find((candidate) => candidate.options?.some((item) => JSON.stringify(item.added_primary_cultures || []) === JSON.stringify(option.added_primary_cultures || [])));
+          const sourceOption = group?.options?.find((item) => JSON.stringify(item.added_primary_cultures || []) === JSON.stringify(option.added_primary_cultures || []));
+          const scenario = group && sourceOption ? countryPrimaryCultureScenarioForOption(country, group, sourceOption) : null;
+          return `<div class="country-primary-culture-exclusive-option">${cultureLinks(option.added_primary_cultures.map(cultureRef))}${scenario ? `<button type="button" class="country-primary-culture-scenario-button" data-primary-culture-scenario-route="${escapeHtml(scenario.routeKey)}">${escapeHtml(t("map.countryIncorporation.scenarioView", "查看在这一情况下的整合时长"))}</button>` : ""}</div>`;
+        }).join("")}
       </div>
     </div>
   `;
