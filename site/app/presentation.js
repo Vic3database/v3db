@@ -1092,7 +1092,7 @@ function countryPrimaryCultureExpansionGroupHtml(country, culture, routes, cultu
     .sort(compareCountryPrimaryCultureRoute)
     .map((route) => countryPrimaryCultureRouteHtml(country, culture, route, cultureRef))
     .join("");
-  const hasExclusiveRoute = countryPrimaryCultureExclusiveAlternatives(country, culture).length > 0;
+  const hasExclusiveRoute = routes.some((route) => countryPrimaryCultureExclusiveAlternatives(country, culture, route).length > 0);
   const kinds = uniqueCountryPrimaryCultureRouteKinds(routes, hasExclusiveRoute);
   return `
     <details class="collapsible-detail-section country-primary-culture-expansion" data-primary-culture-key="${escapeHtml(culture)}">
@@ -1102,26 +1102,29 @@ function countryPrimaryCultureExpansionGroupHtml(country, culture, routes, cultu
       </summary>
       <div class="collapsible-detail-body country-primary-culture-routes">
         ${routeHtml}
-        ${countryPrimaryCultureExclusiveHtml(country, culture, cultureRef)}
       </div>
     </details>
   `;
 }
 
 function countryPrimaryCultureRouteHtml(country, culture, route, cultureRef) {
-  const hasExclusiveRoute = countryPrimaryCultureExclusiveAlternatives(country, culture).length > 0;
+  const alternatives = countryPrimaryCultureExclusiveAlternatives(country, culture, route);
+  const hasExclusiveRoute = alternatives.length > 0;
   const kinds = uniqueCountryPrimaryCultureRouteKinds([route], hasExclusiveRoute);
   const conditions = countryPrimaryCultureConditionHtml(route.eligible_when, cultureRef);
+  const origins = route?.eligible_when?.was_formed_from_any || [];
+  const originAttribute = origins.length === 1 ? ` data-primary-culture-route-origin="${escapeHtml(origins[0])}"` : "";
   const replacement = route.removed_culture
     ? `<p class="country-primary-culture-route-line">${t("board.country.primaryCulturePath.replaces", { added: cultureLinks([cultureRef(culture)]), removed: cultureLinks([cultureRef(route.removed_culture)]) })}</p>`
     : "";
   return `
-    <article class="country-primary-culture-route" data-primary-culture-route-kind="${escapeHtml(route.route_kind)}">
+    <article class="country-primary-culture-route" data-primary-culture-route-kind="${escapeHtml(route.route_kind)}"${originAttribute}>
       <div class="country-primary-culture-route-meta">${escapeHtml(kinds.join(t("ui.listSeparator")))}</div>
       ${conditions}
       ${replacement}
       <p class="country-primary-culture-route-line"><strong>${escapeHtml(t("board.country.primaryCulturePath.source"))}${escapeHtml(t("ui.colon"))}</strong> ${escapeHtml(countryPrimaryCultureSourceType(route))} · ${escapeHtml(route.content_id || "")}</p>
       <p class="country-primary-culture-route-line"><strong>${escapeHtml(t("board.country.primaryCulturePath.file"))}${escapeHtml(t("ui.colon"))}</strong> ${escapeHtml(route.source_file || "")}${route.source_line ? `:${escapeHtml(String(route.source_line))}` : ""}</p>
+      ${countryPrimaryCultureExclusiveHtml(country, culture, route, cultureRef)}
     </article>
   `;
 }
@@ -1149,8 +1152,8 @@ function countryPrimaryCultureConditionParts(eligibleWhen, cultureRef) {
   return parts;
 }
 
-function countryPrimaryCultureExclusiveHtml(country, culture, cultureRef) {
-  const alternatives = countryPrimaryCultureExclusiveAlternatives(country, culture);
+function countryPrimaryCultureExclusiveHtml(country, culture, route, cultureRef) {
+  const alternatives = countryPrimaryCultureExclusiveAlternatives(country, culture, route);
   if (!alternatives.length) return "";
   return `
     <div class="country-primary-culture-exclusive">
@@ -1162,11 +1165,11 @@ function countryPrimaryCultureExclusiveHtml(country, culture, cultureRef) {
   `;
 }
 
-function countryPrimaryCultureExclusiveAlternatives(country, culture) {
+function countryPrimaryCultureExclusiveAlternatives(country, culture, route) {
   const signatures = new Set();
   const alternatives = [];
   for (const group of country.primaryCultureOptionGroups || []) {
-    const selectedOptions = (group.options || []).filter((option) => (option.added_primary_cultures || []).includes(culture));
+    const selectedOptions = countryPrimaryCultureSelectedOptions(group, culture, route);
     if (!selectedOptions.length) continue;
     const selected = new Set(selectedOptions);
     for (const option of group.options || []) {
@@ -1180,6 +1183,14 @@ function countryPrimaryCultureExclusiveAlternatives(country, culture) {
     }
   }
   return alternatives;
+}
+
+function countryPrimaryCultureSelectedOptions(group, culture, route) {
+  const options = (group.options || []).filter((option) => (option.added_primary_cultures || []).includes(culture));
+  const origins = route?.eligible_when?.was_formed_from_any || [];
+  if (!origins.length) return options;
+  const matches = options.filter((option) => (option.was_formed_from_any || []).some((origin) => origins.includes(origin)));
+  return matches.length ? matches : options;
 }
 
 function uniqueCountryPrimaryCultureRouteKinds(routes, hasExclusiveRoute) {

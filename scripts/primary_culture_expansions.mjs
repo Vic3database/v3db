@@ -134,9 +134,9 @@ const PRIMARY_CULTURE_OPTION_GROUPS = Object.freeze({
       id: "afghanistan_origin",
       source_contents: ["on_action:on_country_formed:afghanistan_origin"],
       options: [
-        { id: "kunduz", added_primary_cultures: ["uzbek"] },
-        { id: "maimana", added_primary_cultures: ["turkmen", "uzbek"] },
-        { id: "kabul", added_primary_cultures: ["kho"] },
+        { id: "kunduz", added_primary_cultures: ["uzbek"], was_formed_from_any: ["KUN"] },
+        { id: "maimana", added_primary_cultures: ["turkmen", "uzbek"], was_formed_from_any: ["MAI"] },
+        { id: "kabul", added_primary_cultures: ["kho"], was_formed_from_any: ["KAF"] },
       ],
     },
   ],

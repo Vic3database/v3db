@@ -61,6 +61,11 @@ try {
     ["pashtun", "tajik", "turkmen", "uzbek"],
     ["pashtun", "tajik", "uzbek"],
   ]);
+  assert.deepEqual(expansions.countries.AFG.primary_culture_option_groups[0].options, [
+    { id: "kunduz", added_primary_cultures: ["uzbek"], was_formed_from_any: ["KUN"] },
+    { id: "maimana", added_primary_cultures: ["turkmen", "uzbek"], was_formed_from_any: ["MAI"] },
+    { id: "kabul", added_primary_cultures: ["kho"], was_formed_from_any: ["KAF"] },
+  ]);
   assert.ok(expansions.countries.IBE.added_primary_cultures.includes("catalan"));
   assert.ok(expansions.countries.SPA.paths.some((item) => item.content_id === "amendment_reinstated_fueros" && item.culture === "basque"));
   assert.ok(expansions.countries.SPA.paths.some((item) => item.content_id === "cuba_annex_effects" && item.culture === "caribeno"));

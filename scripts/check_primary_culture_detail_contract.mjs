@@ -10,6 +10,7 @@ const styles = read("site/styles.css");
 const indexHtml = read("site/index.html");
 const zhUi = read("site/locales/ui.zh-Hans.js");
 const enUi = read("site/locales/ui.en.js");
+const versionDirectory = path.join(root, "site", "versions", "1.13.11");
 
 assert.ok(/function countryPrimaryCultureExpansionsHtml\(country\)/.test(presentation), "country detail needs an expansion renderer");
 assert.ok(/primaryCultureConditionalPaths/.test(presentation), "renderer must use projected condition paths");
@@ -53,5 +54,10 @@ for (const key of keys) {
   assert.ok(matcher.test(zhUi), `Chinese UI locale must include ${key}`);
   assert.ok(matcher.test(enUi), `English UI locale must include ${key}`);
 }
+
+const countryChunks = fs.readdirSync(versionDirectory)
+  .filter((file) => /^data-countries-\d+\.js$/.test(file))
+  .map((file) => fs.readFileSync(path.join(versionDirectory, file), "utf8"));
+assert.ok(countryChunks.some((chunk) => chunk.includes("primaryCultureConditionalPaths")), "generated 1.13.11 country data must contain conditional paths");
 
 console.log("primary culture detail contract passed");
