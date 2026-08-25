@@ -1629,6 +1629,63 @@ body.results-collapsed .concept-tooltip {
   padding: 0 10px 10px;
 }
 
+.country-primary-culture-expansions {
+  display: grid;
+  gap: 8px;
+}
+
+.country-primary-culture-expansion {
+  width: 100%;
+  margin: 0;
+}
+
+.country-primary-culture-expansion summary .link-list {
+  min-width: 0;
+}
+
+.country-primary-culture-routes {
+  display: grid;
+  gap: 8px;
+}
+
+.country-primary-culture-route {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding-top: 8px;
+  border-top: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+}
+
+.country-primary-culture-route:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.country-primary-culture-route-meta {
+  color: var(--accent);
+  font-size: var(--text-xs);
+  font-weight: 700;
+}
+
+.country-primary-culture-route-line,
+.country-primary-culture-exclusive {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.country-primary-culture-exclusive {
+  display: grid;
+  gap: 5px;
+  padding-top: 8px;
+  border-top: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+}
+
+.country-primary-culture-exclusive-options {
+  display: grid;
+  gap: 5px;
+}
+
 .interest-group-card {
   border-left: 4px solid var(--interest-group-color, var(--accent));
   background: linear-gradient(90deg, color-mix(in srgb, var(--interest-group-color, var(--accent)) 14%, rgba(52, 49, 45, 0.9)), rgba(52, 49, 45, 0.9));
