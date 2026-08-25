@@ -1502,7 +1502,7 @@ async function setView(view) {
 function changeBoard(view, detailKind) {
   if (state.view !== view) {
     resetBoardView();
-    clearCountryIncorporationScenario();
+    clearCultureIncorporationCalculatorState();
   }
   if (view !== "region") state.regionMapView = "default";
   state.view = view;

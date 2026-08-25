@@ -54,6 +54,13 @@ function incorporationCalculatorClear() {
   render();
 }
 
+function clearCultureIncorporationCalculatorState() {
+  state.incorporationCalculatorCountryTag = "";
+  state.incorporationCalculatorCultures.clear();
+  state.incorporationCalculatorCandidateCultures.clear();
+  state.incorporationCalculatorSearch = "";
+}
+
 function renderCultureIncorporationCalculator() {
   const country = byTag.get(state.incorporationCalculatorCountryTag);
   const candidates = [...(state.incorporationCalculatorCandidateCultures?.values() || [])]
