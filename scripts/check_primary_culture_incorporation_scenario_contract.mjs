@@ -20,7 +20,7 @@ assert.match(map, /scenario.*primaryCultures|primaryCultures.*scenario/s);
 
 const scenarioSource = presentation.match(/function countryPrimaryCultureScenarioRecord\([\s\S]*?\n}\n\nfunction countryPrimaryCultureScenarioRoutes/);
 assert.ok(scenarioSource, "scenario helpers should be grouped before the expansion renderer");
-const context = { Set, JSON };
+const context = { Set, JSON, byCulture: new Map(), entityText: (entity) => entity?.key || "" };
 const helperSource = scenarioSource[0].replace(/\n\nfunction countryPrimaryCultureScenarioRoutes[\s\S]*$/, "");
 const routeHelper = presentation.match(/function countryPrimaryCultureScenarioForRoute\([\s\S]*?\n}\r?\n\r?\nfunction countryPrimaryCultureScenarioForOption/)[0].replace(/\r?\n\r?\nfunction countryPrimaryCultureScenarioForOption[\s\S]*$/, "");
 const optionHelper = presentation.match(/function countryPrimaryCultureScenarioForOption\([\s\S]*?\n}\r?\n\r?\nfunction countryPrimaryCultureScenarioRoutes/)[0].replace(/\r?\n\r?\nfunction countryPrimaryCultureScenarioRoutes[\s\S]*$/, "");

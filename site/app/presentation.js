@@ -1047,7 +1047,7 @@ function countryPrimaryCultureScenarioRecord(country, source, primaryCultures, g
   return {
     countryTag: country.tag,
     routeKey,
-    title: titleCultures.join(", ") || source.id || routeKey,
+    title: titleCultures.map((key) => entityText(byCulture.get(key) || { key }) || key).join("、") || source.id || routeKey,
     kind: groupId ? "exclusive" : (source.route_kind || "direct"),
     primaryCultures: [...new Set(primaryCultures)].sort(),
     condition: source.eligible_when || (source.was_formed_from_any ? { was_formed_from_any: source.was_formed_from_any } : null),
@@ -1184,7 +1184,12 @@ function countryPrimaryCultureRouteHtml(country, culture, route, cultureRef) {
 }
 
 function countryPrimaryCultureScenarioButtonHtml(country, route) {
-  const scenario = countryPrimaryCultureScenarioForRoute(country, route);
+  const optionScenario = (country.primaryCultureOptionGroups || []).flatMap((group) => (group.options || []).map((option) => ({ group, option })))
+    .filter(({ option }) => (option.added_primary_cultures || []).includes(route.culture))
+    .find(({ option }) => (route.eligible_when?.was_formed_from_any || []).some((origin) => (option.was_formed_from_any || []).includes(origin)));
+  const scenario = optionScenario
+    ? countryPrimaryCultureScenarioForOption(country, optionScenario.group, optionScenario.option)
+    : countryPrimaryCultureScenarioForRoute(country, route);
   return `<button type="button" class="country-primary-culture-scenario-button" data-primary-culture-scenario-route="${escapeHtml(scenario.routeKey)}">${escapeHtml(t("map.countryIncorporation.scenarioView", "查看在这一情况下的整合时长"))}</button>`;
 }
 
