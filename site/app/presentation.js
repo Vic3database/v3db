@@ -332,6 +332,7 @@ function syncListSelection(attribute, previousKey, nextKey) {
 function commitCountrySelection(countryTag) {
   const previousTag = state.selectedTag;
   state.globalSearchColorRestoreTag = "";
+  if (previousTag !== countryTag) clearCountryIncorporationScenario();
   state.selectedTag = countryTag;
   state.detailKind = "country";
   replaceHash(selectionHashForCard("/country", "/country/" + encodeURIComponent(countryTag)));
