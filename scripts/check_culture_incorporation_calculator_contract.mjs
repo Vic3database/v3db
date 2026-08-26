@@ -13,6 +13,7 @@ const calculator = fs.existsSync(path.join(root, "site/app/culture-incorporation
 
 assert.match(runtime, /incorporationCalculatorCultures: new Set\(\)/);
 assert.match(runtime, /incorporationCalculatorAppliedCultures: new Set\(\)/);
+assert.match(runtime, /incorporationCalculatorHomelandEffects: new Set\(\)/);
 assert.match(ui, /parts\[1\] === "incorporation"/);
 assert.match(calculator, /function incorporationCalculatorCandidates\(country\)/);
 assert.match(map, /function buildCultureIncorporationMapFeatures\(\)/);

@@ -52,6 +52,14 @@ function incorporationCalculatorClear() {
   renderCultureIncorporationCalculator();
 }
 
+function incorporationCalculatorClearFilters() {
+  state.incorporationCalculatorFilterHeritageGroups.clear();
+  state.incorporationCalculatorFilterHeritages.clear();
+  state.incorporationCalculatorFilterLanguageGroups.clear();
+  state.incorporationCalculatorFilterLanguages.clear();
+  state.incorporationCalculatorFilterTradition = "";
+}
+
 function incorporationCalculatorStart() {
   state.incorporationCalculatorAppliedCultures = new Set(state.incorporationCalculatorCultures);
   render();
@@ -61,6 +69,9 @@ function clearCultureIncorporationCalculatorState() {
   state.incorporationCalculatorCultures.clear();
   state.incorporationCalculatorAppliedCultures.clear();
   state.incorporationCalculatorCandidateCultures = new Map(incorporationCalculatorAllCultures().map((item) => [item.key, item]));
+  state.incorporationCalculatorHomelandEffects.clear();
+  state.incorporationCalculatorAppliedHomelandEffects.clear();
+  incorporationCalculatorClearFilters();
   state.incorporationCalculatorSearch = "";
 }
 

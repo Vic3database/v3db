@@ -12,6 +12,7 @@ let countries = [];
 let cultures = [];
 let cultureTraits = [];
 let cultureTraitGroups = [];
+let cultureHomelandEffects = [];
 let stateRegions = [];
 let strategicRegions = [];
 let geographicRegions = [];
@@ -263,6 +264,13 @@ const state = {
   countryIncorporationMapEnabled: false,
   incorporationCalculatorCultures: new Set(),
   incorporationCalculatorAppliedCultures: new Set(),
+  incorporationCalculatorHomelandEffects: new Set(),
+  incorporationCalculatorAppliedHomelandEffects: new Set(),
+  incorporationCalculatorFilterHeritageGroups: new Set(),
+  incorporationCalculatorFilterHeritages: new Set(),
+  incorporationCalculatorFilterLanguageGroups: new Set(),
+  incorporationCalculatorFilterLanguages: new Set(),
+  incorporationCalculatorFilterTradition: "",
   incorporationCalculatorCandidateCultures: new Map(),
   incorporationCalculatorSearch: "",
   theme: "votp",

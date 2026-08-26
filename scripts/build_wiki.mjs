@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { collectLocalizationRefs, sha256Text } from "./lib/localization-schema.mjs";
 import { searchAliasFields } from "./search_aliases.mjs";
+import { deriveCultureHomelandEffects } from "./culture_homeland_effects.mjs";
 
 const victorianCenturyChangeCollections = [
   ["countries", "tag"],
@@ -104,12 +105,13 @@ const wikiData = {
   dynamicCountryMapColorRules: data.dynamicCountryMapColorRules,
   formables: data.formables,
   releasables: data.releasables,
+  cultureHomelandEffects: deriveCultureHomelandEffects(loadCultureHomelandContent(source)),
 };
 
 const dataChunks = {
   country: ["countries", "dynamicCountryNameVariants", "dynamicCountryMapColorRules", "formables", "releasables"],
   culture: ["cultures", "cultureTraits", "cultureTraitGroups"],
-  region: ["stateRegions", "strategicRegions", "geographicRegions"],
+  region: ["stateRegions", "strategicRegions", "geographicRegions", "cultureHomelandEffects"],
   company: ["companies", "companyCharterTypes"],
   ideology: ["interestGroups", "interestGroupTraits", "ideologies"],
   law: ["laws", "lawGroups"],
@@ -334,6 +336,17 @@ function loadSiteData(sourceFile) {
     };
   }
   throw new Error(`Unsupported database schema in ${sourceFile}: expected schema_version and files.`);
+}
+
+function loadCultureHomelandContent(sourceFile) {
+  const sourceData = readJson(sourceFile);
+  const baseDir = path.dirname(sourceFile);
+  const contentIndexPath = path.join(baseDir, "content-index.json");
+  if (!fs.existsSync(contentIndexPath)) return {};
+  const contentIndex = readJson(contentIndexPath);
+  const files = contentIndex.files || {};
+  const read = (key) => files[key] ? readJson(path.join(baseDir, files[key])) : [];
+  return { event: read("events"), journal: read("journal_entries"), decision: read("decisions") };
 }
 
 function deriveSiteData(siteData) {

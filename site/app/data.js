@@ -226,6 +226,7 @@ function applyLoadedDataset(nextData, nextMapData, options = {}) {
   cultures = data.cultures || [];
   cultureTraits = data.cultureTraits || [];
   cultureTraitGroups = data.cultureTraitGroups || [];
+  cultureHomelandEffects = data.cultureHomelandEffects || [];
   stateRegions = data.stateRegions || [];
   strategicRegions = data.strategicRegions || [];
   geographicRegions = data.geographicRegions || [];
