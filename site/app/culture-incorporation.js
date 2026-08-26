@@ -88,7 +88,7 @@ function incorporationCalculatorStart() {
 function clearCultureIncorporationCalculatorState() {
   state.incorporationCalculatorCultures.clear();
   state.incorporationCalculatorAppliedCultures.clear();
-  state.incorporationCalculatorCandidateCultures = new Map(incorporationCalculatorAllCultures().map((item) => [item.key, item]));
+  state.incorporationCalculatorCandidateCultures.clear();
   state.incorporationCalculatorHomelandEffects.clear();
   state.incorporationCalculatorAppliedHomelandEffects.clear();
   incorporationCalculatorClearFilters();
@@ -131,6 +131,15 @@ function incorporationCalculatorFilteredCultures(candidateKeys) {
     .sort((left, right) => localizedCompare(entityText(left) || left.key, entityText(right) || right.key));
 }
 
+function incorporationCalculatorFilteredCulturesForDisplay(candidateKeys) {
+  const filtered = incorporationCalculatorFilteredCultures(candidateKeys);
+  if (filtered.length) return filtered;
+  return cultures
+    .filter(incorporationCalculatorFilterMatches)
+    .filter((culture) => !state.incorporationCalculatorCultures.has(culture.key))
+    .sort((left, right) => localizedCompare(entityText(left) || left.key, entityText(right) || right.key));
+}
+
 function incorporationCalculatorFixedHomelandEffects() {
   return cultureHomelandEffects.filter((effect) => !effect.dynamic_scope && effect.actions?.some((action) => action.state_regions.length));
 }
@@ -163,14 +172,11 @@ function incorporationCalculatorEffectSummary(effect) {
 function renderCultureIncorporationCalculator() {
   const root = els.cultureIncorporationPanel || els.countryList;
   if (els.cultureIncorporationPanel) els.cultureIncorporationPanel.hidden = false;
-  if (!state.incorporationCalculatorCandidateCultures.size && cultures.length) {
-    state.incorporationCalculatorCandidateCultures = new Map(incorporationCalculatorAllCultures().map((item) => [item.key, item]));
-  }
   const candidates = [...(state.incorporationCalculatorCandidateCultures?.values() || [])]
     .sort((left, right) => localizedCompare(incorporationCalculatorCandidateLabel(left), incorporationCalculatorCandidateLabel(right)));
   const selected = [...(state.incorporationCalculatorCultures || [])].map((key) => byCulture.get(key) || { key }).filter(Boolean);
   const candidateKeys = new Set(candidates.map((candidate) => candidate.key));
-  const filteredCultures = incorporationCalculatorFilteredCultures(candidateKeys);
+  const filteredCultures = incorporationCalculatorFilteredCulturesForDisplay(candidateKeys);
   const heritageGroups = incorporationCalculatorFilterOptions((culture) => culture.heritage?.group_key ? { key: culture.heritage.group_key, loc: { name: culture.heritage.loc?.groupName } } : null);
   const heritages = incorporationCalculatorFilterOptions((culture) => culture.heritage);
   const languageGroups = incorporationCalculatorFilterOptions((culture) => culture.language?.group_key ? { key: culture.language.group_key, loc: { name: culture.language.loc?.groupName } } : null);
