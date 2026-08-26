@@ -1743,9 +1743,24 @@ body.results-collapsed .concept-tooltip {
   min-width: 0;
 }
 
+.culture-incorporation-filter-groups,
+.culture-incorporation-effects {
+  display: grid;
+  gap: 9px;
+}
+
+.culture-incorporation-filter-groups small,
+.culture-incorporation-effect small,
+.culture-incorporation-dynamic-effect small {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--ink-muted);
+}
+
 .culture-incorporation-selected-tag,
 .culture-incorporation-candidate,
-.culture-incorporation-clear {
+.culture-incorporation-clear,
+.culture-incorporation-filter {
   min-height: 30px;
   padding: 5px 9px;
   border: 1px solid var(--line);
@@ -1755,6 +1770,27 @@ body.results-collapsed .concept-tooltip {
   cursor: pointer;
   font: inherit;
   font-size: var(--text-sm);
+}
+
+.culture-incorporation-filter[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 15%, var(--surface));
+}
+
+.culture-incorporation-effect,
+.culture-incorporation-dynamic-effect {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px;
+  align-items: start;
+  padding: 8px;
+  border: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
+  border-radius: 5px;
+}
+
+.culture-incorporation-dynamic-effect {
+  grid-template-columns: minmax(0, 1fr);
+  opacity: .72;
 }
 
 .culture-incorporation-candidate[aria-pressed="true"] {

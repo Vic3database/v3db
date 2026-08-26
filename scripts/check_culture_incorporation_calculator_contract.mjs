@@ -23,6 +23,13 @@ assert.doesNotMatch(presentation, /data-primary-culture-scenario-route/);
 assert.doesNotMatch(ui, /data-country-incorporation-scenario-clear/);
 assert.match(calculator, /data-incorporation-selected-culture/);
 assert.match(calculator, /data-incorporation-candidate/);
+assert.match(calculator, /data-incorporation-filter-heritage-group/);
+assert.match(calculator, /data-incorporation-filter-language-group/);
+assert.match(calculator, /data-incorporation-filter-tradition/);
+assert.match(calculator, /data-incorporation-filter-culture/);
+assert.match(calculator, /data-incorporation-homeland-effect/);
+assert.match(calculator, /data-incorporation-dynamic-effect/);
+assert.doesNotMatch(calculator, /data-incorporation-search/);
 assert.match(calculator, /data-incorporation-start/);
 assert.match(calculator, /incorporationCalculatorAppliedCultures/);
 assert.doesNotMatch(calculator, /data-incorporation-results/);
@@ -39,6 +46,9 @@ for (const key of ["hungarian", "czech", "slovak", "croat", "serb", "slovene", "
 }
 assert.match(map, /cultureIncorporation/);
 assert.match(map, /state\.mapMode === "cultureIncorporation"[\s\S]*incorporationCalculatorAppliedCultures/);
+assert.match(map, /function incorporationCalculatorHomelandCulturesForStateRegion\(/);
+assert.match(map, /incorporationCalculatorAppliedHomelandEffects/);
+assert.match(map, /state\.mapMode === "cultureIncorporation"[\s\S]*incorporationCalculatorAppliedHomelandEffects/);
 assert.match(indexHtml, /app\/map\.js\?v=20260826-culture-incorporation-refresh1/);
 assert.match(calculator, /empty/);
 

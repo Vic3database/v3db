@@ -299,6 +299,7 @@ function mapLayerSignature() {
   }
   if (state.mapMode === "cultureIncorporation") {
     parts.push(`cultures:${setSignature(state.incorporationCalculatorAppliedCultures)}`);
+    parts.push(`homelandEffects:${setSignature(state.incorporationCalculatorAppliedHomelandEffects)}`);
   }
   if (state.mapMode === "company") {
     parts.push(`companies:${objectKeySignature(mapRuntime.companyMapCompanies)}`);
@@ -481,8 +482,22 @@ function countryIncorporationYearsForCulture(primaryCultures, homelandCulture) {
   return 25;
 }
 
-function countryIncorporationForStateRegion(stateRegion, selectedCountry, primaryCultureOverride = null) {
-  const homelandCultures = (stateRegion?.homeland_cultures || [])
+function incorporationCalculatorHomelandCulturesForStateRegion(stateRegion) {
+  const homelandKeys = new Set((stateRegion?.homeland_cultures || []).map((culture) => culture?.key || culture).filter(Boolean));
+  const selectedEffects = state.incorporationCalculatorAppliedHomelandEffects || new Set();
+  for (const effect of cultureHomelandEffects || []) {
+    if (effect.dynamic_scope || !selectedEffects.has(effect.id)) continue;
+    for (const action of effect.actions || []) {
+      if (!action.state_regions?.includes(stateRegion?.key)) continue;
+      for (const key of action.removed_cultures || []) homelandKeys.delete(key);
+      for (const key of action.added_cultures || []) homelandKeys.add(key);
+    }
+  }
+  return [...homelandKeys].map((key) => byCulture.get(key) || { key }).filter(Boolean);
+}
+
+function countryIncorporationForStateRegion(stateRegion, selectedCountry, primaryCultureOverride = null, homelandCultureOverride = null) {
+  const homelandCultures = (homelandCultureOverride || stateRegion?.homeland_cultures || [])
     .map((cultureRef) => byCulture.get(cultureRef?.key || cultureRef) || cultureRef)
     .filter(Boolean);
   const primaryCultures = primaryCultureOverride || (selectedCountry?.primaryCultures || [])
@@ -555,7 +570,8 @@ function buildCultureIncorporationMapFeatures() {
   const features = new Map();
   for (const stateRegion of stateRegions) {
     const isSea = isSeaStateRegion(stateRegion);
-    const relation = isSea ? { years: 0, culture: null } : cultures.length ? countryIncorporationForStateRegion(stateRegion, null, cultures) : { years: null, culture: null };
+    const homelandCultures = incorporationCalculatorHomelandCulturesForStateRegion(stateRegion);
+    const relation = isSea ? { years: 0, culture: null } : cultures.length ? countryIncorporationForStateRegion(stateRegion, null, cultures, homelandCultures) : { years: null, culture: null };
     const years = relation.years || 25;
     features.set(stateRegion.key, {
       color: mapFeatureColor(stateRegion, isSea ? MAP_SEA_COLOR : (relation.years ? countryIncorporationColor(years, false) : "#7a7f82")),
@@ -1998,7 +2014,7 @@ function mapTooltipRowsForView(stateRegion, feature, ownerTag = "", terrainKey =
   if (state.mapMode === "cultureIncorporation") {
     const relation = feature?.incorporation || { years: null, culture: null };
     return compactTooltipRows([
-      [t("board.region.homelandCultures", "本土文化"), refNames(stateRegion.homeland_cultures)],
+      [t("board.region.homelandCultures", "本土文化"), refNames(incorporationCalculatorHomelandCulturesForStateRegion(stateRegion))],
       [t("map.cultureIncorporation.match", "命中文化"), relation.culture ? entityText(relation.culture) || relation.culture.key : ""],
       [t("map.countryIncorporation.baseYears", "整合年数"), relation.years ? countryIncorporationLabel(relation.years) : t("map.cultureIncorporation.empty", "请选择文化")],
     ]);
