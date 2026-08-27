@@ -474,6 +474,7 @@ window.VICDATA_UI_LOCALES.en = {
     "home.vcDescription": "Mod data and map",
     "home.disclaimer": "Vicdata is a player-made reference tool and is not affiliated with, authorized by, or partnered with Paradox Interactive. Game names, images, data, and trademarks belong to their respective owners.",
     "home.links": "Links",
+    "home.tools": "Tools",
     "sort.tag": "By tag",
     "sort.name": "By name",
     "sort.tier": "By tier",

@@ -30,11 +30,21 @@ const contentIcons = [
 const categories = ["domestic", "society", "economy", "technology", "game"];
 
 expect(homeFunction.includes("const entries = ["), "homepage should define its entry data");
-expect((homeFunction.match(/icon: "/g) || []).length === 14, "homepage should define the fourteen published entries");
+expect((homeFunction.match(/icon: "/g) || []).length === 17, "homepage should define fourteen board entries and three tool entries");
 for (const view of ["country", "law", "ideology", "interest-group", "culture", "region", "company", "building", "goods", "technology", "journal", "event", "decision", "achievement"]) {
   expect(homeFunction.includes(`view: "${view}"`), `homepage should retain the ${view} entry route`);
 }
 expect(homeFunction.includes("home-entry-grid"), "homepage should render an entry grid");
+expect(homeFunction.includes('class="home-tools"'), "homepage should render a separate tools section");
+expect(homeFunction.includes('key: "cultureIncorporation"'), "homepage tools should include the culture incorporation calculator");
+expect(homeFunction.includes('key: "companySolver"'), "homepage tools should include the company solver");
+expect(homeFunction.includes('key: "companyComposer"'), "homepage tools should include the company composer");
+expect(homeFunction.includes('data-home-tool="${escapeHtml(tool.key)}"'), "homepage tool cards should expose their tool keys");
+expect(homeFunction.includes('route: "/culture/incorporation"'), "calculator tool should use its direct route");
+expect(homeFunction.includes('route: "/company/solver"'), "solver tool should use its direct route");
+expect(homeFunction.includes('route: "/company/composer"'), "composer tool should use its direct route");
+expect(homeFunction.includes('available: true'), "calculator should always be available on the homepage");
+expect(homeFunction.includes('loadedDataVersion === "1.13.11"') && homeFunction.includes("standaloneSiteConfig"), "company tools should follow the current library availability rule before their data chunk loads");
 expect(homeFunction.includes("home-category"), "homepage should render categorized entry sections");
 expect((homeFunction.match(/category: "/g) || []).length === 14, "homepage should classify all published entries");
 for (const category of categories) {
@@ -105,6 +115,8 @@ expect(/\.home-category-card\s+\.home-entry-grid\s*\{[^}]*grid-template-columns:
 expect(/\.home-entry\s*\{[\s\S]*grid-template-columns:\s*46px\s+minmax\(0,\s*1fr\)/.test(stylesSource), "homepage entry cards should place icon left and text right");
 expect(/\.home-entry\s*\{[\s\S]*background:\s*var\(--surface\)/.test(stylesSource), "homepage entry buttons should retain gray backgrounds");
 expect(/\.home-entry-copy strong\s*\{[\s\S]*font-size:\s*var\(--text-base\)/.test(stylesSource), "homepage entry labels should use the larger base text size");
+expect(/\.home-tool-grid\s*\{[\s\S]*grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)/.test(stylesSource), "homepage tools should use three desktop columns");
+expect(/\.home-tool-card\s*\{[\s\S]*grid-template-columns:\s*42px\s+minmax\(0,\s*1fr\)\s+auto/.test(stylesSource), "homepage tool cards should use icon, copy, and arrow columns");
 expect(/\.home-category-heading h2\s*\{[\s\S]*font-size:\s*var\(--text-lg\)/.test(stylesSource), "homepage category headings should use a larger text size");
 expect(/body\[data-view="home"\]\s+\.results\s*\{[\s\S]*position:\s*static[\s\S]*padding:\s*0[\s\S]*border:\s*0[\s\S]*background:\s*transparent/.test(stylesSource), "homepage category cards should remain outside a shared outer card");
 expect(indexSource.includes('class="home-left-column"'), "homepage should group the welcome, navigation, and links into a left flow column");
@@ -138,7 +150,8 @@ if (failures.length) {
 console.log(JSON.stringify({
   homepage_layout: "ok",
   entries: 14,
-  icons: icons.length + contentIcons.length,
+  tools: 3,
+  icons: icons.length + contentIcons.length + 3,
 }, null, 2));
 
 function readText(relativePath) {

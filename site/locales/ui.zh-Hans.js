@@ -474,6 +474,7 @@ window.VICDATA_UI_LOCALES["zh-Hans"] = {
     "home.vcDescription": "模组数据与地图",
     "home.disclaimer": "Vicdata 为玩家制作的资料浏览工具，与 Paradox Interactive 没有从属、授权或合作关系。游戏名称、图像、数据与商标归其权利人所有。",
     "home.links": "链接",
+    "home.tools": "工具",
     "sort.tag": "按 Tag",
     "sort.name": "按名称",
     "sort.tier": "按位阶",
