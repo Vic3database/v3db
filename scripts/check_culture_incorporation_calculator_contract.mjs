@@ -19,6 +19,7 @@ assert.match(ui, /parts\[1\] === "incorporation"/);
 assert.match(calculator, /function incorporationCalculatorCandidates\(country\)/);
 assert.match(map, /function buildCultureIncorporationMapFeatures\(\)/);
 assert.match(indexHtml, /app\/culture-incorporation\.js/);
+assert.doesNotMatch(indexHtml, /id="cultureIncorporationEntry"/);
 assert.doesNotMatch(runtime, /countryIncorporationScenario/);
 assert.doesNotMatch(presentation, /data-primary-culture-scenario-route/);
 assert.doesNotMatch(ui, /data-country-incorporation-scenario-clear/);

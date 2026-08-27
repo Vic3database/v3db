@@ -824,7 +824,6 @@ const els = {
   resetButton: document.querySelector("#resetButton"),
   countryViewButton: document.querySelector("#countryViewButton"),
   cultureViewButton: document.querySelector("#cultureViewButton"),
-  cultureIncorporationEntry: document.querySelector("#cultureIncorporationEntry"),
   regionViewButton: document.querySelector("#regionViewButton"),
   companyViewButton: document.querySelector("#companyViewButton"),
   ideologyViewButton: document.querySelector("#ideologyViewButton"),

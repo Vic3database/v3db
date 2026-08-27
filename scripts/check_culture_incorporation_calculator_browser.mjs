@@ -115,6 +115,15 @@ async function verifySite(name, baseUrl, fullCoverage) {
     await page.close();
   }
 
+  const cultureBoard = await openPage({ width: 1440, height: 1000 });
+  try {
+    await cultureBoard.goto(`${baseUrl}?lang=zh-Hans#/culture`);
+    await cultureBoard.waitFor(() => document.querySelectorAll("[data-culture]").length > 0, `${name} culture board`);
+    assert.equal(await cultureBoard.evaluate(() => Boolean(document.querySelector("#cultureIncorporationEntry"))), false, `${name} culture board should not expose calculator controls`);
+  } finally {
+    await cultureBoard.close();
+  }
+
   const mobile = await openPage({ width: 442, height: 844 });
   try {
     await mobile.goto(`${baseUrl}?lang=en#/culture/incorporation`);
