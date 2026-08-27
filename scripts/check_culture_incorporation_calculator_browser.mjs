@@ -119,7 +119,9 @@ async function verifySite(name, baseUrl, fullCoverage) {
   try {
     await cultureBoard.goto(`${baseUrl}?lang=zh-Hans#/culture`);
     await cultureBoard.waitFor(() => document.querySelectorAll("[data-culture]").length > 0, `${name} culture board`);
-    assert.equal(await cultureBoard.evaluate(() => Boolean(document.querySelector("#cultureIncorporationEntry"))), false, `${name} culture board should not expose calculator controls`);
+    assert.equal(await cultureBoard.evaluate(() => Boolean(document.querySelector("#cultureIncorporationEntry"))), true, `${name} culture board should expose calculator entry`);
+    await cultureBoard.click("#cultureIncorporationEntry");
+    await cultureBoard.waitFor(() => location.hash === "#/culture/incorporation", `${name} calculator entry route`);
   } finally {
     await cultureBoard.close();
   }

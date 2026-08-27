@@ -1697,8 +1697,9 @@ body.results-collapsed .concept-tooltip {
 }
 
 .culture-incorporation-entry {
+  display: block;
   width: 100%;
-  margin-top: 8px;
+  margin: 0 0 8px;
   padding: 7px 9px;
   border: 1px solid var(--accent);
   border-radius: 5px;

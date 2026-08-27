@@ -535,6 +535,7 @@ window.VICDATA_UI_LOCALES["zh-Hans"] = {
     "board.country.primaryCulturePath.sourceType.scriptedEffect": "脚本效果",
     "board.country.primaryCulturePath.sourceType.amendment": "修正案",
     "nav.cultureIncorporation": "整合时长",
+    "nav.cultureIncorporationEntry": "整合时间计算器",
     "board.culture.incorporation.title": "整合时长计算器",
     "board.culture.incorporation.selected": "已选文化",
     "board.culture.incorporation.candidates": "可能涉及的文化",

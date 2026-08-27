@@ -829,6 +829,7 @@ const els = {
   ideologyViewButton: document.querySelector("#ideologyViewButton"),
   lawViewButton: document.querySelector("#lawViewButton"),
   searchInput: document.querySelector("#searchInput"),
+  cultureIncorporationEntry: document.querySelector("#cultureIncorporationEntry"),
   mobileCountryToolbar: document.querySelector("#mobileCountryToolbar"),
   mobileCountryFilterPanel: document.querySelector("#mobileCountryFilterPanel"),
   mobileCultureToolbar: document.querySelector("#mobileCultureToolbar"),

@@ -158,6 +158,11 @@ function bindEvents() {
     await setView("culture");
     render();
   });
+  els.cultureIncorporationEntry?.addEventListener("click", async () => {
+    replaceHash("/culture/incorporation");
+    await applyHash();
+    render();
+  });
   els.regionViewButton?.addEventListener("click", async () => {
     await setView("region");
     render();

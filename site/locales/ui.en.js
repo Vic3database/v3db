@@ -535,6 +535,7 @@ window.VICDATA_UI_LOCALES.en = {
     "board.country.primaryCulturePath.sourceType.scriptedEffect": "Scripted effect",
     "board.country.primaryCulturePath.sourceType.amendment": "Amendment",
     "nav.cultureIncorporation": "Incorporation time",
+    "nav.cultureIncorporationEntry": "Incorporation time calculator",
     "board.culture.incorporation.title": "Incorporation time calculator",
     "board.culture.incorporation.selected": "Selected cultures",
     "board.culture.incorporation.candidates": "Cultures that may be involved",
