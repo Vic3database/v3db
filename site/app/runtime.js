@@ -822,6 +822,7 @@ const els = {
   librarySelect: document.querySelector("#librarySelect"),
   standaloneLibrarySelect: document.querySelector("#standaloneLibrarySelect"),
   resetButton: document.querySelector("#resetButton"),
+  filterPanelTitle: document.querySelector("#filterPanelTitle"),
   countryViewButton: document.querySelector("#countryViewButton"),
   cultureViewButton: document.querySelector("#cultureViewButton"),
   regionViewButton: document.querySelector("#regionViewButton"),

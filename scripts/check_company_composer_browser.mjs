@@ -24,6 +24,7 @@ try {
       assert.equal(regularCompanyFilterKeys.includes("building_gold_mine"), true, "regular company filters must keep gold mines");
       await page.click("[data-company-composer-entry]");
       await page.waitFor(() => document.body.dataset.companyComposer === "true" && document.querySelectorAll("[data-company-composer-company]").length > 0, "company composer board");
+      assert.equal(await page.evaluate(() => document.querySelector("#filterPanelTitle")?.textContent), "公司建筑组合器", "composer tool should use its title in the filter panel");
       assert.equal(await page.evaluate(() => location.hash), "#/company/composer");
       const companyFilterKeys = await page.evaluate(() => Array.from(document.querySelectorAll("[data-resource-filter]"), (node) => node.dataset.resourceFilter));
       assert.equal(companyFilterKeys.includes("building_gold_field"), false, "company filters must hide gold fields");

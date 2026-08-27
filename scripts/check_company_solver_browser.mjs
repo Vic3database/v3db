@@ -19,6 +19,7 @@ try {
     try {
       await page.goto(server.url + "/index.html?version=1.13.11&lang=zh-Hans#/company/solver");
       await page.waitFor(() => document.body.dataset.view === "company" && document.querySelectorAll("[data-company-solver-building]").length === 48, "solver entry");
+      assert.equal(await page.evaluate(() => document.querySelector("#filterPanelTitle")?.textContent), "公司产业求解器", "solver tool should use its title in the filter panel");
       assert.equal(await page.evaluate(() => Boolean(document.querySelector("#companySolverTopbarButton"))), false, "solver must not be in topbar");
       await page.click('[data-nav-view="company"]');
       await page.waitFor(() => document.body.dataset.view === "company" && document.querySelector("#companySolverEntry:not([hidden])"), "company board solver entry");

@@ -1605,6 +1605,13 @@ function updatePanelToggleState() {
   }
 }
 
+function toolPanelTitle() {
+  if (state.view === "culture" && state.detailKind === "cultureIncorporation") return t("board.culture.incorporation.title", "整合时长计算器");
+  if (state.view === "company" && state.detailKind === "companySolver") return t("board.company.solverTitle", "公司产业求解器");
+  if (state.view === "company" && state.detailKind === "companyComposer") return t("board.company.composer.entry", "公司建筑组合器");
+  return t("ui.filters", "筛选");
+}
+
 function syncBoardOwnedToolPanels() {
   const cultureCalculator = state.view === "culture" && state.detailKind === "cultureIncorporation";
   const cultureBoard = state.view === "culture";
@@ -1643,6 +1650,11 @@ function render() {
   document.body.classList.toggle("detail-page", isDetailPageRoute() && state.detailKind !== "cultureIncorporation");
   document.body.classList.toggle("global-search-active", Boolean(state.globalSearch));
   updatePageChrome();
+  if (els.filterPanelTitle) {
+    const title = toolPanelTitle();
+    els.filterPanelTitle.textContent = title;
+    els.filterPanelTitle.closest(".filters")?.setAttribute("aria-label", title);
+  }
   syncInfoDialogVisibility();
   updateResultsPanelMode();
   els.countryViewButton?.setAttribute("aria-pressed", String(state.view === "country"));
