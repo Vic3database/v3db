@@ -1685,7 +1685,7 @@ function renderCompanyBoard() {
   if (els.companySolverEntry) {
     const available = typeof companySolverAvailable === "function" && companySolverAvailable();
     els.companySolverEntry.hidden = !available;
-    els.companySolverEntry.innerHTML = available ? '<button type="button" class="company-solver-entry-button" data-company-solver-entry><span><strong>' + escapeHtml(t("board.company.solverEntry", "产业组合")) + '</strong><small>' + escapeHtml(t("board.company.solverDescription", "选择希望覆盖的建筑，查找公司组合。")) + '</small></span><span aria-hidden="true">→</span></button>' : "";
+    els.companySolverEntry.innerHTML = available ? '<button type="button" class="company-solver-entry-button" data-company-solver-entry><span><strong>' + escapeHtml(t("board.company.solverEntry", "公司产业求解器")) + '</strong><small>' + escapeHtml(t("board.company.solverDescription", "选择希望覆盖的建筑，查找公司组合。")) + '</small></span><span aria-hidden="true">→</span></button>' : "";
   }
   if (els.companyComposerEntry) {
     const available = typeof companyComposerAvailable === "function" && companyComposerAvailable();

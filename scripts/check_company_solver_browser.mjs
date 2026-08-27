@@ -161,7 +161,7 @@ try {
     await englishPage.goto(server.url + "/index.html?version=1.13.11&lang=en#/company/solver");
     await englishPage.click('[data-nav-view="company"]');
     await englishPage.waitFor(() => document.querySelector("#companySolverEntry:not([hidden])"), "localized solver entry");
-    await englishPage.waitFor(() => document.querySelector("#companySolverEntry")?.textContent.includes("Industry combinations"), "localized solver entry text");
+    await englishPage.waitFor(() => document.querySelector("#companySolverEntry")?.textContent.includes("Company industry solver"), "localized solver entry text");
   } finally {
     englishPage.close();
   }

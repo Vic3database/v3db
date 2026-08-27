@@ -25,6 +25,7 @@ async function verifyHomepageTools(name, baseUrl, legacyCoverage) {
     assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll("[data-home-tool]")].map((node) => node.dataset.homeTool)), ["cultureIncorporation", "companySolver", "companyComposer"]);
     assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll("[data-home-tool]")].map((node) => node.dataset.homeToolRoute)), ["/culture/incorporation", "/company/solver", "/company/composer"]);
     assert.equal(await page.evaluate(() => document.querySelectorAll(".home-tool-icon[src*='lucide/icons/']").length), 3);
+    assert.ok(await page.evaluate(() => document.querySelector('[data-home-tool="companySolver"]')?.textContent.includes("公司产业求解器")), `${name} homepage should use the unified solver name`);
     assert.equal(await page.evaluate(() => Boolean(document.querySelector(".home-tools").compareDocumentPosition(document.querySelector(".home-category-list")) & Node.DOCUMENT_POSITION_FOLLOWING)), true);
 
     await page.click('[data-home-tool="cultureIncorporation"]');
