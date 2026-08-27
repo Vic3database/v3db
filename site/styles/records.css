@@ -1719,6 +1719,11 @@ body.results-collapsed .concept-tooltip {
   padding: 16px;
 }
 
+.culture-incorporation-start {
+  order: -1;
+  width: 100%;
+}
+
 .culture-incorporation-calculator-header h2,
 .culture-incorporation-calculator-header p,
 .culture-incorporation-calculator-section h3 {
