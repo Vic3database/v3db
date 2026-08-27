@@ -32,6 +32,9 @@ async function verifySite(name, baseUrl, fullCoverage) {
     assert.ok(readyMap.layer && readyMap.nonTransparent > 0, `${name} map should paint pixels`);
     assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector(".results")).display), "none");
     assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-incorporation-search]"))), true);
+    assert.equal(await page.evaluate(() => document.querySelector("[data-incorporation-filter-panel]")?.open), false);
+    await page.click("[data-incorporation-filter-panel] summary");
+    await page.waitFor(() => document.querySelector("[data-incorporation-filter-panel]")?.open === true, `${name} culture filter panel open`);
     assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-incorporation-filter-heritage-group]"))), true);
     assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-incorporation-homeland-effect='event:manifest_destiny.1']"))), true);
     assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-incorporation-dynamic-effect]"))), true);
@@ -50,6 +53,8 @@ async function verifySite(name, baseUrl, fullCoverage) {
     for (const key of ["hungarian", "czech", "slovak"]) assert.ok(candidateKeys.includes(key), `${name} AUS candidates must include ${key}`);
     await page.click("[data-incorporation-filter-heritage-group='heritage_group_european']");
     await page.waitFor(() => document.querySelectorAll("[data-incorporation-filter-culture]").length > 0, `${name} filtered culture results`);
+    assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-incorporation-filter-results-title]"))), true);
+    assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-incorporation-filter-results-divider]"))), true);
     const filteredKey = await page.evaluate(() => document.querySelector("[data-incorporation-filter-culture]")?.dataset.incorporationFilterCulture);
     await page.click("[data-incorporation-filter-culture]");
     assert.equal(await page.evaluate((key) => state.incorporationCalculatorCultures.has(key), filteredKey), true);

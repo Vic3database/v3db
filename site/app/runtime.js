@@ -271,6 +271,7 @@ const state = {
   incorporationCalculatorFilterLanguageGroups: new Set(),
   incorporationCalculatorFilterLanguages: new Set(),
   incorporationCalculatorFilterTradition: "",
+  incorporationCalculatorFiltersOpen: false,
   incorporationCalculatorCandidateCultures: new Map(),
   incorporationCalculatorSearch: "",
   theme: "votp",

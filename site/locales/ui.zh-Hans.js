@@ -542,6 +542,8 @@ window.VICDATA_UI_LOCALES["zh-Hans"] = {
     "board.culture.incorporation.filterHeritage": "传承",
     "board.culture.incorporation.filterLanguage": "语言",
     "board.culture.incorporation.filterTradition": "传统",
+    "board.culture.incorporation.filterMethods": "筛选方式",
+    "board.culture.incorporation.filterResults": "筛选结果",
     "board.culture.incorporation.noFilter": "选择筛选条件后显示文化",
     "board.culture.incorporation.homelandEffects": "文化本土变化",
     "board.culture.incorporation.dynamicEffects": "动态范围效果",

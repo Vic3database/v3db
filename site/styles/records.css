@@ -1749,6 +1749,26 @@ body.results-collapsed .concept-tooltip {
   gap: 9px;
 }
 
+.culture-incorporation-filter-panel {
+  border-top: 1px solid var(--line);
+}
+
+.culture-incorporation-filter-panel summary {
+  padding: 7px 0;
+  color: var(--ink-muted);
+  cursor: pointer;
+}
+
+.culture-incorporation-filter-results-divider {
+  margin: 12px 0 8px;
+  border-top: 1px solid var(--line);
+}
+
+.culture-incorporation-filter-results-title {
+  margin: 0 0 6px;
+  font-size: var(--text-sm);
+}
+
 .culture-incorporation-filter-groups small,
 .culture-incorporation-effect small,
 .culture-incorporation-dynamic-effect small {

@@ -542,6 +542,8 @@ window.VICDATA_UI_LOCALES.en = {
     "board.culture.incorporation.filterHeritage": "Heritage",
     "board.culture.incorporation.filterLanguage": "Language",
     "board.culture.incorporation.filterTradition": "Tradition",
+    "board.culture.incorporation.filterMethods": "Filter methods",
+    "board.culture.incorporation.filterResults": "Filter results",
     "board.culture.incorporation.noFilter": "Choose a filter to show cultures",
     "board.culture.incorporation.homelandEffects": "Culture homeland changes",
     "board.culture.incorporation.dynamicEffects": "Dynamic-scope effects",

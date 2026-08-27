@@ -14,6 +14,7 @@ const calculator = fs.existsSync(path.join(root, "site/app/culture-incorporation
 assert.match(runtime, /incorporationCalculatorCultures: new Set\(\)/);
 assert.match(runtime, /incorporationCalculatorAppliedCultures: new Set\(\)/);
 assert.match(runtime, /incorporationCalculatorHomelandEffects: new Set\(\)/);
+assert.match(runtime, /incorporationCalculatorFiltersOpen: false/);
 assert.match(ui, /parts\[1\] === "incorporation"/);
 assert.match(calculator, /function incorporationCalculatorCandidates\(country\)/);
 assert.match(map, /function buildCultureIncorporationMapFeatures\(\)/);
@@ -30,6 +31,9 @@ assert.match(calculator, /data-incorporation-filter-culture/);
 assert.match(calculator, /data-incorporation-homeland-effect/);
 assert.match(calculator, /data-incorporation-dynamic-effect/);
 assert.match(calculator, /data-incorporation-search/);
+assert.match(calculator, /data-incorporation-filter-panel/);
+assert.match(calculator, /data-incorporation-filter-results-title/);
+assert.match(calculator, /data-incorporation-filter-results-divider/);
 assert.match(calculator, /data-incorporation-start/);
 assert.match(calculator, /incorporationCalculatorAppliedCultures/);
 assert.doesNotMatch(calculator, /data-incorporation-results/);
