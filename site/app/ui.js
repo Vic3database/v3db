@@ -1605,6 +1605,27 @@ function updatePanelToggleState() {
   }
 }
 
+function syncBoardOwnedToolPanels() {
+  const cultureCalculator = state.view === "culture" && state.detailKind === "cultureIncorporation";
+  const cultureBoard = state.view === "culture";
+  if (els.cultureIncorporationEntry) els.cultureIncorporationEntry.hidden = !cultureBoard || cultureCalculator;
+  if (els.cultureIncorporationPanel) els.cultureIncorporationPanel.hidden = !cultureCalculator;
+
+  const companyBoard = state.view === "company";
+  const companyToolOpen = ["companySolver", "companyComposer"].includes(state.detailKind);
+  for (const entry of [els.companySolverEntry, els.companyComposerEntry]) {
+    if (!entry) continue;
+    if (!companyBoard || companyToolOpen) {
+      entry.hidden = true;
+      entry.innerHTML = "";
+    }
+  }
+  if (els.companySolverDetailPane) {
+    els.companySolverDetailPane.hidden = !(companyBoard && state.detailKind === "companySolver");
+    if (!companyBoard) els.companySolverDetailPane.innerHTML = "";
+  }
+}
+
 function render() {
   hideTransientOverlays();
   document.body.dataset.view = state.view;
@@ -1694,6 +1715,7 @@ function render() {
   } else {
     renderCountryBoard();
   }
+  syncBoardOwnedToolPanels();
   const boardManagesDetail = state.view === "home" || state.view === "interest-group" || state.view === "technology" || state.view === "achievement" || state.view === "event" || state.view === "journal" || state.view === "decision" || state.view === "building" || state.view === "goods" || state.view === "news";
   if (!boardManagesDetail && state.view !== "changelog" && isDetailPageRoute()) {
     renderDetailForState();

@@ -203,11 +203,11 @@ function renderCultureIncorporationCalculator() {
   root.className = "culture-incorporation-calculator-list";
   root.innerHTML = `
     <section class="culture-incorporation-calculator" data-culture-incorporation-calculator>
-      <header class="culture-incorporation-calculator-header">
-        <button type="button" class="culture-incorporation-back" data-incorporation-back>${escapeHtml(t("board.culture.incorporation.back", "返回文化板块"))}</button>
-        <h2>${escapeHtml(t("board.culture.incorporation.title", "整合时长计算器"))}</h2>
-        <p>${escapeHtml(t("board.culture.incorporation.description", "选择文化后启动地图计算"))}</p>
+      <header class="detail-title culture-incorporation-calculator-title">
+        <button type="button" class="detail-back-button" data-incorporation-back aria-label="${escapeHtml(t("board.culture.incorporation.back", "返回文化板块"))}" title="${escapeHtml(t("board.culture.incorporation.back", "返回文化板块"))}"><img class="lucide-icon" src="assets/lucide/icons/arrow-left.svg" alt="" aria-hidden="true"></button>
+        <div class="detail-title-main"><h2>${escapeHtml(t("board.culture.incorporation.title", "整合时长计算器"))}</h2></div>
       </header>
+      <p class="culture-incorporation-calculator-description">${escapeHtml(t("board.culture.incorporation.description", "选择文化后启动地图计算"))}</p>
       <button type="button" class="culture-incorporation-start" data-incorporation-start>${escapeHtml(t("board.culture.incorporation.start", "开始计算"))}</button>
       <section class="culture-incorporation-calculator-section"><h3>${escapeHtml(t("board.culture.incorporation.selected", "已选文化"))}</h3><div class="culture-incorporation-selected" data-incorporation-selected>${selectedHtml}</div><button type="button" class="culture-incorporation-clear" data-incorporation-clear>${escapeHtml(t("board.culture.incorporation.clear", "清空文化"))}</button></section>
       <section class="culture-incorporation-calculator-section"><h3>${escapeHtml(t("board.culture.incorporation.candidates", "可能涉及的文化"))}</h3><div class="culture-incorporation-candidates" data-incorporation-candidates>${candidateHtml || `<span class="empty">${escapeHtml(t("ui.none", "无"))}</span>`}</div></section>

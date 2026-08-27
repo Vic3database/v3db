@@ -291,13 +291,28 @@ body[data-view="culture"][data-culture-incorporation="true"] .map-panel {
 
 body[data-view="culture"][data-culture-incorporation="true"] .filters .culture-filter,
 body[data-view="culture"][data-culture-incorporation="true"] .filters #strategicRegionFilterSection,
+body[data-view="culture"][data-culture-incorporation="true"] .filters > label.search,
 body[data-view="culture"][data-culture-incorporation="true"] #sortSelect {
+  display: none;
+}
+
+body:not([data-view="culture"]) .culture-incorporation-entry {
   display: none;
 }
 
 body:not([data-view="culture"]) .culture-incorporation-entry,
 body[data-view="culture"][data-culture-incorporation="true"] .culture-incorporation-entry {
   display: none;
+}
+
+body:not([data-view="company"]) #companySolverEntry,
+body:not([data-view="company"]) #companyComposerEntry,
+body:not([data-view="company"]) #companySolverDetailPane,
+body[data-view="company"][data-company-solver="true"] #companySolverEntry,
+body[data-view="company"][data-company-solver="true"] #companyComposerEntry,
+body[data-view="company"][data-company-composer="true"] #companySolverEntry,
+body[data-view="company"][data-company-composer="true"] #companyComposerEntry {
+  display: none !important;
 }
 
 body[data-view="ideology"] .map-panel,

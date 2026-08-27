@@ -18,13 +18,19 @@ try {
 }
 
 async function verifySite(name, baseUrl, fullCoverage) {
-  const page = await openPage({ width: 1440, height: 1000 });
+  const page = await openPage({ width: 1600, height: 900 });
   try {
     await page.goto(`${baseUrl}?lang=zh-Hans#/culture/incorporation`);
     await page.waitFor(() => Boolean(document.querySelector("[data-culture-incorporation-calculator]")), `${name} calculator`);
-    assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-incorporation-back]"))), true);
+    assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-incorporation-back].detail-back-button"))), true);
+    const entryState = await page.evaluate(() => ({ hidden: document.querySelector("#cultureIncorporationEntry")?.hidden, view: state.view, detail: state.detailKind, display: getComputedStyle(document.querySelector("#cultureIncorporationEntry")).display }));
+    assert.equal(entryState.hidden, true, `${name} calculator entry state: ${JSON.stringify(entryState)}`);
+    const titleMetrics = await page.evaluate(() => { const title = document.querySelector(".culture-incorporation-calculator-title"); const back = title?.querySelector("[data-incorporation-back]")?.getBoundingClientRect(); const main = title?.querySelector(".detail-title-main")?.getBoundingClientRect(); const panel = document.querySelector("#cultureIncorporationPanel"); const filters = document.querySelector(".filters"); return { title: title?.getBoundingClientRect().toJSON(), back: back?.toJSON(), main: main?.toJSON(), display: title ? getComputedStyle(title).display : "", panel: { hidden: panel?.hidden, display: panel ? getComputedStyle(panel).display : "", rect: panel?.getBoundingClientRect().toJSON() }, filters: { display: filters ? getComputedStyle(filters).display : "", rect: filters?.getBoundingClientRect().toJSON() }, body: { view: document.body.dataset.view, calc: document.body.dataset.cultureIncorporation } }; });
+    assert.ok(Boolean(titleMetrics.title && titleMetrics.back && titleMetrics.main && Math.abs((titleMetrics.back.top + titleMetrics.back.height / 2) - (titleMetrics.main.top + titleMetrics.main.height / 2)) < 10 && titleMetrics.back.left < titleMetrics.main.left), `${name} calculator title row should align back icon and title`);
     assert.equal(await page.evaluate(() => document.querySelector("#cultureIncorporationPanel")?.hidden), false);
     assert.ok(await page.evaluate(() => { const calculator = document.querySelector("[data-culture-incorporation-calculator]"); const button = calculator?.querySelector("[data-incorporation-start]"); const selected = calculator?.querySelector("[data-incorporation-selected]")?.closest(".culture-incorporation-calculator-section"); return Boolean(button && selected && button.compareDocumentPosition(selected) & Node.DOCUMENT_POSITION_FOLLOWING); }), `${name} calculate button should be at top`);
+    assert.ok(await page.evaluate(() => { const calculator = document.querySelector("[data-culture-incorporation-calculator]"); const title = calculator?.querySelector(".culture-incorporation-calculator-title"); const back = title?.querySelector("[data-incorporation-back]"); const start = calculator?.querySelector("[data-incorporation-start]"); return Boolean(title && back && start && title.compareDocumentPosition(start) & Node.DOCUMENT_POSITION_FOLLOWING); }), `${name} calculator title row should precede calculate action`);
+    assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector(".filters > label.search")).display), "none");
     assert.notEqual(await page.evaluate(() => getComputedStyle(document.querySelector("#mapPanel")).display), "none", `${name} map should remain visible`);
     const mapDiagnostic = await page.evaluate(() => { const panel = document.querySelector("#mapPanel").getBoundingClientRect(); const viewport = document.querySelector("#mapViewport").getBoundingClientRect(); const canvas = document.querySelector("#mapCanvas"); const ctx = canvas?.getContext("2d"); const sample = ctx?.getImageData(0, 0, 1, 1).data; return { panel: [panel.width, panel.height], viewport: [viewport.width, viewport.height], canvas: [canvas?.width, canvas?.height], ready: mapRuntime.ready, loading: mapRuntime.loading, error: mapRuntime.error, mapData: Boolean(mapData), runs: mapData?.runs?.length || 0, states: stateRegions.length, mode: state.mapMode, sample: sample ? [...sample] : [] }; });
     assert.ok(mapDiagnostic.viewport[0] > 0 && mapDiagnostic.viewport[1] > 0, `${name} map viewport should have size`);
@@ -109,9 +115,20 @@ async function verifySite(name, baseUrl, fullCoverage) {
       await page.waitFor(() => Boolean(document.querySelector("[data-incorporation-country='AFG']")), `${name} Afghanistan link`);
       await page.click("[data-incorporation-country='AFG']");
       await page.waitFor(() => Boolean(document.querySelector("[data-incorporation-candidate='turkmen']")), `${name} Afghanistan candidates`);
-      await page.goto(`${baseUrl}?lang=zh-Hans#/country/AUS`);
-      await page.waitFor(() => Boolean(document.querySelector("#countryIncorporationMapButton")), `${name} base country map`);
-      assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-primary-culture-scenario-route]"))), false);
+    await page.goto(`${baseUrl}?lang=zh-Hans#/country/AUS`);
+    await page.waitFor(() => Boolean(document.querySelector("#countryIncorporationMapButton")), `${name} base country map`);
+    assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector("#cultureIncorporationEntry")).display), "none", `${name} calculator entry should stay out of country board`);
+    assert.equal(await page.evaluate(() => Boolean(document.querySelector("#companySolverEntry:not([hidden])"))), false, `${name} solver entry should stay out of country board`);
+    assert.equal(await page.evaluate(() => Boolean(document.querySelector("#companyComposerEntry:not([hidden])"))), false, `${name} composer entry should stay out of country board`);
+    assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-primary-culture-scenario-route]"))), false);
+      await page.goto(`${baseUrl}?lang=zh-Hans#/company`);
+      await page.waitFor(() => document.body.dataset.view === "company", `${name} company board`);
+      const companyTools = await page.evaluate(() => ({ solver: Boolean(document.querySelector("#companySolverEntry:not([hidden])")), composer: Boolean(document.querySelector("#companyComposerEntry:not([hidden])")) }));
+      if (companyTools.solver) await page.click("[data-company-solver-entry]");
+      else if (companyTools.composer) await page.click("[data-company-composer-entry]");
+      await page.goto(`${baseUrl}?lang=zh-Hans#/culture`);
+      await page.waitFor(() => document.body.dataset.view === "culture", `${name} company tool return`);
+      assert.deepEqual(await page.evaluate(() => ({ solver: { hidden: document.querySelector("#companySolverEntry")?.hidden, html: document.querySelector("#companySolverEntry")?.innerHTML || "" }, composer: { hidden: document.querySelector("#companyComposerEntry")?.hidden, html: document.querySelector("#companyComposerEntry")?.innerHTML || "" }, pane: document.querySelector("#companySolverDetailPane")?.hidden })), { solver: { hidden: true, html: "" }, composer: { hidden: true, html: "" }, pane: true }, `${name} company tools must be cleared outside company board`);
     }
     if (name === "victorian-century") {
       await page.goto(`${baseUrl}?lang=zh-Hans#/culture/incorporation`);
@@ -125,9 +142,10 @@ async function verifySite(name, baseUrl, fullCoverage) {
   try {
     await cultureBoard.goto(`${baseUrl}?lang=zh-Hans#/culture`);
     await cultureBoard.waitFor(() => document.querySelectorAll("[data-culture]").length > 0, `${name} culture board`);
-    assert.equal(await cultureBoard.evaluate(() => Boolean(document.querySelector("#cultureIncorporationEntry"))), true, `${name} culture board should expose calculator entry`);
+    assert.equal(await cultureBoard.evaluate(() => document.querySelector("#cultureIncorporationEntry")?.hidden), false, `${name} culture board should expose calculator entry`);
     await cultureBoard.click("#cultureIncorporationEntry");
     await cultureBoard.waitFor(() => location.hash === "#/culture/incorporation", `${name} calculator entry route`);
+    assert.equal(await cultureBoard.evaluate(() => document.querySelector("#cultureIncorporationEntry")?.hidden), true, `${name} calculator entry should hide inside calculator`);
   } finally {
     await cultureBoard.close();
   }

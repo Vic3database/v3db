@@ -1721,7 +1721,6 @@ body.results-collapsed .concept-tooltip {
 }
 
 .culture-incorporation-start {
-  order: -1;
   width: 100%;
 }
 
@@ -1731,8 +1730,22 @@ body.results-collapsed .concept-tooltip {
   margin: 0;
 }
 
-.culture-incorporation-back {
-  justify-self: start;
+.culture-incorporation-calculator-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  padding: 12px 0;
+  position: static;
+}
+
+.culture-incorporation-calculator-title .detail-back-button {
+  flex: 0 0 var(--control-height);
+}
+
+.culture-incorporation-calculator-description {
+  margin: 0;
+  color: var(--ink-muted);
 }
 
 .culture-incorporation-calculator-section {
