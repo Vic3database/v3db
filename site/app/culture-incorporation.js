@@ -204,6 +204,7 @@ function renderCultureIncorporationCalculator() {
   root.innerHTML = `
     <section class="culture-incorporation-calculator" data-culture-incorporation-calculator>
       <header class="culture-incorporation-calculator-header">
+        <button type="button" class="culture-incorporation-back" data-incorporation-back>${escapeHtml(t("board.culture.incorporation.back", "返回文化板块"))}</button>
         <h2>${escapeHtml(t("board.culture.incorporation.title", "整合时长计算器"))}</h2>
         <p>${escapeHtml(t("board.culture.incorporation.description", "选择文化后启动地图计算"))}</p>
       </header>
@@ -219,6 +220,11 @@ function renderCultureIncorporationCalculator() {
 
 function bindCultureIncorporationCalculatorEvents() {
   const root = els.cultureIncorporationPanel || els.countryList;
+  root.querySelector("[data-incorporation-back]")?.addEventListener("click", async () => {
+    replaceHash("/culture");
+    await applyHash();
+    render();
+  });
   root.querySelectorAll("[data-incorporation-candidate]").forEach((button) => button.addEventListener("click", () => incorporationCalculatorToggleCulture(button.dataset.incorporationCandidate)));
   root.querySelectorAll("[data-incorporation-filter-culture]").forEach((button) => button.addEventListener("click", () => incorporationCalculatorToggleCulture(button.dataset.incorporationFilterCulture)));
   root.querySelectorAll("[data-incorporation-filter-heritage-group]").forEach((button) => button.addEventListener("click", () => incorporationCalculatorToggleSetFilter("incorporationCalculatorFilterHeritageGroups", button.dataset.incorporationFilterHeritageGroup)));

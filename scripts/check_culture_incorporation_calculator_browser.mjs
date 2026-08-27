@@ -22,6 +22,7 @@ async function verifySite(name, baseUrl, fullCoverage) {
   try {
     await page.goto(`${baseUrl}?lang=zh-Hans#/culture/incorporation`);
     await page.waitFor(() => Boolean(document.querySelector("[data-culture-incorporation-calculator]")), `${name} calculator`);
+    assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-incorporation-back]"))), true);
     assert.equal(await page.evaluate(() => document.querySelector("#cultureIncorporationPanel")?.hidden), false);
     assert.ok(await page.evaluate(() => { const calculator = document.querySelector("[data-culture-incorporation-calculator]"); const button = calculator?.querySelector("[data-incorporation-start]"); const selected = calculator?.querySelector("[data-incorporation-selected]")?.closest(".culture-incorporation-calculator-section"); return Boolean(button && selected && button.compareDocumentPosition(selected) & Node.DOCUMENT_POSITION_FOLLOWING); }), `${name} calculate button should be at top`);
     assert.notEqual(await page.evaluate(() => getComputedStyle(document.querySelector("#mapPanel")).display), "none", `${name} map should remain visible`);
@@ -43,6 +44,11 @@ async function verifySite(name, baseUrl, fullCoverage) {
     assert.deepEqual(initial.selected, []);
     assert.deepEqual(initial.candidates, []);
     assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-incorporation-results]"))), false);
+    await page.click("[data-incorporation-back]");
+    await page.waitFor(() => location.hash === "#/culture" && document.querySelectorAll("[data-culture]").length > 0, `${name} return to culture board`);
+    assert.equal(await page.evaluate(() => document.querySelector("#cultureIncorporationPanel")?.hidden), true);
+    await page.goto(`${baseUrl}?lang=zh-Hans#/culture/incorporation`);
+    await page.waitFor(() => Boolean(document.querySelector("[data-culture-incorporation-calculator]")), `${name} calculator reopen`);
     await page.goto(`${baseUrl}?lang=zh-Hans#/country/AUS`);
     await page.waitFor(() => Boolean(document.querySelector("[data-incorporation-country='AUS']")), `${name} country calculator link`);
     await page.click("[data-incorporation-country='AUS']");

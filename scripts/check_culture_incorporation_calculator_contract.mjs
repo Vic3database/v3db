@@ -37,6 +37,7 @@ assert.match(calculator, /data-incorporation-filter-panel/);
 assert.match(calculator, /data-incorporation-filter-results-title/);
 assert.match(calculator, /data-incorporation-filter-results-divider/);
 assert.match(calculator, /data-incorporation-start/);
+assert.match(calculator, /data-incorporation-back/);
 assert.match(calculator, /incorporationCalculatorAppliedCultures/);
 assert.doesNotMatch(calculator, /data-incorporation-results/);
 assert.doesNotMatch(calculator, /board\.culture\.incorporation\.results/);

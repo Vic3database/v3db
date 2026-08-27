@@ -537,6 +537,7 @@ window.VICDATA_UI_LOCALES.en = {
     "nav.cultureIncorporation": "Incorporation time",
     "nav.cultureIncorporationEntry": "Incorporation time calculator",
     "board.culture.incorporation.title": "Incorporation time calculator",
+    "board.culture.incorporation.back": "Back to culture board",
     "board.culture.incorporation.selected": "Selected cultures",
     "board.culture.incorporation.candidates": "Cultures that may be involved",
     "board.culture.incorporation.otherCultures": "Add other cultures",

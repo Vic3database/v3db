@@ -1731,6 +1731,10 @@ body.results-collapsed .concept-tooltip {
   margin: 0;
 }
 
+.culture-incorporation-back {
+  justify-self: start;
+}
+
 .culture-incorporation-calculator-section {
   display: grid;
   gap: 8px;
