@@ -26,6 +26,14 @@ function incorporationCalculatorCandidateLabel(candidate) {
   return entityText(byCulture.get(candidate.key) || { key: candidate.key }) || candidate.key;
 }
 
+function incorporationCalculatorSearchText(culture) {
+  const label = incorporationCalculatorCandidateLabel({ key: culture.key });
+  const pinyin = window.pinyinPro?.pinyin
+    ? window.pinyinPro.pinyin(label, { toneType: "none", type: "array" }).join("")
+    : "";
+  return [label, culture.key, pinyin].join(" ").toLocaleLowerCase();
+}
+
 function incorporationCalculatorResultTitle(stateRegion, relation) {
   const homeland = relation.culture ? entityText(relation.culture) || relation.culture.key : t("map.cultureIncorporation.match", "匹配文化");
   return `${entityText(stateRegion) || stateRegion.key} · ${countryIncorporationLabel(relation.years)} · ${homeland}`;
@@ -134,7 +142,7 @@ function incorporationCalculatorFilteredCultures(candidateKeys) {
   if (!incorporationCalculatorFilterActive() && !search) return [];
   return cultures
     .filter(incorporationCalculatorFilterMatches)
-    .filter((culture) => !search || incorporationCalculatorCandidateLabel({ key: culture.key }).toLocaleLowerCase().includes(search) || culture.key.toLocaleLowerCase().includes(search))
+    .filter((culture) => !search || incorporationCalculatorSearchText(culture).includes(search))
     .filter((culture) => !candidateKeys.has(culture.key) && !state.incorporationCalculatorCultures.has(culture.key))
     .sort((left, right) => localizedCompare(entityText(left) || left.key, entityText(right) || right.key));
 }
@@ -239,6 +247,15 @@ function bindCultureIncorporationCalculatorEvents() {
   root.querySelectorAll("[data-incorporation-selected-culture]").forEach((button) => button.addEventListener("click", () => incorporationCalculatorToggleCulture(button.dataset.incorporationSelectedCulture)));
   root.querySelector("[data-incorporation-clear]")?.addEventListener("click", incorporationCalculatorClear);
   root.querySelector("[data-incorporation-start]")?.addEventListener("click", incorporationCalculatorStart);
-  root.querySelector("[data-incorporation-search]")?.addEventListener("input", (event) => { state.incorporationCalculatorSearch = event.target.value; renderCultureIncorporationCalculator(); });
+  const searchInput = root.querySelector("[data-incorporation-search]");
+  const updateSearch = (value) => {
+    state.incorporationCalculatorSearch = value;
+    renderCultureIncorporationCalculator();
+  };
+  searchInput?.addEventListener("input", (event) => {
+    if (event.isComposing) return;
+    updateSearch(event.target.value);
+  });
+  searchInput?.addEventListener("compositionend", (event) => updateSearch(event.target.value));
   root.querySelector("[data-incorporation-filter-panel]")?.addEventListener("toggle", (event) => { state.incorporationCalculatorFiltersOpen = event.target.open; });
 }

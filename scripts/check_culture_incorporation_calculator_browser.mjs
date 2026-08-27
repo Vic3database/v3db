@@ -53,6 +53,19 @@ async function verifySite(name, baseUrl, fullCoverage) {
     assert.deepEqual(initial.selected, []);
     assert.deepEqual(initial.candidates, []);
     assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-incorporation-results]"))), false);
+    await page.evaluate(() => { const input = document.querySelector("[data-incorporation-search]"); input.dispatchEvent(new CompositionEvent("compositionstart", { bubbles: true })); input.value = "匈"; input.dispatchEvent(new InputEvent("input", { bubbles: true, isComposing: true })); });
+    assert.equal(await page.evaluate(() => document.querySelector("[data-incorporation-search]")?.value), "匈", `${name} search must preserve an in-progress Chinese composition`);
+    await page.evaluate(() => { const input = document.querySelector("[data-incorporation-search]"); input.value = "匈牙利"; input.dispatchEvent(new CompositionEvent("compositionend", { bubbles: true })); });
+    await page.waitFor(() => [...document.querySelectorAll("[data-incorporation-filter-culture]")].some((node) => node.dataset.incorporationFilterCulture === "hungarian"), `${name} Chinese culture search`);
+    await page.evaluate(() => { const input = document.querySelector("[data-incorporation-search]"); input.value = "xiongyali"; input.dispatchEvent(new InputEvent("input", { bubbles: true })); });
+    const pinyinDiagnostic = await page.evaluate(() => ({
+      available: typeof window.pinyinPro?.pinyin === "function",
+      input: document.querySelector("[data-incorporation-search]")?.value,
+      search: state.incorporationCalculatorSearch,
+      resultKeys: [...document.querySelectorAll("[data-incorporation-filter-culture]")].map((node) => node.dataset.incorporationFilterCulture),
+    }));
+    assert.ok(pinyinDiagnostic.available && pinyinDiagnostic.resultKeys.includes("hungarian"), `${name} pinyin culture search: ${JSON.stringify(pinyinDiagnostic)}`);
+    await page.evaluate(() => { const input = document.querySelector("[data-incorporation-search]"); input.value = ""; input.dispatchEvent(new InputEvent("input", { bubbles: true })); });
     await page.click("[data-incorporation-back]");
     await page.waitFor(() => location.hash === "#/culture" && document.querySelectorAll("[data-culture]").length > 0, `${name} return to culture board`);
     assert.equal(await page.evaluate(() => document.querySelector("#cultureIncorporationPanel")?.hidden), true);
