@@ -45,11 +45,13 @@ function incorporationCalculatorToggleCulture(key) {
   if (state.incorporationCalculatorCultures.has(key)) state.incorporationCalculatorCultures.delete(key);
   else state.incorporationCalculatorCultures.add(key);
   renderCultureIncorporationCalculator();
+  renderMapControls();
 }
 
 function incorporationCalculatorClear() {
   state.incorporationCalculatorCultures.clear();
   renderCultureIncorporationCalculator();
+  renderMapControls();
 }
 
 function incorporationCalculatorToggleSetFilter(field, key) {
@@ -96,6 +98,7 @@ function clearCultureIncorporationCalculatorState() {
   state.incorporationCalculatorAppliedHomelandEffects.clear();
   incorporationCalculatorClearFilters();
   state.incorporationCalculatorSearch = "";
+  renderMapCultureContext();
 }
 
 function incorporationCalculatorFilterMatches(culture) {

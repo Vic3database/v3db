@@ -5,13 +5,16 @@ function renderMapControls() {
   syncMapModeForView();
   if (els.countryIncorporationMapButton) {
     const available = state.view === "country" && Boolean(state.selectedTag);
+    els.countryIncorporationMapButton.hidden = state.view === "culture" && state.detailKind === "cultureIncorporation";
     els.countryIncorporationMapButton.disabled = !available;
     els.countryIncorporationMapButton.setAttribute("aria-pressed", String(available && state.mapMode === "countryIncorporation"));
   }
+  if (els.bottomPanelToggle) els.bottomPanelToggle.hidden = state.view === "culture" && state.detailKind === "cultureIncorporation";
   const terrainViewEnabled = state.view === "region" && state.regionMapView === "terrain";
   els.terrainMapViewButton?.setAttribute("aria-pressed", String(terrainViewEnabled));
   if (state.view === "ideology" || state.view === "law") {
     renderMapCountryContext();
+    renderMapCultureContext();
     renderMapResourceContext();
     renderTerrainMapLegend();
     renderSubsistenceBuildingMapLegend();
@@ -20,6 +23,7 @@ function renderMapControls() {
   }
   if (!els.mapModeSelect || !els.mapSubjectSelect) {
     renderMapCountryContext();
+    renderMapCultureContext();
     renderMapResourceContext();
     renderTerrainMapLegend();
     renderSubsistenceBuildingMapLegend();
@@ -35,6 +39,7 @@ function renderMapControls() {
     `<option value="${escapeHtml(option.value)}"${state.mapSubject === option.value ? " selected" : ""}>${escapeHtml(option.label)}</option>`
   )).join("");
   renderMapCountryContext();
+  renderMapCultureContext();
   renderMapResourceContext();
   renderTerrainMapLegend();
   renderSubsistenceBuildingMapLegend();
@@ -73,6 +78,22 @@ function renderCountryIncorporationMapLegend() {
   els.countryIncorporationMapLegend.innerHTML = entries.map(([years, fallback]) => (
     `<span class="country-incorporation-map-legend-item"><span class="country-incorporation-map-legend-swatch" style="--country-incorporation-map-color: ${escapeHtml(countryIncorporationColor(years, false))}" aria-hidden="true"></span>${escapeHtml(countryIncorporationLabel(years, fallback))}</span>`
   )).join("");
+}
+
+function renderMapCultureContext() {
+  if (!els.mapCultureContext) return;
+  const active = state.view === "culture" && state.detailKind === "cultureIncorporation";
+  const selected = [...(state.incorporationCalculatorCultures || [])]
+    .map((key) => byCulture.get(key))
+    .filter(Boolean);
+  if (!active || !selected.length) {
+    els.mapCultureContext.hidden = true;
+    els.mapCultureContext.textContent = "";
+    return;
+  }
+  const labels = selected.map((culture) => entityText(culture) || culture.key);
+  els.mapCultureContext.hidden = false;
+  els.mapCultureContext.innerHTML = `<span class="map-culture-context-label">${escapeHtml(t("map.cultureIncorporation.selected", "选中文化"))}</span><span class="map-culture-context-name">${escapeHtml(labels.join("、"))}</span>`;
 }
 
 function countryIncorporationLabel(years, fallback = `${years}年`) {

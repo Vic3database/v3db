@@ -19,7 +19,10 @@ assert.match(ui, /parts\[1\] === "incorporation"/);
 assert.match(calculator, /function incorporationCalculatorCandidates\(country\)/);
 assert.match(map, /function buildCultureIncorporationMapFeatures\(\)/);
 assert.match(indexHtml, /app\/culture-incorporation\.js/);
-assert.match(indexHtml, /app\/culture-incorporation\.js\?v=20260827-culture-calculator-rework1/);
+assert.match(indexHtml, /app\/culture-incorporation\.js\?v=20260827-culture-context2/);
+assert.match(indexHtml, /id="mapCultureContext"/);
+assert.match(indexHtml, /id="bottomPanelToggle"/);
+assert.match(indexHtml, /id="countryIncorporationMapButton"/);
 assert.match(indexHtml, /id="cultureIncorporationEntry"/);
 assert.match(indexHtml, /data-i18n="nav.cultureIncorporationEntry"/);
 assert.doesNotMatch(runtime, /countryIncorporationScenario/);
@@ -61,7 +64,9 @@ assert.match(map, /state\.mapMode === "cultureIncorporation"[\s\S]*incorporation
 assert.match(map, /function incorporationCalculatorHomelandCulturesForStateRegion\(/);
 assert.match(map, /incorporationCalculatorAppliedHomelandEffects/);
 assert.match(map, /state\.mapMode === "cultureIncorporation"[\s\S]*incorporationCalculatorAppliedHomelandEffects/);
-assert.match(indexHtml, /app\/map\.js\?v=20260826-culture-incorporation-refresh1/);
+assert.match(map, /function renderMapCultureContext\(/);
+assert.match(map, /mapCultureContext/);
+assert.match(indexHtml, /app\/map\.js\?v=20260827-culture-context2/);
 assert.match(calculator, /empty/);
 
 console.log("culture incorporation calculator contract passed");
