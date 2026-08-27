@@ -29,7 +29,7 @@ assert.match(calculator, /data-incorporation-filter-tradition/);
 assert.match(calculator, /data-incorporation-filter-culture/);
 assert.match(calculator, /data-incorporation-homeland-effect/);
 assert.match(calculator, /data-incorporation-dynamic-effect/);
-assert.doesNotMatch(calculator, /data-incorporation-search/);
+assert.match(calculator, /data-incorporation-search/);
 assert.match(calculator, /data-incorporation-start/);
 assert.match(calculator, /incorporationCalculatorAppliedCultures/);
 assert.doesNotMatch(calculator, /data-incorporation-results/);

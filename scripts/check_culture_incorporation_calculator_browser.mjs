@@ -31,7 +31,7 @@ async function verifySite(name, baseUrl, fullCoverage) {
     const readyMap = await page.evaluate(() => { const canvas = document.querySelector("#mapCanvas"); const pixels = canvas?.getContext("2d")?.getImageData(0, 0, canvas.width, canvas.height).data || []; let nonTransparent = 0; for (let index = 3; index < pixels.length; index += 4) if (pixels[index] > 0) nonTransparent += 1; return { ready: mapRuntime.ready, layer: Boolean(mapRuntime.layerCanvas), nonTransparent }; });
     assert.ok(readyMap.layer && readyMap.nonTransparent > 0, `${name} map should paint pixels`);
     assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector(".results")).display), "none");
-    assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-incorporation-search]"))), false);
+    assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-incorporation-search]"))), true);
     assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-incorporation-filter-heritage-group]"))), true);
     assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-incorporation-homeland-effect='event:manifest_destiny.1']"))), true);
     assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-incorporation-dynamic-effect]"))), true);
@@ -53,6 +53,9 @@ async function verifySite(name, baseUrl, fullCoverage) {
     const filteredKey = await page.evaluate(() => document.querySelector("[data-incorporation-filter-culture]")?.dataset.incorporationFilterCulture);
     await page.click("[data-incorporation-filter-culture]");
     assert.equal(await page.evaluate((key) => state.incorporationCalculatorCultures.has(key), filteredKey), true);
+    await page.evaluate(() => { const input = document.querySelector("[data-incorporation-search]"); input.value = "french"; input.dispatchEvent(new Event("input", { bubbles: true })); });
+    await page.waitFor(() => document.querySelectorAll("[data-incorporation-filter-culture]").length > 0, `${name} culture search results`);
+    assert.ok(await page.evaluate(() => [...document.querySelectorAll("[data-incorporation-filter-culture]")].some((node) => node.dataset.incorporationFilterCulture === "french")));
     const beforeStart = await page.evaluate(() => ({ applied: [...(state.incorporationCalculatorAppliedCultures || [])], mode: state.mapMode, layerSignature: mapRuntime.layerSignature }));
     await page.click("[data-incorporation-candidate='hungarian']");
     assert.deepEqual(await page.evaluate(() => [...(state.incorporationCalculatorAppliedCultures || [])]), beforeStart.applied);
@@ -73,9 +76,9 @@ async function verifySite(name, baseUrl, fullCoverage) {
 
     await page.goto(`${baseUrl}?lang=zh-Hans#/culture/incorporation`);
     await page.click("[data-incorporation-filter-heritage-group='heritage_group_european']");
+    await page.evaluate(() => { const input = document.querySelector("[data-incorporation-search]"); input.value = "yankee"; input.dispatchEvent(new Event("input", { bubbles: true })); });
     await page.waitFor(() => document.querySelectorAll("[data-incorporation-filter-culture]").length > 0, `${name} Yankee filter result`);
-    const yankeeSelector = await page.evaluate(() => [...document.querySelectorAll("[data-incorporation-filter-culture]")].find((node) => node.dataset.incorporationFilterCulture === "yankee")?.dataset.incorporationFilterCulture || document.querySelector("[data-incorporation-filter-culture]")?.dataset.incorporationFilterCulture);
-    await page.click(`[data-incorporation-filter-culture='${yankeeSelector}']`);
+    await page.click("[data-incorporation-filter-culture='yankee']");
     const beforeEffect = await page.evaluate(() => ({ applied: [...state.incorporationCalculatorAppliedHomelandEffects], relation: mapRuntime.featureByStateKey?.get("STATE_CALIFORNIA")?.incorporation?.culture?.key || "" }));
     await page.click("[data-incorporation-homeland-effect='event:manifest_destiny.1']");
     assert.deepEqual(await page.evaluate(() => [...state.incorporationCalculatorAppliedHomelandEffects]), beforeEffect.applied);
@@ -128,7 +131,7 @@ async function openPage(viewport) {
     async evaluate(callback, ...args) { const expression = `(${callback})(${args.map((value) => JSON.stringify(value)).join(",")})`; const result = await session.send("Runtime.evaluate", { expression, returnByValue: true, awaitPromise: true }); if (result.exceptionDetails) throw new Error(`${result.exceptionDetails.exception?.description || result.exceptionDetails.text || "browser evaluation failed"}\n${expression}`); return result.result.value; },
     async click(selector) { await this.evaluate((targetSelector) => document.querySelector(targetSelector)?.click(), selector); },
     async text(selector) { return this.evaluate((targetSelector) => document.querySelector(targetSelector)?.innerText?.replace(/\s+/g, " ").trim() || "", selector); },
-    async waitFor(predicate, description, ...args) { const deadline = Date.now() + 20000; while (Date.now() < deadline) { if (await this.evaluate(predicate, ...args)) return; await new Promise((resolve) => setTimeout(resolve, 50)); } throw new Error(`${description} timed out: ${await this.evaluate(() => window.__mapLayerError || "no diagnostic")}`); },
+    async waitFor(predicate, description, ...args) { const deadline = Date.now() + 20000; while (Date.now() < deadline) { if (await this.evaluate(predicate, ...args)) return; await new Promise((resolve) => setTimeout(resolve, 50)); } throw new Error(`${description} timed out: ${await this.evaluate(() => window.__mapLayerError || JSON.stringify({ href: location.href, panel: Boolean(document.querySelector("[data-culture-incorporation-calculator]")), fatal: document.querySelector(".fatal-error")?.textContent || "" }))}`); },
     close() { session.close(); },
   };
 }

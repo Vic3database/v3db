@@ -290,7 +290,7 @@ body[data-view="culture"][data-culture-incorporation="true"] .map-panel {
 }
 
 body[data-view="culture"][data-culture-incorporation="true"] .filters .culture-filter,
-body[data-view="culture"][data-culture-incorporation="true"] #searchInput,
+body[data-view="culture"][data-culture-incorporation="true"] .filters .company-region-filter-section,
 body[data-view="culture"][data-culture-incorporation="true"] #sortSelect {
   display: none;
 }
