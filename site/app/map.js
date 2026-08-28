@@ -62,7 +62,8 @@ function renderMapCountryContext() {
 
 function renderCountryIncorporationMapLegend() {
   if (!els.countryIncorporationMapLegend) return;
-  const enabled = state.view === "country" && state.mapMode === "countryIncorporation" && Boolean(state.selectedTag);
+  const enabled = (state.view === "country" && state.mapMode === "countryIncorporation" && Boolean(state.selectedTag))
+    || (state.view === "culture" && state.detailKind === "cultureIncorporation");
   els.countryIncorporationMapLegend.hidden = !enabled;
   if (!enabled) {
     els.countryIncorporationMapLegend.textContent = "";

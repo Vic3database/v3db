@@ -45,8 +45,12 @@ async function verifySite(name, baseUrl, fullCoverage) {
     assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector(".results")).display), "none");
     assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-incorporation-search]"))), true);
     assert.equal(await page.evaluate(() => document.querySelector("[data-incorporation-filter-panel]")?.open), false);
-    assert.equal(await page.evaluate(() => document.querySelectorAll("[data-incorporation-legend-item]").length), 5, `${name} calculator should show five incorporation-time legend entries`);
-    assert.ok(await page.evaluate(() => [...document.querySelectorAll("[data-incorporation-legend-item]")].every((node) => node.querySelector("[data-incorporation-legend-swatch]")?.style.getPropertyValue("--culture-incorporation-color"))), `${name} calculator legend entries should carry map colors`);
+    assert.equal(await page.evaluate(() => document.querySelectorAll("[data-incorporation-legend-item]").length), 0, `${name} calculator sidebar should not show incorporation-time legend entries`);
+    const legend = await page.evaluate(() => { const node = document.querySelector("#countryIncorporationMapLegend"); const map = document.querySelector("#mapPanel")?.getBoundingClientRect(); const rect = node?.getBoundingClientRect(); return { hidden: node?.hidden, items: node?.querySelectorAll(".country-incorporation-map-legend-item").length || 0, colors: [...(node?.querySelectorAll(".country-incorporation-map-legend-swatch") || [])].map((swatch) => swatch.style.getPropertyValue("--country-incorporation-map-color")), mapBottom: map?.bottom || 0, top: rect?.top || 0, bottom: rect?.bottom || 0 }; });
+    assert.equal(legend.hidden, false, `${name} calculator should show the map legend`);
+    assert.equal(legend.items, 5, `${name} map legend should show five incorporation-time entries`);
+    assert.ok(legend.colors.every(Boolean), `${name} map legend entries should carry map colors`);
+    assert.ok(legend.bottom <= legend.mapBottom && legend.top > (legend.mapBottom - 140), `${name} map legend should sit at the bottom of the map: ${JSON.stringify(legend)}`);
     await page.click("[data-incorporation-filter-panel] summary");
     await page.waitFor(() => document.querySelector("[data-incorporation-filter-panel]")?.open === true, `${name} culture filter panel open`);
     assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll("[data-incorporation-filter-group]")].map((node) => ({ key: node.dataset.incorporationFilterGroup, open: node.open }))), [{ key: "heritage", open: false }, { key: "language", open: false }, { key: "tradition", open: false }], `${name} filter groups should start collapsed`);

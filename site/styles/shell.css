@@ -558,6 +558,10 @@ body.filters-collapsed .subsistence-building-map-legend {
   left: 12px;
 }
 
+body.filters-collapsed .country-incorporation-map-legend {
+  left: 12px;
+}
+
 body[data-results-panel="collapsed"] .results,
 body.results-collapsed .results {
   left: calc(0px - var(--results-panel-width) - 24px);
@@ -1817,6 +1821,12 @@ body[data-view="law"][data-results-panel="collapsed"] .detail {
   }
 
   .subsistence-building-map-legend {
+    right: 10px;
+    bottom: 10px;
+    left: 10px;
+  }
+
+  .country-incorporation-map-legend {
     right: 10px;
     bottom: 10px;
     left: 10px;
