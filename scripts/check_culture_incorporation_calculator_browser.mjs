@@ -103,6 +103,7 @@ async function verifySite(name, baseUrl, fullCoverage) {
     await page.click("[data-incorporation-start]");
     assert.equal(await page.evaluate(() => state.mapMode), "cultureIncorporation");
     assert.ok(await page.evaluate(() => ["south_german", "hungarian", "czech", "slovak"].every((key) => state.incorporationCalculatorAppliedCultures.has(key))));
+    await page.waitFor((previousSignature) => Boolean(mapRuntime.layerSignature) && mapRuntime.layerSignature !== previousSignature, `${name} map layer refresh`, beforeStart.layerSignature);
     assert.notEqual(await page.evaluate(() => mapRuntime.layerSignature), beforeStart.layerSignature, `${name} map layer must refresh after calculation`);
     await page.click("[data-incorporation-selected-culture='czech']");
     assert.equal(await page.evaluate(() => state.incorporationCalculatorCultures.has("czech")), false);
