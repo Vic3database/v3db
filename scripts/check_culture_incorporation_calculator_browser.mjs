@@ -184,6 +184,12 @@ async function verifySite(name, baseUrl, fullCoverage) {
     await mobile.waitFor(() => Boolean(document.querySelector("[data-culture-incorporation-calculator]")), `${name} English mobile calculator`);
     const overflow = await mobile.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     assert.ok(overflow <= 1, `${name} calculator must not overflow horizontally: ${overflow}`);
+    await mobile.goto(`${baseUrl}?lang=zh-Hans#/culture/incorporation`);
+    await mobile.waitFor(() => Boolean(document.querySelector("[data-incorporation-homeland-effect]")), `${name} homeland effect cards`);
+    const effectOverflow = await mobile.evaluate(() => [...document.querySelectorAll(".culture-incorporation-effect")].map((node) => { const rect = node.getBoundingClientRect(); const span = node.querySelector("span"); const strong = node.querySelector("strong"); return { display: getComputedStyle(node).display, parentDisplay: getComputedStyle(node.parentElement).display, card: node.scrollWidth, client: node.clientWidth, rect: [rect.x, rect.width, rect.height], text: span?.scrollWidth || 0, textClient: span?.clientWidth || 0, strong: strong?.scrollWidth || 0, strongClient: strong?.clientWidth || 0, title: strong?.textContent || "" }; }));
+    assert.ok(effectOverflow.length > 0 && effectOverflow.every((item) => item.display === "grid"), `${name} homeland effect cards should use the calculator grid layout: ${JSON.stringify(effectOverflow.slice(0, 3))}`);
+    const overflowCards = effectOverflow.filter((item) => item.card > item.client + 1 || item.text > item.textClient + 1 || item.strong > item.strongClient + 1);
+    assert.deepEqual(overflowCards, [], `${name} homeland effect cards must wrap long source keys`);
   } finally {
     await mobile.close();
   }

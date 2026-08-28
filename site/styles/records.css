@@ -1870,7 +1870,7 @@ body.results-collapsed .concept-tooltip {
   background: color-mix(in srgb, var(--accent) 15%, var(--surface));
 }
 
-.culture-incorporation-effect,
+label.culture-incorporation-effect,
 .culture-incorporation-dynamic-effect {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
@@ -1879,6 +1879,17 @@ body.results-collapsed .concept-tooltip {
   padding: 8px;
   border: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
   border-radius: 5px;
+}
+
+label.culture-incorporation-effect > span,
+.culture-incorporation-dynamic-effect > span,
+.culture-incorporation-effect strong,
+.culture-incorporation-effect small,
+.culture-incorporation-dynamic-effect strong,
+.culture-incorporation-dynamic-effect small {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .culture-incorporation-dynamic-effect {
