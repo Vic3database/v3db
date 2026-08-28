@@ -27,6 +27,7 @@ async function verifyHomepageTools(name, baseUrl, legacyCoverage) {
     assert.equal(await page.evaluate(() => document.querySelectorAll(".home-tool-icon[src*='lucide/icons/']").length), 3);
     assert.ok(await page.evaluate(() => document.querySelector('[data-home-tool="companySolver"]')?.textContent.includes("公司产业求解器")), `${name} homepage should use the unified solver name`);
     assert.equal(await page.evaluate(() => Boolean(document.querySelector(".home-tools").compareDocumentPosition(document.querySelector(".home-category-list")) & Node.DOCUMENT_POSITION_FOLLOWING)), true);
+    if (legacyCoverage) assert.ok(await page.evaluate(() => document.querySelector(".home-announcement")?.textContent.includes("新增整合时间计算器，可以自定义选文化然后计算整合时间，并且做了改变文化本土相关的适配。")), "homepage should render the calculator update announcement");
 
     await page.click('[data-home-tool="cultureIncorporation"]');
     await page.waitFor(() => location.hash === "#/culture/incorporation" && Boolean(document.querySelector("[data-culture-incorporation-calculator]")), "calculator direct route");
