@@ -62,17 +62,19 @@ function incorporationCalculatorClear() {
   renderMapControls();
 }
 
-function incorporationCalculatorToggleSetFilter(field, key) {
+function incorporationCalculatorToggleSetFilter(field, key, group) {
   if (!key || !state[field]) return;
   if (state[field].has(key)) state[field].delete(key);
   else state[field].add(key);
   state.incorporationCalculatorFiltersOpen = true;
+  if (group) state.incorporationCalculatorFilterGroupsOpen[group] = true;
   renderCultureIncorporationCalculator();
 }
 
-function incorporationCalculatorSetTradition(key) {
+function incorporationCalculatorSetTradition(key, group) {
   state.incorporationCalculatorFilterTradition = state.incorporationCalculatorFilterTradition === key ? "" : key;
   state.incorporationCalculatorFiltersOpen = true;
+  if (group) state.incorporationCalculatorFilterGroupsOpen[group] = true;
   renderCultureIncorporationCalculator();
 }
 
@@ -90,6 +92,11 @@ function incorporationCalculatorClearFilters() {
   state.incorporationCalculatorFilterLanguages.clear();
   state.incorporationCalculatorFilterTradition = "";
   state.incorporationCalculatorFiltersOpen = false;
+  state.incorporationCalculatorFilterGroupsOpen = {
+    heritage: false,
+    language: false,
+    tradition: false,
+  };
 }
 
 function incorporationCalculatorStart() {
@@ -206,6 +213,7 @@ function renderCultureIncorporationCalculator() {
     : `<span class="empty">${escapeHtml(t("board.culture.incorporation.empty", "请选择文化"))}</span>`;
   const candidateHtml = candidates.map((candidate) => `<button type="button" class="culture-incorporation-candidate" data-incorporation-candidate="${escapeHtml(candidate.key)}" aria-pressed="${String(state.incorporationCalculatorCultures.has(candidate.key))}">${escapeHtml(incorporationCalculatorCandidateLabel(candidate))}</button>`).join("");
   const renderFilter = (items, attribute, selected) => items.map((item) => `<button type="button" class="culture-incorporation-filter" ${attribute}="${escapeHtml(item.key)}" aria-pressed="${String(selected.has?.(item.key) || selected === item.key)}">${escapeHtml(entityText(item) || item.key)}</button>`).join("");
+  const filterGroup = (key, label, content) => `<details class="culture-incorporation-filter-group" data-incorporation-filter-group="${escapeHtml(key)}"${state.incorporationCalculatorFilterGroupsOpen[key] ? " open" : ""}><summary>${escapeHtml(label)}</summary><div class="culture-incorporation-candidates">${content}</div></details>`;
   const filteredHtml = filteredCultures.length
     ? filteredCultures.map((culture) => `<button type="button" class="culture-incorporation-candidate" data-incorporation-filter-culture="${escapeHtml(culture.key)}">${escapeHtml(entityText(culture) || culture.key)}</button>`).join("")
     : `<span class="empty">${escapeHtml(t("board.culture.incorporation.noFilter", "选择筛选条件后显示文化"))}</span>`;
@@ -222,9 +230,10 @@ function renderCultureIncorporationCalculator() {
       <button type="button" class="culture-incorporation-start" data-incorporation-start>${escapeHtml(t("board.culture.incorporation.start", "开始计算"))}</button>
       <section class="culture-incorporation-calculator-section"><h3>${escapeHtml(t("board.culture.incorporation.selected", "已选文化"))}</h3><div class="culture-incorporation-selected" data-incorporation-selected>${selectedHtml}</div><button type="button" class="culture-incorporation-clear" data-incorporation-clear>${escapeHtml(t("board.culture.incorporation.clear", "清空文化"))}</button></section>
       <section class="culture-incorporation-calculator-section"><h3>${escapeHtml(t("board.culture.incorporation.candidates", "可能涉及的文化"))}</h3><div class="culture-incorporation-candidates" data-incorporation-candidates>${candidateHtml || `<span class="empty">${escapeHtml(t("ui.none", "无"))}</span>`}</div></section>
-      <section class="culture-incorporation-calculator-section"><h3>${escapeHtml(t("board.culture.incorporation.otherCultures", "添加其他文化"))}</h3><input class="culture-incorporation-search" data-incorporation-search type="search" value="${escapeHtml(state.incorporationCalculatorSearch)}" placeholder="${escapeHtml(t("board.culture.incorporation.search", "搜索文化"))}"><details class="culture-incorporation-filter-panel" data-incorporation-filter-panel${state.incorporationCalculatorFiltersOpen ? " open" : ""}><summary>${escapeHtml(t("board.culture.incorporation.filterMethods", "筛选方式"))}</summary><div class="culture-incorporation-filter-groups"><div><small>${escapeHtml(t("board.culture.incorporation.filterHeritage", "传承"))}</small><div class="culture-incorporation-candidates">${renderFilter(heritageGroups, "data-incorporation-filter-heritage-group", state.incorporationCalculatorFilterHeritageGroups)}${renderFilter(heritages, "data-incorporation-filter-heritage", state.incorporationCalculatorFilterHeritages)}</div></div><div><small>${escapeHtml(t("board.culture.incorporation.filterLanguage", "语言"))}</small><div class="culture-incorporation-candidates">${renderFilter(languageGroups, "data-incorporation-filter-language-group", state.incorporationCalculatorFilterLanguageGroups)}${renderFilter(languages, "data-incorporation-filter-language", state.incorporationCalculatorFilterLanguages)}</div></div><div><small>${escapeHtml(t("board.culture.incorporation.filterTradition", "传统"))}</small><div class="culture-incorporation-candidates">${renderFilter(traditions, "data-incorporation-filter-tradition", state.incorporationCalculatorFilterTradition)}</div></div></div></details><div class="culture-incorporation-filter-results-divider" data-incorporation-filter-results-divider></div><h4 class="culture-incorporation-filter-results-title" data-incorporation-filter-results-title>${escapeHtml(t("board.culture.incorporation.filterResults", "筛选结果"))}</h4><div class="culture-incorporation-candidates" data-incorporation-filter-results>${filteredHtml}</div></section>
+      <section class="culture-incorporation-calculator-section"><h3>${escapeHtml(t("board.culture.incorporation.otherCultures", "添加其他文化"))}</h3><input class="culture-incorporation-search" data-incorporation-search type="search" value="${escapeHtml(state.incorporationCalculatorSearch)}" placeholder="${escapeHtml(t("board.culture.incorporation.searchSubmit", "搜索文化，按 Enter 检索"))}"><details class="culture-incorporation-filter-panel" data-incorporation-filter-panel${state.incorporationCalculatorFiltersOpen ? " open" : ""}><summary>${escapeHtml(t("board.culture.incorporation.filterMethods", "筛选方式"))}</summary><div class="culture-incorporation-filter-groups">${filterGroup("heritage", t("board.culture.incorporation.filterHeritage", "传承"), renderFilter(heritageGroups, "data-incorporation-filter-heritage-group", state.incorporationCalculatorFilterHeritageGroups) + renderFilter(heritages, "data-incorporation-filter-heritage", state.incorporationCalculatorFilterHeritages))}${filterGroup("language", t("board.culture.incorporation.filterLanguage", "语言"), renderFilter(languageGroups, "data-incorporation-filter-language-group", state.incorporationCalculatorFilterLanguageGroups) + renderFilter(languages, "data-incorporation-filter-language", state.incorporationCalculatorFilterLanguages))}${filterGroup("tradition", t("board.culture.incorporation.filterTradition", "传统"), renderFilter(traditions, "data-incorporation-filter-tradition", state.incorporationCalculatorFilterTradition))}</div></details><div class="culture-incorporation-filter-results-divider" data-incorporation-filter-results-divider></div><h4 class="culture-incorporation-filter-results-title" data-incorporation-filter-results-title>${escapeHtml(t("board.culture.incorporation.filterResults", "筛选结果"))}</h4><div class="culture-incorporation-candidates" data-incorporation-filter-results>${filteredHtml}</div></section>
       <section class="culture-incorporation-calculator-section"><h3>${escapeHtml(t("board.culture.incorporation.homelandEffects", "文化本土变化"))}</h3><div class="culture-incorporation-effects">${fixedEffectHtml || `<span class="empty">${escapeHtml(t("ui.none", "无"))}</span>`}</div></section>
       <section class="culture-incorporation-calculator-section"><h3>${escapeHtml(t("board.culture.incorporation.dynamicEffects", "动态范围效果"))}</h3><div class="culture-incorporation-effects">${dynamicEffectHtml || `<span class="empty">${escapeHtml(t("ui.none", "无"))}</span>`}</div></section>
+      <section class="culture-incorporation-calculator-legend" aria-label="${escapeHtml(t("map.countryIncorporation.legend", "整合年数图例"))}"><h3>${escapeHtml(t("map.countryIncorporation.legend", "整合年数图例"))}</h3><div class="culture-incorporation-legend-items">${[2, 5, 10, 15, 25].map((years) => `<span class="culture-incorporation-legend-item" data-incorporation-legend-item><span class="culture-incorporation-legend-swatch" data-incorporation-legend-swatch style="--culture-incorporation-color:${escapeHtml(countryIncorporationColor(years, false))}" aria-hidden="true"></span>${escapeHtml(t(`map.countryIncorporation.years${years}`, `${years}年`))}</span>`).join("")}</div></section>
     </section>`;
   bindCultureIncorporationCalculatorEvents();
 }
@@ -238,11 +247,11 @@ function bindCultureIncorporationCalculatorEvents() {
   });
   root.querySelectorAll("[data-incorporation-candidate]").forEach((button) => button.addEventListener("click", () => incorporationCalculatorToggleCulture(button.dataset.incorporationCandidate)));
   root.querySelectorAll("[data-incorporation-filter-culture]").forEach((button) => button.addEventListener("click", () => incorporationCalculatorToggleCulture(button.dataset.incorporationFilterCulture)));
-  root.querySelectorAll("[data-incorporation-filter-heritage-group]").forEach((button) => button.addEventListener("click", () => incorporationCalculatorToggleSetFilter("incorporationCalculatorFilterHeritageGroups", button.dataset.incorporationFilterHeritageGroup)));
-  root.querySelectorAll("[data-incorporation-filter-heritage]").forEach((button) => button.addEventListener("click", () => incorporationCalculatorToggleSetFilter("incorporationCalculatorFilterHeritages", button.dataset.incorporationFilterHeritage)));
-  root.querySelectorAll("[data-incorporation-filter-language-group]").forEach((button) => button.addEventListener("click", () => incorporationCalculatorToggleSetFilter("incorporationCalculatorFilterLanguageGroups", button.dataset.incorporationFilterLanguageGroup)));
-  root.querySelectorAll("[data-incorporation-filter-language]").forEach((button) => button.addEventListener("click", () => incorporationCalculatorToggleSetFilter("incorporationCalculatorFilterLanguages", button.dataset.incorporationFilterLanguage)));
-  root.querySelectorAll("[data-incorporation-filter-tradition]").forEach((button) => button.addEventListener("click", () => incorporationCalculatorSetTradition(button.dataset.incorporationFilterTradition)));
+  root.querySelectorAll("[data-incorporation-filter-heritage-group]").forEach((button) => button.addEventListener("click", () => incorporationCalculatorToggleSetFilter("incorporationCalculatorFilterHeritageGroups", button.dataset.incorporationFilterHeritageGroup, "heritage")));
+  root.querySelectorAll("[data-incorporation-filter-heritage]").forEach((button) => button.addEventListener("click", () => incorporationCalculatorToggleSetFilter("incorporationCalculatorFilterHeritages", button.dataset.incorporationFilterHeritage, "heritage")));
+  root.querySelectorAll("[data-incorporation-filter-language-group]").forEach((button) => button.addEventListener("click", () => incorporationCalculatorToggleSetFilter("incorporationCalculatorFilterLanguageGroups", button.dataset.incorporationFilterLanguageGroup, "language")));
+  root.querySelectorAll("[data-incorporation-filter-language]").forEach((button) => button.addEventListener("click", () => incorporationCalculatorToggleSetFilter("incorporationCalculatorFilterLanguages", button.dataset.incorporationFilterLanguage, "language")));
+  root.querySelectorAll("[data-incorporation-filter-tradition]").forEach((button) => button.addEventListener("click", () => incorporationCalculatorSetTradition(button.dataset.incorporationFilterTradition, "tradition")));
   root.querySelectorAll("[data-incorporation-homeland-effect]").forEach((input) => input.addEventListener("change", () => incorporationCalculatorToggleHomelandEffect(input.dataset.incorporationHomelandEffect)));
   root.querySelectorAll("[data-incorporation-selected-culture]").forEach((button) => button.addEventListener("click", () => incorporationCalculatorToggleCulture(button.dataset.incorporationSelectedCulture)));
   root.querySelector("[data-incorporation-clear]")?.addEventListener("click", incorporationCalculatorClear);
@@ -252,10 +261,11 @@ function bindCultureIncorporationCalculatorEvents() {
     state.incorporationCalculatorSearch = value;
     renderCultureIncorporationCalculator();
   };
-  searchInput?.addEventListener("input", (event) => {
-    if (event.isComposing) return;
+  searchInput?.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" || event.isComposing) return;
+    event.preventDefault();
     updateSearch(event.target.value);
   });
-  searchInput?.addEventListener("compositionend", (event) => updateSearch(event.target.value));
   root.querySelector("[data-incorporation-filter-panel]")?.addEventListener("toggle", (event) => { state.incorporationCalculatorFiltersOpen = event.target.open; });
+  root.querySelectorAll("[data-incorporation-filter-group]").forEach((group) => group.addEventListener("toggle", () => { state.incorporationCalculatorFilterGroupsOpen[group.dataset.incorporationFilterGroup] = group.open; }));
 }

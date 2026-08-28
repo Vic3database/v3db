@@ -1782,6 +1782,20 @@ body.results-collapsed .concept-tooltip {
   cursor: pointer;
 }
 
+.culture-incorporation-filter-group {
+  border-top: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
+}
+
+.culture-incorporation-filter-group summary {
+  padding: 7px 0;
+  color: var(--ink-muted);
+  cursor: pointer;
+}
+
+.culture-incorporation-filter-group .culture-incorporation-candidates {
+  padding-bottom: 8px;
+}
+
 .culture-incorporation-filter-results-divider {
   margin: 12px 0 8px;
   border-top: 1px solid var(--line);
@@ -1790,6 +1804,42 @@ body.results-collapsed .concept-tooltip {
 .culture-incorporation-filter-results-title {
   margin: 0 0 6px;
   font-size: var(--text-sm);
+}
+
+.culture-incorporation-calculator-legend {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-raised);
+}
+
+.culture-incorporation-calculator-legend h3 {
+  margin: 0;
+}
+
+.culture-incorporation-legend-items {
+  display: grid;
+  gap: 6px;
+}
+
+.culture-incorporation-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+}
+
+.culture-incorporation-legend-swatch {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  border-radius: 3px;
+  background: var(--culture-incorporation-color);
 }
 
 .culture-incorporation-filter-groups small,

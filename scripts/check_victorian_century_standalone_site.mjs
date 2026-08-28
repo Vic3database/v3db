@@ -90,8 +90,8 @@ assert.doesNotMatch(html, /data-nav-view="content"|app\/content\.js/, "standalon
 assert(!fs.existsSync(path.join(siteRoot, "app", "content.js")), "standalone site must remove the legacy content renderer");
 assert.match(html, /app\/filters\.js\?v=20260818-company-filter-exclusions1/, "standalone VC page must load the company-filter exclusion release");
 assert.match(publishedHtml, /app\/filters\.js\?v=20260818-company-filter-exclusions1/, "published VC page must load the company-filter exclusion release");
-assert.match(html, /styles\.css\?v=20260828-home-tools1/);
-assert.match(publishedHtml, /styles\.css\?v=20260828-home-tools1/);
+assert.match(html, /styles\.css\?v=20260828-calculator-sidebar1/);
+assert.match(publishedHtml, /styles\.css\?v=20260828-calculator-sidebar1/);
 assert.match(html, /app\/company-solver\.js\?v=20260828-tool-panel-title1/, "standalone VC page must load the solver title update");
 assert.match(html, /app\/company-composer-core\.js\?v=20260819-company-overlap1/, "standalone VC page must load the duplicate-coverage composer core release");
 assert.match(html, /app\/company-composer\.js\?v=20260819-company-overlap1/, "standalone VC page must load the duplicate-coverage composer release");

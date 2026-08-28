@@ -272,6 +272,11 @@ const state = {
   incorporationCalculatorFilterLanguages: new Set(),
   incorporationCalculatorFilterTradition: "",
   incorporationCalculatorFiltersOpen: false,
+  incorporationCalculatorFilterGroupsOpen: {
+    heritage: false,
+    language: false,
+    tradition: false,
+  },
   incorporationCalculatorCandidateCultures: new Map(),
   incorporationCalculatorSearch: "",
   theme: "votp",

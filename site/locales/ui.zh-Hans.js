@@ -540,6 +540,7 @@ window.VICDATA_UI_LOCALES["zh-Hans"] = {
     "board.culture.incorporation.title": "整合时长计算器",
     "board.culture.incorporation.back": "返回文化板块",
     "board.culture.incorporation.search": "搜索文化",
+    "board.culture.incorporation.searchSubmit": "搜索文化，按 Enter 检索",
     "board.culture.incorporation.selected": "已选文化",
     "board.culture.incorporation.candidates": "可能涉及的文化",
     "board.culture.incorporation.otherCultures": "添加其他文化",

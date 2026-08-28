@@ -4,6 +4,7 @@ import { readSiteAppSource, readSiteStyleSource } from "./site_frontend_sources.
 
 const root = process.cwd();
 const indexSource = readText("site/index.html");
+const announcementSource = readText("announcements.md");
 const appSource = readSiteAppSource(root);
 const stylesSource = readSiteStyleSource(root);
 const homeFunction = functionSource("renderHomeBoard");
@@ -64,6 +65,8 @@ expect(!homeFunction.includes('`${laws.length} 条法律`'), "homepage entry car
 expect(!homeFunction.includes('`${landStateRegions.length} 个地域`'), "homepage entry cards should not display region counts");
 expect(homeFunction.includes('view: "country"') && !homeFunction.includes('text: "nav.country"'), "homepage entry cards should omit the secondary count line");
 expect(indexSource.includes('id="homeWelcome"'), "homepage should define a welcome panel outside the navigation list");
+expect(announcementSource.includes("## 2026-08-28｜更新"), "homepage should record the calculator update announcement");
+expect(announcementSource.includes("新增整合时间计算器，可以自定义选文化然后计算整合时间，并且做了改变文化本土相关的适配。"), "homepage announcement should describe calculator and homeland adaptation");
 expect(indexSource.includes('id="vcHomeEntry"'), "homepage should include a Victorian Century entry");
 expect(indexSource.includes('href="vc/index.html"'), "homepage VC entry should use a relative vc path");
 expect(indexSource.includes('src="assets/home/victorian-century.webp"'), "homepage VC entry should use the Workshop thumbnail WebP");

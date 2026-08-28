@@ -15,9 +15,9 @@ assert.match(mapSource, /2:\s*"#[0-9a-fA-F]+"[\s\S]*5:\s*"#[0-9a-fA-F]+"[\s\S]*1
 const indexSource = fs.readFileSync(`${root}site\\index.html`, "utf8");
 assert.match(indexSource, /id="countryIncorporationMapButton"/, "country incorporation toggle should exist");
 assert.match(indexSource, /id="mapCountryContext"/, "country incorporation toolbar should expose the selected country context");
-assert.match(indexSource, /styles\.css\?v=20260828-home-tools1/, "culture incorporation map should invalidate the root stylesheet cache");
+assert.match(indexSource, /styles\.css\?v=20260828-calculator-sidebar1/, "culture incorporation map should invalidate the root stylesheet cache");
 assert.match(indexSource, /app\/map\.js\?v=20260828-culture-search1/, "culture incorporation map should invalidate the map script cache");
-assert.match(indexSource, /locales\/manifest\.js\?v=20260828-company-solver-name1/, "country incorporation labels should invalidate the locale manifest cache");
+assert.match(indexSource, /locales\/manifest\.js\?v=20260828-calculator-sidebar1/, "country incorporation labels should invalidate the locale manifest cache");
 const stylesSource = fs.readFileSync(`${root}site\\styles.css`, "utf8");
 assert.match(stylesSource, /styles\/map\.css\?v=20260828-culture-search1/, "country incorporation legend should invalidate the map stylesheet cache");
 assert.match(stylesSource, /styles\/shell\.css\?v=20260828-culture-search1/, "culture incorporation map should invalidate the shell stylesheet cache");

@@ -45,8 +45,14 @@ async function verifySite(name, baseUrl, fullCoverage) {
     assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector(".results")).display), "none");
     assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-incorporation-search]"))), true);
     assert.equal(await page.evaluate(() => document.querySelector("[data-incorporation-filter-panel]")?.open), false);
+    assert.equal(await page.evaluate(() => document.querySelectorAll("[data-incorporation-legend-item]").length), 5, `${name} calculator should show five incorporation-time legend entries`);
+    assert.ok(await page.evaluate(() => [...document.querySelectorAll("[data-incorporation-legend-item]")].every((node) => node.querySelector("[data-incorporation-legend-swatch]")?.style.getPropertyValue("--culture-incorporation-color"))), `${name} calculator legend entries should carry map colors`);
     await page.click("[data-incorporation-filter-panel] summary");
     await page.waitFor(() => document.querySelector("[data-incorporation-filter-panel]")?.open === true, `${name} culture filter panel open`);
+    assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll("[data-incorporation-filter-group]")].map((node) => ({ key: node.dataset.incorporationFilterGroup, open: node.open }))), [{ key: "heritage", open: false }, { key: "language", open: false }, { key: "tradition", open: false }], `${name} filter groups should start collapsed`);
+    await page.click('[data-incorporation-filter-group="heritage"] summary');
+    await page.waitFor(() => document.querySelector('[data-incorporation-filter-group="heritage"]')?.open === true, `${name} heritage filter group open`);
+    assert.equal(await page.evaluate(() => document.querySelector('[data-incorporation-filter-group="language"]')?.open), false, `${name} language filter group should remain independently collapsed`);
     assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-incorporation-filter-heritage-group]"))), true);
     assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-incorporation-homeland-effect='event:manifest_destiny.1']"))), true);
     assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-incorporation-dynamic-effect]"))), true);
@@ -54,11 +60,13 @@ async function verifySite(name, baseUrl, fullCoverage) {
     assert.deepEqual(initial.selected, []);
     assert.deepEqual(initial.candidates, []);
     assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-incorporation-results]"))), false);
-    await page.evaluate(() => { const input = document.querySelector("[data-incorporation-search]"); input.dispatchEvent(new CompositionEvent("compositionstart", { bubbles: true })); input.value = "匈"; input.dispatchEvent(new InputEvent("input", { bubbles: true, isComposing: true })); });
-    assert.equal(await page.evaluate(() => document.querySelector("[data-incorporation-search]")?.value), "匈", `${name} search must preserve an in-progress Chinese composition`);
-    await page.evaluate(() => { const input = document.querySelector("[data-incorporation-search]"); input.value = "匈牙利"; input.dispatchEvent(new CompositionEvent("compositionend", { bubbles: true })); });
+    await page.evaluate(() => { const input = document.querySelector("[data-incorporation-search]"); input.dispatchEvent(new CompositionEvent("compositionstart", { bubbles: true })); input.value = "匈牙利"; input.dispatchEvent(new InputEvent("input", { bubbles: true, isComposing: true })); input.dispatchEvent(new CompositionEvent("compositionend", { bubbles: true })); });
+    assert.deepEqual(await page.evaluate(() => ({ value: document.querySelector("[data-incorporation-search]")?.value, search: state.incorporationCalculatorSearch })), { value: "匈牙利", search: "" }, `${name} Chinese search should wait for Enter without truncating composition`);
+    await page.evaluate(() => document.querySelector("[data-incorporation-search]")?.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })));
     await page.waitFor(() => [...document.querySelectorAll("[data-incorporation-filter-culture]")].some((node) => node.dataset.incorporationFilterCulture === "hungarian"), `${name} Chinese culture search`);
     await page.evaluate(() => { const input = document.querySelector("[data-incorporation-search]"); input.value = "xiongyali"; input.dispatchEvent(new InputEvent("input", { bubbles: true })); });
+    assert.equal(await page.evaluate(() => state.incorporationCalculatorSearch), "匈牙利", `${name} pinyin search should wait for Enter`);
+    await page.evaluate(() => document.querySelector("[data-incorporation-search]")?.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })));
     const pinyinDiagnostic = await page.evaluate(() => ({
       available: typeof window.pinyinPro?.pinyin === "function",
       input: document.querySelector("[data-incorporation-search]")?.value,
@@ -66,7 +74,7 @@ async function verifySite(name, baseUrl, fullCoverage) {
       resultKeys: [...document.querySelectorAll("[data-incorporation-filter-culture]")].map((node) => node.dataset.incorporationFilterCulture),
     }));
     assert.ok(pinyinDiagnostic.available && pinyinDiagnostic.resultKeys.includes("hungarian"), `${name} pinyin culture search: ${JSON.stringify(pinyinDiagnostic)}`);
-    await page.evaluate(() => { const input = document.querySelector("[data-incorporation-search]"); input.value = ""; input.dispatchEvent(new InputEvent("input", { bubbles: true })); });
+    await page.evaluate(() => { const input = document.querySelector("[data-incorporation-search]"); input.value = ""; input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })); });
     await page.click("[data-incorporation-back]");
     await page.waitFor(() => location.hash === "#/culture" && document.querySelectorAll("[data-culture]").length > 0, `${name} return to culture board`);
     assert.equal(await page.evaluate(() => document.querySelector("#cultureIncorporationPanel")?.hidden), true);
@@ -88,7 +96,7 @@ async function verifySite(name, baseUrl, fullCoverage) {
     const filteredKey = await page.evaluate(() => document.querySelector("[data-incorporation-filter-culture]")?.dataset.incorporationFilterCulture);
     await page.click("[data-incorporation-filter-culture]");
     assert.equal(await page.evaluate((key) => state.incorporationCalculatorCultures.has(key), filteredKey), true);
-    await page.evaluate(() => { const input = document.querySelector("[data-incorporation-search]"); input.value = "french"; input.dispatchEvent(new Event("input", { bubbles: true })); });
+    await page.evaluate(() => { const input = document.querySelector("[data-incorporation-search]"); input.value = "french"; input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })); });
     await page.waitFor(() => document.querySelectorAll("[data-incorporation-filter-culture]").length > 0, `${name} culture search results`);
     assert.ok(await page.evaluate(() => [...document.querySelectorAll("[data-incorporation-filter-culture]")].some((node) => node.dataset.incorporationFilterCulture === "french")));
     const beforeStart = await page.evaluate(() => ({ applied: [...(state.incorporationCalculatorAppliedCultures || [])], mode: state.mapMode, layerSignature: mapRuntime.layerSignature }));
@@ -114,7 +122,7 @@ async function verifySite(name, baseUrl, fullCoverage) {
 
     await page.goto(`${baseUrl}?lang=zh-Hans#/culture/incorporation`);
     await page.click("[data-incorporation-filter-heritage-group='heritage_group_european']");
-    await page.evaluate(() => { const input = document.querySelector("[data-incorporation-search]"); input.value = "yankee"; input.dispatchEvent(new Event("input", { bubbles: true })); });
+    await page.evaluate(() => { const input = document.querySelector("[data-incorporation-search]"); input.value = "yankee"; input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })); });
     await page.waitFor(() => document.querySelectorAll("[data-incorporation-filter-culture]").length > 0, `${name} Yankee filter result`);
     await page.click("[data-incorporation-filter-culture='yankee']");
     const beforeEffect = await page.evaluate(() => ({ applied: [...state.incorporationCalculatorAppliedHomelandEffects], relation: mapRuntime.featureByStateKey?.get("STATE_CALIFORNIA")?.incorporation?.culture?.key || "" }));
