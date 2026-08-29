@@ -1,5 +1,10 @@
 window.VICDATA_ANNOUNCEMENTS = [
   {
+    "date": "2026-08-29",
+    "title": "更新",
+    "body": "新增宗教板块，重做了相关内容。"
+  },
+  {
     "date": "2026-08-19",
     "title": "更新",
     "body": "更新至1.13.11，同步 Victorian Century；新增公司求解器和公司组合器功能。"

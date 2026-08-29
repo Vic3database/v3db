@@ -48,7 +48,7 @@ async function loadStandaloneDataset() {
   await activateInitialLocaleAfterDataIndex();
   loadedDataChunks.clear();
   applyLoadedDataset({ meta: dataIndex?.meta || {} }, nextMapData || null);
-  await ensureDataChunksForRoute();
+  await ensureDataChunks(["religion", ...dataChunksForCurrentRoute()]);
 }
 
 function selectedVersionFromLocation() {
@@ -73,7 +73,7 @@ async function loadVersion(version, options = {}) {
   await activateInitialLocaleAfterDataIndex();
   loadedDataChunks.clear();
   applyLoadedDataset({ meta: dataIndex?.meta || {} }, nextMapData || null);
-  await ensureDataChunksForRoute();
+  await ensureDataChunks(["religion", ...dataChunksForCurrentRoute()]);
   if (options.replaceUrl !== false) {
     const params = new URLSearchParams(window.location.search);
     params.set("version", entry.version);
@@ -87,6 +87,7 @@ function dataChunksForView(view) {
   if (view === "region") return ["region", "country", "culture", "company"];
   if (view === "company") return ["company", "region", "country"];
   if (view === "ideology") return ["ideology", "law", "country"];
+  if (view === "religion") return ["religion", "country", "ideology", "culture"];
   if (view === "interest-group") return ["ideology", "country", "culture", "region", "law"];
   if (view === "law") return ["law", "ideology", "country"];
   if (view === "technology") return ["technology"];
@@ -124,7 +125,7 @@ async function ensureDataChunksForRoute() {
 
 function routeView() {
   const segment = location.hash.replace(/^#\/?/, "").split("/")[0];
-  if (["country", "culture", "region", "company", "ideology", "interest-group", "law", "technology", "achievement", "event", "journal", "decision", "content", "building", "goods", "character", "name-pool"].includes(segment)) return segment;
+  if (["country", "culture", "region", "company", "ideology", "religion", "interest-group", "law", "technology", "achievement", "event", "journal", "decision", "content", "building", "goods", "character", "name-pool"].includes(segment)) return segment;
   if (["news", "changelog"].includes(segment)) return segment;
   if (["state-region", "strategic-region", "geographic-region"].includes(segment)) return "region";
   return "home";
@@ -237,6 +238,7 @@ function applyLoadedDataset(nextData, nextMapData, options = {}) {
   interestGroups = data.interestGroups || [];
   interestGroupTraits = data.interestGroupTraits || [];
   ideologies = data.ideologies || [];
+  religions = data.religions || [];
   laws = data.laws || [];
   lawGroups = data.lawGroups || [];
   technologies = data.technologies || [];
@@ -274,6 +276,7 @@ function applyLoadedDataset(nextData, nextMapData, options = {}) {
   byInterestGroup = new Map(interestGroups.map((group) => [group.key, group]));
   interestGroupTraitByKey = new Map(interestGroupTraits.map((trait) => [trait.key, trait]));
   ideologyByKey = new Map(ideologies.map((ideology) => [ideology.key, ideology]));
+  religionByKey = new Map(religions.map((religion) => [religion.key, religion]));
   lawByKey = new Map(laws.map((law) => [law.key, law]));
   lawGroupByKey = new Map(lawGroups.map((group) => [group.key, group]));
   technologyByKey = new Map(technologies.map((technology) => [technology.key, technology]));

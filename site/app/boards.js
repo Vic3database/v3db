@@ -126,6 +126,7 @@ function renderHomeBoard() {
     { category: "domestic", label: "nav.ideology", view: "ideology", icon: "assets/home/democracy.png" },
     { category: "domestic", label: "nav.interestGroup", view: "interest-group", icon: "assets/technologies/corporatism.webp" },
     { category: "society", label: "nav.culture", view: "culture", icon: "assets/home/nationalism.png" },
+    { category: "society", label: "nav.religion", view: "religion", icon: "assets/event-icons/religion_icons/protestant.webp" },
     { category: "economy", label: "nav.region", view: "region", icon: "assets/home/state.png" },
     { category: "economy", label: "nav.company", view: "company", icon: "assets/home/companies.png" },
     { category: "economy", label: "nav.building", view: "building", icon: "assets/home/manufacturies.png" },
@@ -552,50 +553,93 @@ function interestGroupCountryVariantKey(groupKey, traits, ideologies) {
 }
 
 const interestGroupDevoutReligionOrder = [
-  "东方正统教会",
-  "东正教",
-  "天主教",
-  "新教",
-  "逊尼派",
-  "什叶派",
-  "伊巴德派",
-  "犹太教",
-  "佛教",
-  "印度教",
-  "儒教",
-  "神道教",
-  "泛灵论",
-  "锡克教",
+  "oriental_orthodox", "orthodox", "catholic", "protestant", "sunni", "shiite", "ibadi", "jewish",
+  "mahayana", "gelugpa", "theravada", "hindu", "confucian", "shinto", "animist", "sikh",
 ];
 
 const interestGroupDevoutReligion = {
-  jewish: "犹太教",
-  animist: "泛灵论",
-  ig_oriental_orthodox_church: "东方正统教会",
-  ig_orthodox_church: "东正教",
-  ig_catholic_church: "天主教",
-  ig_roman_curia: "天主教",
-  ig_anglican_church: "新教",
-  ig_church_of_denmark: "新教",
-  ig_church_of_norway: "新教",
-  ig_church_of_finland: "新教",
-  ig_church_of_sweden: "新教",
-  ig_evangelicals: "新教",
-  ig_evangelical_church: "新教",
-  ig_christian_missionaries: "新教",
-  ig_london_missionary_society: "新教",
-  ig_sunni_madrasahs: "逊尼派",
-  ig_shia_madrasahs: "什叶派",
-  ig_ibadi_madrasahs: "伊巴德派",
-  ig_hindu_priesthood: "印度教",
-  ig_confucian: "儒教",
-  ig_shinto_monks: "神道教",
-  ig_jisha: "佛教",
-  ig_mahayana_monks: "佛教",
-  ig_theravada_monks: "佛教",
-  ig_vajrayana_monks: "佛教",
-  ig_granthis: "锡克教",
+  jewish: "jewish", animist: "animist",
+  ig_oriental_orthodox_church: "oriental_orthodox", ig_orthodox_church: "orthodox",
+  ig_catholic_church: "catholic", ig_roman_curia: "catholic",
+  ig_anglican_church: "protestant", ig_church_of_denmark: "protestant", ig_church_of_norway: "protestant",
+  ig_church_of_finland: "protestant", ig_church_of_sweden: "protestant", ig_evangelicals: "protestant",
+  ig_evangelical_church: "protestant", ig_christian_missionaries: "protestant", ig_london_missionary_society: "protestant",
+  ig_taiping_god_worshippers: "protestant", ig_sunni_madrasahs: "sunni", ig_sunni_madrasahs_turkey: "sunni",
+  ig_shia_madrasahs: "shiite", ig_ibadi_madrasahs: "ibadi", ig_hindu_priesthood: "hindu", ig_confucian: "confucian",
+  ig_shinto_monks: "shinto", ig_jisha: "mahayana", ig_theravada_monks: "theravada", ig_vajrayana_monks: "gelugpa",
+  ig_granthis: "sikh",
 };
+
+const interestGroupDevoutReligionNames = {
+  oriental_orthodox: "东方正统教会", orthodox: "东正教", catholic: "天主教", protestant: "新教", sunni: "逊尼派",
+  shiite: "什叶派", ibadi: "伊巴德派", jewish: "犹太教", mahayana: "大乘佛教", gelugpa: "格鲁派",
+  theravada: "上座部佛教", hindu: "印度教", confucian: "儒教", shinto: "神道教", animist: "泛灵论", sikh: "锡克教",
+};
+
+function interestGroupDevoutReligionName(key) {
+  return t(`religion.name.${key}`, interestGroupDevoutReligionNames[key] || key);
+}
+
+const interestGroupDevoutReligionIcon = {
+  oriental_orthodox: "coptic", orthodox: "orthodox", catholic: "catholic", protestant: "protestant", sunni: "sunni",
+  shiite: "shiite", ibadi: "ibadi", jewish: "jewish", mahayana: "mahayana", gelugpa: "gelugpa", theravada: "theravada",
+  hindu: "hindu", confucian: "confucianism", shinto: "shinto", animist: "animist", sikh: "sikh", atheist: "atheist",
+};
+
+const interestGroupDevoutReligionGroups = [
+  { key: "christian", nameKey: "religion.heritage.christian", religions: ["oriental_orthodox", "orthodox", "catholic", "protestant"] },
+  { key: "islamic", nameKey: "religion.heritage.islamic", religions: ["sunni", "shiite", "ibadi"] },
+  { key: "jewish", nameKey: "religion.heritage.jewish", religions: ["jewish"] },
+  { key: "dharmic", nameKey: "religion.heritage.dharmic", religions: ["mahayana", "gelugpa", "theravada", "hindu", "sikh"] },
+  { key: "taoic", nameKey: "religion.heritage.taoic", religions: ["confucian", "shinto"] },
+  { key: "indigenous", nameKey: "religion.heritage.indigenous", religions: ["animist"] },
+];
+
+const interestGroupDevoutReligionParentGroups = [
+  { key: "abrahamic", nameKey: "religion.group.abrahamic", groups: ["christian", "islamic", "jewish"] },
+  { key: "eastern", nameKey: "religion.group.eastern", groups: ["dharmic", "taoic"] },
+  { key: "naturalistic", nameKey: "religion.group.naturalistic", groups: ["indigenous"] },
+];
+
+function interestGroupDevoutReligionIconHtml(religion) {
+  const icon = interestGroupDevoutReligionIcon[religion];
+  if (!icon) return "";
+  return `<img class="interest-group-devout-religion-icon" src="assets/event-icons/religion_icons/${escapeHtml(icon)}.webp" alt="" aria-hidden="true">`;
+}
+
+function interestGroupDevoutReligionLegendHtml(optionGroups) {
+  const flavorsByReligion = new Map(optionGroups
+    .filter((entry) => entry.key.startsWith("religion:"))
+    .map((entry) => [entry.key.slice("religion:".length), entry.flavors]));
+  const groupsByKey = new Map(interestGroupDevoutReligionGroups.map((group) => [group.key, group]));
+  const parents = interestGroupDevoutReligionParentGroups.map((parent) => ({
+    ...parent,
+    groups: parent.groups.map((key) => groupsByKey.get(key)).filter((group) => group?.religions.some((religion) => flavorsByReligion.has(religion))),
+  })).filter((parent) => parent.groups.length);
+  if (!parents.length) return "";
+  return `
+    <div class="interest-group-devout-religion-legend" aria-label="虔信者宗教分类">
+      ${parents.map((parent) => `
+        <section class="interest-group-devout-religion-parent-group interest-group-devout-religion-parent-group--${escapeHtml(parent.key)}">
+          <h3 class="interest-group-devout-religion-parent-title">${escapeHtml(t(parent.nameKey))}</h3>
+          ${parent.groups.map((group) => `
+            <section class="interest-group-devout-religion-group interest-group-devout-religion-group--${escapeHtml(group.key)}">
+              <h4 class="interest-group-devout-religion-group-title">${escapeHtml(t(group.nameKey))}</h4>
+              <div class="interest-group-devout-religion-group-rows">
+                ${group.religions.filter((religion) => flavorsByReligion.has(religion)).map((religion) => `
+                  <div class="interest-group-devout-religion-row">
+                    <div class="interest-group-devout-religion-name">${interestGroupDevoutReligionIconHtml(religion)}<span>${escapeHtml(interestGroupDevoutReligionName(religion))}</span></div>
+                    <div class="interest-group-devout-religion-flavors">${(flavorsByReligion.get(religion) || []).map((flavor) => interestGroupFlavorLinkHtml({ key: "ig_devout" }, flavor)).join(t("interestGroup.flavorSeparator", " / "))}</div>
+                  </div>
+                `).join("")}
+              </div>
+            </section>
+          `).join("")}
+        </section>
+      `).join("")}
+    </div>
+  `;
+}
 
 function interestGroupFlavorCategory(groupKey, variant) {
   if (groupKey === "ig_devout" && interestGroupDevoutReligion[variant.key]) return "religion";
@@ -705,13 +749,18 @@ function interestGroupVariants(group) {
         && !isTraitOnly
         && interestGroupIdeologySignature(activeIdeologies) !== baseIdeologySignature;
       if (!display?.is_flavored && !isTraitOnly && !isIdeologyOnly) continue;
-      const variant = ensureVariant(display?.is_flavored
-        ? display
+      const isTurkeySunni = groupKey === "ig_devout"
+        && country.tag === "TUR"
+        && display?.key === "ig_sunni_madrasahs";
+      const displaySource = isTurkeySunni ? { ...display, key: "ig_sunni_madrasahs_turkey", name: "逊尼派乌理玛（土耳其）" } : display;
+      const variant = ensureVariant(displaySource?.is_flavored
+        ? displaySource
         : {
           key: `country-variant:${interestGroupCountryVariantKey(groupKey, activeTraits, activeIdeologies)}`,
           name: "",
         });
       if (!variant) continue;
+      if (isTurkeySunni) variant.name = "逊尼派乌理玛（土耳其）";
       variant.isTraitOnly ||= isTraitOnly || isIdeologyOnly;
       variant.definitionKey ||= definitionKey;
       if (definition?.replacesConditionVariant) variants.delete(definition.replacesConditionVariant);
@@ -884,7 +933,7 @@ function interestGroupFlavorOptions(group, variants) {
 }
 
 function interestGroupFlavorGroupLabel(key) {
-  if (key.startsWith("religion:")) return key.slice("religion:".length);
+  if (key.startsWith("religion:")) return interestGroupDevoutReligionName(key.slice("religion:".length));
   if (key === "country") return t("interestGroup.specialCountryVariants");
   if (key === "condition") return t("interestGroup.conditionVariants");
   if (key === "scripted") return t("interestGroup.scriptedVariants");
@@ -973,6 +1022,7 @@ function interestGroupFlavorSelectorHtml(group, variants) {
   const optionGroups = interestGroupFlavorOptionGroups(flavors);
   return `
     <div class="interest-group-flavor-selector">
+      ${group.key === "ig_devout" ? interestGroupDevoutReligionLegendHtml(optionGroups) : ""}
       <label>
         <span>${escapeHtml(t("interestGroup.traitFlavor"))}</span>
         <select data-interest-group-flavor-select data-interest-group-flavor-page aria-label="${escapeHtml(t("interestGroup.traitFlavor"))}">
@@ -1139,13 +1189,32 @@ function bindInterestGroupFlavorSelector(container) {
 function renderInterestGroupBoardDetail(group) {
   const variants = interestGroupVariants(group);
   const flavorLinks = interestGroupFlavorLinkRowsHtml(group, variants);
+  if (group.key === "ig_devout") {
+    const optionGroups = interestGroupFlavorOptionGroups(interestGroupFlavorOptions(group, variants));
+    return `
+      <section class="interest-group-board-shell interest-group-board-detail interest-group-devout-navigation" style="${escapeHtml(interestGroupBoardColorStyle(group))}">
+        <a class="detail-back-button" href="#/interest-group" aria-label="${escapeHtml(t("ui.back"))}" title="${escapeHtml(t("ui.back"))}"><img class="lucide-icon" src="assets/lucide/icons/arrow-left.svg" alt="" aria-hidden="true"></a>
+        <header class="interest-group-detail-heading">
+          ${interestGroupIconHtml(group, "interest-group-detail-icon")}
+          <div>
+            <h2>${escapeHtml(entityText(group))}</h2>
+            <p class="minor">${escapeHtml(group.key)}</p>
+            <p class="interest-group-detail-description">${escapeHtml(cleanDescriptionText(entityText(group, "description", "")))}</p>
+          </div>
+        </header>
+        <section class="interest-group-devout-navigation-panel">
+          ${interestGroupDevoutReligionLegendHtml(optionGroups)}
+        </section>
+      </section>
+    `;
+  }
   return `
     <section class="interest-group-board-shell interest-group-board-detail" style="${escapeHtml(interestGroupBoardColorStyle(group))}">
       <a class="detail-back-button" href="#/interest-group" aria-label="${escapeHtml(t("ui.back"))}" title="${escapeHtml(t("ui.back"))}"><img class="lucide-icon" src="assets/lucide/icons/arrow-left.svg" alt="" aria-hidden="true"></a>
       <header class="interest-group-detail-heading">
         ${interestGroupIconHtml(group, "interest-group-detail-icon")}
         <div>
-          <h2>${escapeHtml(entityText(group))}${flavorLinks.heading}</h2>
+          <h2>${escapeHtml(entityText(group))}${group.key === "ig_devout" ? "" : flavorLinks.heading}</h2>
           <p class="minor">${escapeHtml(group.key)}</p>
           <p class="interest-group-detail-description">${escapeHtml(cleanDescriptionText(entityText(group, "description", "")))}</p>
         </div>
@@ -1189,6 +1258,158 @@ function renderInterestGroupBoard() {
     });
   });
   renderMap([]);
+}
+
+function religionIconHtml(religion, className = "religion-board-icon") {
+  const icon = String(religion?.icon_source || "").split(/[\\/]/).at(-1).replace(/\.dds$/i, ".webp");
+  return icon ? `<img class="${escapeHtml(className)}" src="assets/event-icons/religion_icons/${escapeHtml(icon)}" alt="" aria-hidden="true">` : "";
+}
+
+const religionHeritageDefinitions = [
+  { key: "heritage_christian", parentKey: "heritage_group_abrahamic", religions: ["oriental_orthodox", "orthodox", "catholic", "protestant"] },
+  { key: "heritage_islamic", parentKey: "heritage_group_abrahamic", religions: ["sunni", "shiite", "ibadi"] },
+  { key: "heritage_jewish", parentKey: "heritage_group_abrahamic", religions: ["jewish"] },
+  { key: "heritage_dharmic", parentKey: "heritage_group_eastern", religions: ["theravada", "gelugpa", "mahayana", "sikh", "hindu"] },
+  { key: "heritage_taoic", parentKey: "heritage_group_eastern", religions: ["confucian", "shinto"] },
+  { key: "heritage_indigenous", parentKey: "heritage_group_naturalistic", religions: ["animist"] },
+  { key: "heritage_materialist", parentKey: "heritage_group_non_spiritual", religions: ["atheist"] },
+];
+
+const religionGroupDefinitions = [
+  { key: "heritage_group_abrahamic", nameKey: "religion.group.abrahamic", heritages: ["heritage_christian", "heritage_islamic", "heritage_jewish"] },
+  { key: "heritage_group_eastern", nameKey: "religion.group.eastern", heritages: ["heritage_dharmic", "heritage_taoic"] },
+  { key: "heritage_group_naturalistic", nameKey: "religion.group.naturalistic", heritages: ["heritage_indigenous"] },
+  { key: "heritage_group_non_spiritual", nameKey: "religion.group.nonSpiritual", heritages: ["heritage_materialist"] },
+];
+
+function religionName(religion) {
+  const fallbackNames = {
+    catholic: "天主教",
+    protestant: "新教",
+    orthodox: "东正教",
+    oriental_orthodox: "东方正统教会",
+    sunni: "逊尼派",
+    shiite: "什叶派",
+    ibadi: "伊巴德派",
+    jewish: "犹太教",
+    mahayana: "大乘佛教",
+    gelugpa: "格鲁派",
+    theravada: "上座部佛教",
+    confucian: "儒教",
+    hindu: "印度教",
+    shinto: "神道教",
+    sikh: "锡克教",
+    animist: "泛灵论",
+    atheist: "无神论",
+  };
+  const key = religion?.key || "";
+  return translateMessage(`religion:${key}.name`, fallbackNames[key] || religion?.name_zh || key || "");
+}
+
+function religionHeritageName(key, religion = null) {
+  const names = {
+    heritage_christian: "基督教",
+    heritage_islamic: "伊斯兰教",
+    heritage_dharmic: "达摩宗教",
+    heritage_taoic: "道",
+    heritage_jewish: "犹太教",
+    heritage_indigenous: "原生宗教",
+    heritage_materialist: "唯物主义",
+  };
+  return translateMessage(religion?.loc?.heritageName || `religion:${religion?.key || key}.heritageName`, names[key] || key || t("religion.none"));
+}
+
+function religionGroupCardsHtml() {
+  const byKey = new Map(religions.map((religion) => [religion.key, religion]));
+  return religionGroupDefinitions.map((group) => {
+    const childGroups = religionHeritageDefinitions.filter((heritage) => heritage.parentKey === group.key).map((heritage) => ({
+      ...heritage,
+      items: heritage.religions.map((key) => byKey.get(key)).filter(Boolean),
+    })).filter((heritage) => heritage.items.length);
+    if (!childGroups.length) return "";
+    return `
+      <section class="religion-board-parent-group" data-religion-parent-group="${escapeHtml(group.key)}">
+        <h3 class="religion-board-parent-title">${escapeHtml(t(group.nameKey))}</h3>
+        ${childGroups.map((heritage) => `
+          <section class="religion-board-group" data-religion-group="${escapeHtml(heritage.key)}">
+            <h4>${escapeHtml(religionHeritageName(heritage.key, heritage.items[0]))}</h4>
+            <div class="religion-board-rows">${heritage.items.map((religion) => `<button type="button" class="religion-board-row" data-religion-key="${escapeHtml(religion.key)}" style="--religion-color:${escapeHtml(religionColor(religion))};--religion-background:${escapeHtml(religionBackground(religion))}">${religionIconHtml(religion)}<span class="religion-board-row-name"><strong>${escapeHtml(religionName(religion))}</strong><small>${escapeHtml(religion.key)}</small></span><span class="religion-board-row-meta"><span>${escapeHtml(t("religion.countries"))}：${escapeHtml(String(religion.country_count || 0))}</span><span>${escapeHtml(t("religion.devoutFlavors"))}：${escapeHtml(String((religion.devout_flavors || []).filter((flavor) => flavor.is_used_by_country).length))}</span></span></button>`).join("")}</div>
+          </section>
+        `).join("")}
+      </section>
+    `;
+  }).join("");
+}
+
+function religionDevoutFlavorName(flavor) {
+  const routeKey = flavor.key === "ig_sunni_madrasahs_turkey" ? "ig_sunni_madrasahs" : flavor.key;
+  const group = byInterestGroup.get("ig_devout");
+  const variant = group ? interestGroupVariants(group).find((item) => item.key === routeKey) : null;
+  const label = flavor.key === "ig_sunni_madrasahs_turkey"
+    ? "逊尼派乌理玛（土耳其）"
+    : variant?.name || flavor.name_zh || translateMessage(flavor.loc?.name, flavor.key);
+  return label;
+}
+
+function religionDetailFlavorRowsHtml(religion) {
+  const flavors = religion?.devout_flavors || [];
+  if (!flavors.length) return `<p class="empty compact">${escapeHtml(t("religion.none"))}</p>`;
+  return flavors.map((flavor) => `
+    <div class="religion-board-detail-flavor-row">
+      <a class="religion-board-detail-flavor-name religion-board-detail-flavor-button religion-board-detail-flavor-link" href="#${interestGroupFlavorRoute("ig_devout", flavor.key === "ig_sunni_madrasahs_turkey" ? "ig_sunni_madrasahs" : flavor.key)}">${escapeHtml(religionDevoutFlavorName(flavor))}<span aria-hidden="true">↗</span></a>
+      ${flavor.is_used_by_country ? `<small>${escapeHtml(t("religion.flavorUsed"))}</small>` : `<small>${escapeHtml(t("religion.flavorPotential"))}</small>`}
+      <div class="religion-board-detail-flavors">${(flavor.traits || []).map((key) => { const trait = interestGroupTraitByKey.get(key) || { key }; const label = entityText(trait); const description = entityText(trait, "description", ""); const modifierSummary = entityText(trait, "modifierSummary", ""); return `<span class="religion-board-detail-trait religion-board-detail-trait-hover" tabindex="0" data-concept-kind="interestGroupTrait" data-concept-key="${escapeHtml(key)}" data-concept-label="${escapeHtml(label)}" data-concept-category="${escapeHtml(t("board.ideology.interestGroupTrait", "利益集团特质"))}" data-concept-description="${escapeHtml(description)}" data-concept-secondary-description="${escapeHtml(modifierSummary)}" data-concept-search="${escapeHtml(key + " " + label)}">${escapeHtml(label)}</span>`; }).join("、") || escapeHtml(t("religion.none"))}</div>
+    </div>
+  `).join("");
+}
+
+function renderReligionBoard() {
+  mapRuntime.filteredCountryTags = new Set();
+  const selected = religionByKey.get(state.selectedReligion);
+  els.resultCount.textContent = t("nav.religion");
+  els.activeHint.textContent = "";
+  els.countryList.className = "country-list religion-board";
+  els.detail.innerHTML = "";
+  if (selected) {
+    els.countryList.innerHTML = `
+      <section class="religion-board-detail" style="--religion-color:${escapeHtml(religionColor(selected))}">
+        <button class="detail-back-button religion-board-back" type="button" data-religion-back aria-label="${escapeHtml(t("ui.back"))}" title="${escapeHtml(t("ui.back"))}"><img class="lucide-icon" src="assets/lucide/icons/arrow-left.svg" alt="" aria-hidden="true"></button>
+        <header class="religion-board-detail-heading">
+          ${religionIconHtml(selected, "religion-board-detail-icon")}
+          <div><h2>${escapeHtml(religionName(selected))}</h2><p>${escapeHtml(selected.key)}</p></div>
+        </header>
+        <div class="religion-board-detail-grid">
+          <section class="religion-board-detail-section"><h3>${escapeHtml(t("religion.heritage"))}</h3><p>${escapeHtml(religionHeritageName(selected.heritage_key, selected))}</p><small>${escapeHtml(t("religion.parentGroup"))}：${escapeHtml(translateMessage(selected.loc?.heritageGroupName, selected.heritage_group_key || ""))}</small></section>
+          <section class="religion-board-detail-section"><h3>${escapeHtml(t("religion.taboos"))}</h3><p>${escapeHtml((selected.taboos || []).map((key) => { const good = goodByKey.get(key); return good ? economyDisplayName(good) : key; }).join("、") || t("religion.none"))}</p></section>
+          <section class="religion-board-detail-section"><h3>${escapeHtml(t("religion.countries"))}</h3><p>${escapeHtml(String(selected.country_count || 0))}</p><div>${countryLinks(selected.country_tags || [])}</div></section>
+          <section class="religion-board-detail-section religion-board-detail-flavor-section"><h3>${escapeHtml(t("religion.devoutFlavors"))}</h3><div>${religionDetailFlavorRowsHtml(selected)}</div></section>
+        </div>
+      </section>
+    `;
+    els.countryList.querySelector("[data-religion-back]")?.addEventListener("click", () => { state.selectedReligion = ""; replaceHash("/religion"); render(); });
+    renderMap([]);
+    return;
+  }
+  els.countryList.innerHTML = `
+    <section class="religion-board-panel">
+      <header class="religion-board-heading"><h2>${escapeHtml(t("nav.religion"))}</h2><p>${escapeHtml(t("religion.description"))}</p></header>
+      ${religionGroupCardsHtml()}
+    </section>
+  `;
+  els.countryList.querySelectorAll("[data-religion-key]").forEach((card) => card.addEventListener("click", () => { state.selectedReligion = card.dataset.religionKey; replaceHash(`/religion/${encodeURIComponent(state.selectedReligion)}`); render(); }));
+  renderMap([]);
+}
+
+function religionColor(religion) {
+  return religion?.color?.hex || (religion?.key === "atheist" ? "#87909a" : "#4aaab3");
+}
+
+function religionBackground(religion) {
+  const hex = religionColor(religion).replace("#", "");
+  const red = Number.parseInt(hex.slice(0, 2), 16) || 74;
+  const green = Number.parseInt(hex.slice(2, 4), 16) || 170;
+  const blue = Number.parseInt(hex.slice(4, 6), 16) || 179;
+  return `rgb(${Math.round(red * 0.22 + 19 * 0.78)}, ${Math.round(green * 0.22 + 29 * 0.78)}, ${Math.round(blue * 0.22 + 32 * 0.78)})`;
 }
 
 function renderSettingsDialogContent() {

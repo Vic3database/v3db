@@ -487,6 +487,348 @@ body[data-view="interest-group"] .results {
   margin-top: 32px;
 }
 
+.interest-group-devout-navigation-panel {
+  margin-top: 22px;
+  padding: 18px 20px;
+  border: 1px solid color-mix(in srgb, var(--interest-group-color) 46%, var(--line));
+  border-left: 5px solid var(--interest-group-color);
+  background: color-mix(in srgb, var(--interest-group-background) 72%, var(--surface) 28%);
+  box-shadow: inset 0 0 0 9px color-mix(in srgb, var(--interest-group-color) 8%, transparent);
+}
+
+.religion-board-panel,
+.religion-board-detail {
+  width: min(100%, 1540px);
+  margin: 0 auto;
+}
+
+.religion-board-panel {
+  padding: 34px clamp(22px, 4vw, 72px) 56px;
+}
+
+body[data-view="religion"] {
+  overflow: auto;
+}
+
+body[data-view="religion"] .layout {
+  display: block;
+  height: auto;
+  min-height: calc(100vh - var(--chrome-height));
+  padding: 0;
+  overflow: visible;
+}
+
+body[data-view="religion"] .map-panel,
+body[data-view="religion"] .map-toolbar,
+body[data-view="religion"] .filters,
+body[data-view="religion"] .detail,
+body[data-view="religion"] .result-head,
+body[data-view="religion"] .layout::before {
+  display: none;
+}
+
+body[data-view="religion"] .results {
+  position: static;
+  width: auto;
+  min-height: 0;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+body.detail-page[data-view="religion"] .results {
+  position: static;
+  left: auto;
+  right: auto;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  animation: none;
+}
+
+body[data-view="religion"] .country-list {
+  grid-column: 1 / -1;
+  width: 100%;
+  min-width: 0;
+}
+
+body[data-view="religion"] .religion-board {
+  display: block;
+  min-height: calc(100vh - var(--chrome-height));
+  padding: 0;
+  overflow: visible;
+}
+
+.religion-board-heading,
+.religion-board-detail-heading {
+  padding: 22px 24px;
+  border: 1px solid color-mix(in srgb, var(--accent) 52%, var(--line));
+  border-left: 5px solid var(--accent);
+  background: color-mix(in srgb, var(--panel) 90%, var(--surface));
+}
+
+.religion-board-heading h2,
+.religion-board-detail-heading h2 {
+  margin: 0;
+  color: var(--accent);
+  font-family: var(--font-body);
+  font-size: clamp(28px, 3vw, 44px);
+}
+
+.religion-board-heading p,
+.religion-board-detail-heading p {
+  margin: 8px 0 0;
+  color: var(--muted);
+}
+
+.religion-board-rows {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.religion-board-group + .religion-board-group {
+  margin-top: 24px;
+}
+
+.religion-board-parent-group + .religion-board-parent-group {
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 2px solid color-mix(in srgb, var(--line) 78%, var(--accent));
+}
+
+.religion-board-parent-title {
+  margin: 0 0 10px;
+  color: var(--accent);
+  font-size: clamp(24px, 2.1vw, 34px);
+}
+
+.religion-board-group h3,
+.religion-board-group h4 {
+  margin: 0 0 10px;
+  padding: 9px 12px;
+  border-left: 4px solid var(--accent);
+  background: color-mix(in srgb, var(--panel) 88%, var(--accent) 12%);
+  color: var(--accent);
+  font-family: var(--font-body);
+  font-size: clamp(20px, 1.7vw, 28px);
+}
+
+.religion-board-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 78px;
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--religion-color, var(--accent));
+  background: var(--religion-background, var(--panel));
+  color: var(--ink);
+  text-align: start;
+  cursor: pointer;
+}
+
+.religion-board-row:hover,
+.religion-board-row:focus-visible {
+  border-color: var(--religion-color, var(--accent));
+  outline: none;
+}
+
+.religion-board-icon,
+.religion-board-detail-icon {
+  width: 58px;
+  height: 58px;
+  object-fit: contain;
+}
+
+.religion-board-row-name {
+  display: grid;
+  gap: 4px;
+  min-width: min(260px, 28%);
+}
+
+.religion-board-row strong {
+  color: color-mix(in srgb, var(--religion-color, var(--accent)) 78%, var(--ink));
+  font-size: var(--text-lg);
+}
+
+.religion-board-row small {
+  color: var(--muted);
+}
+
+.religion-board-row-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-left: auto;
+  color: var(--muted);
+  font-size: var(--text-md);
+}
+
+.religion-board-detail-heading {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  border-left-color: var(--religion-color, var(--accent));
+}
+
+.religion-board-detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.religion-board-detail-grid > section {
+  padding: 16px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.religion-board-detail-section {
+  grid-column: 1 / -1;
+}
+
+.religion-board-detail-section small {
+  color: var(--muted);
+}
+
+.religion-board-detail-flavor-section > div {
+  display: grid;
+  gap: 8px;
+}
+
+.religion-board-detail-flavor-row {
+  display: grid;
+  grid-template-columns: minmax(190px, 0.35fr) minmax(130px, 0.2fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-left: 4px solid var(--religion-color, var(--accent));
+  background: color-mix(in srgb, var(--religion-color, var(--accent)) 12%, var(--panel));
+}
+
+.religion-board-detail-flavor-row strong {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.religion-board-detail-flavor-link {
+  color: var(--ink);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.religion-board-detail-flavor-link:hover,
+.religion-board-detail-flavor-link:focus-visible {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.religion-board-detail-flavor-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: fit-content;
+  min-height: 32px;
+  padding: 5px 10px;
+  border: 1px solid color-mix(in srgb, var(--accent-blue) 60%, var(--accent));
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--accent-blue) 84%, var(--surface));
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent);
+  transition: transform 120ms ease, border-color 120ms ease, background 120ms ease, box-shadow 120ms ease;
+}
+
+.religion-board-detail-flavor-button span {
+  color: var(--accent);
+  font-size: 0.9em;
+}
+
+.religion-board-detail-flavor-button:hover,
+.religion-board-detail-flavor-button:focus-visible {
+  transform: translateY(-1px);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent-blue) 68%, var(--accent) 32%);
+  color: #fff7e6;
+  box-shadow: 0 3px 10px color-mix(in srgb, var(--accent-blue) 48%, transparent);
+  outline: none;
+}
+
+.religion-board-detail-flavor-row small {
+  color: var(--muted);
+}
+
+.religion-board-detail-flavors {
+  color: var(--ink);
+  line-height: 1.6;
+}
+
+.religion-board-detail-trait {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 3px 7px;
+  border: 1px solid color-mix(in srgb, var(--accent) 34%, var(--line));
+  border-bottom: 2px solid color-mix(in srgb, var(--accent) 68%, var(--line));
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--accent) 9%, var(--panel));
+  color: var(--ink);
+  cursor: help;
+  transition: transform 120ms ease, background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.religion-board-detail-trait-hover:hover,
+.religion-board-detail-trait-hover:focus-visible {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 24%, var(--panel));
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-blue) 36%, transparent);
+  outline: none;
+}
+
+.religion-board-detail-grid h3 {
+  margin: 0 0 8px;
+  color: var(--accent);
+  font-family: var(--font-body);
+  font-size: var(--text-lg);
+}
+
+.religion-board-detail-grid p {
+  margin: 5px 0;
+  line-height: 1.65;
+}
+
+.religion-board-back {
+  display: inline-flex;
+  margin-bottom: 18px;
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--accent);
+}
+
+.religion-board-detail .detail-back-button {
+  width: 44px;
+  min-width: 44px;
+  margin-bottom: 18px;
+  padding: 6px;
+  border: 1px solid rgba(200, 164, 91, 0.3);
+  border-radius: 0;
+  background: var(--accent-blue);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.religion-board-detail .detail-back-button .lucide-icon {
+  width: 22px;
+  height: 22px;
+}
+
 .interest-group-flavor-link-row {
   display: grid;
   grid-template-columns: 116px minmax(0, 1fr);
@@ -597,12 +939,111 @@ body[data-view="interest-group"] .results {
 
 .interest-group-flavor-selector {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   min-height: 56px;
   padding: 10px 14px;
   border: 1px solid color-mix(in srgb, var(--line) 72%, var(--accent));
   border-left: 3px solid var(--accent);
   background: color-mix(in srgb, var(--surface) 91%, var(--panel));
+}
+
+.interest-group-devout-religion-legend {
+  display: block;
+  flex: 1 1 100%;
+  margin: 0;
+}
+
+.interest-group-devout-religion-parent-group + .interest-group-devout-religion-parent-group {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 2px solid color-mix(in srgb, var(--line) 78%, var(--accent));
+}
+
+.interest-group-devout-religion-parent-title {
+  margin: 0 0 8px;
+  color: var(--accent);
+  font-family: var(--font-body);
+  font-size: var(--text-xl);
+  letter-spacing: 0.08em;
+}
+
+.interest-group-devout-religion-group + .interest-group-devout-religion-group {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
+}
+
+.interest-group-devout-religion-group-title {
+  margin: 0 0 6px;
+  color: var(--accent);
+  font-family: var(--font-body);
+  font-size: var(--text-lg);
+  letter-spacing: 0.08em;
+}
+
+.interest-group-devout-religion-group + .interest-group-devout-religion-group {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
+}
+
+.interest-group-devout-religion-group--atheist .interest-group-devout-religion-name {
+  padding-left: 48px;
+}
+
+.interest-group-devout-religion-group-rows {
+  display: grid;
+  gap: 4px;
+}
+
+.interest-group-devout-religion-row {
+  display: grid;
+  grid-template-columns: minmax(160px, 0.24fr) minmax(0, 1fr);
+  align-items: center;
+  min-height: 64px;
+  padding: 7px 10px;
+  border: 1px solid color-mix(in srgb, var(--line) 82%, var(--accent));
+  background: color-mix(in srgb, var(--panel) 84%, var(--interest-group-background) 16%);
+}
+
+.interest-group-devout-religion-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  margin: 0;
+  color: var(--accent);
+  font-family: var(--font-body);
+  font-size: var(--text-lg);
+  line-height: 1.35;
+}
+
+.interest-group-devout-religion-name span {
+  overflow-wrap: anywhere;
+}
+
+.interest-group-devout-religion-flavors {
+  min-width: 0;
+  color: color-mix(in srgb, var(--interest-group-text-color, var(--interest-group-color)) 76%, var(--ink));
+  font-size: var(--text-md);
+  line-height: 1.6;
+}
+
+.interest-group-devout-religion-flavors a {
+  color: var(--accent);
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 58%, transparent);
+  text-underline-offset: 0.12em;
+}
+
+.interest-group-devout-religion-icon {
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  image-rendering: auto;
 }
 
 .interest-group-flavor-selector label {
@@ -1361,6 +1802,38 @@ body[data-view="news"] .detail {
 }
 
 @media (max-width: 760px) {
+  .religion-board-panel {
+    padding: 28px 18px 40px;
+  }
+
+  .religion-board-row {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .religion-board-row-name {
+    min-width: 0;
+    flex: 1 1 150px;
+  }
+
+  .religion-board-row-meta {
+    flex: 1 1 100%;
+    margin-left: 72px;
+  }
+
+  .religion-board-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .religion-board-detail-flavor-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .religion-board-detail {
+    padding: 0 18px 40px;
+  }
+
   body[data-view="interest-group"] .layout {
     min-height: calc(100vh - var(--chrome-height));
   }
@@ -1423,6 +1896,16 @@ body[data-view="news"] .detail {
     display: block;
     margin-top: 5px;
     font-size: 0.56em;
+  }
+
+  .interest-group-devout-religion-row {
+    grid-template-columns: minmax(112px, 0.34fr) minmax(0, 1fr);
+    min-height: 56px;
+  }
+
+  .interest-group-devout-religion-icon {
+    width: 34px;
+    height: 34px;
   }
 
   .interest-group-flavor-link-row {

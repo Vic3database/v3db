@@ -20,6 +20,7 @@ let companyCharterTypes = [];
 let interestGroups = [];
 let interestGroupTraits = [];
 let ideologies = [];
+let religions = [];
 let laws = [];
 let lawGroups = [];
 let technologies = [];
@@ -57,6 +58,7 @@ let byCompany = new Map();
 let byInterestGroup = new Map();
 let interestGroupTraitByKey = new Map();
 let ideologyByKey = new Map();
+let religionByKey = new Map();
 let lawByKey = new Map();
 let lawGroupByKey = new Map();
 let technologyByKey = new Map();
@@ -234,6 +236,7 @@ const state = {
     selectedExtensions: {},
   },
   selectedIdeology: "",
+  selectedReligion: "",
   selectedInterestGroup: "",
   selectedInterestGroupFlavor: "",
   selectedLaw: "",
@@ -655,6 +658,7 @@ const viewLabels = {
   region: "nav.region",
   company: "nav.company",
   ideology: "nav.ideology",
+  religion: "nav.religion",
   "interest-group": "nav.interestGroup",
   law: "nav.law",
   technology: "nav.technology",

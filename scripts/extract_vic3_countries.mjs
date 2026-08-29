@@ -459,6 +459,7 @@ function main() {
     companies,
     companyCharterTypes,
     interestGroups,
+    religions,
     interestGroupTraits,
     ideologies,
     lawGroups,
@@ -911,16 +912,144 @@ function loadReligions(dir, loc) {
       const node = asNode(assignment.value);
       if (!node) continue;
       const texture = firstScalar(node, "icon");
+      const color = parseColorValue(firstValue(node, "color"));
       religions.set(key, {
         key,
         name_zh: locCleanName(loc, key),
         icon_source: texture,
+        color,
+        heritage_key: stripPrefix(firstScalar(node, "heritage")),
         taboos: nodeItems(asNode(firstValue(node, "taboos")) || { items: [] }).map(stripPrefix).sort(),
         source_file: normalizePath(file),
       });
     }
   }
   return religions;
+}
+
+function buildReligionRows(religions, countries, interestGroups, interestGroupTraits, cultureTraits, loc) {
+  const countryRowsByReligion = new Map();
+  for (const country of countries || []) {
+    const key = country.religion?.key || country.religion || "";
+    if (!key) continue;
+    const rows = countryRowsByReligion.get(key) || [];
+    rows.push(country);
+    countryRowsByReligion.set(key, rows);
+  }
+  const devoutGroup = interestGroups.find((group) => group.key === "ig_devout");
+  const flavorRows = new Map((devoutGroup?.potential_flavors || []).map((flavor) => [flavor.key, flavor]));
+  for (const variant of devoutGroup?.condition_variants || []) {
+    if (!flavorRows.has(variant.key)) flavorRows.set(variant.key, variant);
+  }
+  const conditionFlavorsByRaw = new Map((devoutGroup?.condition_variants || [])
+    .filter((variant) => variant.condition_raw)
+    .map((variant) => [variant.condition_raw, variant]));
+  const countryFlavorRows = new Map();
+  for (const country of countries || []) {
+    const group = country.interest_groups?.find((item) => item.key === "ig_devout");
+    const flavorKey = group?.display_name?.key;
+    if (!group) continue;
+    if (flavorKey && group.display_name?.is_flavored) {
+      const rows = countryFlavorRows.get(flavorKey) || [];
+      rows.push({ country, group });
+      countryFlavorRows.set(flavorKey, rows);
+    }
+    for (const rule of group.applied_rules || []) {
+      const conditionFlavor = conditionFlavorsByRaw.get(rule.condition_raw);
+      if (!conditionFlavor) continue;
+      const rows = countryFlavorRows.get(conditionFlavor.key) || [];
+      rows.push({ country, group });
+      countryFlavorRows.set(conditionFlavor.key, rows);
+    }
+  }
+  const flavorByReligion = new Map([
+    ["catholic", ["ig_roman_curia", "ig_catholic_church"]],
+    ["protestant", ["ig_church_of_denmark", "ig_church_of_finland", "ig_evangelicals", "ig_evangelical_church", "ig_christian_missionaries", "ig_london_missionary_society", "ig_church_of_norway", "ig_church_of_sweden", "ig_anglican_church", "ig_taiping_god_worshippers"]],
+    ["oriental_orthodox", ["ig_oriental_orthodox_church"]],
+    ["orthodox", ["ig_orthodox_church"]],
+    ["sunni", ["ig_sunni_madrasahs"]],
+    ["shiite", ["ig_shia_madrasahs"]],
+    ["ibadi", ["ig_ibadi_madrasahs"]],
+    ["jewish", ["jewish"]],
+    ["mahayana", ["ig_jisha"]],
+    ["gelugpa", ["ig_vajrayana_monks"]],
+    ["theravada", ["ig_theravada_monks"]],
+    ["hindu", ["ig_hindu_priesthood"]],
+    ["confucian", ["ig_confucian"]],
+    ["shinto", ["ig_shinto_monks"]],
+    ["sikh", ["ig_granthis"]],
+    ["animist", ["animist"]],
+  ]);
+  return [...religions.values()].sort((left, right) => left.name_zh.localeCompare(right.name_zh, "zh-Hans-CN") || left.key.localeCompare(right.key)).map((religion) => {
+    const countriesForReligion = countryRowsByReligion.get(religion.key) || [];
+    let flavors = (flavorByReligion.get(religion.key) || []).flatMap((key) => {
+      const flavor = flavorRows.get(key);
+      const countryRowsForFlavor = countryFlavorRows.get(key) || [];
+      const byTraitSignature = new Map();
+      for (const row of countryRowsForFlavor) {
+        const traitKeys = (row.group.active_traits || []).map((trait) => trait.key).filter(Boolean).sort();
+        const signature = traitKeys.join("|");
+        if (!byTraitSignature.has(signature)) byTraitSignature.set(signature, { traitKeys, countries: [] });
+        byTraitSignature.get(signature).countries.push(row.country.tag);
+      }
+      if (modContentRoot && key === "ig_sunni_madrasahs") {
+        const turkey = countries.find((country) => country.tag === "TUR")?.interest_groups?.find((group) => group.key === "ig_devout");
+        if (turkey) byTraitSignature.set("turkey", { traitKeys: (turkey.active_traits || []).map((trait) => trait.key), countries: ["TUR"] });
+      }
+      if (!byTraitSignature.size) {
+        const sourceTraits = (flavor?.traits || []).map((trait) => trait.key);
+        const traitKeys = sourceTraits.length ? sourceTraits : religionDevoutFlavorTraitOverrides(key);
+        byTraitSignature.set("potential", { traitKeys, countries: [] });
+      }
+      return [...byTraitSignature.values()].map((variant, index) => {
+        const isTurkey = modContentRoot && key === "ig_sunni_madrasahs" && variant.countries.includes("TUR");
+        return {
+          key: isTurkey ? "ig_sunni_madrasahs_turkey" : index === 0 ? key : `${key}:${variant.traitKeys.join("|")}`,
+          name_zh: isTurkey ? "逊尼派乌理玛（土耳其）" : locCleanName(loc, key),
+          traits: variant.traitKeys,
+          source_file: flavor?.source_file || "",
+          country_tags: variant.countries.sort(),
+        is_used_by_country: variant.countries.length > 0,
+        };
+      });
+    });
+    if (modContentRoot && religion.key === "sunni") {
+      flavors = flavors.filter((flavor) => flavor.key !== "ig_sunni_madrasahs_turkey");
+      flavors.push({
+        key: "ig_sunni_madrasahs_turkey",
+        name_zh: "逊尼派乌理玛（土耳其）",
+        traits: ["ig_trait_jihad", "ig_trait_words_remain", "ig_trait_faith_in_chains"],
+        source_file: "D:/SteamLibrary/steamapps/workshop/content/529340/3219394272/common/interest_groups/joi_devout.txt",
+        country_tags: ["TUR"],
+        is_used_by_country: true,
+      });
+    }
+    return {
+      id: `religion:${religion.key}`,
+      key: religion.key,
+      name_zh: religion.name_zh,
+      icon_source: religion.icon_source,
+      color: religion.color || null,
+      heritage_key: religion.heritage_key || "",
+      heritage_name_zh: religion.heritage_key ? locCleanName(loc, religion.heritage_key) : "",
+      heritage_group_key: cultureTraits.get(religion.heritage_key)?.group_key || "",
+      heritage_group_name_zh: cultureTraits.get(religion.heritage_key)?.group_key
+        ? locCleanName(loc, cultureTraits.get(religion.heritage_key).group_key)
+        : "",
+      taboos: religion.taboos || [],
+      country_tags: countriesForReligion.map((country) => country.tag).sort(),
+      country_count: countriesForReligion.length,
+      devout_flavors: flavors,
+      source_file: religion.source_file,
+    };
+  });
+}
+
+function religionDevoutFlavorTraitOverrides(flavorKey) {
+  if (flavorKey === "ig_taiping_god_worshippers") {
+    return ["ig_trait_pious_fiction", "ig_trait_divine_right", "ig_trait_work_ethic"];
+  }
+  return [];
 }
 
 function loadPopNeeds(dirs, loc) {
@@ -2871,7 +3000,10 @@ function attachInterestGroupPotentialFlavors(interestGroups, { sourceDirs, loc, 
     group.potential_flavors = [...(flavorsByGroup.get(group.key)?.values() || [])]
       .map((flavor) => ({
         ...flavor,
-        traits: uniqueRefs(flavor.traits),
+        traits: uniqueRefs([
+          ...flavor.traits,
+          ...(group.key === "ig_devout" ? religionDevoutFlavorTraitOverrides(flavor.key).map((key) => interestGroupTraitRef(key, interestGroupTraits)) : []),
+        ]),
         rules: [...flavor.rules.values()],
       }))
       .sort((left, right) => left.name_zh.localeCompare(right.name_zh) || left.key.localeCompare(right.key));
@@ -4894,6 +5026,7 @@ function writeDatabase(dir, data) {
     companies,
     companyCharterTypes,
     interestGroups,
+    religions,
     interestGroupTraits,
     ideologies,
     lawGroups,
@@ -5069,6 +5202,7 @@ function writeDatabase(dir, data) {
       },
     };
   });
+  const religionRows = buildReligionRows(religions, countries, interestGroups, interestGroupTraits, cultureTraits, loc);
 
   const economyData = economy || {
     buildings: [],
@@ -5101,6 +5235,7 @@ function writeDatabase(dir, data) {
   }
   const originalFiles = {
     countries: countries,
+    religions: religionRows,
     cultures: cultureRows,
     culture_traits: cultureTraitRows,
     culture_trait_groups: cultureTraitGroupRows,
@@ -5158,6 +5293,7 @@ function writeDatabase(dir, data) {
     generated_at: new Date().toISOString(),
     files: {
       countries: "countries.json",
+      religions: "religions.json",
       cultures: "cultures.json",
       culture_traits: "culture_traits.json",
       culture_trait_groups: "culture_trait_groups.json",
@@ -5195,6 +5331,7 @@ function writeDatabase(dir, data) {
     },
     counts: {
       countries: countries.length,
+      religions: religionRows.length,
       cultures: cultureRows.length,
       culture_traits: cultureTraitRows.length,
       culture_trait_groups: cultureTraitGroupRows.length,

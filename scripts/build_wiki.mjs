@@ -85,6 +85,7 @@ const wikiData = {
   interestGroups: data.interestGroups,
   interestGroupTraits: data.interestGroupTraits,
   ideologies: data.ideologies,
+  religions: data.religions,
   laws: data.laws,
   lawGroups: data.lawGroups,
   technologies: data.technologies,
@@ -117,6 +118,7 @@ const dataChunks = {
   achievement: ["achievements"],
   building: ["buildings", "buildingGroups", "productionMethodGroups", "productionMethods"],
   goods: ["goods", "prestigeGoods"],
+  religion: ["religions"],
   needs: ["needsData"],
 };
 
@@ -126,6 +128,7 @@ const dataChunkFileNames = {
   region: "data-regions.js",
   company: "data-companies.js",
   ideology: "data-ideologies.js",
+  religion: "data-religions.js",
   law: "data-laws.js",
   technology: "data-technologies.js",
   achievement: "data-achievements.js",
@@ -252,6 +255,7 @@ function loadSiteData(sourceFile) {
   if (sourceData.schema_version && sourceData.files) {
     const baseDir = path.dirname(sourceFile);
     const countries = readJson(path.join(baseDir, sourceData.files.countries));
+    const religions = sourceData.files.religions ? readJson(path.join(baseDir, sourceData.files.religions)) : [];
     const cultures = readJson(path.join(baseDir, sourceData.files.cultures));
     const cultureTraits = readJson(path.join(baseDir, sourceData.files.culture_traits));
     const cultureTraitGroups = readJson(path.join(baseDir, sourceData.files.culture_trait_groups));
@@ -298,6 +302,7 @@ function loadSiteData(sourceFile) {
         default_dynamic_country_name_variant_count: dynamicCountryNameVariants.filter((variant) => variant.scope === "DEFAULT").length,
       },
       countries: countries.map((country) => flattenDatabaseCountry(country, nameById, colorById)),
+      religions,
       cultures,
       cultureTraits,
       cultureTraitGroups,
@@ -337,6 +342,7 @@ function deriveSiteData(siteData) {
   return {
     ...siteData,
     countries: siteData.countries.map(deriveCountryRecord),
+    religions: siteData.religions || [],
     cultures: deriveCultureRecords(siteData.cultures || []),
     companies: siteData.companies || [],
     geographicRegions: visibleGeographicRegions,
@@ -650,6 +656,7 @@ function createSearchEntries(data, messagesByLocale) {
     ["region", "stateRegions", "key"],
     ["company", "companies", "key"],
     ["ideology", "ideologies", "key"],
+    ["religion", "religions", "key"],
     ["law", "laws", "key"],
     ["technology", "technologies", "key"],
     ["achievement", "achievements", "key"],

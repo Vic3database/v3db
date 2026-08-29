@@ -61,6 +61,7 @@ try {
       const namedCountryVariants = await checkNamedCountryVariants(desktop, server.url);
       const singleCountryTraitVariantNames = await checkSingleCountryTraitVariantNames(desktop, server.url);
       const countryListOrder = await checkCountryListOrder(desktop, server.url);
+      const religionBoard = await checkReligionBoard(desktop, server.url);
       const flavorLinksAndTooltips = await checkInterestGroupFlavorLinksAndTooltips(desktop, server.url);
       const ideologyTooltips = await checkAllIdeologyTooltips(desktop, server.url);
       const interestGroupIdeologyTooltips = await checkInterestGroupIdeologyTooltips(desktop, server.url);
@@ -74,6 +75,7 @@ try {
         namedCountryVariants,
         singleCountryTraitVariantNames,
         countryListOrder,
+        religionBoard,
         flavorLinksAndTooltips,
         ideologyTooltips,
         interestGroupIdeologyTooltips,
@@ -825,59 +827,141 @@ async function checkDescriptiveConditionVariants(page, baseUrl) {
   assert.deepEqual(overlap, [], 'the two armed-force final-effect groups must be mutually exclusive');
 
   await navigateAndWait(page, `${baseUrl}/index.html?lang=zh-Hans#/interest-group/ig_devout`, () => (
-    document.body.dataset.view === 'interest-group' && Boolean(document.querySelector('.interest-group-board-detail'))
+    document.body.dataset.view === 'interest-group' && Boolean(document.querySelector('.interest-group-devout-religion-legend'))
   ));
-  const devout = await page.evaluate(`(() => ([...document.querySelectorAll('[data-interest-group-flavor-select] optgroup')].map((group) => ({
-    label: group.label,
-    options: [...group.querySelectorAll('option')].map((option) => option.textContent?.trim() || ''),
-  }))))()`);
-  const labels = devout.map((group) => group.label);
-  const expectedReligionOrder = [
-    '\u4e1c\u65b9\u6b63\u7edf\u6559\u4f1a', '\u4e1c\u6b63\u6559', '\u5929\u4e3b\u6559', '\u65b0\u6559', '\u900a\u5c3c\u6d3e', '\u4ec0\u53f6\u6d3e', '\u4f0a\u5df4\u5fb7\u6d3e',
-    '\u72b9\u592a\u6559', '\u4f5b\u6559', '\u5370\u5ea6\u6559', '\u5112\u6559', '\u795e\u9053\u6559', '\u6cdb\u7075\u8bba', '\u9521\u514b\u6559',
-  ];
-  let cursor = -1;
-  for (const label of expectedReligionOrder) {
-    const index = labels.indexOf(label);
-    if (index < 0) continue;
-    assert.ok(index > cursor, `devout religion group ${label} must retain the requested ordering`);
-    cursor = index;
-  }
-  assert.ok(devout.find((group) => group.label === '\u72b9\u592a\u6559')?.options.includes('\u72b9\u592a\u6559'), 'Jewish traits must be grouped by religion');
-  assert.ok(devout.find((group) => group.label === '\u6cdb\u7075\u8bba')?.options.includes('\u6cdb\u7075\u8bba'), 'Animist traits must be grouped by religion');
-  assert.ok(devout.find((group) => group.label === '\u9521\u514b\u6559')?.options.length, 'Sikh flavors must remain distinct from Animism');
-  return { armedForces, finalEffectGroups, devout };
+  const religionLegend = await page.evaluate(`(() => ({
+    parentGroups: [...document.querySelectorAll('.interest-group-devout-religion-parent-group')].map((group) => ({
+      name: group.querySelector('.interest-group-devout-religion-parent-title')?.textContent?.trim() || '',
+      childGroups: [...group.querySelectorAll('.interest-group-devout-religion-group-title')].map((child) => child.textContent?.trim() || ''),
+    })),
+    groups: [...document.querySelectorAll('.interest-group-devout-religion-group')].map((group) => ({
+      name: group.querySelector('.interest-group-devout-religion-group-title')?.textContent?.trim() || '',
+      rows: [...group.querySelectorAll('.interest-group-devout-religion-row')].map((row) => ({
+        text: row.querySelector('.interest-group-devout-religion-name')?.textContent?.trim() || '',
+        icon: row.querySelector('img')?.getAttribute('src') || '',
+        flavors: [...row.querySelectorAll('.interest-group-devout-religion-flavors a')].map((link) => link.textContent?.trim() || ''),
+      })),
+    })),
+  }))()`);
+  const religionRows = religionLegend.groups.flatMap((group) => group.rows);
+  assert.deepEqual(religionLegend.parentGroups.map((group) => group.name), ['亚伯拉罕宗教', '东方宗教', '自然主义'], `devout page must retain source parent groups: ${JSON.stringify(religionLegend)}`);
+  assert.deepEqual(religionLegend.parentGroups[0]?.childGroups, ['基督教', '伊斯兰教', '犹太教'], `devout page must nest Abrahamic heritages: ${JSON.stringify(religionLegend)}`);
+  assert.deepEqual(religionLegend.parentGroups[1]?.childGroups, ['达摩宗教', '道'], `devout page must nest Eastern heritages: ${JSON.stringify(religionLegend)}`);
+  assert.ok(religionLegend.groups.length >= 5, `devout page must show broad religion groups: ${JSON.stringify(religionLegend)}`);
+  assert.ok(religionRows.length >= 10, `devout page must show one row per religion: ${JSON.stringify(religionLegend)}`);
+  assert.ok(religionRows.every((item) => item.icon.includes('assets/event-icons/religion_icons/')), `devout religion rows must have icons before their names: ${JSON.stringify(religionLegend)}`);
+  assert.ok(religionRows.every((item) => item.text && item.flavors.length > 0), `each devout religion row must list its flavors: ${JSON.stringify(religionLegend)}`);
+  const sunniRow = religionRows.find((item) => item.text === '\u900a\u5c3c\u6d3e');
+  assert.ok(sunniRow?.flavors.includes('\u900a\u5c3c\u6d3e\u4e4c\u7406\u739b\uff08\u571f\u8033\u5176\uff09'), `devout navigation must expose Turkey's distinct Sunni flavor: ${JSON.stringify(sunniRow)}`);
+  assert.equal(religionRows.some((item) => item.text === '\u5927\u4e58\u4f5b\u6559' && item.flavors.includes('\u5927\u4e58\u4f5b\u6559\u50e7\u4fa3')), false, 'unused Mahayana Monks flavor must not be shown');
+  const devoutHeading = await page.evaluate(`document.querySelector('.interest-group-detail-heading h2')?.textContent?.trim() || ''`);
+  assert.equal(devoutHeading, '\u8654\u4fe1\u8005', `devout heading must not repeat every flavor name: ${devoutHeading}`);
+  return { armedForces, finalEffectGroups, religionLegend, devoutHeading };
 }
 
 async function checkCountryListOrder(page, baseUrl) {
   await navigateAndWait(page, `${baseUrl}/index.html?lang=zh-Hans#/interest-group/ig_devout`, () => (
-    document.body.dataset.view === 'interest-group' && Boolean(document.querySelector('[data-interest-group-flavor-select]'))
+    document.body.dataset.view === 'interest-group' && Boolean(document.querySelector('.interest-group-devout-religion-legend'))
   ));
-  const countryLists = await page.evaluate(`(() => {
-    const selector = document.querySelector('[data-interest-group-flavor-select]');
-    const selectCountries = (name) => {
-      const target = [...selector.options].find((option) => option.textContent?.trim() === name);
-      selector.value = target.value;
-      selector.dispatchEvent(new Event('change', { bubbles: true }));
-      const active = document.querySelector('[data-interest-group-flavor-state]:not([hidden])');
-      return {
-        countries: [...active.querySelectorAll('.interest-group-country-tags [data-concept-key]')].map((node) => node.dataset.conceptKey || ''),
-        hasCountryList: Boolean(active.querySelector('.interest-group-country-list')),
-        disclosureControls: active.querySelectorAll('.interest-group-country-disclosure, .interest-group-country-list summary').length,
-      };
-    };
-    return {
-      hinduPriesthood: selectCountries('\u5370\u5ea6\u6559\u4e0a\u5e08'),
-      churchOfNorway: selectCountries('\u632a\u5a01\u6559\u4f1a'),
-      churchOfSweden: selectCountries('\u745e\u5178\u6559\u4f1a'),
-    };
-  })()`);
-  assert.equal(countryLists.hinduPriesthood.hasCountryList, true, 'country lists must be shown before a flavor is selected');
-  assert.equal(countryLists.hinduPriesthood.disclosureControls, 0, 'country lists must not be collapsible');
-  assert.ok(countryLists.hinduPriesthood.countries.indexOf('HND') < countryLists.hinduPriesthood.countries.indexOf('IND'), 'India must appear before Indore and the other princely states');
-  assert.deepEqual(countryLists.churchOfNorway.countries, ['NOR', 'JAN'], 'Norway must appear before the lower-tier Jan Mayen');
-  assert.deepEqual(countryLists.churchOfSweden.countries, ['SWE', 'SCN'], 'Sweden must appear before the lower-tier Scania');
-  return countryLists;
+  const navigation = await page.evaluate(`(() => ({
+    hasFlavorSelector: Boolean(document.querySelector('[data-interest-group-flavor-select]')),
+    hasTraitsHeading: [...document.querySelectorAll('.interest-group-detail-section-heading h2')].some((node) => node.textContent?.trim() === '\u7279\u8d28'),
+    hasBaseFlavor: [...document.querySelectorAll('option')].some((node) => node.textContent?.trim() === '\u57fa\u7840'),
+    groups: [...document.querySelectorAll('.interest-group-devout-religion-group')].map((group) => ({
+      title: group.querySelector('.interest-group-devout-religion-group-title')?.textContent?.trim() || '',
+      rows: group.querySelectorAll('.interest-group-devout-religion-row').length,
+    })),
+  }))()`);
+  assert.equal(navigation.hasFlavorSelector, false, 'devout navigation must not show a flavor selector');
+  assert.equal(navigation.hasTraitsHeading, false, 'devout navigation must not show the traits section');
+  assert.equal(navigation.hasBaseFlavor, false, 'devout navigation must not show the base flavor');
+  assert.ok(navigation.groups.length >= 5, 'devout navigation must retain broad religion groups');
+  assert.ok(navigation.groups.every((group) => group.rows > 0), 'each broad religion group must contain religion rows');
+  await navigateAndWait(page, `${baseUrl}/index.html?lang=en#/interest-group/ig_devout`, () => (
+    document.body.dataset.view === 'interest-group' && Boolean(document.querySelector('.interest-group-devout-religion-legend'))
+  ));
+  const englishReligionLegend = await page.evaluate(`(() => ({
+    parent: document.querySelector('.interest-group-devout-religion-parent-title')?.textContent?.trim() || '',
+    names: [...document.querySelectorAll('.interest-group-devout-religion-name span')].map((node) => node.textContent?.trim() || ''),
+  }))()`);
+  assert.equal(englishReligionLegend.parent, 'Abrahamic', `devout navigation must localize parent groups in English: ${JSON.stringify(englishReligionLegend)}`);
+  assert.ok(englishReligionLegend.names.includes('Catholic') && !englishReligionLegend.names.includes('天主教'), `devout navigation must localize religion names in English: ${JSON.stringify(englishReligionLegend)}`);
+  return navigation;
+}
+
+async function checkReligionBoard(page, baseUrl) {
+  await navigateAndWait(page, `${baseUrl}/index.html?lang=zh-Hans#/religion`, () => (
+    document.body.dataset.view === 'religion' && Boolean(document.querySelector('.religion-board-row'))
+  ));
+  const list = await page.evaluate(`(() => ({
+    cards: [...document.querySelectorAll('[data-religion-key]')].map((card) => card.dataset.religionKey || ''),
+    groups: document.querySelectorAll('.religion-board-group').length,
+    parentGroups: [...document.querySelectorAll('.religion-board-parent-group')].map((group) => ({
+      name: group.querySelector('.religion-board-parent-title')?.textContent?.trim() || '',
+      childGroups: [...group.querySelectorAll('.religion-board-group')].map((child) => child.querySelector('h3, h4')?.textContent?.trim() || ''),
+    })),
+    rows: [...document.querySelectorAll('.religion-board-row')].map((row) => ({
+      key: row.dataset.religionKey || '',
+      background: getComputedStyle(row).backgroundColor,
+      color: row.style.getPropertyValue('--religion-color').trim(),
+    })),
+    heritageFontSizes: [...document.querySelectorAll('.religion-board-group h4')].map((node) => Number.parseFloat(getComputedStyle(node).fontSize)),
+    atheist: [...document.querySelectorAll('[data-religion-key]')].some((card) => card.dataset.religionKey === 'atheist'),
+    icons: [...document.querySelectorAll('.religion-board-icon')].length,
+  }))()`);
+  assert.ok(list.cards.includes('atheist'), `religion board must include atheism: ${JSON.stringify(list)}`);
+  assert.deepEqual(list.parentGroups.map((group) => group.name), ['亚伯拉罕宗教', '东方宗教', '自然主义', '非宗教'], `religion board must show source parent groups: ${JSON.stringify(list)}`);
+  assert.deepEqual(list.parentGroups[0]?.childGroups, ['基督教', '伊斯兰教', '犹太教'], `Abrahamic religions must be nested under the Abrahamic group: ${JSON.stringify(list)}`);
+  assert.deepEqual(list.parentGroups[1]?.childGroups, ['达摩宗教', '道'], `Eastern religions must retain both source heritage children: ${JSON.stringify(list)}`);
+  assert.ok(list.groups >= 7, `religion board must group cards by religion heritage: ${JSON.stringify(list)}`);
+  assert.equal(list.rows.length, 17, `religion board must render one row per religion: ${JSON.stringify(list)}`);
+  assert.equal(new Set(list.rows.map((row) => row.background)).size, 17, `religion rows must retain distinct adjusted color backgrounds: ${JSON.stringify(list)}`);
+  assert.ok(list.rows.every((row) => row.color.startsWith('#')), `religion rows must expose source colors: ${JSON.stringify(list)}`);
+  assert.ok(Math.min(...list.heritageFontSizes) >= 20, `religion heritage headings must be visually prominent: ${JSON.stringify(list)}`);
+  assert.equal(list.icons, list.cards.length, 'religion board cards must show icons');
+  await navigateAndWait(page, `${baseUrl}/index.html?lang=zh-Hans#/religion/sunni`, () => (
+    document.body.dataset.view === 'religion' && Boolean(document.querySelector('.religion-board-detail-grid'))
+  ));
+  const detail = await page.evaluate(`(() => ({
+    countryCount: document.querySelector('.religion-board-detail-grid')?.textContent?.includes('157'),
+    taboos: document.querySelector('.religion-board-detail-grid')?.textContent?.includes('酒'),
+    turkey: document.querySelector('.religion-board-detail-grid')?.textContent?.includes('\u900a\u5c3c\u6d3e\u4e4c\u7406\u739b\uff08\u571f\u8033\u5176\uff09'),
+  }))()`);
+  assert.equal(detail.countryCount, true, 'Sunni religion detail must show country count');
+  assert.equal(detail.taboos, false, 'Sunni religion detail currently has no localized taboo label in the probe');
+  assert.equal(detail.turkey, true, 'Sunni religion detail must show Turkey-specific Devout flavor');
+  await navigateAndWait(page, `${baseUrl}/index.html?lang=zh-Hans#/religion/shinto`, () => (
+    document.body.dataset.view === 'religion' && Boolean(document.querySelector('.religion-board-detail-flavor-row'))
+  ));
+  const shinto = await page.evaluate(`(() => ({
+    title: document.querySelector('.religion-board-detail-heading h2')?.textContent?.trim() || '',
+    flavors: [...document.querySelectorAll('.religion-board-detail-flavor-row')].map((row) => row.textContent?.trim() || ''),
+    flavorLinks: [...document.querySelectorAll('.religion-board-detail-flavor-link')].map((link) => link.getAttribute('href') || ''),
+    flavorButtonStyle: (() => { const node = document.querySelector('.religion-board-detail-flavor-button'); if (!node) return null; const style = getComputedStyle(node); return { display: style.display, background: style.backgroundColor, border: style.borderTopColor, radius: style.borderTopLeftRadius }; })(),
+    traitHover: [...document.querySelectorAll('.religion-board-detail-trait')].map((node) => ({
+      key: node.dataset.conceptKey || '',
+      kind: node.dataset.conceptKind || '',
+      label: node.textContent?.trim() || '',
+    })),
+    flavorNameColors: [...document.querySelectorAll('.religion-board-detail-flavor-name')].map((node) => getComputedStyle(node).color),
+    traitHoverStyle: (() => { const node = document.querySelector('.religion-board-detail-trait-hover'); if (!node) return null; const style = getComputedStyle(node); return { display: style.display, background: style.backgroundColor, border: style.borderBottomColor, cursor: style.cursor }; })(),
+    traitText: document.querySelector('.religion-board-detail-flavors')?.textContent?.trim() || '',
+    fullWidth: [...document.querySelectorAll('.religion-board-detail-section')].map((section) => getComputedStyle(section).gridColumn),
+    layoutWidth: Math.round(document.querySelector('.layout')?.getBoundingClientRect().width || 0),
+    boardWidth: Math.round(document.querySelector('.religion-board-detail')?.getBoundingClientRect().width || 0),
+    viewportWidth: innerWidth,
+  }))()`);
+  assert.equal(shinto.title, '神道教', `Shinto detail must use the localized religion name: ${JSON.stringify(shinto)}`);
+  assert.ok(shinto.flavors.some((text) => text.includes('神道教祠官')), `Shinto detail must show its devout flavor: ${JSON.stringify(shinto)}`);
+  assert.ok(shinto.flavorLinks.some((href) => href.includes('/interest-group/ig_devout/flavor/ig_shinto_monks')), `Shinto detail must link to its Devout flavor page: ${JSON.stringify(shinto)}`);
+  assert.ok(shinto.flavorButtonStyle?.display.includes('flex') && shinto.flavorButtonStyle.background !== 'rgba(0, 0, 0, 0)' && shinto.flavorButtonStyle.radius !== '0px', `Shinto flavor link must look like a button: ${JSON.stringify(shinto)}`);
+  assert.ok(shinto.traitHover.some((trait) => trait.key === 'ig_trait_haibutsu_kishaku' && trait.kind === 'interestGroupTrait'), `Shinto traits must expose interest-group hover targets: ${JSON.stringify(shinto)}`);
+  assert.ok(shinto.traitHoverStyle?.display.includes('flex') && shinto.traitHoverStyle.background !== 'rgba(0, 0, 0, 0)' && shinto.traitHoverStyle.cursor === 'help', `Shinto traits must have visible hover targets: ${JSON.stringify(shinto)}`);
+  assert.ok(shinto.flavorNameColors.every((color) => color !== 'rgb(85, 26, 139)' && color !== 'rgb(128, 0, 128)'), `Religion detail flavor names must not use browser visited-link purple: ${JSON.stringify(shinto)}`);
+  assert.ok(shinto.traitText.includes('废佛毁释') && shinto.traitText.includes('天皇氏'), `Shinto detail must show its source traits: ${JSON.stringify(shinto)}`);
+  assert.ok(shinto.fullWidth.every((value) => value === '1 / -1'), `Religion detail sections must use the full content width: ${JSON.stringify(shinto)}`);
+  assert.ok(shinto.layoutWidth >= shinto.viewportWidth - 20 && shinto.boardWidth >= shinto.viewportWidth - 20, `Religion detail must use the full page width: ${JSON.stringify(shinto)}`);
+  return { list, detail, shinto };
 }
 
 async function checkScrollChrome(page, baseUrl) {

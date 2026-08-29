@@ -1241,6 +1241,7 @@ function handleInfoDialogKeydown(event) {
 
 async function applyHash() {
   await ensureDataChunksForRoute();
+  if (routeView() === "religion" && !loadedDataChunks.has("religion")) await ensureDataChunks(["religion"]);
   const parts = location.hash.replace(/^#\/?/, "").split("/").filter(Boolean);
   state.infoDialog = "";
   if (standaloneSiteConfig && ["news", "changelog"].includes(parts[0])) {
@@ -1383,6 +1384,16 @@ async function applyHash() {
     state.selectedIdeology = decodeURIComponent(parts[1]);
     return;
   }
+  if (parts[0] === "religion" && !parts[1]) {
+    changeBoard("religion", "religion");
+    state.selectedReligion = "";
+    return;
+  }
+  if (parts[0] === "religion" && parts[1] && religionByKey.has(decodeURIComponent(parts[1]))) {
+    changeBoard("religion", "religion");
+    state.selectedReligion = decodeURIComponent(parts[1]);
+    return;
+  }
   if (parts[0] === "interest-group" && !parts[1]) {
     changeBoard("interest-group", "interestGroup");
     state.selectedInterestGroup = "";
@@ -1513,6 +1524,7 @@ async function setView(view) {
     state.selectedInterestGroup = "";
     state.selectedInterestGroupFlavor = "";
   }
+  if (view === "religion") state.selectedReligion = "";
   if (view === "character") state.selectedCharacter = "";
   if (view === "name-pool") state.selectedNamePool = "";
   replaceHash(`/${view}`);
@@ -1681,6 +1693,8 @@ function render() {
     renderCompanyBoard();
   } else if (state.view === "ideology") {
     renderIdeologyBoard();
+  } else if (state.view === "religion") {
+    renderReligionBoard();
   } else if (state.view === "interest-group") {
     renderInterestGroupBoard();
   } else if (state.view === "law") {
@@ -1702,7 +1716,7 @@ function render() {
   } else {
     renderCountryBoard();
   }
-  const boardManagesDetail = state.view === "home" || state.view === "interest-group" || state.view === "technology" || state.view === "achievement" || state.view === "event" || state.view === "journal" || state.view === "decision" || state.view === "building" || state.view === "goods" || state.view === "news" || state.view === "character" || state.view === "name-pool";
+  const boardManagesDetail = state.view === "home" || state.view === "interest-group" || state.view === "religion" || state.view === "technology" || state.view === "achievement" || state.view === "event" || state.view === "journal" || state.view === "decision" || state.view === "building" || state.view === "goods" || state.view === "news" || state.view === "character" || state.view === "name-pool";
   if (!boardManagesDetail && state.view !== "changelog" && isDetailPageRoute()) {
     renderDetailForState();
   } else if (!boardManagesDetail && state.detailKind !== "companyComposer") {
@@ -1719,7 +1733,7 @@ function detailRouteKey() {
   if (!route || !key) return "";
   if (route === "goods" && key === "needs") return "";
   if (route === "company" && ["solver", "composer"].includes(key)) return "";
-  return ["country", "culture", "state-region", "strategic-region", "geographic-region", "company", "ideology", "law", "technology", "achievement", "event", "journal", "decision", "building", "goods", "character", "name-pool"].includes(route) ? key : "";
+  return ["country", "culture", "state-region", "strategic-region", "geographic-region", "company", "ideology", "religion", "law", "technology", "achievement", "event", "journal", "decision", "building", "goods", "character", "name-pool"].includes(route) ? key : "";
 }
 
 function syncFilterSectionOpenStates() {
