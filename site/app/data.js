@@ -422,8 +422,8 @@ function resetDatasetState() {
   state.selectedCharacter = "";
   state.characterPage = 1;
   state.selectedNamePool = "";
-  state.characterSources.clear();
-  state.characterGenders.clear();
+  state.characterSources?.clear?.();
+  state.characterGenders?.clear?.();
   state.economySearch = "";
   state.goodsPanel = "list";
   state.needsTable = "substitutes";
