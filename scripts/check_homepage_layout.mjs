@@ -33,7 +33,10 @@ const categories = ["domestic", "society", "economy", "technology", "game"];
 expect(homeFunction.includes("const entries = ["), "homepage should define its entry data");
 expect(indexSource.includes('app/characters.js'), "homepage must load the character board module before initialization");
 expect(indexSource.includes('app/name-pools.js'), "homepage must load the name-pool board module before initialization");
-expect((homeFunction.match(/icon: "/g) || []).length === 17, "homepage should define fourteen board entries and three tool entries");
+expect(!indexSource.includes('data-nav-view="military"'), "top navigation must not expose the military entry");
+expect(!homeFunction.includes('view: "military"'), "homepage must not expose the military entry");
+expect(!homeFunction.includes('category: "military"'), "homepage must not expose a military category");
+expect((homeFunction.match(/icon: "/g) || []).length === 18, "homepage should define fifteen board entries and three tool entries");
 for (const view of ["country", "law", "ideology", "interest-group", "culture", "region", "company", "building", "goods", "technology", "journal", "event", "decision", "achievement"]) {
   expect(homeFunction.includes(`view: "${view}"`), `homepage should retain the ${view} entry route`);
 }
@@ -49,7 +52,7 @@ expect(homeFunction.includes('route: "/company/composer"'), "composer tool shoul
 expect(homeFunction.includes('available: true'), "calculator should always be available on the homepage");
 expect(homeFunction.includes('loadedDataVersion === "1.13.11"') && homeFunction.includes("standaloneSiteConfig"), "company tools should follow the current library availability rule before their data chunk loads");
 expect(homeFunction.includes("home-category"), "homepage should render categorized entry sections");
-expect((homeFunction.match(/category: "/g) || []).length === 14, "homepage should classify all published entries");
+expect((homeFunction.match(/category: "/g) || []).length === 15, "homepage should classify all published entries");
 for (const category of categories) {
   expect(homeFunction.includes(`category: "${category}"`), `homepage should include the ${category} category`);
 }
@@ -110,7 +113,7 @@ for (const icon of contentIcons) expect(homeFunction.includes(`icon: "${icon}"`)
 expect(!homeFunction.includes("const categoryRows ="), "homepage should not merge categories into paired rows");
 expect(homeFunction.includes('class="home-category-card"'), "homepage should render each category as an independent card");
 expect(!homeFunction.includes('categoryEntries.length'), "homepage category headings should not display redundant entry counts");
-expect(/\.home-category-list\s*\{[\s\S]*grid-template-columns:\s*repeat\(5,\s*minmax\(0,\s*1fr\)\)[\s\S]*align-items:\s*start/.test(stylesSource), "homepage category cards should use five topbar-aligned columns");
+expect(/\.home-category-list\s*\{[\s\S]*grid-template-columns:\s*repeat\(6,\s*minmax\(0,\s*1fr\)\)[\s\S]*align-items:\s*start/.test(stylesSource), "homepage category cards should use six topbar-aligned columns");
 expect(/\.home-category-card\s*\{[\s\S]*grid-column:\s*auto[\s\S]*align-self:\s*start/.test(stylesSource), "each topbar category card should keep its natural height");
 expect(/\.home-category-card\s*\{[\s\S]*border:\s*1px\s+solid\s+rgba\(200,\s*164,\s*91,\s*0?\.3\)/.test(stylesSource), "category cards should use the elevated gold border");
 expect(/\.home-category-card\s*\{[\s\S]*background:\s*rgba\(31,\s*33,\s*31,\s*0?\.46\)/.test(stylesSource), "category card bodies should remain gray");
@@ -154,9 +157,9 @@ if (failures.length) {
 
 console.log(JSON.stringify({
   homepage_layout: "ok",
-  entries: 14,
+  entries: 15,
   tools: 3,
-  icons: icons.length + contentIcons.length + 3,
+  icons: icons.length + contentIcons.length + 4,
 }, null, 2));
 
 function readText(relativePath) {
