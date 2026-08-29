@@ -31,6 +31,8 @@ const contentIcons = [
 const categories = ["domestic", "society", "economy", "technology", "game"];
 
 expect(homeFunction.includes("const entries = ["), "homepage should define its entry data");
+expect(indexSource.includes('app/characters.js'), "homepage must load the character board module before initialization");
+expect(indexSource.includes('app/name-pools.js'), "homepage must load the name-pool board module before initialization");
 expect((homeFunction.match(/icon: "/g) || []).length === 17, "homepage should define fourteen board entries and three tool entries");
 for (const view of ["country", "law", "ideology", "interest-group", "culture", "region", "company", "building", "goods", "technology", "journal", "event", "decision", "achievement"]) {
   expect(homeFunction.includes(`view: "${view}"`), `homepage should retain the ${view} entry route`);
