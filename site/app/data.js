@@ -13,7 +13,7 @@ async function init() {
   initDisplaySettings();
   renderFilterOptions();
   bindEvents();
-  bindCharacterBoardEvents?.();
+  globalThis.bindCharacterBoardEvents?.();
   els.homeGuideButton?.addEventListener("click", () => openInfoDialog("about"));
   await applyHash();
   render();
