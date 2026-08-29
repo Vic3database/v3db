@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { collectLocalizationRefs, sha256Text } from "./lib/localization-schema.mjs";
 import { searchAliasFields } from "./search_aliases.mjs";
+import { deriveCultureHomelandEffects } from "./culture_homeland_effects.mjs";
 
 const victorianCenturyChangeCollections = [
   ["countries", "tag"],
@@ -105,12 +106,13 @@ const wikiData = {
   dynamicCountryMapColorRules: data.dynamicCountryMapColorRules,
   formables: data.formables,
   releasables: data.releasables,
+  cultureHomelandEffects: deriveCultureHomelandEffects(loadCultureHomelandContent(source)),
 };
 
 const dataChunks = {
   country: ["countries", "dynamicCountryNameVariants", "dynamicCountryMapColorRules", "formables", "releasables"],
   culture: ["cultures", "cultureTraits", "cultureTraitGroups"],
-  region: ["stateRegions", "strategicRegions", "geographicRegions"],
+  region: ["stateRegions", "strategicRegions", "geographicRegions", "cultureHomelandEffects"],
   company: ["companies", "companyCharterTypes"],
   ideology: ["interestGroups", "interestGroupTraits", "ideologies"],
   law: ["laws", "lawGroups"],
@@ -284,8 +286,12 @@ function loadSiteData(sourceFile) {
     const dynamicCountryMapColorRules = readJson(path.join(baseDir, sourceData.files.dynamic_country_map_color_rules));
     const formables = readJson(path.join(baseDir, sourceData.files.formable_countries));
     const releasables = readJson(path.join(baseDir, sourceData.files.releasable_countries));
+    const primaryCultureExpansions = sourceData.files.primary_culture_expansions
+      ? readJson(path.join(baseDir, sourceData.files.primary_culture_expansions))
+      : { countries: {} };
     const nameById = new Map(dynamicCountryNameVariants.map((variant) => [variant.id, variant]));
     const colorById = new Map(dynamicCountryMapColorRules.map((rule) => [rule.id, rule]));
+    const primaryCultureExpansionByTag = new Map(Object.entries(primaryCultureExpansions.countries || {}));
     const databaseMessagesByLocale = Object.fromEntries((sourceData.locales?.supported || []).map((locale) => [
       locale,
       readJson(path.join(baseDir, sourceData.locales.files[locale].file)),
@@ -301,7 +307,7 @@ function loadSiteData(sourceFile) {
         generated_at: sourceData.generated_at,
         default_dynamic_country_name_variant_count: dynamicCountryNameVariants.filter((variant) => variant.scope === "DEFAULT").length,
       },
-      countries: countries.map((country) => flattenDatabaseCountry(country, nameById, colorById)),
+      countries: countries.map((country) => flattenDatabaseCountry(country, nameById, colorById, primaryCultureExpansionByTag.get(country.tag))),
       religions,
       cultures,
       cultureTraits,
@@ -335,6 +341,17 @@ function loadSiteData(sourceFile) {
     };
   }
   throw new Error(`Unsupported database schema in ${sourceFile}: expected schema_version and files.`);
+}
+
+function loadCultureHomelandContent(sourceFile) {
+  const sourceData = readJson(sourceFile);
+  const baseDir = path.dirname(sourceFile);
+  const contentIndexPath = path.join(baseDir, "content-index.json");
+  if (!fs.existsSync(contentIndexPath)) return {};
+  const contentIndex = readJson(contentIndexPath);
+  const files = contentIndex.files || {};
+  const read = (key) => files[key] ? readJson(path.join(baseDir, files[key])) : [];
+  return { event: read("events"), journal: read("journal_entries"), decision: read("decisions") };
 }
 
 function deriveSiteData(siteData) {
@@ -583,13 +600,24 @@ function deriveCultureRecords(cultures) {
   }));
 }
 
-function flattenDatabaseCountry(country, nameById, colorById) {
+function flattenDatabaseCountry(country, nameById, colorById, primaryCultureExpansion = null) {
   const dynamicNameVariants = (country.dynamic_country_name_variant_ids || [])
     .map((id) => nameById.get(id))
     .filter(Boolean);
   const dynamicMapColorRules = (country.dynamic_map_color_rule_ids || [])
     .map((id) => colorById.get(id))
     .filter(Boolean);
+  const primaryCultures = (country.primary_cultures || []).map((culture) => culture.key);
+  const maximumPrimaryCultures = primaryCultureExpansion && Object.prototype.hasOwnProperty.call(primaryCultureExpansion, "maximum_primary_cultures")
+    ? primaryCultureExpansion.maximum_primary_cultures
+    : primaryCultures;
+  const maximumPrimaryCultureSets = primaryCultureExpansion && Object.prototype.hasOwnProperty.call(primaryCultureExpansion, "maximum_primary_culture_sets")
+    ? primaryCultureExpansion.maximum_primary_culture_sets
+    : [primaryCultures];
+  const primaryCultureExpansionPaths = primaryCultureExpansion?.paths || [];
+  const primaryCultureConditionalPaths = primaryCultureExpansion?.conditional_primary_culture_paths || [];
+  const primaryCultureReplacementPaths = primaryCultureExpansion?.primary_culture_replacements || [];
+  const primaryCultureOptionGroups = primaryCultureExpansion?.primary_culture_option_groups || [];
   return {
     id: country.id,
     key: country.tag,
@@ -610,7 +638,14 @@ function flattenDatabaseCountry(country, nameById, colorById) {
     specialMechanic: country.special_mechanic?.loc?.name || "",
     specialTags: country.special_mechanic?.tags || [],
     canFormTags: (country.can_form_by_primary_culture || []).map((target) => target.tag),
-    primaryCultures: (country.primary_cultures || []).map((culture) => culture.key),
+    primaryCultures,
+    maximumPrimaryCultures,
+    maximumPrimaryCultureSets,
+    hasPrimaryCultureExpansions: Boolean(primaryCultureExpansionPaths.length || primaryCultureConditionalPaths.length || primaryCultureReplacementPaths.length),
+    primaryCultureExpansionPaths,
+    primaryCultureConditionalPaths,
+    primaryCultureReplacementPaths,
+    primaryCultureOptionGroups,
     religion: country.religion?.key || "",
     religionSource: country.religion?.source || "",
     tier: country.classification?.tier || "",

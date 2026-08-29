@@ -8,17 +8,25 @@ const mapSource = fs.readFileSync(mapPath, "utf8");
 
 assert.match(mapSource, /function countryIncorporationYearsForCulture\s*\(/, "country incorporation years helper should exist");
 assert.match(mapSource, /function countryIncorporationForStateRegion\s*\(/, "country incorporation state helper should exist");
+assert.match(mapSource, /function countryIncorporationLabel\s*\(/, "country incorporation labels should have explicit fallbacks");
 assert.match(mapSource, /countryIncorporationMapLegend/, "country incorporation legend should exist");
 assert.match(mapSource, /countryIncorporation/, "country incorporation map mode should exist");
 assert.match(mapSource, /2:\s*"#[0-9a-fA-F]+"[\s\S]*5:\s*"#[0-9a-fA-F]+"[\s\S]*10:\s*"#[0-9a-fA-F]+"[\s\S]*15:\s*"#[0-9a-fA-F]+"[\s\S]*25:\s*"#7a7f82"/, "incorporation colors should use one scale with a gray 25-year endpoint");
 const indexSource = fs.readFileSync(`${root}site\\index.html`, "utf8");
 assert.match(indexSource, /id="countryIncorporationMapButton"/, "country incorporation toggle should exist");
 assert.match(indexSource, /id="mapCountryContext"/, "country incorporation toolbar should expose the selected country context");
+assert.match(indexSource, /styles\.css\?v=20260828-calculator-overflow1/, "culture incorporation map should invalidate the root stylesheet cache");
+assert.match(indexSource, /app\/map\.js\?v=20260828-culture-search1/, "culture incorporation map should invalidate the map script cache");
+assert.match(indexSource, /locales\/manifest\.js\?v=20260828-calculator-sidebar1/, "country incorporation labels should invalidate the locale manifest cache");
+const stylesSource = fs.readFileSync(`${root}site\\styles.css`, "utf8");
+assert.match(stylesSource, /styles\/map\.css\?v=20260828-culture-search1/, "country incorporation legend should invalidate the map stylesheet cache");
+assert.match(stylesSource, /styles\/shell\.css\?v=20260828-culture-search1/, "culture incorporation map should invalidate the shell stylesheet cache");
 assert.match(indexSource, /id="countryIncorporationMapLegend"/, "country incorporation legend container should exist");
 const runtimeSource = fs.readFileSync(`${root}site\\app\\runtime.js`, "utf8");
 assert.match(runtimeSource, /countryIncorporationMapEnabled:\s*false/, "country incorporation state should default off");
 assert.match(runtimeSource, /mapCountryContext: document\.querySelector\("#mapCountryContext"\)/, "runtime element table should expose the selected country context");
 assert.match(mapSource, /function renderMapCountryContext\s*\(/, "map controls should render the selected country context");
+assert.match(mapSource, /map-country-context-flag/, "map country context should use a dedicated flag class");
 const boardSource = fs.readFileSync(`${root}site\\app\\boards.js`, "utf8");
 assert.match(boardSource, /state\.countryIncorporationMapEnabled\s*&&\s*selectedCountry\s*\?\s*stateRegions/, "incorporation map should use all state regions");
 for (const localePath of [`${root}site\\locales\\ui.zh-Hans.js`, `${root}site\\locales\\ui.en.js`]) {

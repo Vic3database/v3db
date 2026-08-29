@@ -280,6 +280,41 @@ body[data-view="company"]:not(.detail-page) .results {
   width: auto;
 }
 
+body[data-view="culture"][data-culture-incorporation="true"] .results,
+body[data-view="culture"][data-culture-incorporation="true"] .detail {
+  display: none;
+}
+
+body[data-view="culture"][data-culture-incorporation="true"] .map-panel {
+  display: block;
+}
+
+body[data-view="culture"][data-culture-incorporation="true"] .filters .culture-filter,
+body[data-view="culture"][data-culture-incorporation="true"] .filters #strategicRegionFilterSection,
+body[data-view="culture"][data-culture-incorporation="true"] .filters > label.search,
+body[data-view="culture"][data-culture-incorporation="true"] #sortSelect {
+  display: none;
+}
+
+body:not([data-view="culture"]) .culture-incorporation-entry {
+  display: none;
+}
+
+body:not([data-view="culture"]) .culture-incorporation-entry,
+body[data-view="culture"][data-culture-incorporation="true"] .culture-incorporation-entry {
+  display: none;
+}
+
+body:not([data-view="company"]) #companySolverEntry,
+body:not([data-view="company"]) #companyComposerEntry,
+body:not([data-view="company"]) #companySolverDetailPane,
+body[data-view="company"][data-company-solver="true"] #companySolverEntry,
+body[data-view="company"][data-company-solver="true"] #companyComposerEntry,
+body[data-view="company"][data-company-composer="true"] #companySolverEntry,
+body[data-view="company"][data-company-composer="true"] #companyComposerEntry {
+  display: none !important;
+}
+
 body[data-view="ideology"] .map-panel,
 body[data-view="ideology"] .map-toolbar,
 body[data-view="law"] .map-panel,
@@ -520,6 +555,10 @@ body.filters-collapsed .terrain-map-legend {
 }
 
 body.filters-collapsed .subsistence-building-map-legend {
+  left: 12px;
+}
+
+body.filters-collapsed .country-incorporation-map-legend {
   left: 12px;
 }
 
@@ -1782,6 +1821,12 @@ body[data-view="law"][data-results-panel="collapsed"] .detail {
   }
 
   .subsistence-building-map-legend {
+    right: 10px;
+    bottom: 10px;
+    left: 10px;
+  }
+
+  .country-incorporation-map-legend {
     right: 10px;
     bottom: 10px;
     left: 10px;

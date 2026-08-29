@@ -12,6 +12,7 @@ let countries = [];
 let cultures = [];
 let cultureTraits = [];
 let cultureTraitGroups = [];
+let cultureHomelandEffects = [];
 let stateRegions = [];
 let strategicRegions = [];
 let geographicRegions = [];
@@ -39,12 +40,6 @@ let productionMethods = [];
 let goods = [];
 let prestigeGoods = [];
 let needsData = null;
-let historicalCharacters = [];
-let historicalCharacterStats = {};
-let historicalCharacterImages = [];
-let historicalCharacterImageStats = {};
-let namePools = [];
-let namePoolStats = {};
 let mapData = null;
 let siteTitle = "Vicdata";
 let globalSearchDetailCache = null;
@@ -70,9 +65,6 @@ let productionMethodGroupByKey = new Map();
 let productionMethodByKey = new Map();
 let goodByKey = new Map();
 let prestigeGoodByKey = new Map();
-let byHistoricalCharacter = new Map();
-let byHistoricalCharacterImage = new Map();
-let byNamePool = new Map();
 let stateTraitByKey = new Map();
 let stateTraitRegionsByKey = new Map();
 let buildingByKey = new Map();
@@ -253,11 +245,6 @@ const state = {
   eventTags: new Set(),
   selectedBuilding: "",
   selectedGood: "",
-  selectedCharacter: "",
-  characterPage: 1,
-  selectedNamePool: "",
-  characterSources: new Set(),
-  characterGenders: new Set(),
   economySearch: "",
   goodsPanel: "list",
   needsTable: "substitutes",
@@ -278,6 +265,23 @@ const state = {
   mapMode: "resource",
   mapSubject: "",
   countryIncorporationMapEnabled: false,
+  incorporationCalculatorCultures: new Set(),
+  incorporationCalculatorAppliedCultures: new Set(),
+  incorporationCalculatorHomelandEffects: new Set(),
+  incorporationCalculatorAppliedHomelandEffects: new Set(),
+  incorporationCalculatorFilterHeritageGroups: new Set(),
+  incorporationCalculatorFilterHeritages: new Set(),
+  incorporationCalculatorFilterLanguageGroups: new Set(),
+  incorporationCalculatorFilterLanguages: new Set(),
+  incorporationCalculatorFilterTradition: "",
+  incorporationCalculatorFiltersOpen: false,
+  incorporationCalculatorFilterGroupsOpen: {
+    heritage: false,
+    language: false,
+    tradition: false,
+  },
+  incorporationCalculatorCandidateCultures: new Map(),
+  incorporationCalculatorSearch: "",
   theme: "votp",
 };
 
@@ -668,8 +672,6 @@ const viewLabels = {
   decision: "nav.decision",
   building: "nav.building",
   goods: "nav.goods",
-  character: "nav.character",
-  "name-pool": "nav.namePool",
   changelog: "nav.changelog",
   news: "nav.news",
 };
@@ -829,6 +831,7 @@ const els = {
   librarySelect: document.querySelector("#librarySelect"),
   standaloneLibrarySelect: document.querySelector("#standaloneLibrarySelect"),
   resetButton: document.querySelector("#resetButton"),
+  filterPanelTitle: document.querySelector("#filterPanelTitle"),
   countryViewButton: document.querySelector("#countryViewButton"),
   cultureViewButton: document.querySelector("#cultureViewButton"),
   regionViewButton: document.querySelector("#regionViewButton"),
@@ -836,10 +839,12 @@ const els = {
   ideologyViewButton: document.querySelector("#ideologyViewButton"),
   lawViewButton: document.querySelector("#lawViewButton"),
   searchInput: document.querySelector("#searchInput"),
+  cultureIncorporationEntry: document.querySelector("#cultureIncorporationEntry"),
   mobileCountryToolbar: document.querySelector("#mobileCountryToolbar"),
   mobileCountryFilterPanel: document.querySelector("#mobileCountryFilterPanel"),
   mobileCultureToolbar: document.querySelector("#mobileCultureToolbar"),
   mobileCultureFilterPanel: document.querySelector("#mobileCultureFilterPanel"),
+  cultureIncorporationPanel: document.querySelector("#cultureIncorporationPanel"),
   tierFilters: document.querySelector("#tierFilters"),
   countryTypeFilters: document.querySelector("#countryTypeFilters"),
   filteredCountryMapToggle: document.querySelector("#filteredCountryMapToggle"),
@@ -898,6 +903,7 @@ const els = {
   mapFitWidthButton: document.querySelector("#mapFitWidthButton"),
   countryIncorporationMapButton: document.querySelector("#countryIncorporationMapButton"),
   mapCountryContext: document.querySelector("#mapCountryContext"),
+  mapCultureContext: document.querySelector("#mapCultureContext"),
   mapResourceContext: document.querySelector("#mapResourceContext"),
   terrainMapViewButton: document.querySelector("#terrainMapViewButton"),
   terrainMapLegend: document.querySelector("#terrainMapLegend"),
@@ -913,7 +919,5 @@ const els = {
   companySolverDetailPane: document.querySelector("#companySolverDetailPane"),
   countryList: document.querySelector("#countryList"),
   detail: document.querySelector("#detail"),
-  characterSourceFilters: document.querySelector("#characterSourceFilters"),
-  characterGenderFilters: document.querySelector("#characterGenderFilters"),
   conceptTooltip: document.querySelector("#conceptTooltip"),
 };

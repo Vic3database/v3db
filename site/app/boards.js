@@ -116,6 +116,7 @@ function announcementItemHtml(item) {
 
 function renderHomeBoard() {
   const isStandaloneSite = Boolean(standaloneSiteConfig);
+  const companyToolsAvailable = Boolean(standaloneSiteConfig) || loadedDataVersion === "1.13.11";
   mapRuntime.filteredCountryTags = new Set();
   els.resultCount.textContent = "";
   els.activeHint.textContent = "";
@@ -138,6 +139,11 @@ function renderHomeBoard() {
     { category: "game", label: "nav.achievement", view: "achievement", icon: "assets/home/icon_achievements_enabled.png" },
   ];
   const availableEntries = entries;
+  const tools = [
+    { key: "cultureIncorporation", label: "nav.cultureIncorporationEntry", description: "board.culture.incorporation.description", route: "/culture/incorporation", icon: "assets/lucide/icons/calculator.svg", available: true },
+    { key: "companySolver", label: "board.company.solverEntry", description: "board.company.solverDescription", route: "/company/solver", icon: "assets/lucide/icons/workflow.svg", available: companyToolsAvailable },
+    { key: "companyComposer", label: "board.company.composer.entry", description: "board.company.composer.description", route: "/company/composer", icon: "assets/lucide/icons/combine.svg", available: companyToolsAvailable },
+  ].filter((tool) => tool.available);
   const categories = [
     { key: "domestic", label: "nav.domestic" },
     { key: "society", label: "nav.society" },
@@ -146,6 +152,18 @@ function renderHomeBoard() {
     { key: "game", label: "nav.gameContent" },
   ];
   els.countryList.innerHTML = `
+    <section class="home-tools" aria-labelledby="home-tools-title">
+      <div class="home-tools-heading"><h2 id="home-tools-title">${escapeHtml(t("home.tools", "工具"))}</h2></div>
+      <div class="home-tool-grid">
+        ${tools.map((tool) => `
+          <button class="home-tool-card" type="button" data-home-tool="${escapeHtml(tool.key)}" data-home-tool-route="${escapeHtml(tool.route)}">
+            <img class="home-tool-icon lucide-icon" src="${escapeHtml(tool.icon)}" alt="" aria-hidden="true">
+            <span class="home-tool-copy"><strong>${escapeHtml(t(tool.label))}</strong><small>${escapeHtml(t(tool.description))}</small></span>
+            <img class="home-tool-arrow lucide-icon" src="assets/lucide/icons/arrow-right.svg" alt="" aria-hidden="true">
+          </button>
+        `).join("")}
+      </div>
+    </section>
     <div class="home-category-list">
       ${categories.map((category) => {
     const categoryEntries = availableEntries.filter((entry) => entry.category === category.key);
@@ -165,6 +183,13 @@ function renderHomeBoard() {
       }).join("")}
     </div>
   `;
+  els.countryList.querySelectorAll("[data-home-tool]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      replaceHash(button.dataset.homeToolRoute);
+      await applyHash();
+      render();
+    });
+  });
   els.countryList.querySelectorAll("[data-home-view]").forEach((button) => {
     button.addEventListener("click", async () => {
       await setView(button.dataset.homeView);
@@ -1782,6 +1807,13 @@ function renderCountryBoard() {
 }
 
 function renderCultureBoard() {
+  if (state.detailKind === "cultureIncorporation") {
+    renderCultureIncorporationCalculator();
+    els.countryList.innerHTML = "";
+    renderMap(stateRegions);
+    return;
+  }
+  if (els.cultureIncorporationPanel) els.cultureIncorporationPanel.hidden = true;
   const filtered = cultures.filter(matchesCultureFilters).sort(sortCultures);
   if (state.selectedCulture && !byCulture.has(state.selectedCulture)) state.selectedCulture = "";
   if (!isDetailPageRoute() && state.selectedCulture && !filtered.some((culture) => culture.key === state.selectedCulture)) state.selectedCulture = "";
@@ -1874,7 +1906,7 @@ function renderCompanyBoard() {
   if (els.companySolverEntry) {
     const available = typeof companySolverAvailable === "function" && companySolverAvailable();
     els.companySolverEntry.hidden = !available;
-    els.companySolverEntry.innerHTML = available ? '<button type="button" class="company-solver-entry-button" data-company-solver-entry><span><strong>' + escapeHtml(t("board.company.solverEntry", "产业组合")) + '</strong><small>' + escapeHtml(t("board.company.solverDescription", "选择希望覆盖的建筑，查找公司组合。")) + '</small></span><span aria-hidden="true">→</span></button>' : "";
+    els.companySolverEntry.innerHTML = available ? '<button type="button" class="company-solver-entry-button" data-company-solver-entry><span><strong>' + escapeHtml(t("board.company.solverEntry", "公司产业求解器")) + '</strong><small>' + escapeHtml(t("board.company.solverDescription", "选择希望覆盖的建筑，查找公司组合。")) + '</small></span><span aria-hidden="true">→</span></button>' : "";
   }
   if (els.companyComposerEntry) {
     const available = typeof companyComposerAvailable === "function" && companyComposerAvailable();

@@ -134,6 +134,15 @@ function bindEvents() {
   document.addEventListener("keydown", handleGlobalSearchDialogKeydown);
   document.addEventListener("keydown", handleInfoDialogKeydown);
   document.addEventListener("click", async (event) => {
+    const incorporationLink = event.target.closest("[data-incorporation-country]");
+    if (incorporationLink) {
+      event.preventDefault();
+      replaceHash("/culture/incorporation");
+      await applyHash();
+      incorporationCalculatorInitializeFromCountry(incorporationLink.dataset.incorporationCountry);
+      render();
+      return;
+    }
     const button = event.target.closest("[data-detail-back]");
     if (!button) return;
     if (button.matches("[data-country-mobile-detail-back]") && window.matchMedia("(max-aspect-ratio: 3 / 2)").matches) state.countryMobileRestoreScrollPending = true;
@@ -147,6 +156,11 @@ function bindEvents() {
   });
   els.cultureViewButton?.addEventListener("click", async () => {
     await setView("culture");
+    render();
+  });
+  els.cultureIncorporationEntry?.addEventListener("click", async () => {
+    replaceHash("/culture/incorporation");
+    await applyHash();
     render();
   });
   els.regionViewButton?.addEventListener("click", async () => {
@@ -189,7 +203,6 @@ function bindEvents() {
   });
   els.searchInput.addEventListener("input", () => {
     state.search = els.searchInput.value.trim().toLowerCase();
-    if (state.view === "character") state.characterPage = 1;
     state.countryMobileSearchDraft = els.searchInput.value;
     state.cultureMobileSearchDraft = els.searchInput.value;
     state.globalSearchColorRestoreTag = "";
@@ -392,7 +405,6 @@ function bindEvents() {
 
   els.sortSelect.addEventListener("change", () => {
     state.sort = els.sortSelect.value;
-    if (state.view === "character") state.characterPage = 1;
     render();
   });
   els.mapModeSelect.addEventListener("change", () => {
@@ -407,6 +419,7 @@ function bindEvents() {
   els.countryIncorporationMapButton?.addEventListener("click", () => {
     if (state.view !== "country" || !state.selectedTag) return;
     state.countryIncorporationMapEnabled = !state.countryIncorporationMapEnabled;
+    if (!state.countryIncorporationMapEnabled) state.incorporationCalculatorCultures.clear();
     render();
   });
   els.terrainMapViewButton?.addEventListener("click", () => {
@@ -451,8 +464,6 @@ function bindEvents() {
     state.includeIndustryCharter = false;
     state.companyPrestigeGoods.clear();
     state.companyDlcs.clear();
-    state.characterSources.clear();
-    state.characterGenders.clear();
     state.ideologyTypes.clear();
     state.ideologyGroups.clear();
     state.ideologyOccurrences.clear();
@@ -501,6 +512,7 @@ function bindEvents() {
     render();
   });
 }
+
 
 function bindPrimaryListEvents() {
   const selectRow = (row) => {
@@ -654,7 +666,6 @@ function submitMobileCountrySearch(input) {
   state.countryMobileSearchDraft = query;
   if (query.trim().toLowerCase() === state.search) return;
   state.search = query.trim().toLowerCase();
-  if (state.view === "character") state.characterPage = 1;
   state.globalSearchColorRestoreTag = "";
   if (els.searchInput) els.searchInput.value = query;
   render();
@@ -665,7 +676,6 @@ function submitMobileCultureSearch(input) {
   state.cultureMobileSearchDraft = query;
   if (query.trim().toLowerCase() === state.search) return;
   state.search = query.trim().toLowerCase();
-  if (state.view === "character") state.characterPage = 1;
   state.globalSearchColorRestoreTag = "";
   if (els.searchInput) els.searchInput.value = query;
   render();
@@ -1131,7 +1141,6 @@ function searchConcept(target) {
   state.globalSearch = "";
   state.selectedGlobalResult = "";
   state.search = text.trim().toLowerCase();
-  if (state.view === "character") state.characterPage = 1;
   els.searchInput.value = text.trim();
   if (els.globalSearchDialogInput) els.globalSearchDialogInput.value = "";
   render();
@@ -1294,29 +1303,14 @@ async function applyHash() {
     changeBoard("culture", "culture");
     return;
   }
+  if (parts[0] === "culture" && parts[1] === "incorporation") {
+    changeBoard("culture", "cultureIncorporation");
+    clearCultureIncorporationCalculatorState();
+    return;
+  }
   if (parts[0] === "culture" && parts[1] && byCulture.has(decodeURIComponent(parts[1]))) {
     changeBoard("culture", "culture");
     state.selectedCulture = decodeURIComponent(parts[1]);
-    return;
-  }
-  if (parts[0] === "character" && !parts[1]) {
-    changeBoard("character", "character");
-    state.selectedCharacter = "";
-    return;
-  }
-  if (parts[0] === "character" && parts[1] && byHistoricalCharacter.has(decodeURIComponent(parts[1]))) {
-    changeBoard("character", "character");
-    state.selectedCharacter = decodeURIComponent(parts[1]);
-    return;
-  }
-  if (parts[0] === "name-pool" && !parts[1]) {
-    changeBoard("name-pool", "namePool");
-    state.selectedNamePool = "";
-    return;
-  }
-  if (parts[0] === "name-pool" && parts[1] && byNamePool.has(decodeURIComponent(parts[1]))) {
-    changeBoard("name-pool", "namePool");
-    state.selectedNamePool = decodeURIComponent(parts[1]);
     return;
   }
   if (parts[0] === "region") {
@@ -1525,8 +1519,6 @@ async function setView(view) {
     state.selectedInterestGroupFlavor = "";
   }
   if (view === "religion") state.selectedReligion = "";
-  if (view === "character") state.selectedCharacter = "";
-  if (view === "name-pool") state.selectedNamePool = "";
   replaceHash(`/${view}`);
   await ensureDataChunksForRoute();
   renderStrategicRegionFilterOptions();
@@ -1534,7 +1526,10 @@ async function setView(view) {
 }
 
 function changeBoard(view, detailKind) {
-  if (state.view !== view) resetBoardView();
+  if (state.view !== view) {
+    resetBoardView();
+    clearCultureIncorporationCalculatorState();
+  }
   if (view !== "region") state.regionMapView = "default";
   state.view = view;
   state.detailKind = detailKind;
@@ -1622,6 +1617,34 @@ function updatePanelToggleState() {
   }
 }
 
+function toolPanelTitle() {
+  if (state.view === "culture" && state.detailKind === "cultureIncorporation") return t("board.culture.incorporation.title", "整合时长计算器");
+  if (state.view === "company" && state.detailKind === "companySolver") return t("board.company.solverTitle", "公司产业求解器");
+  if (state.view === "company" && state.detailKind === "companyComposer") return t("board.company.composer.entry", "公司建筑组合器");
+  return t("ui.filters", "筛选");
+}
+
+function syncBoardOwnedToolPanels() {
+  const cultureCalculator = state.view === "culture" && state.detailKind === "cultureIncorporation";
+  const cultureBoard = state.view === "culture";
+  if (els.cultureIncorporationEntry) els.cultureIncorporationEntry.hidden = !cultureBoard || cultureCalculator;
+  if (els.cultureIncorporationPanel) els.cultureIncorporationPanel.hidden = !cultureCalculator;
+
+  const companyBoard = state.view === "company";
+  const companyToolOpen = ["companySolver", "companyComposer"].includes(state.detailKind);
+  for (const entry of [els.companySolverEntry, els.companyComposerEntry]) {
+    if (!entry) continue;
+    if (!companyBoard || companyToolOpen) {
+      entry.hidden = true;
+      entry.innerHTML = "";
+    }
+  }
+  if (els.companySolverDetailPane) {
+    els.companySolverDetailPane.hidden = !(companyBoard && state.detailKind === "companySolver");
+    if (!companyBoard) els.companySolverDetailPane.innerHTML = "";
+  }
+}
+
 function render() {
   hideTransientOverlays();
   document.body.dataset.view = state.view;
@@ -1632,12 +1655,18 @@ function render() {
   document.body.dataset.countryMobileDetail = String(state.view === "country" && isDetailPageRoute() ? "open" : "closed");
   document.body.dataset.cultureMobileMap = String(state.cultureMobileMapOpen);
   document.body.dataset.cultureMobileFilters = String(state.cultureMobileFiltersOpen);
-  document.body.dataset.cultureMobileDetail = String(state.view === "culture" && isDetailPageRoute() ? "open" : "closed");
+  document.body.dataset.cultureMobileDetail = String(state.view === "culture" && isDetailPageRoute() && state.detailKind !== "cultureIncorporation" ? "open" : "closed");
+  document.body.dataset.cultureIncorporation = String(state.view === "culture" && state.detailKind === "cultureIncorporation");
   if (els.homeWelcome) els.homeWelcome.hidden = state.view !== "home";
   if (els.homeLinks) els.homeLinks.hidden = state.view !== "home";
-  document.body.classList.toggle("detail-page", isDetailPageRoute());
+  document.body.classList.toggle("detail-page", isDetailPageRoute() && state.detailKind !== "cultureIncorporation");
   document.body.classList.toggle("global-search-active", Boolean(state.globalSearch));
   updatePageChrome();
+  if (els.filterPanelTitle) {
+    const title = toolPanelTitle();
+    els.filterPanelTitle.textContent = title;
+    els.filterPanelTitle.closest(".filters")?.setAttribute("aria-label", title);
+  }
   syncInfoDialogVisibility();
   updateResultsPanelMode();
   els.countryViewButton?.setAttribute("aria-pressed", String(state.view === "country"));
@@ -1683,10 +1712,6 @@ function render() {
     renderChangelogBoard();
   } else if (state.view === "culture") {
     renderCultureBoard();
-  } else if (state.view === "character") {
-    renderCharacterBoard();
-  } else if (state.view === "name-pool") {
-    renderNamePoolBoard();
   } else if (state.view === "region") {
     renderRegionBoard();
   } else if (state.view === "company") {
@@ -1716,7 +1741,8 @@ function render() {
   } else {
     renderCountryBoard();
   }
-  const boardManagesDetail = state.view === "home" || state.view === "interest-group" || state.view === "religion" || state.view === "technology" || state.view === "achievement" || state.view === "event" || state.view === "journal" || state.view === "decision" || state.view === "building" || state.view === "goods" || state.view === "news" || state.view === "character" || state.view === "name-pool";
+  syncBoardOwnedToolPanels();
+  const boardManagesDetail = state.view === "home" || state.view === "interest-group" || state.view === "religion" || state.view === "technology" || state.view === "achievement" || state.view === "event" || state.view === "journal" || state.view === "decision" || state.view === "building" || state.view === "goods" || state.view === "news";
   if (!boardManagesDetail && state.view !== "changelog" && isDetailPageRoute()) {
     renderDetailForState();
   } else if (!boardManagesDetail && state.detailKind !== "companyComposer") {
@@ -1733,7 +1759,7 @@ function detailRouteKey() {
   if (!route || !key) return "";
   if (route === "goods" && key === "needs") return "";
   if (route === "company" && ["solver", "composer"].includes(key)) return "";
-  return ["country", "culture", "state-region", "strategic-region", "geographic-region", "company", "ideology", "religion", "law", "technology", "achievement", "event", "journal", "decision", "building", "goods", "character", "name-pool"].includes(route) ? key : "";
+  return ["country", "culture", "state-region", "strategic-region", "geographic-region", "company", "ideology", "religion", "law", "technology", "achievement", "event", "journal", "decision", "building", "goods"].includes(route) ? key : "";
 }
 
 function syncFilterSectionOpenStates() {

@@ -332,6 +332,7 @@ function syncListSelection(attribute, previousKey, nextKey) {
 function commitCountrySelection(countryTag) {
   const previousTag = state.selectedTag;
   state.globalSearchColorRestoreTag = "";
+  if (previousTag !== countryTag) clearCultureIncorporationCalculatorState();
   state.selectedTag = countryTag;
   state.detailKind = "country";
   replaceHash(selectionHashForCard("/country", "/country/" + encodeURIComponent(countryTag)));
@@ -968,6 +969,7 @@ function renderCountryDetail(country) {
   }
   const primaryCultureNames = (country.primaryCultures || []).map((item) => entityText(byCulture.get(item?.key || item) || item)).filter(Boolean);
   const capitalName = country.capital ? entityText(byStateRegion.get(country.capital), "name", country.capital) || country.capital : "";
+  const expandablePrimaryCultureHtml = countryPrimaryCultureExpansionsHtml(country);
   els.detail.innerHTML = `
     <div class="detail-title">
       ${detailBackButton("country")}
@@ -985,7 +987,8 @@ function renderCountryDetail(country) {
       ${field(t("board.country.tier", "国家位阶"), tagPill(countryTierLabel(country.tier), "tag-tier"))}
       ${field(t("board.country.standardColor", "标准色"), colorValue(country.colorHex, country.colorRgb))}
       ${field(t("board.country.unitColor", "部队颜色"), unitColorText(country))}
-      ${field(t("board.country.primaryCulture", "主流文化"), linkedTerms(country.primaryCultures, primaryCultureNames, "culture"))}
+      ${field(t("board.country.primaryCulture", "主流文化"), `${linkedTerms(country.primaryCultures, primaryCultureNames, "culture")} <a class="country-incorporation-calculator-link" href="#/culture/incorporation" data-incorporation-country="${escapeHtml(country.tag)}">${escapeHtml(t("nav.cultureIncorporation", "整合时长"))}</a>`)}
+      ${expandablePrimaryCultureHtml ? field(t("board.country.expandablePrimaryCultures", "可扩展的主流文化"), expandablePrimaryCultureHtml) : ""}
       ${field(t("board.country.locationStrategicRegions", "所在战略区域"), strategicRegionLinks(country.locationStrategicRegions))}
       ${field(t("board.country.locationStateRegions", "所在地域"), stateRegionLinks(country.locationStateRegions))}
       ${field(t("board.country.primaryCultureHomelandStrategicRegions", "主流文化本土战略区域"), strategicRegionLinks(country.primaryCultureHomelandStrategicRegions))}
@@ -1035,6 +1038,203 @@ function renderCountryDetail(country) {
       ${field(t("board.country.releaseStates", "释放州"), stateRegionLinks((country.releaseStates || []).map((key) => byStateRegion.get(key) || { key, id: `state_region:${key}` })))}
     </dl>
   `;
+}
+
+function countryPrimaryCultureRoutes(country) {
+  return [
+    ...(country.primaryCultureExpansionPaths || []).map((path) => ({
+      ...path,
+      route_kind: path.eligible_when ? "conditional" : "direct",
+    })),
+    ...(country.primaryCultureConditionalPaths || []).map((path) => ({
+      ...path,
+      route_kind: "conditional",
+    })),
+    ...(country.primaryCultureReplacementPaths || []).map((path) => ({
+      ...path,
+      culture: path.added_culture,
+      route_kind: "replacement",
+    })),
+  ];
+}
+
+function countryPrimaryCultureExpansionsHtml(country) {
+  const routes = countryPrimaryCultureRoutes(country);
+  const uniqueRoutes = new Map();
+  for (const route of routes) {
+    if (!route?.culture) continue;
+    const signature = [
+      route.culture,
+      route.removed_culture || "",
+      route.route_kind,
+      JSON.stringify(route.eligible_when || {}),
+      route.content_type || "",
+      route.content_id || "",
+      route.effect_kind || "",
+      route.source_file || "",
+      route.source_line || 0,
+    ].join("|");
+    if (!uniqueRoutes.has(signature)) uniqueRoutes.set(signature, route);
+  }
+  const groups = new Map();
+  for (const route of uniqueRoutes.values()) {
+    const items = groups.get(route.culture) || [];
+    items.push(route);
+    groups.set(route.culture, items);
+  }
+  if (!groups.size) return "";
+  const cultureRef = (key) => byCulture.get(key) || { id: `culture:${key}`, key };
+  const sortedGroups = [...groups.entries()].sort(([left], [right]) => localizedCompare(entityText(cultureRef(left)), entityText(cultureRef(right))) || left.localeCompare(right));
+  return `
+    <div class="country-primary-culture-expansions" data-country-primary-culture-expansions>
+      ${sortedGroups.map(([culture, cultureRoutes]) => countryPrimaryCultureExpansionGroupHtml(country, culture, cultureRoutes, cultureRef)).join("")}
+    </div>
+  `;
+}
+
+function countryPrimaryCultureExpansionGroupHtml(country, culture, routes, cultureRef) {
+  const routeHtml = [...routes]
+    .sort(compareCountryPrimaryCultureRoute)
+    .map((route) => countryPrimaryCultureRouteHtml(country, culture, route, cultureRef))
+    .join("");
+  const hasExclusiveRoute = routes.some((route) => countryPrimaryCultureExclusiveAlternatives(country, culture, route).length > 0);
+  const kinds = uniqueCountryPrimaryCultureRouteKinds(routes, hasExclusiveRoute);
+  return `
+    <details class="collapsible-detail-section country-primary-culture-expansion" data-primary-culture-key="${escapeHtml(culture)}">
+      <summary>
+        <span>${cultureLinks([cultureRef(culture)])}</span>
+        <small>${escapeHtml(kinds.join(t("ui.listSeparator")))}</small>
+      </summary>
+      <div class="collapsible-detail-body country-primary-culture-routes">
+        ${routeHtml}
+      </div>
+    </details>
+  `;
+}
+
+function countryPrimaryCultureRouteHtml(country, culture, route, cultureRef) {
+  const alternatives = countryPrimaryCultureExclusiveAlternatives(country, culture, route);
+  const hasExclusiveRoute = alternatives.length > 0;
+  const kinds = uniqueCountryPrimaryCultureRouteKinds([route], hasExclusiveRoute);
+  const conditions = countryPrimaryCultureConditionHtml(route.eligible_when, cultureRef);
+  const origins = route?.eligible_when?.was_formed_from_any || [];
+  const originAttribute = origins.length === 1 ? ` data-primary-culture-route-origin="${escapeHtml(origins[0])}"` : "";
+  const replacement = route.removed_culture
+    ? `<p class="country-primary-culture-route-line">${t("board.country.primaryCulturePath.replaces", { added: cultureLinks([cultureRef(culture)]), removed: cultureLinks([cultureRef(route.removed_culture)]) })}</p>`
+    : "";
+  return `
+    <article class="country-primary-culture-route" data-primary-culture-route-kind="${escapeHtml(route.route_kind)}"${originAttribute}>
+      <div class="country-primary-culture-route-meta">${escapeHtml(kinds.join(t("ui.listSeparator")))}</div>
+      ${conditions}
+      ${replacement}
+      <p class="country-primary-culture-route-line"><strong>${escapeHtml(t("board.country.primaryCulturePath.source"))}${escapeHtml(t("ui.colon"))}</strong> ${escapeHtml(countryPrimaryCultureSourceType(route))} · ${escapeHtml(route.content_id || "")}</p>
+      <p class="country-primary-culture-route-line"><strong>${escapeHtml(t("board.country.primaryCulturePath.file"))}${escapeHtml(t("ui.colon"))}</strong> ${escapeHtml(route.source_file || "")}${route.source_line ? `:${escapeHtml(String(route.source_line))}` : ""}</p>
+      ${countryPrimaryCultureExclusiveHtml(country, culture, route, cultureRef)}
+    </article>
+  `;
+}
+
+
+function countryPrimaryCultureConditionHtml(eligibleWhen, cultureRef) {
+  const conditions = countryPrimaryCultureConditionParts(eligibleWhen, cultureRef);
+  if (!conditions.length) return "";
+  return `<p class="country-primary-culture-route-line"><strong>${escapeHtml(t("board.country.primaryCulturePath.condition"))}${escapeHtml(t("ui.colon"))}</strong> ${conditions.join("；")}</p>`;
+}
+
+function countryPrimaryCultureConditionParts(eligibleWhen, cultureRef) {
+  const condition = eligibleWhen || {};
+  const cultureList = (keys) => cultureLinks((keys || []).map(cultureRef));
+  const countryList = (tags) => countryLinks(tags || []);
+  const parts = [];
+  if (condition.homeland_culture) parts.push(t("board.country.primaryCulturePath.homelandCulture", { culture: cultureList([condition.homeland_culture]) }));
+  if (condition.culture_present) parts.push(t("board.country.primaryCulturePath.culturePresent", { culture: cultureList([condition.culture_present]) }));
+  if (condition.country_or_was_formed_from_any) parts.push(t("board.country.primaryCulturePath.countryOrFormedFrom", { countries: countryList(condition.country_or_was_formed_from_any) }));
+  if (condition.was_formed_from_any) parts.push(t("board.country.primaryCulturePath.formedFrom", { countries: countryList(condition.was_formed_from_any) }));
+  if (condition.primary_cultures_any) parts.push(t("board.country.primaryCulturePath.currentPrimaryCultures", { cultures: cultureList(condition.primary_cultures_any) }));
+  if (condition.requires_variable === "chose_integration_var") parts.push(t("board.country.primaryCulturePath.integrationDecision"));
+  if (condition.minimum_culture_acceptance === "acceptance_status_5") parts.push(t("board.country.primaryCulturePath.acceptanceLevel"));
+  if ((condition.one_of || []).every((key) => ["vernacular_industrial_development", "vernacular_social_mobility"].includes(key)) && condition.one_of?.length) parts.push(t("board.country.primaryCulturePath.vernacularDevelopment"));
+  if (condition.has_journal_entry === "je_unify_afghanistan") parts.push(t("board.country.primaryCulturePath.unifyAfghanistanJournal"));
+  return parts;
+}
+
+function countryPrimaryCultureExclusiveHtml(country, culture, route, cultureRef) {
+  const alternatives = countryPrimaryCultureExclusiveAlternatives(country, culture, route);
+  if (!alternatives.length) return "";
+  return `
+    <div class="country-primary-culture-exclusive">
+      <strong>${escapeHtml(t("board.country.primaryCulturePath.mutuallyExclusiveRoutes"))}${escapeHtml(t("ui.colon"))}</strong>
+      <div class="country-primary-culture-exclusive-options">
+        ${alternatives.map((option) => {
+          const group = (country.primaryCultureOptionGroups || []).find((candidate) => candidate.options?.some((item) => JSON.stringify(item.added_primary_cultures || []) === JSON.stringify(option.added_primary_cultures || [])));
+          const sourceOption = group?.options?.find((item) => JSON.stringify(item.added_primary_cultures || []) === JSON.stringify(option.added_primary_cultures || []));
+          return `<div class="country-primary-culture-exclusive-option">${cultureLinks(option.added_primary_cultures.map(cultureRef))}</div>`;
+        }).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function countryPrimaryCultureExclusiveAlternatives(country, culture, route) {
+  const signatures = new Set();
+  const alternatives = [];
+  for (const group of country.primaryCultureOptionGroups || []) {
+    const selectedOptions = countryPrimaryCultureSelectedOptions(group, culture, route);
+    if (!selectedOptions.length) continue;
+    const selected = new Set(selectedOptions);
+    for (const option of group.options || []) {
+      if (selected.has(option)) continue;
+      const cultures = [...new Set(option.added_primary_cultures || [])].sort();
+      if (!cultures.length) continue;
+      const signature = cultures.join("|");
+      if (signatures.has(signature)) continue;
+      signatures.add(signature);
+      alternatives.push({ added_primary_cultures: cultures });
+    }
+  }
+  return alternatives;
+}
+
+function countryPrimaryCultureSelectedOptions(group, culture, route) {
+  const options = (group.options || []).filter((option) => (option.added_primary_cultures || []).includes(culture));
+  const origins = route?.eligible_when?.was_formed_from_any || [];
+  if (!origins.length) return options;
+  const matches = options.filter((option) => (option.was_formed_from_any || []).some((origin) => origins.includes(origin)));
+  return matches.length ? matches : options;
+}
+
+function uniqueCountryPrimaryCultureRouteKinds(routes, hasExclusiveRoute) {
+  const kinds = new Set(routes.map((route) => route.route_kind));
+  if (hasExclusiveRoute) kinds.add("exclusive");
+  return ["direct", "conditional", "exclusive", "replacement"]
+    .filter((kind) => kinds.has(kind))
+    .map((kind) => t(`board.country.primaryCulturePath.${kind}`));
+}
+
+function countryPrimaryCultureSourceType(route) {
+  const sourceType = {
+    event: "event",
+    journal: "journal",
+    decision: "decision",
+    on_action: "onAction",
+    scripted_button: "scriptedButton",
+    scripted_effect: "scriptedEffect",
+    amendment: "amendment",
+  }[route.effect_kind] || {
+    event: "event",
+    journal: "journal",
+    decision: "decision",
+    on_action: "onAction",
+    scripted: "scripted",
+  }[route.content_type] || "scripted";
+  return t(`board.country.primaryCulturePath.sourceType.${sourceType}`);
+}
+
+function compareCountryPrimaryCultureRoute(left, right) {
+  return localizedCompare(countryPrimaryCultureSourceType(left), countryPrimaryCultureSourceType(right))
+    || String(left.content_id || "").localeCompare(String(right.content_id || ""))
+    || String(left.source_file || "").localeCompare(String(right.source_file || ""))
+    || Number(left.source_line || 0) - Number(right.source_line || 0);
 }
 function renderCountryDetailPage(country) {
   renderCountryDetail(country);

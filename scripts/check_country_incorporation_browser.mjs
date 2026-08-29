@@ -21,18 +21,22 @@ try {
   assert.equal(await page.evaluate(() => document.querySelector("#countryIncorporationMapButton").disabled), true, "toggle must be disabled without a country");
   assert.equal(await page.evaluate(() => document.querySelector("#countryIncorporationMapLegend").hidden), true, "legend must be hidden without a country");
 
-  await page.goto(`${baseUrl}#/country/FRA`);
-  await page.waitForSelector(".detail h2", "country detail");
+  await page.goto(`${baseUrl}#/country`);
+  await page.waitForSelector('[data-country="FRA"]', "country list row");
+  await page.evaluate(() => document.querySelector('[data-country="FRA"]').click());
   assert.equal(await page.evaluate(() => document.querySelector("#countryIncorporationMapButton").disabled), false, "toggle must enable after country selection");
   await page.waitForSelector("#mapCountryContext:not([hidden])", "selected country context");
+  await new Promise((resolve) => setTimeout(resolve, 500));
   const countryContext = await page.evaluate(() => ({
     name: document.querySelector("#mapCountryContext .map-country-context-name")?.textContent?.trim(),
     tag: document.querySelector("#mapCountryContext .map-country-context-tag")?.textContent?.trim(),
     flag: document.querySelector("#mapCountryContext .map-country-context-flag")?.getAttribute("src"),
+    flagStyle: (() => { const element = document.querySelector("#mapCountryContext .map-country-context-flag"); const style = element ? getComputedStyle(element) : null; return style ? { width: style.width, height: style.height, flex: style.flex } : null; })(),
   }));
   assert.ok(countryContext.name, "selected country context must show a localized country name");
   assert.equal(countryContext.tag, "FRA", "selected country context must show the selected country tag");
   assert.ok(countryContext.flag, "selected country context must show the selected country flag");
+  assert.deepEqual(countryContext.flagStyle, { width: "24px", height: "16px", flex: "0 0 auto" }, "selected country context flag must stay compact");
   const regionCount = await page.evaluate(() => stateRegions.length);
   await page.evaluate(() => document.querySelector("#countryIncorporationMapButton").click());
   await page.waitForSelector("#countryIncorporationMapLegend:not([hidden])", "incorporation legend");
@@ -40,10 +44,19 @@ try {
     mode: state.mapMode,
     visibleCount: mapRuntime.visibleStateKeys.size,
     legend: document.querySelector("#countryIncorporationMapLegend").innerText,
+    legendState: (() => { const element = document.querySelector("#countryIncorporationMapLegend"); const style = getComputedStyle(element); const rect = element.getBoundingClientRect(); return { hidden: element.hidden, display: style.display, width: rect.width, height: rect.height }; })(),
   }));
   assert.equal(result.mode, "countryIncorporation", "map mode must switch to incorporation");
   assert.equal(result.visibleCount, regionCount, "incorporation map must use all state regions");
   for (const label of ["2年", "5年", "10年", "15年", "25年"]) assert.ok(result.legend.includes(label), `${label} legend entry should be visible`);
+  assert.ok(!result.legend.includes("map.countryIncorporation."), "incorporation legend must not expose localization keys");
+  assert.equal(result.legendState.hidden, false, "incorporation legend must not be hidden");
+  assert.ok(result.legendState.width > 0 && result.legendState.height > 0, "incorporation legend must occupy visible space");
+  await page.evaluate(() => { document.querySelector("#leftPanelToggle").click(); document.querySelector("#bottomPanelToggle").click(); });
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  const collapsedLegend = await page.evaluate(() => { const element = document.querySelector("#countryIncorporationMapLegend"); const rect = element.getBoundingClientRect(); const style = getComputedStyle(element); return { hidden: element.hidden, display: style.display, width: rect.width, height: rect.height, bottom: rect.bottom, bodyClass: document.body.className }; });
+  assert.equal(collapsedLegend.hidden, false, "incorporation legend must remain visible with panels collapsed");
+  assert.ok(collapsedLegend.width > 0 && collapsedLegend.height > 0, "incorporation legend must remain visible with panels collapsed");
 
   await page.evaluate(() => document.querySelector("#countryIncorporationMapButton").click());
   assert.equal(await page.evaluate(() => state.mapMode), "country", "toggle off must restore country map");
