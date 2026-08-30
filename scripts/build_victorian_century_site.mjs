@@ -9,6 +9,7 @@ const args = parseArgs(process.argv.slice(2));
 const sourceSite = path.resolve(args.source || path.join(root, "site"));
 const targetSite = path.resolve(args.target || path.join(root, "Victorian Century Database"));
 const publishTarget = args.publishTarget ? path.resolve(args.publishTarget) : "";
+const VC_HOME_STYLESHEET_VERSION = "20260830-devout-layout1";
 
 assertDirectory(sourceSite, "main site directory");
 assertDirectory(targetSite, "Victorian Century standalone directory");
@@ -21,7 +22,9 @@ fs.rmSync(path.join(targetSite, "app", "content.js"), { force: true });
 copyDirectory(path.join(sourceSite, "app"), path.join(targetSite, "app"), copied);
 copyDirectory(path.join(sourceSite, "styles"), path.join(targetSite, "styles"), copied);
 copyDirectory(path.join(sourceSite, "locales"), path.join(targetSite, "locales"), copied);
-copyFile(path.join(sourceSite, "styles.css"), path.join(targetSite, "styles.css"), copied);
+const vcStylesheet = fs.readFileSync(path.join(sourceSite, "styles.css"), "utf8")
+  .replace(/styles\/home\.css\?v=[^\"]+/, `styles/home.css?v=${VC_HOME_STYLESHEET_VERSION}`);
+writeText(path.join(targetSite, "styles.css"), vcStylesheet, copied);
 copyFile(path.join(sourceSite, "victorian-century-theme.css"), path.join(targetSite, "vc-theme.css"), copied);
 copyAssets(path.join(sourceSite, "assets"), path.join(targetSite, "assets"), copied);
 runEconomyAssetBuild(args.python, args.vcDatabase);
@@ -116,6 +119,7 @@ function publishStandaloneSite(copied) {
 
 function buildStandaloneHtml(sourceHtml) {
   let html = sourceHtml
+    .replace(/styles\.css\?v=[^\"]+/, `styles.css?v=${VC_HOME_STYLESHEET_VERSION}`)
     .replace("<title>Vicdata</title>", "<title>Victorian Century Database</title>")
     .replaceAll("Vicdata", "Victorian Century")
     .replace(
