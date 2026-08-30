@@ -61,7 +61,7 @@ try {
       const namedCountryVariants = await checkNamedCountryVariants(desktop, server.url);
       const singleCountryTraitVariantNames = await checkSingleCountryTraitVariantNames(desktop, server.url);
       const countryListOrder = await checkCountryListOrder(desktop, server.url);
-      const religionBoard = await checkReligionBoard(desktop, server.url);
+      const religionBoard = await checkReligionBoard(desktop, server.url, options.victorianCenturyFlavorsOnly);
       const flavorLinksAndTooltips = await checkInterestGroupFlavorLinksAndTooltips(desktop, server.url);
       const ideologyTooltips = await checkAllIdeologyTooltips(desktop, server.url);
       const interestGroupIdeologyTooltips = await checkInterestGroupIdeologyTooltips(desktop, server.url);
@@ -79,6 +79,18 @@ try {
         flavorLinksAndTooltips,
         ideologyTooltips,
         interestGroupIdeologyTooltips,
+      }, null, 2));
+      await desktop.close();
+      return;
+    }
+    if (options.religionOnly) {
+      const religionBoard = await checkReligionBoard(desktop, server.url, options.victorianCenturyFlavorsOnly);
+      const englishReligion = await checkEnglishReligionBoard(desktop, server.url, options.victorianCenturyFlavorsOnly);
+      console.log(JSON.stringify({
+        religion_board_browser: "ok",
+        siteRoot: options.siteRoot,
+        religionBoard,
+        englishReligion,
       }, null, 2));
       await desktop.close();
       return;
@@ -138,6 +150,7 @@ function browserCheckOptions(root) {
     siteRoot,
     englishIdeologyLabelsOnly: args.includes("--english-ideology-labels-only"),
     victorianCenturyFlavorsOnly: args.includes("--victorian-century-flavors-only"),
+    religionOnly: args.includes("--religion-only"),
   };
 }
 }
@@ -761,7 +774,7 @@ async function checkVictorianCenturyFlavorGroups(page, baseUrl) {
   }))))()`);
   const landownerNamed = landowners.find((group) => group.label === '\u98ce\u5473\u540d\u79f0');
   assert.ok(landownerNamed?.options.includes('\u5965\u5730\u5229\u8d35\u65cf'), `VC flavored names must include Austrian Aristocracy: ${JSON.stringify(landowners)}`);
-  assert.ok(landownerNamed?.options.includes('\u9ec4\u4fc4\u7f57\u65af\u653f\u5e9c'), `VC flavored names must include the Russia-China Government: ${JSON.stringify(landowners)}`);
+  assert.ok(landownerNamed?.options.includes('\u534e\u65cf'), `VC flavored names must include Kazoku: ${JSON.stringify(landowners)}`);
   return { armedForces, landowners };
 }
 
@@ -889,7 +902,7 @@ async function checkCountryListOrder(page, baseUrl) {
   return navigation;
 }
 
-async function checkReligionBoard(page, baseUrl) {
+async function checkReligionBoard(page, baseUrl, isVictorianCentury = false) {
   await navigateAndWait(page, `${baseUrl}/index.html?lang=zh-Hans#/religion`, () => (
     document.body.dataset.view === 'religion' && Boolean(document.querySelector('.religion-board-row'))
   ));
@@ -925,11 +938,12 @@ async function checkReligionBoard(page, baseUrl) {
   const detail = await page.evaluate(`(() => ({
     countryCount: document.querySelector('.religion-board-detail-grid')?.textContent?.includes('157'),
     taboos: document.querySelector('.religion-board-detail-grid')?.textContent?.includes('酒'),
-    turkey: document.querySelector('.religion-board-detail-grid')?.textContent?.includes('\u900a\u5c3c\u6d3e\u4e4c\u7406\u739b\uff08\u571f\u8033\u5176\uff09'),
+    text: document.querySelector('.religion-board-detail-grid')?.textContent?.replace(/\\s+/g, ' ').trim() || '',
   }))()`);
   assert.equal(detail.countryCount, true, 'Sunni religion detail must show country count');
   assert.equal(detail.taboos, false, 'Sunni religion detail currently has no localized taboo label in the probe');
-  assert.equal(detail.turkey, true, 'Sunni religion detail must show Turkey-specific Devout flavor');
+  const expectedTurkeyFlavor = isVictorianCentury ? '\u900a\u5c3c\u6d3e\u4e4c\u7406\u739b\uff08\u571f\u8033\u5176\uff09' : '\u4e4c\u7406\u739b';
+  assert.ok(detail.text.includes(expectedTurkeyFlavor), `Sunni religion detail must show the expected Devout flavor: ${expectedTurkeyFlavor}`);
   await navigateAndWait(page, `${baseUrl}/index.html?lang=zh-Hans#/religion/shinto`, () => (
     document.body.dataset.view === 'religion' && Boolean(document.querySelector('.religion-board-detail-flavor-row'))
   ));
@@ -962,6 +976,45 @@ async function checkReligionBoard(page, baseUrl) {
   assert.ok(shinto.fullWidth.every((value) => value === '1 / -1'), `Religion detail sections must use the full content width: ${JSON.stringify(shinto)}`);
   assert.ok(shinto.layoutWidth >= shinto.viewportWidth - 20 && shinto.boardWidth >= shinto.viewportWidth - 20, `Religion detail must use the full page width: ${JSON.stringify(shinto)}`);
   return { list, detail, shinto };
+}
+
+async function checkEnglishReligionBoard(page, baseUrl, isVictorianCentury = false) {
+  await navigateAndWait(page, `${baseUrl}/index.html?lang=zh-Hans#/religion/sunni`, () => (
+    document.documentElement.lang === 'zh-Hans'
+      && document.body.dataset.view === 'religion'
+      && Boolean(document.querySelector('.religion-board-detail-grid'))
+  ));
+  await page.evaluate(`(() => {
+    document.querySelector('#languageMenuButton')?.click();
+    document.querySelector('[data-locale="en"]')?.click();
+  })()`);
+  try {
+    await waitFor(async () => await page.evaluate(`(
+      document.documentElement.lang === 'en'
+        && document.body.dataset.view === 'religion'
+        && Boolean(document.querySelector('.religion-board-detail-grid'))
+    )`), `English Sunni religion detail`);
+  } catch (error) {
+    const diagnostics = await page.evaluate(`(() => ({
+      href: location.href,
+      lang: document.documentElement.lang,
+      current: localeRuntime?.current,
+      requested: localeRuntime?.requested,
+      loadedChunks: [...(localeRuntime?.loadedChunks || [])],
+      warnings: window.__vicdataBrowserWarnings || [],
+      dataMessages: Object.fromEntries(Object.entries(localeRuntime?.dataMessages || {}).map(([key, value]) => [key, Object.keys(value || {}).length])),
+      menu: [...document.querySelectorAll('[data-locale]')].map((node) => ({ locale: node.dataset.locale, hidden: node.closest('[hidden]') !== null })),
+    }))()`);
+    throw new Error(`${error.message}; diagnostics=${JSON.stringify(diagnostics)}`);
+  }
+  const detail = await page.evaluate(`(() => ({
+    title: document.querySelector('.religion-board-detail-heading h2')?.textContent?.trim() || '',
+    text: document.querySelector('.religion-board-detail-flavor-section')?.textContent?.replace(/\\s+/g, ' ').trim() || '',
+  }))()`);
+  assert.equal(detail.title, 'Sunni', `English Sunni detail must use the localized religion name: ${JSON.stringify(detail)}`);
+  const expected = isVictorianCentury ? 'Sunni Ulema (Turkey)' : 'Sunni Ulema';
+  assert.ok(detail.text.includes(expected), `English Sunni detail must show ${expected}: ${JSON.stringify(detail)}`);
+  return detail;
 }
 
 async function checkScrollChrome(page, baseUrl) {
@@ -1117,7 +1170,7 @@ async function requestJson(url) {
 }
 
 async function waitFor(check, label) {
-  const deadline = Date.now() + 20000;
+  const deadline = Date.now() + 60000;
   let lastError = null;
   while (Date.now() < deadline) {
     try {

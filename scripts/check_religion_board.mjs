@@ -10,6 +10,16 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const appSource = readSiteAppSource(root);
 const extractorSource = fs.readFileSync(path.join(root, "scripts", "extract_vic3_countries.mjs"), "utf8");
 const readJson = (file) => JSON.parse(fs.readFileSync(file, "utf8").replace(/^\uFEFF/, ""));
+const readLocaleMessages = (file) => {
+  const context = { window: { VIC3_LOCALE_CHUNKS: {} } };
+  vm.runInNewContext(fs.readFileSync(file, "utf8"), context, { filename: file });
+  return Object.values(context.window.VIC3_LOCALE_CHUNKS)[0]?.messages || {};
+};
+const readDataChunk = (file) => {
+  const context = { window: {} };
+  vm.runInNewContext(fs.readFileSync(file, "utf8"), context, { filename: file });
+  return context.window.VIC3_DATA_CHUNK || {};
+};
 const vanillaIndex = readJson(path.join(root, "database", "vic3_1.13.11", "index.json"));
 const vanillaReligions = readJson(path.join(root, "database", "vic3_1.13.11", "religions.json"));
 const vcReligions = readJson(path.join(root, "database", "victorian_century", "religions.json"));
@@ -35,6 +45,21 @@ assert.deepEqual(
   "Victorian Century Turkey Sunni flavor must retain the mod-defined traits",
 );
 assert.ok(String(vcTurkey?.source_file || "").includes("3219394272"), "Victorian Century Turkey Sunni flavor must retain its mod source path");
+const vcReligionLocaleEn = readLocaleMessages(path.join(root, "site", "vc", "locale-religions.en.js"));
+assert.equal(
+  vcReligionLocaleEn["religion:sunni:ig_sunni_madrasahs_turkey.name"],
+  "Sunni Ulema (Turkey)",
+  "Victorian Century Turkey Sunni flavor must have an English localized name",
+);
+assert.equal(readDataChunk(path.join(root, "site", "vc", "data-religions.js")).religions?.length, 17, "VC site religion data must contain all religions");
+for (const [label, dir] of [
+  ["VC site", path.join(root, "site", "vc")],
+  ["VC standalone", path.join(root, "Victorian Century Database")],
+]) {
+  for (const file of ["data-religions.js", "locale-religions.en.js", "locale-religions.zh-Hans.js"]) {
+    assert.ok(fs.existsSync(path.join(dir, file)), `${label} must include ${file}`);
+  }
+}
 for (const [religionKey, countryTag, traitKeys] of [
   ["jewish", "ISR", ["ig_trait_traditsye", "ig_trait_yeshivot", "ig_trait_the_best_revenge"]],
   ["animist", "", ["ig_trait_pious_fiction", "ig_trait_divine_right", "ig_trait_be_fruitful_and_multiply"]],
@@ -60,6 +85,11 @@ const searchContext = { window: {} };
 vm.runInNewContext(fs.readFileSync(searchIndexPath, "utf8"), searchContext, { filename: searchIndexPath });
 const religionSearchEntries = searchContext.window.VIC3_SEARCH_INDEX?.entries?.filter((item) => item.kind === "religion") || [];
 assert.equal(religionSearchEntries.length, 17, "the global search index must contain every religion");
+for (const [label, dir] of [["vanilla", path.join(root, "site", "versions", "1.13.11")], ["vc", path.join(root, "site", "vc")]]) {
+  for (const file of ["data-religions.js", "locale-religions.en.js", "locale-religions.zh-Hans.js"]) {
+    assert.ok(fs.existsSync(path.join(dir, file)), `${label} religion output must include ${file}`);
+  }
+}
 
 const goodsChunkPath = path.join(root, "site", "versions", "1.13.11", "data-goods.js");
 const goodsContext = { window: {} };

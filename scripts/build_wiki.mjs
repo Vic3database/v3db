@@ -144,7 +144,10 @@ const localeChunkDescriptors = Object.fromEntries(["zh-Hans", "en"].map((locale)
 function writeLocaleChunk(board, structureFile, structureChunk) {
   const refs = collectLocalizationRefs(structureChunk);
   for (const locale of Object.keys(localeChunkDescriptors)) {
-    const messages = Object.fromEntries([...refs].sort().map((key) => [key, siteData.databaseMessagesByLocale?.[locale]?.[key] || ""]));
+    const messages = Object.fromEntries([...refs].sort().map((key) => [
+      key,
+      siteData.databaseMessagesByLocale?.[locale]?.[key] || generatedLocalizationValue(structureChunk, key, locale),
+    ]));
     const base = structureFile.replace(/^data-/, "locale-").replace(/\.js$/, "");
     const file = `${base}.${locale}.js`;
     const id = `${locale}:${board}:${base}`;
@@ -156,6 +159,16 @@ function writeLocaleChunk(board, structureFile, structureChunk) {
     descriptor.missing += entry.missing;
     localeChunkDescriptors[locale][board] = descriptor;
   }
+}
+
+function generatedLocalizationValue(value, key, locale) {
+  if (!value || typeof value !== "object") return "";
+  if (value.loc?.name === key) return locale === "en" ? value.name_en || "" : value.name_zh || "";
+  for (const child of Object.values(value)) {
+    const result = generatedLocalizationValue(child, key, locale);
+    if (result) return result;
+  }
+  return "";
 }
 
 for (const [key, keys] of Object.entries(dataChunks)) {
@@ -712,7 +725,7 @@ function createSearchEntries(data, messagesByLocale) {
     const message = item.loc?.displayName || item.loc?.name || "";
     const names = {
       "zh-Hans": messagesByLocale["zh-Hans"]?.[message] || key,
-      en: messagesByLocale.en?.[message] || key,
+      en: messagesByLocale.en?.[message] || item.name_en || key,
     };
     return {
       kind,

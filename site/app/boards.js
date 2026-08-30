@@ -1371,7 +1371,7 @@ function religionDevoutFlavorName(flavor) {
   const group = byInterestGroup.get("ig_devout");
   const variant = group ? interestGroupVariants(group).find((item) => item.key === routeKey) : null;
   const label = flavor.key === "ig_sunni_madrasahs_turkey"
-    ? "逊尼派乌理玛（土耳其）"
+    ? translateMessage(flavor.loc?.name, localeRuntime.current === "en" ? "Sunni Ulema (Turkey)" : "逊尼派乌理玛（土耳其）")
     : variant?.name || flavor.name_zh || translateMessage(flavor.loc?.name, flavor.key);
   return label;
 }

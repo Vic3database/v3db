@@ -46,8 +46,8 @@ async function loadUiLocale(locale) {
 
 function mergeLocaleMessages(target, messages, locale) {
   for (const [key, value] of Object.entries(messages || {})) {
-    if (Object.hasOwn(target, key) && target[key] !== value) throw new Error(`Conflicting ${locale} message ${key}`);
-    target[key] = value;
+    if (Object.hasOwn(target, key) && target[key] && value && target[key] !== value) throw new Error(`Conflicting ${locale} message ${key}`);
+    if (!target[key] && value) target[key] = value;
   }
   return target;
 }

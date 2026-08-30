@@ -1006,6 +1006,7 @@ function buildReligionRows(religions, countries, interestGroups, interestGroupTr
         return {
           key: isTurkey ? "ig_sunni_madrasahs_turkey" : index === 0 ? key : `${key}:${variant.traitKeys.join("|")}`,
           name_zh: isTurkey ? "逊尼派乌理玛（土耳其）" : locCleanName(loc, key),
+          name_en: isTurkey ? "Sunni Ulema (Turkey)" : "",
           traits: variant.traitKeys,
           source_file: flavor?.source_file || "",
           country_tags: variant.countries.sort(),
@@ -1018,6 +1019,7 @@ function buildReligionRows(religions, countries, interestGroups, interestGroupTr
       flavors.push({
         key: "ig_sunni_madrasahs_turkey",
         name_zh: "逊尼派乌理玛（土耳其）",
+        name_en: "Sunni Ulema (Turkey)",
         traits: ["ig_trait_jihad", "ig_trait_words_remain", "ig_trait_faith_in_chains"],
         source_file: "D:/SteamLibrary/steamapps/workshop/content/529340/3219394272/common/interest_groups/joi_devout.txt",
         country_tags: ["TUR"],
