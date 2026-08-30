@@ -669,7 +669,7 @@ function readText(file) {
 function loadLocalization(dir) {
   const loc = new Map();
   const files = listFiles(dir, ".yml");
-  const linePattern = /^\s*([^#\s:]+):(?:\d+)?\s*"((?:\\.|[^"\\])*)"\s*(?:#.*)?$/;
+  const linePattern = /^\s*([^#\s:]+):(?:\d+)?\s*"(.*)"\s*(?:#.*)?$/;
   for (const file of files) {
     const text = readText(file);
     for (const line of text.split(/\r?\n/)) {
@@ -3002,12 +3002,44 @@ function attachInterestGroupPotentialFlavors(interestGroups, { sourceDirs, loc, 
         ...flavor,
         traits: uniqueRefs([
           ...flavor.traits,
-          ...(group.key === "ig_devout" ? religionDevoutFlavorTraitOverrides(flavor.key).map((key) => interestGroupTraitRef(key, interestGroupTraits)) : []),
+          ...interestGroupPotentialFlavorTraitOverrides(group.key, flavor.key)
+            .filter((key) => interestGroupTraits.has(key))
+            .map((key) => interestGroupTraitRef(key, interestGroupTraits)),
         ]),
         rules: [...flavor.rules.values()],
       }))
       .sort((left, right) => left.name_zh.localeCompare(right.name_zh) || left.key.localeCompare(right.key));
   }
+}
+
+function interestGroupPotentialFlavorTraitOverrides(groupKey, flavorKey) {
+  const overrides = {
+    "ig_devout:ig_taiping_god_worshippers": [
+      "ig_trait_pious_fiction",
+      "ig_trait_divine_right",
+      "ig_trait_work_ethic",
+    ],
+    "ig_industrialists:ig_gosho": [
+      "ig_trait_zaibatsu_withdrawal",
+      "ig_trait_railway_bonds",
+      "ig_trait_zaibatsu_cooperation",
+    ],
+    "ig_industrialists:ig_zaibatsu": [
+      "ig_trait_zaibatsu_withdrawal",
+      "ig_trait_railway_bonds",
+      "ig_trait_zaibatsu_cooperation",
+    ],
+    "ig_petty_bourgeoisie:ig_chonin": [
+      "ig_trait_xenophobia",
+      "ig_trait_middle_managers",
+      "ig_trait_treasury_bonds",
+    ],
+    "ig_landowners:ig_kazoku": [
+      "ig_trait_kazoku_system",
+      "ig_trait_taisei_hokan",
+    ],
+  };
+  return overrides[`${groupKey}:${flavorKey}`] || [];
 }
 
 const interestGroupConditionVariantDefinitions = {
@@ -5366,7 +5398,7 @@ function writeDatabase(dir, data) {
 
   writeJson(path.join(dir, "index.json"), index);
   for (const [fileKey, value] of Object.entries(split.structure)) {
-    writeJson(path.join(dir, index.files[fileKey]), value);
+  writeJson(path.join(dir, index.files[fileKey]), value);
   }
   writeDatabaseReadme(path.join(dir, "README.md"), index);
 }
