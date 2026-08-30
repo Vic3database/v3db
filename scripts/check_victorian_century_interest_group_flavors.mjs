@@ -13,8 +13,24 @@ const enUi = fs.readFileSync(path.join(root, "site", "locales", "ui.en.js"), "ut
 
 const armedForces = groups.find((group) => group.key === "ig_armed_forces");
 const landowners = groups.find((group) => group.key === "ig_landowners");
+const devout = groups.find((group) => group.key === "ig_devout");
+const industrialists = groups.find((group) => group.key === "ig_industrialists");
+const pettyBourgeoisie = groups.find((group) => group.key === "ig_petty_bourgeoisie");
 assert.ok(armedForces, "VC data must include the Armed Forces");
 assert.ok(landowners, "VC data must include the Landowners");
+assert.ok(devout, "VC data must include the Devout");
+assert.ok(industrialists, "VC data must include the Industrialists");
+const turkeyDevout = countries.find((country) => country.tag === "TUR")?.interest_groups?.find((group) => group.key === "ig_devout");
+assert.deepEqual(
+  turkeyDevout?.display_name?.key,
+  "ig_sunni_madrasahs",
+  "Turkey must retain the Sunni Ulema flavor name",
+);
+assert.deepEqual(
+  turkeyDevout?.active_traits?.map((trait) => trait.key),
+  ["ig_trait_jihad", "ig_trait_words_remain", "ig_trait_faith_in_chains"],
+  "Turkey must retain its distinct Sunni Ulema trait chain",
+);
 assert.ok(
   armedForces.potential_flavors?.some((flavor) => flavor.key === "ig_red_army"),
   "VC data must retain the Red Army scripted rename",
@@ -31,6 +47,26 @@ assert.ok(
   landowners.potential_flavors?.some((flavor) => flavor.key === "ig_kazoku"),
   "VC data must retain the Kazoku journal-entry rename",
 );
+assert.deepEqual(
+  devout.potential_flavors?.find((flavor) => flavor.key === "ig_taiping_god_worshippers")?.traits?.map((trait) => trait.key),
+  ["ig_trait_pious_fiction", "ig_trait_divine_right", "ig_trait_work_ethic"],
+  "Taiping God Worshippers must use the Protestant-series traits",
+);
+assert.deepEqual(
+  industrialists.potential_flavors?.find((flavor) => flavor.key === "ig_gosho")?.traits?.map((trait) => trait.key),
+  ["ig_trait_zaibatsu_withdrawal", "ig_trait_railway_bonds", "ig_trait_zaibatsu_cooperation"],
+  "Japanese industrialist later traits must be present",
+);
+assert.deepEqual(
+  pettyBourgeoisie.potential_flavors?.find((flavor) => flavor.key === "ig_chonin")?.traits?.map((trait) => trait.key),
+  ["ig_trait_xenophobia", "ig_trait_middle_managers", "ig_trait_treasury_bonds"],
+  "Japanese petty-bourgeois later traits must be present",
+);
+assert.deepEqual(
+  landowners.potential_flavors?.find((flavor) => flavor.key === "ig_kazoku")?.traits?.map((trait) => trait.key),
+  ["ig_trait_kazoku_system", "ig_trait_taisei_hokan"],
+  "Japanese Kazoku later traits must be present",
+);
 assert.match(boardSource, /function interestGroupIsScriptedRename\(/, "VC needs a scripted-rename classifier");
 assert.match(boardSource, /return "scripted"/, "VC scripted renames need their own category");
 assert.match(boardSource, /function interestGroupUsesScriptedRenameCategory\(/, "the scripted-rename category must be VC-specific");
@@ -43,7 +79,6 @@ assert.match(zhUi, /"interestGroup\.scriptedVariants": "事件与决议改名"/,
 assert.match(enUi, /"interestGroup\.scriptedVariants": "Event and decision renames"/, "VC needs an English scripted-rename label");
 
 const intelligentsia = groups.find((group) => group.key === "ig_intelligentsia");
-const pettyBourgeoisie = groups.find((group) => group.key === "ig_petty_bourgeoisie");
 assert.ok(intelligentsia?.condition_variants?.some((variant) => variant.key === "constitutionalists"), "VC needs the constitutionalist intelligentsia condition");
 assert.ok(pettyBourgeoisie?.condition_variants?.some((variant) => variant.key === "mercantile"), "VC needs the mercantile petty-bourgeoisie condition");
 assert.match(boardSource, /const interestGroupCountryVariantDefinition/, "country-trait combinations need descriptive-name definitions");

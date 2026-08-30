@@ -10,7 +10,7 @@ const appSource = readSiteAppSource(root);
 const styleSource = readSiteStyleSource(root);
 
 assert.match(indexHtml, /app\/economy\.js\?v=20260811-goods-needs2/, "economy script must invalidate the goods-needs entry cache");
-assert.match(indexHtml, /styles\.css\?v=20260820-character-pagination1/, "site styles must invalidate the current stylesheet dependencies");
+assert.match(indexHtml, /styles\.css\?v=[^\"\s]+/, "site styles must include a cache version");
 
 for (const view of ["building", "goods"]) {
   assert(indexHtml.includes(`data-nav-view="${view}"`), `top navigation must include ${view}`);

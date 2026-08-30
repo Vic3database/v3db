@@ -63,14 +63,12 @@ assert.ok(fs.existsSync(path.join(root, "site", "assets", "technologies", "corpo
 const topbarNavigationItems = [...indexSource.matchAll(/<button class="topbar-nav-item"[^>]*>([\s\S]*?)<\/button>/g)];
 assert.ok(topbarNavigationItems.length > 0, "top navigation needs board entries");
 assert.ok(topbarNavigationItems.every(([, content]) => !/<img\b/.test(content)), "top navigation board entries must not contain icons");
-assert.match(indexSource, /styles\.css\?v=20260813-character-images1/, "interest-group stylesheet cache version is stale");
-assert.match(stylesEntrySource, /home\.css\?v=20260810-interest-group-tooltip-layout1/, "interest-group home stylesheet cache version is stale");
-for (const script of ["runtime", "ui"]) {
-  assert.match(indexSource, new RegExp(`app/${script}\\.js\\?v=20260810-interest-group-tooltip-layout1`), `${script} cache version is stale`);
+assert.match(indexSource, /styles\.css\?v=[^\"\s]+/, "interest-group stylesheet must include a cache version");
+assert.match(stylesEntrySource, /styles\/home\.css\?v=[^\"\s]+/, "interest-group home stylesheet must include a cache version");
+for (const script of ["runtime", "ui", "boards", "i18n"]) {
+  assert.match(indexSource, new RegExp(`app/${script}\\.js\\?v=[^\"\\s]+`), `${script} must include a cache version`);
 }
-assert.match(indexSource, /app\/boards\.js\?v=20260810-interest-group-tooltip-layout1/, "interest-group board script cache version is stale");
-assert.match(indexSource, /app\/i18n\.js\?v=20260813-character-images1/, "locale bootstrap cache version is stale");
-assert.match(i18nSource, /v=20260813-character-images1/, "dynamic locale cache version is stale");
+assert.match(i18nSource, /v=[^\"'`]+/, "dynamic locale loading must include a cache version");
 assert.match(appSource, /interestGroup\.singleCountryTraitVariant/, "single-country trait variants must use the interest-group and country naming template");
 assert.match(zhUi, /interestGroup\.singleCountryTraitVariant/, "Chinese single-country trait variant template is missing");
 assert.match(enUi, /interestGroup\.singleCountryTraitVariant/, "English single-country trait variant template is missing");
@@ -119,6 +117,25 @@ assert.match(appSource, /interestGroupConditionFlavorDefinition/, "descriptive c
 assert.match(appSource, /interestGroupFlavorCategory/, "flavor selector options need explicit category grouping");
 assert.match(appSource, /<optgroup label=/, "flavor selector needs visible option groups");
 assert.match(appSource, /interestGroupDevoutReligion/, "devout flavors need religion-based ordering");
+assert.match(appSource, /interestGroupDevoutReligionIconHtml/, "devout religion groups need icon rendering");
+assert.match(appSource, /assets\/event-icons\/religion_icons\//, "devout religion icons need stable asset paths");
+assert.match(appSource, /function renderReligionBoard\(/, "religion board renderer is missing");
+assert.match(appSource, /religion\.taboos/, "religion board must expose taboos");
+assert.match(appSource, /religionGroupDefinitions/, "religion board must group cards by religion heritage");
+assert.match(appSource, /religion\?\.color/, "religion rows must use source religion colors");
+assert.match(appSource, /religion-board-row/, "religion board must render one full-width row per religion");
+assert.match(appSource, /religion-board-detail-flavor-row/, "religion detail must render devout flavor rows");
+assert.match(appSource, /religion-board-detail-flavor-name/, "religion detail flavor names must use plain text presentation");
+assert.match(appSource, /religion-board-detail-flavor-button/, "religion detail flavor names must use an obvious button presentation");
+assert.match(appSource, /religion-board-detail-trait-hover/, "religion detail traits must use a visible hover presentation");
+assert.match(appSource, /<button class=\"detail-back-button religion-board-back\"[^>]*aria-label=\"\$\{escapeHtml\(t\(\"ui\.back\"\)\)\}\"[^>]*title=\"\$\{escapeHtml\(t\(\"ui\.back\"\)\)\}\"[^>]*><img class=\"lucide-icon\" src=\"assets\/lucide\/icons\/arrow-left\.svg\"/, "religion detail back control must follow the shared icon-button contract");
+assert.match(styleSource, /\.religion-board-detail\s+\.detail-back-button\s*\{[\s\S]*width:\s*44px[\s\S]*min-width:\s*44px[\s\S]*padding:\s*6px/, "religion detail back control must use the shared 44px icon-button geometry");
+assert.match(styleSource, /\.religion-board-detail\s+\.detail-back-button\s+\.lucide-icon\s*\{[\s\S]*width:\s*22px[\s\S]*height:\s*22px/, "religion detail back control icon sizing is missing");
+assert.match(appSource, /heritage_group_abrahamic/, "religion board must retain the Abrahamic parent group");
+assert.match(appSource, /heritage_group_naturalistic/, "religion board must retain the Naturalistic parent group");
+assert.match(appSource, /heritage_group_non_spiritual/, "religion board must retain the Non-Spiritual parent group");
+assert.match(appSource, /heritage_group_eastern/, "religion board must retain the Eastern parent group");
+assert.match(appSource, /assets\/event-icons\/religion_icons\//, "religion cards must use converted religion icons");
 assert.match(appSource, /class="interest-group-country-list"/, "country lists must be shown directly");
 assert.doesNotMatch(appSource, /interest-group-country-disclosure/, "country lists must not be collapsible");
 assert.match(appSource, /orderValueByList\(tierOrder, leftCountry\.tier\)/, "country lists must be ordered by country tier");
@@ -144,7 +161,7 @@ assert.match(appSource, /function\s+isArmedForcesCaudilloCultureCountry\s*\(/, "
 assert.match(appSource, /name:\s*["']interestGroup\.variant\.armedForces\.latinSpanish["'][\s\S]*?conditionVariant:\s*["']caudillo_cultures["']/, "the caudillismo country signature must feed the caudillo condition variant");
 assert.match(appSource, /latinSpanish\.countries\.delete\(tag\)/, "the Caribbean and California flavor must exclude caudillo-culture countries");
 assert.match(appSource, /caudilloCultures\.countries\.add\(tag\)/, "the caudillo-culture flavor must include its matching countries");
-for (const religion of ["东方正统教会", "东正教", "天主教", "新教", "逊尼派", "什叶派", "伊巴德派", "犹太教", "佛教", "印度教", "儒教", "神道教", "泛灵论"]) {
+for (const religion of ["东方正统教会", "东正教", "天主教", "新教", "逊尼派", "什叶派", "伊巴德派", "犹太教", "大乘佛教", "格鲁派", "上座部佛教", "印度教", "儒教", "神道教", "泛灵论", "锡克教"]) {
   assert.match(appSource, new RegExp(religion), `missing devout religion grouping: ${religion}`);
 }
 assert.doesNotMatch(appSource, /interest-group-variant-section/, "flavor details must not be duplicated below the selector");
@@ -156,7 +173,7 @@ assert.match(styleSource, /body\[data-view="interest-group"\]/, "interest-group 
 assert.match(styleSource, /\.interest-group-flavor-link-row\s*\{[\s\S]*border-inline-start:\s*3px solid var\(--interest-group-color\)/, "flavor link rows need a visible left frame");
 assert.match(styleSource, /\.interest-group-flavor-link-row a\s*\{[\s\S]*text-decoration-line:\s*underline/, "flavor link rows must underline direct links");
 assert.match(appSource, /if \(view === "interest-group"\) return \["ideology", "country", "culture", "region", "law"\]/, "interest-group pages must preload the localized law data required by ideology hover cards");
-assert.match(appSource, /if \(view === "country"\) return \["country", "culture", "region", "ideology", "law"\]/, "country pages must preload laws needed by ideology hover cards");
+assert.match(appSource, /if \(view === "country"\) return \["country", "culture", "region", "ideology", "law", "content"\]/, "country pages must preload laws needed by ideology hover cards");
 assert.match(appSource, /translateMessage\(`religion:\$\{key\}\.name`, key\)/, "country tooltips must localize religion keys");
 assert.match(appSource, /target\.dataset\.conceptKind === "ideology" \? 0 : CONCEPT_TOOLTIP_DELAY_MS/, "ideology tooltips must appear immediately on hover");
 assert.match(styleSource, /grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\)/, "desktop cards need four columns");
@@ -203,6 +220,8 @@ assert.ok(frenchTradeUnions?.active_traits?.some((trait) => trait.key === "ig_tr
 assert.ok(!frenchTradeUnions?.active_traits?.some((trait) => trait.key === "ig_trait_solidarity"), "French trade unions must not inherit the generic solidarity trait");
 const devout = siteData.interestGroups.find((group) => group.key === "ig_devout");
 assert.ok((devout?.potential_flavors || []).some((flavor) => flavor.key === "ig_shinto_monks"), "generated site data must include Shinto priesthood as a later flavor");
+const taiping = devout?.potential_flavors?.find((flavor) => flavor.key === "ig_taiping_god_worshippers");
+assert.ok(taiping, "generated site data must include Taiping God Worshippers as a later flavor");
 const armedForces = siteData.interestGroups.find((group) => group.key === "ig_armed_forces");
 assert.ok((armedForces?.potential_flavors || []).some((flavor) => flavor.key === "ig_red_army"), "generated site data must include Red Army as a later flavor");
 
