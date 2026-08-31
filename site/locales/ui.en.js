@@ -632,6 +632,7 @@ window.VICDATA_UI_LOCALES.en = {
     "board.country.startingTechnologies": "Extra starting technologies",
     "board.country.noStartingLaws": "No starting law data.",
     "board.country.noStartingDiplomacy": "No starting diplomatic relations are recorded.",
+    "board.country.flavorTabs": "Flavor content selection",
     "board.country.diplomacy.subjects": "Subject relationships",
     "board.country.diplomacy.pacts": "Starting pacts",
     "board.country.diplomacy.rivalries": "Rivalries",

@@ -632,6 +632,7 @@ window.VICDATA_UI_LOCALES["zh-Hans"] = {
     "board.country.startingTechnologies": "开局额外科技",
     "board.country.noStartingLaws": "没有开局法律数据。",
     "board.country.noStartingDiplomacy": "没有记录的开局外交关系。",
+    "board.country.flavorTabs": "风味内容选择",
     "board.country.diplomacy.subjects": "附属关系",
     "board.country.diplomacy.pacts": "预设条约",
     "board.country.diplomacy.rivalries": "宿敌",

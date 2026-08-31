@@ -976,6 +976,13 @@ function renderCountryDetail(country) {
       render();
     });
   });
+  els.detail.querySelectorAll("[data-country-flavor-tab]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.countryDetailFlavorTab = button.dataset.countryFlavorTab || "journal";
+      replaceHash(countryDetailRoute(country.tag, "flavor", "", state.countryDetailFlavorTab));
+      render();
+    });
+  });
 }
 
 function countryDetailTabs() {
@@ -1011,7 +1018,35 @@ function countryDetailTabContent(country, tab) {
   if (tab === "laws") return countryDetailLawsContent(country);
   if (tab === "diplomacy") return countryDetailDiplomacyContent(country);
   if (tab === "interest-groups") return countryInterestGroupContent(country);
+  if (tab === "flavor") return countryFlavorTabContent(country, state.countryDetailFlavorTab);
   return `<div class="country-detail-placeholder"><h3>${escapeHtml(countryDetailTabs().find((item) => item.key === tab)?.label || tab)}</h3><p class="empty compact">${escapeHtml(t("board.country.detailComingSoon", "该分区内容将在后续接入。"))}</p></div>`;
+}
+
+function countryFlavorTabs(country) {
+  const bucket = contentByCountry?.[country.tag] || {};
+  return [
+    { key: "journal", label: t("board.country.flavorContent.journals", "日志"), count: bucket.journals?.length || 0 },
+    { key: "event", label: t("board.country.flavorContent.events", "事件"), count: bucket.events?.length || 0 },
+    { key: "decision", label: t("board.country.flavorContent.decisions", "决议"), count: bucket.decisions?.length || 0 },
+  ];
+}
+
+function countryFlavorTabContent(country, flavorTab = "journal") {
+  const selected = countryFlavorTabKeys.includes(flavorTab) ? flavorTab : "journal";
+  state.countryDetailFlavorTab = selected;
+  const bucket = contentByCountry?.[country.tag] || {};
+  const config = {
+    journal: { ids: bucket.journals || [], rows: journalEntries, idOf: journalId, titleOf: (row) => journalText(row, "name", journalId(row)), groupOf: (row) => journalGroupName(journalGroup(row)) },
+    event: { ids: bucket.events || [], rows: events, idOf: (row) => row.key || row.id, titleOf: (row) => eventText(row, "title", row.key || row.id), groupOf: (row) => eventGroupTitle(row) },
+    decision: { ids: bucket.decisions || [], rows: decisions, idOf: decisionId, titleOf: (row) => decisionText(row, "name", decisionId(row)), groupOf: (row) => decisionGroupLabel(row) },
+  }[selected];
+  return `<h3>${escapeHtml(t("board.country.tabs.flavor", "风味"))}</h3>
+    <div class="country-flavor-tabs" role="tablist" aria-label="${escapeHtml(t("board.country.flavorTabs", "风味内容选择"))}">
+      ${countryFlavorTabs(country).map((item) => `<button type="button" role="tab" data-country-flavor-tab="${item.key}" aria-selected="${String(item.key === selected)}"><span>${escapeHtml(item.label)}</span><small>${localizedNumber(item.count)}</small></button>`).join("")}
+    </div>
+    <section class="country-flavor-tab-content" data-country-flavor-content="${selected}">
+      ${countryContentSectionHtml(selected, config.ids, config.rows, config.idOf, config.titleOf, config.groupOf, true)}
+    </section>`;
 }
 
 const countryDiplomacyGroups = [

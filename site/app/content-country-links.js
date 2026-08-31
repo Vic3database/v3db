@@ -38,13 +38,13 @@ function contentCountPill(kind, ids) {
   return `<span class="country-content-count">${escapeHtml(t(`board.country.flavorContent.${kind}`))}<strong>${localizedNumber(ids?.length || 0)}</strong></span>`;
 }
 
-function countryContentSectionHtml(kind, ids, rows, idOf, titleOf, groupOf) {
+function countryContentSectionHtml(kind, ids, rows, idOf, titleOf, groupOf, open = false) {
   const wanted = new Set(ids || []);
   const visible = rows.filter((row) => wanted.has(idOf(row))).sort((left, right) => {
     const groupOrder = String(groupOf(left) || "").localeCompare(String(groupOf(right) || ""), undefined, { numeric: true, sensitivity: "base" });
     return groupOrder || String(idOf(left)).localeCompare(String(idOf(right)), undefined, { numeric: true, sensitivity: "base" });
   });
-  return `<details class="country-content-section" data-country-content-kind="${escapeHtml(kind)}">
+  return `<details class="country-content-section" data-country-content-kind="${escapeHtml(kind)}"${open ? " open" : ""}>
     <summary><span>${escapeHtml(t(`board.country.flavorContent.${kind}s`))}</span><strong>${localizedNumber(visible.length)}</strong></summary>
     <div class="country-content-list">${visible.map((row) => countryContentLinkHtml(kind, row, idOf, titleOf, groupOf)).join("") || `<p class="empty">${escapeHtml(t("board.country.flavorContent.empty"))}</p>`}</div>
   </details>`;

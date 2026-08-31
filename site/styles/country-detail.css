@@ -150,6 +150,43 @@
   flex: 0 0 auto;
 }
 
+.country-flavor-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.country-flavor-tabs button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 7px;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid rgba(200, 164, 91, 0.22);
+  border-radius: 6px;
+  background: var(--panel-glass-strong);
+  color: var(--ink-muted);
+}
+
+.country-flavor-tabs button:hover,
+.country-flavor-tabs button[aria-selected="true"] {
+  border-color: var(--accent);
+  background: rgba(200, 164, 91, 0.16);
+  color: var(--ink);
+}
+
+.country-flavor-tabs button span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.country-flavor-tabs button small {
+  color: var(--muted);
+}
+
 .country-detail-reserved-slot {
   min-height: 0;
 }
