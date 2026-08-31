@@ -67,6 +67,42 @@ function syncTopbarNavigationGroups() {
   });
 }
 
+function isMapView(view) {
+  return ["country", "culture", "region", "company"].includes(view);
+}
+
+function isContentView(view) {
+  return ["ideology", "law", "technology", "event", "journal", "decision"].includes(view);
+}
+
+function routeHashParts() {
+  const raw = location.hash.replace(/^#\/?/, "");
+  const [path, query = ""] = raw.split("?");
+  return {
+    parts: path.split("/").filter(Boolean),
+    query: new URLSearchParams(query),
+  };
+}
+
+function mapFullscreenRequested() {
+  return routeHashParts().query.get("map") === "fullscreen";
+}
+
+function openDetailRoute(view, key) {
+  replaceHash(`/${view}/${encodeURIComponent(key)}`);
+}
+
+function returnToBoardRoute(view) {
+  replaceHash(`/${view}`);
+}
+
+function syncMapFullscreenControls() {
+  const enabled = isMapView(state.view);
+  const narrow = window.matchMedia("(max-width: 760px)").matches;
+  if (els.mapFullscreenButton) els.mapFullscreenButton.hidden = !enabled || !narrow || state.mapFullscreen;
+  if (els.mapCollapseButton) els.mapCollapseButton.hidden = !state.mapFullscreen;
+}
+
 function updateBackToTopButton() {
   if (!els.backToTopButton) return;
   els.backToTopButton.hidden = window.scrollY < 160;
@@ -435,6 +471,17 @@ function bindEvents() {
       return;
     }
     fitMapToWidth();
+  });
+  els.mapFullscreenButton?.addEventListener("click", () => {
+    if (!isMapView(state.view) || !window.matchMedia("(max-width: 760px)").matches) return;
+    state.mapFullscreenReturn = { view: state.view };
+    replaceHash(`/${state.view}?map=fullscreen`);
+    void applyHash().then(render);
+  });
+  els.mapCollapseButton?.addEventListener("click", () => {
+    if (!state.mapFullscreen) return;
+    replaceHash(`/${state.view}`);
+    void applyHash().then(render);
   });
   els.leftPanelToggle?.addEventListener("click", () => {
     document.body.classList.toggle("filters-collapsed");
@@ -1251,7 +1298,9 @@ function handleInfoDialogKeydown(event) {
 async function applyHash() {
   await ensureDataChunksForRoute();
   if (routeView() === "religion" && !loadedDataChunks.has("religion")) await ensureDataChunks(["religion"]);
-  const parts = location.hash.replace(/^#\/?/, "").split("/").filter(Boolean);
+  const { parts, query } = routeHashParts();
+  state.mapFullscreen = false;
+  state.mapFullscreenReturn = null;
   state.infoDialog = "";
   if (standaloneSiteConfig && ["news", "changelog"].includes(parts[0])) {
     changeBoard("home", "home");
@@ -1292,6 +1341,7 @@ async function applyHash() {
   }
   if (parts[0] === "country" && !parts[1]) {
     changeBoard("country", "country");
+    state.mapFullscreen = query.get("map") === "fullscreen";
     return;
   }
   if (parts[0] === "country" && parts[1] && byTag.has(parts[1].toUpperCase())) {
@@ -1301,6 +1351,7 @@ async function applyHash() {
   }
   if (parts[0] === "culture" && !parts[1]) {
     changeBoard("culture", "culture");
+    state.mapFullscreen = query.get("map") === "fullscreen";
     return;
   }
   if (parts[0] === "culture" && parts[1] === "incorporation") {
@@ -1315,6 +1366,7 @@ async function applyHash() {
   }
   if (parts[0] === "region") {
     changeBoard("region", "stateRegion");
+    state.mapFullscreen = query.get("map") === "fullscreen";
     if (parts[1] === "resource" && parts[2] && resourceFilterByKey.has(decodeURIComponent(parts[2]))) {
       state.resourceFilters = new Set([decodeURIComponent(parts[2])]);
       state.regionMapView = "default";
@@ -1340,6 +1392,7 @@ async function applyHash() {
   }
   if (parts[0] === "company" && !parts[1]) {
     changeBoard("company", "company");
+    state.mapFullscreen = query.get("map") === "fullscreen";
     return;
   }
   if (parts[0] === "company" && parts[1] === "solver" && typeof companySolverAvailable === "function" && companySolverAvailable()) {
@@ -1648,6 +1701,9 @@ function syncBoardOwnedToolPanels() {
 function render() {
   hideTransientOverlays();
   document.body.dataset.view = state.view;
+  document.body.dataset.pageMode = isMapView(state.view) ? "map" : isContentView(state.view) ? "content" : "special";
+  document.body.dataset.detailOpen = String(isDetailPageRoute());
+  document.body.dataset.mapFullscreen = String(state.mapFullscreen);
   document.body.dataset.companySolver = String(state.detailKind === "companySolver");
   document.body.dataset.companyComposer = String(state.detailKind === "companyComposer");
   document.body.dataset.countryMobileMap = String(state.countryMobileMapOpen);
@@ -1662,6 +1718,7 @@ function render() {
   document.body.classList.toggle("detail-page", isDetailPageRoute() && state.detailKind !== "cultureIncorporation");
   document.body.classList.toggle("global-search-active", Boolean(state.globalSearch));
   updatePageChrome();
+  syncMapFullscreenControls();
   if (els.filterPanelTitle) {
     const title = toolPanelTitle();
     els.filterPanelTitle.textContent = title;

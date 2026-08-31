@@ -137,6 +137,8 @@ const mapRuntime = {
 
 const state = {
   view: "home",
+  mapFullscreen: false,
+  mapFullscreenReturn: null,
   search: "",
   globalSearch: "",
   globalSearchDialogOpen: false,
@@ -901,6 +903,8 @@ const els = {
   mapModeSelect: document.querySelector("#mapModeSelect"),
   mapSubjectSelect: document.querySelector("#mapSubjectSelect"),
   mapFitWidthButton: document.querySelector("#mapFitWidthButton"),
+  mapFullscreenButton: document.querySelector("#mapFullscreenButton"),
+  mapCollapseButton: document.querySelector("#mapCollapseButton"),
   countryIncorporationMapButton: document.querySelector("#countryIncorporationMapButton"),
   mapCountryContext: document.querySelector("#mapCountryContext"),
   mapCultureContext: document.querySelector("#mapCultureContext"),

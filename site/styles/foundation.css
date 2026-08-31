@@ -15,6 +15,13 @@
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.38);
   --panel-glass: rgba(41, 40, 37, 0.94);
   --panel-glass-strong: rgba(52, 49, 45, 0.98);
+  --layout-gap: 12px;
+  --filter-width: var(--left-panel-width);
+  --detail-width: var(--right-panel-width);
+  --card-gap: 10px;
+  --card-radius: 8px;
+  --state-border: rgba(200, 164, 91, 0.32);
+  --state-selected: rgba(200, 164, 91, 0.62);
   --font-body: "Source Han Serif SC", "Noto Serif CJK SC", "思源宋体", "Songti SC", SimSun, serif;
   --font-ui: var(--font-body);
   --font-mono: var(--font-body);
