@@ -375,6 +375,7 @@ function dataCount(field, loadedRows) {
 function resetDatasetState() {
   state.mapFullscreen = false;
   state.mapFullscreenReturn = null;
+  state.mapFullscreenSnapshot = null;
   state.search = "";
   state.globalSearch = "";
   state.flags.clear();

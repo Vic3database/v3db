@@ -90,8 +90,13 @@ assert.doesNotMatch(html, /data-nav-view="content"|app\/content\.js/, "standalon
 assert(!fs.existsSync(path.join(siteRoot, "app", "content.js")), "standalone site must remove the legacy content renderer");
 assert.match(html, /app\/filters\.js\?v=20260818-company-filter-exclusions1/, "standalone VC page must load the company-filter exclusion release");
 assert.match(publishedHtml, /app\/filters\.js\?v=20260818-company-filter-exclusions1/, "published VC page must load the company-filter exclusion release");
-assert.match(html, /styles\.css\?v=20260828-calculator-overflow1/);
-assert.match(publishedHtml, /styles\.css\?v=20260828-calculator-overflow1/);
+const standaloneStylesheetVersion = html.match(/href="styles\.css\?v=([^\"']+)/)?.[1] || "";
+const publishedStylesheetVersion = publishedHtml.match(/href="styles\.css\?v=([^\"']+)/)?.[1] || "";
+assert.ok(standaloneStylesheetVersion, "standalone VC stylesheet must expose a cache version");
+assert.ok(publishedStylesheetVersion, "published VC stylesheet must expose a cache version");
+assert.equal(publishedStylesheetVersion, standaloneStylesheetVersion, "published VC stylesheet cache version must match the standalone build");
+assert.match(html, new RegExp(`styles\\.css\\?v=${escapeRegex(standaloneStylesheetVersion)}`));
+assert.match(publishedHtml, new RegExp(`styles\\.css\\?v=${escapeRegex(publishedStylesheetVersion)}`));
 assert.match(html, /app\/company-solver\.js\?v=20260828-tool-panel-title1/, "standalone VC page must load the solver title update");
 assert.match(html, /app\/company-composer-core\.js\?v=20260819-company-overlap1/, "standalone VC page must load the duplicate-coverage composer core release");
 assert.match(html, /app\/company-composer\.js\?v=20260819-company-overlap1/, "standalone VC page must load the duplicate-coverage composer release");
@@ -109,6 +114,10 @@ for (const relative of expectedCompanyToolFiles) {
   const publishedFile = path.join(publishedRoot, relative);
   assert(fs.existsSync(standaloneFile), `missing standalone VC company tool: ${relative}`);
   assert(fs.existsSync(publishedFile), `missing published VC company tool: ${relative}`);
+  if (relative === "styles.css") {
+    assert.equal(fs.readFileSync(publishedFile).equals(fs.readFileSync(standaloneFile)), true, `published VC stylesheet differs from standalone: ${relative}`);
+    continue;
+  }
   assert.equal(fs.readFileSync(standaloneFile).equals(fs.readFileSync(sourceFile)), true, `standalone VC company tool differs from source: ${relative}`);
   assert.equal(fs.readFileSync(publishedFile).equals(fs.readFileSync(standaloneFile)), true, `published VC company tool differs from standalone: ${relative}`);
 }

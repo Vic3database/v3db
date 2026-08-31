@@ -1349,7 +1349,10 @@ async function applyHash() {
   if (routeView() === "religion" && !loadedDataChunks.has("religion")) await ensureDataChunks(["religion"]);
   const { parts, query } = routeHashParts();
   state.mapFullscreen = false;
-  state.mapFullscreenReturn = null;
+  if (query.get("map") !== "fullscreen") {
+    state.mapFullscreenReturn = null;
+    state.mapFullscreenSnapshot = null;
+  }
   state.infoDialog = "";
   if (standaloneSiteConfig && ["news", "changelog"].includes(parts[0])) {
     changeBoard("home", "home");
@@ -1633,6 +1636,7 @@ function changeBoard(view, detailKind) {
     clearCultureIncorporationCalculatorState();
     state.mapFullscreen = false;
     state.mapFullscreenReturn = null;
+    state.mapFullscreenSnapshot = null;
   }
   if (view !== "region") state.regionMapView = "default";
   state.view = view;

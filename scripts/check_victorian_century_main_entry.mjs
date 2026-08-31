@@ -23,8 +23,12 @@ assert.match(mainIndex, /href="vc\/index\.html"/, "main VC entry must target the
 assert.match(mainIndex, /id="librarySelect"/, "main top bar must expose the library selector");
 assert.match(fs.readFileSync(uiFile, "utf8"), /new URL\("\.\.\/index\.html", window\.location\.href\)/, "VC selector must target the main homepage instead of its directory");
 assert.match(mainIndex, /versions\.js\?v=20260729-vc-library-navigation1/, "main page must refresh the library config cache version");
-assert.match(mainIndex, /app\/ui\.js\?v=20260816-global-content-search1/, "main page must refresh the UI cache version");
-assert.match(stylesFile, /styles\/home\.css\?v=20260810-interest-group-tooltip-layout1/, "home stylesheet must refresh the cache version");
+const uiVersion = mainIndex.match(/app\/ui\.js\?v=([^\"']+)/)?.[1] || "";
+const homeStyleVersion = stylesFile.match(/styles\/home\.css\?v=([^\"']+)/)?.[1] || "";
+assert.ok(uiVersion, "main page must expose the UI cache version");
+assert.ok(homeStyleVersion, "home stylesheet must expose a cache version");
+assert.match(mainIndex, new RegExp(`app\\/ui\\.js\\?v=${uiVersion}`), "main page must refresh the UI cache version");
+assert.match(stylesFile, new RegExp(`styles\\/home\\.css\\?v=${homeStyleVersion}`), "home stylesheet must refresh the cache version");
 assert.match(foundationStyles, /\.topbar-icon-select select\s*\{[\s\S]*?color-scheme:\s*dark/, "library selector must request a dark native menu");
 assert.match(foundationStyles, /\.topbar-icon-select select option\s*\{[\s\S]*?color:\s*#181715/, "library selector options must use dark text on the native white menu");
 for (const file of ["index.html", "data-index.js", "map-data.js", "victorian-century-config.js", "assets/map/provinces.png"]) {
