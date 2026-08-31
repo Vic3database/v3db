@@ -12,6 +12,7 @@ assert.match(runtime, /mapFullscreen/, "shared state must define map fullscreen 
 assert.match(ui, /function isMapView\s*\(/, "shared UI must define map view classification");
 assert.match(ui, /function isContentView\s*\(/, "shared UI must define content view classification");
 assert.match(ui, /function mapFullscreenRequested\s*\(/, "shared UI must parse map fullscreen state");
+assert.match(ui, /matchMedia\("\(max-width: 760px\)"\)/, "map fullscreen state must be limited to narrow screens");
 assert.match(html, /data-map-fullscreen/, "page shell must expose the fullscreen map control");
 assert.match(html, /data-map-collapse/, "page shell must expose the collapse map control");
 for (const variable of ["--layout-gap", "--filter-width", "--detail-width", "--card-gap", "--card-radius", "--state-border", "--state-selected"]) {

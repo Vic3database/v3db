@@ -10,7 +10,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="assets/brand/apple-touch-icon.png">
     <link rel="manifest" href="site.webmanifest">
   </head>
-  <body>
+  <body data-view="home">
     <header class="topbar">
       <div class="topbar-left">
         <button class="topbar-brand" type="button" data-nav-view="home" aria-label="Vicdata 首页" data-i18n-aria-label="ui.homeAria" title="Vicdata"><span class="brand-mark"><img class="brand-logo" src="assets/brand/vicdata-icon.svg" alt="" aria-hidden="true"></span></button>
@@ -100,6 +100,8 @@
           <button id="leftPanelToggle" class="map-tool-button panel-toggle" type="button" aria-label="折叠筛选" data-i18n-aria-label="ui.collapseFilters" title="折叠筛选" data-i18n-title="ui.collapseFilters"><img class="lucide-icon" src="assets/lucide/icons/text-search.svg" alt="" aria-hidden="true"></button>
           <button id="bottomPanelToggle" class="map-tool-button panel-toggle" type="button" aria-label="折叠列表" data-i18n-aria-label="ui.collapseList" title="折叠列表" data-i18n-title="ui.collapseList"><img class="lucide-icon" src="assets/lucide/icons/layout-list.svg" alt="" aria-hidden="true"></button>
           <button id="mapFitWidthButton" class="map-tool-button" type="button" aria-label="重置地图位置" data-i18n-aria-label="map.resetPosition" title="重置地图位置" data-i18n-title="map.resetPosition"><img class="lucide-icon" src="assets/lucide/icons/refresh-ccw.svg" alt="" aria-hidden="true"></button>
+          <button id="mapFullscreenButton" class="map-tool-button map-fullscreen-button" type="button" aria-label="全屏" title="全屏" data-map-fullscreen hidden><span aria-hidden="true">⛶</span><span>全屏</span></button>
+          <button id="mapCollapseButton" class="map-tool-button map-collapse-button" type="button" aria-label="收起" title="收起" data-map-collapse hidden><span aria-hidden="true">×</span><span>收起</span></button>
           <span id="mapCultureContext" class="map-culture-context" aria-live="polite" hidden></span>
           <button id="countryIncorporationMapButton" class="map-tool-button map-mode-toggle" type="button" aria-label="整合年数" data-i18n-aria-label="map.countryIncorporation.toggle" title="整合年数" data-i18n-title="map.countryIncorporation.toggle" aria-pressed="false" disabled><img class="lucide-icon" src="assets/lucide/icons/calendar-days.svg" alt="" aria-hidden="true"></button>
           <span id="mapCountryContext" class="map-country-context" aria-live="polite" hidden></span>
@@ -298,7 +300,7 @@
         <details class="event-filter-section event-group-navigation" open><summary data-i18n="board.decision.groups">决议组</summary><nav id="decisionGroupNav" class="event-group-nav" aria-label="决议组导航" data-i18n-aria-label="board.decision.groupNavigation"></nav></details>
       </aside>
 
-      <aside id="eventFilters" class="event-filters" aria-label="事件筛选" data-i18n-aria-label="board.event.filterTitle">
+      <aside id="eventFilters" class="event-filters" aria-label="事件筛选" data-i18n-aria-label="board.event.filterTitle" hidden>
         <div class="event-filter-head">
           <strong data-i18n="board.event.filterTitle">事件</strong>
           <button id="eventResetButton" type="button" data-i18n="board.event.reset">重置</button>

@@ -85,7 +85,8 @@ function routeHashParts() {
 }
 
 function mapFullscreenRequested() {
-  return routeHashParts().query.get("map") === "fullscreen";
+  return routeHashParts().query.get("map") === "fullscreen"
+    && window.matchMedia("(max-width: 760px)").matches;
 }
 
 function openDetailRoute(view, key) {
@@ -567,10 +568,10 @@ function bindPrimaryListEvents() {
     else if (row.dataset.stateRegion) selectStateRegionCard(row.dataset.stateRegion);
   };
   els.countryList?.addEventListener("click", (event) => {
-    const detailButton = event.target.closest("[data-country-detail], [data-state-region-detail]");
+    const detailButton = event.target.closest("[data-country-detail], [data-map-enter-tag], [data-state-region-detail]");
     if (detailButton && els.countryList.contains(detailButton)) {
       event.preventDefault();
-      if (detailButton.dataset.countryDetail) openCountryDetail(detailButton.dataset.countryDetail);
+      if (detailButton.dataset.countryDetail || detailButton.dataset.mapEnterTag) openCountryDetail(detailButton.dataset.countryDetail || detailButton.dataset.mapEnterTag);
       else openStateRegionDetail(detailButton.dataset.stateRegionDetail);
       return;
     }
@@ -1341,7 +1342,7 @@ async function applyHash() {
   }
   if (parts[0] === "country" && !parts[1]) {
     changeBoard("country", "country");
-    state.mapFullscreen = query.get("map") === "fullscreen";
+    state.mapFullscreen = mapFullscreenRequested();
     return;
   }
   if (parts[0] === "country" && parts[1] && byTag.has(parts[1].toUpperCase())) {
@@ -1351,7 +1352,7 @@ async function applyHash() {
   }
   if (parts[0] === "culture" && !parts[1]) {
     changeBoard("culture", "culture");
-    state.mapFullscreen = query.get("map") === "fullscreen";
+    state.mapFullscreen = mapFullscreenRequested();
     return;
   }
   if (parts[0] === "culture" && parts[1] === "incorporation") {
@@ -1366,7 +1367,7 @@ async function applyHash() {
   }
   if (parts[0] === "region") {
     changeBoard("region", "stateRegion");
-    state.mapFullscreen = query.get("map") === "fullscreen";
+    state.mapFullscreen = mapFullscreenRequested();
     if (parts[1] === "resource" && parts[2] && resourceFilterByKey.has(decodeURIComponent(parts[2]))) {
       state.resourceFilters = new Set([decodeURIComponent(parts[2])]);
       state.regionMapView = "default";
@@ -1392,7 +1393,7 @@ async function applyHash() {
   }
   if (parts[0] === "company" && !parts[1]) {
     changeBoard("company", "company");
-    state.mapFullscreen = query.get("map") === "fullscreen";
+    state.mapFullscreen = mapFullscreenRequested();
     return;
   }
   if (parts[0] === "company" && parts[1] === "solver" && typeof companySolverAvailable === "function" && companySolverAvailable()) {
@@ -1582,6 +1583,8 @@ function changeBoard(view, detailKind) {
   if (state.view !== view) {
     resetBoardView();
     clearCultureIncorporationCalculatorState();
+    state.mapFullscreen = false;
+    state.mapFullscreenReturn = null;
   }
   if (view !== "region") state.regionMapView = "default";
   state.view = view;

@@ -124,7 +124,7 @@ async function ensureDataChunksForRoute() {
 }
 
 function routeView() {
-  const segment = location.hash.replace(/^#\/?/, "").split("/")[0];
+  const segment = location.hash.replace(/^#\/?/, "").split("?")[0].split("/")[0];
   if (["country", "culture", "region", "company", "ideology", "religion", "interest-group", "law", "technology", "achievement", "event", "journal", "decision", "content", "building", "goods", "character", "name-pool"].includes(segment)) return segment;
   if (["news", "changelog"].includes(segment)) return segment;
   if (["state-region", "strategic-region", "geographic-region"].includes(segment)) return "region";
@@ -373,6 +373,8 @@ function dataCount(field, loadedRows) {
 }
 
 function resetDatasetState() {
+  state.mapFullscreen = false;
+  state.mapFullscreenReturn = null;
   state.search = "";
   state.globalSearch = "";
   state.flags.clear();

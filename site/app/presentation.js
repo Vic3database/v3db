@@ -51,12 +51,12 @@ function renderEntityBadge(kind, entity, label = "") {
 function renderCountryList(filtered) {
   els.countryList.className = "country-list";
   els.countryList.innerHTML = filtered.map((country) => `
-    <article class="country-row selectable-row" data-country="${country.tag}" style="${countryBorderStyle(country.colorHex)}" aria-current="${country.tag === state.selectedTag && state.detailKind === "country"}" tabindex="0">
+    <article class="country-row selectable-row" data-country="${country.tag}" data-map-focus-tag="${country.tag}" style="${countryBorderStyle(country.colorHex)}" aria-current="${country.tag === state.selectedTag && state.detailKind === "country"}" aria-pressed="${String(country.tag === state.selectedTag)}" tabindex="0">
       ${renderEntityBadge("country", country, entityText(country))}
       <span class="country-heading">
         ${conceptTag(country.tag, "country", country.tag, entityText(country))}
         <span class="name">${countryNameText(country)}</span>
-        ${rowDetailButton("data-country-detail", country.tag)}
+        ${rowDetailButton("data-country-detail", country.tag, "data-map-enter-tag")}
       </span>
       <span class="minor country-meta">${countryCapitalText(country)}</span>
       <span class="minor country-meta">${t("board.country.primaryCulture", "主流文化")}${t("ui.colon")}${(country.primaryCultures || []).map((cultureRef) => entityText(byCulture.get(cultureRef?.key || cultureRef) || cultureRef)).filter(Boolean).join(t("ui.listSeparator")) || t("board.country.none", "无")}</span>
@@ -1247,9 +1247,10 @@ function detailBackButton(view = state.view) {
   return `<button class="detail-back-button" type="button" data-detail-back="${escapeHtml(target)}"${mobileBackAttribute} aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}"><img class="lucide-icon" src="assets/lucide/icons/arrow-left.svg" alt="" aria-hidden="true"></button>`;
 }
 
-function rowDetailButton(attributeName, key) {
+function rowDetailButton(attributeName, key, extraAttribute = "") {
   const label = t("ui.openDetail");
-  return `<button class="row-detail-button" type="button" ${attributeName}="${escapeHtml(key)}" aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}"><img class="lucide-icon" src="assets/lucide/icons/arrow-right.svg" alt="" aria-hidden="true"></button>`;
+  const extra = extraAttribute ? ` ${extraAttribute}="${escapeHtml(key)}"` : "";
+  return `<button class="row-detail-button" type="button" ${attributeName}="${escapeHtml(key)}"${extra} aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}"><img class="lucide-icon" src="assets/lucide/icons/arrow-right.svg" alt="" aria-hidden="true"></button>`;
 }
 
 function renderCultureDetail(culture) {

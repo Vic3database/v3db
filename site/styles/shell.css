@@ -145,9 +145,13 @@ body[data-map-fullscreen="true"] .map-toolbar {
 }
 
 body[data-map-fullscreen="true"] .map-fullscreen-button,
-body[data-map-fullscreen="true"] .map-panel ~ .filters,
-body[data-map-fullscreen="true"] .map-panel ~ .results,
-body[data-map-fullscreen="true"] .map-panel ~ .detail {
+body[data-map-fullscreen="true"] .filters,
+body[data-map-fullscreen="true"] .results,
+body[data-map-fullscreen="true"] .detail,
+body[data-map-fullscreen="true"] .mobile-country-toolbar,
+body[data-map-fullscreen="true"] .mobile-country-filter-panel,
+body[data-map-fullscreen="true"] .mobile-culture-toolbar,
+body[data-map-fullscreen="true"] .mobile-culture-filter-panel {
   display: none !important;
 }
 
@@ -458,6 +462,36 @@ body[data-view="company"][data-company-composer="true"] #companySolverDetailPane
 }
 
 @media (max-width: 760px) {
+  body[data-map-fullscreen="true"] {
+    overflow: hidden;
+  }
+
+  body[data-map-fullscreen="true"] .layout,
+  body[data-map-fullscreen="true"] .map-panel {
+    position: fixed;
+    inset: var(--chrome-height) 0 0;
+    width: auto;
+    height: auto;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  body[data-map-fullscreen="true"] .map-viewport {
+    position: absolute;
+    inset: 0;
+    height: auto;
+    border-radius: 0;
+  }
+
+  body[data-map-fullscreen="true"] .map-toolbar {
+    top: 12px;
+    right: 12px;
+    left: auto;
+    display: flex;
+  }
+
   body[data-view="company"][data-company-solver="true"] .results {
     top: 12px;
     right: 12px;
