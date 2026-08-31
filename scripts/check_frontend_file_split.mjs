@@ -30,6 +30,7 @@ const styleFiles = [
   "styles/dialogs.css",
   "styles/technology.css",
   "styles/achievements.css",
+  "styles/company.css",
 ];
 
 for (const file of appFiles) {

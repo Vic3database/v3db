@@ -1,0 +1,42 @@
+/* Company is a content board. Keep its list and detail in the shared content layout. */
+body[data-view="company"]:not([data-company-solver="true"]):not([data-company-composer="true"]) .map-panel,
+body[data-view="company"]:not([data-company-solver="true"]):not([data-company-composer="true"]) .map-toolbar {
+  display: none;
+}
+
+body[data-view="company"]:not(.detail-page):not([data-company-solver="true"]):not([data-company-composer="true"]) .results {
+  left: calc(12px + var(--left-panel-width) + var(--panel-gap));
+  right: 12px;
+  width: auto;
+}
+
+body.detail-page[data-view="company"]:not([data-company-solver="true"]):not([data-company-composer="true"]) .results {
+  left: calc(12px + var(--left-panel-width) + var(--panel-gap));
+  right: calc(12px + var(--right-panel-width) + var(--panel-gap));
+  width: auto;
+  transform: none;
+  animation: none;
+}
+
+body.detail-page[data-view="company"]:not([data-company-solver="true"]):not([data-company-composer="true"]) .detail {
+  left: auto;
+  right: 12px;
+  width: var(--right-panel-width);
+  transform: none;
+  animation: none;
+}
+
+@media (max-width: 760px) {
+  body.detail-page[data-view="company"]:not([data-company-solver="true"]):not([data-company-composer="true"]) .results {
+    display: none;
+  }
+
+  body.detail-page[data-view="company"]:not([data-company-solver="true"]):not([data-company-composer="true"]) .detail {
+    display: block;
+    position: relative;
+    inset: auto;
+    width: auto;
+    min-height: calc(100vh - var(--chrome-height));
+    margin: 10px;
+  }
+}

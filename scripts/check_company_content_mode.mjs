@@ -5,6 +5,7 @@ const ui = fs.readFileSync("site/app/ui.js", "utf8");
 const presentation = fs.readFileSync("site/app/presentation.js", "utf8");
 const boards = fs.readFileSync("site/app/boards.js", "utf8");
 const shell = fs.readFileSync("site/styles/shell.css", "utf8");
+const companyStyles = fs.existsSync("site/styles/company.css") ? fs.readFileSync("site/styles/company.css", "utf8") : "";
 
 assert.match(ui, /function isMapView\s*\(view\)\s*{[\s\S]*\["country", "culture", "region"\]/, "company must not be classified as a map view");
 assert.match(ui, /function isContentView\s*\(view\)\s*{[\s\S]*"company"/, "company must be classified as a content view");
@@ -18,4 +19,7 @@ assert.doesNotMatch(ui, /parts\[0\] === "company" && !parts\[1][\s\S]*mapFullscr
 assert.ok(shell.includes('body.detail-page[data-view="company"]') && shell.includes('right: calc(12px + var(--right-panel-width) + var(--panel-gap));'), "company detail must reserve the right detail panel");
 assert.ok(shell.includes('body.detail-page[data-view="company"]') && shell.includes('width: var(--right-panel-width);'), "company detail must use the shared right panel width");
 assert.ok(shell.includes('body.detail-page[data-view="company"]') && shell.includes('.results') && shell.includes('display: none;'), "narrow company detail must hide the company list");
+assert.match(companyStyles, /body\.detail-page\[data-view="company"\][\s\S]*\.detail[\s\S]*left:\s*auto[\s\S]*right:\s*12px[\s\S]*transform:\s*none/, "company detail must override the inherited content animation position");
+assert.match(companyStyles, /body\.detail-page\[data-view="company"\][\s\S]*\.results[\s\S]*right:\s*calc\(12px \+ var\(--right-panel-width\) \+ var\(--panel-gap\)\)/, "company list must reserve the right detail panel");
+assert.match(companyStyles, /@media\s*\(max-width:\s*760px\)[\s\S]*body\.detail-page\[data-view="company"\][\s\S]*\.results[\s\S]*display:\s*none/, "narrow company detail must replace the list");
 console.log("company_content_mode: ok");

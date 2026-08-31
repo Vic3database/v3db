@@ -37,10 +37,21 @@ try {
     map: getComputedStyle(document.querySelector("#mapPanel")).display,
     detail: getComputedStyle(document.querySelector("#detail")).display,
     locationMap: Boolean(document.querySelector("[data-company-location-map]")),
+    detailRect: (() => { const rect = document.querySelector("#detail")?.getBoundingClientRect(); return rect ? { left: rect.left, right: rect.right, width: rect.width } : null; })(),
+    resultsRect: (() => { const rect = document.querySelector(".results")?.getBoundingClientRect(); return rect ? { left: rect.left, right: rect.right, width: rect.width } : null; })(),
+    viewportWidth: window.innerWidth,
+    bodyClasses: document.body.className,
+    layoutRect: (() => { const rect = document.querySelector(".layout")?.getBoundingClientRect(); return rect ? { left: rect.left, right: rect.right, width: rect.width } : null; })(),
+    detailStyle: (() => { const style = getComputedStyle(document.querySelector("#detail")); return { position: style.position, left: style.left, right: style.right, width: style.width, inset: style.inset, transform: style.transform, margin: style.margin, zIndex: style.zIndex }; })(),
+    resultsStyle: (() => { const style = getComputedStyle(document.querySelector(".results")); return { position: style.position, left: style.left, right: style.right, width: style.width, inset: style.inset, transform: style.transform, margin: style.margin, zIndex: style.zIndex }; })(),
+    detailOffsetParent: document.querySelector("#detail")?.offsetParent?.className || document.querySelector("#detail")?.offsetParent?.tagName || "",
+    detailParentTransform: document.querySelector("#detail")?.parentElement ? getComputedStyle(document.querySelector("#detail").parentElement).transform : "",
   }));
   assert.equal(detailState.map, "none", "company detail must keep the main map hidden");
   assert.notEqual(detailState.detail, "none", "company detail must be visible");
   assert.equal(detailState.locationMap, true, "company detail must retain its auxiliary location map when available");
+  assert.ok(detailState.detailRect && detailState.detailRect.right >= detailState.viewportWidth - 20, `company detail must reach the right page edge: ${JSON.stringify(detailState)}`);
+  assert.ok(detailState.resultsRect && detailState.resultsRect.right <= detailState.detailRect.left + 2, `company list must end before the detail panel: ${JSON.stringify(detailState)}`);
   page.close();
   console.log(JSON.stringify({ company_content_mode_browser: "ok", baseUrl, companyKey }, null, 2));
 } finally {

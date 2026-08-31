@@ -16,6 +16,7 @@ const sharedFiles = [
   "styles/map.css",
   "styles/records.css",
   "styles/events.css",
+  "styles/company.css",
 ];
 
 for (const relative of sharedFiles) {
