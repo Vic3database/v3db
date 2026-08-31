@@ -645,6 +645,11 @@ function flattenDatabaseCountry(country, nameById, colorById, primaryCultureExpa
     startingTechnologyTier: country.starting_technology_tier == null ? null : Number(country.starting_technology_tier),
     startingTechnologies: country.starting_technologies || [],
     startingLaws: country.starting_laws || [],
+    startingDiplomacy: (country.starting_diplomacy || []).map((item) => ({
+      ...item,
+      targetTag: item.target_tag || item.target?.key || "",
+      targetName: item.target?.loc?.name || "",
+    })),
     hasHistoryCountryFile: boolText(country.status?.has_history_country_file),
     isReleasable: boolText(country.status?.is_releasable),
     isFormable: boolText(country.status?.is_formable),

@@ -184,6 +184,9 @@ function main() {
   const startingSubjectsByTag = loadStartingSubjectRelationships(
     contentPath("common", "history", "diplomacy", "00_subject_relationships.txt"),
   );
+  const startingDiplomacy = loadStartingDiplomacy(
+    contentPath("common", "history", "diplomacy"),
+  );
   const strategicRegions = loadStrategicRegions(contentPath("common", "strategic_regions"), loc);
   const geographicRegions = loadGeographicRegions(contentPath("common", "geographic_regions"), strategicRegions, loc);
   const stateTraits = loadStateTraits(contentPath("common", "state_traits"), loc);
@@ -311,6 +314,7 @@ function main() {
       startingOwners,
       startingSubjectsByTag,
       startingCountryData,
+      startingDiplomacy,
       historyCountryTags,
       historyReligionOverrides,
       releasables,
@@ -1567,6 +1571,90 @@ function loadStartingSubjectRelationships(files) {
     }
   }
   return subjectsByTag;
+}
+
+function loadStartingDiplomacy(dirs) {
+  const recordsByTag = new Map();
+  const subjectTypes = new Set([
+    "puppet",
+    "vassal",
+    "crown_land",
+    "chartered_company",
+    "colony",
+    "dominion",
+    "personal_union",
+    "protectorate",
+    "tributary",
+  ]);
+  const add = (tag, record) => {
+    if (!tag || !record?.target_tag || tag === record.target_tag) return;
+    const records = recordsByTag.get(tag) || [];
+    const signature = [record.type, record.target_tag, record.subject_type || "", record.subject_role || "", record.pact_type || "", record.value ?? "", record.months ?? ""].join("|");
+    if (!records.some((item) => [item.type, item.target_tag, item.subject_type || "", item.subject_role || "", item.pact_type || "", item.value ?? "", item.months ?? ""].join("|") === signature)) records.push(record);
+    recordsByTag.set(tag, records);
+  };
+  for (const file of listEffectiveFiles(dirs)) {
+    const source = readText(file);
+    const root = parseScript(source, file);
+    const diplomacy = asNode(firstValue(root, "DIPLOMACY")) || root;
+    for (const assignment of diplomacy.assignments) {
+      const sourceTag = stripPrefix(scriptEntryKey(assignment.key)).toUpperCase();
+      if (!/^[A-Z0-9]{3}$/.test(sourceTag)) continue;
+      const sourceLine = sourceLineNumber(source, `c:${sourceTag}`);
+      const sourceNode = asNode(assignment.value);
+      if (!sourceNode) continue;
+      for (const item of sourceNode.assignments) {
+        if (item.key === "create_diplomatic_pact") {
+          const pact = asNode(item.value);
+          const targetTag = stripPrefix(firstValue(pact, "country")).toUpperCase();
+          const pactType = stripPrefix(firstScalar(pact, "type"));
+          if (!/^[A-Z0-9]{3}$/.test(targetTag) || !pactType) continue;
+          if (subjectTypes.has(pactType)) {
+            add(sourceTag, { type: "subject", target_tag: targetTag, subject_type: pactType, subject_role: "overlord", source_file: normalizePath(file), source_line: sourceLine });
+            add(targetTag, { type: "subject", target_tag: sourceTag, subject_type: pactType, subject_role: "subject", source_file: normalizePath(file), source_line: sourceLine });
+          } else if (pactType === "rivalry") {
+            add(sourceTag, { type: "rivalry", target_tag: targetTag, source_file: normalizePath(file), source_line: sourceLine });
+          } else if (pactType === "embargo") {
+            add(sourceTag, { type: "embargo", target_tag: targetTag, source_file: normalizePath(file), source_line: sourceLine });
+          } else {
+            add(sourceTag, { type: "pact", target_tag: targetTag, pact_type: pactType, source_file: normalizePath(file), source_line: sourceLine });
+          }
+          continue;
+        }
+        if (item.key === "create_bidirectional_truce") {
+          const truce = asNode(item.value);
+          const targetTag = stripPrefix(firstValue(truce, "country")).toUpperCase();
+          const months = toNumberOrNull(firstScalar(truce, "months"));
+          if (!/^[A-Z0-9]{3}$/.test(targetTag)) continue;
+          const record = { type: "truce", target_tag: targetTag, months, source_file: normalizePath(file), source_line: sourceLine };
+          add(sourceTag, record);
+          add(targetTag, { ...record, target_tag: sourceTag });
+          continue;
+        }
+        if (item.key === "set_relations") {
+          const relation = asNode(item.value);
+          const targetTag = stripPrefix(firstValue(relation, "country")).toUpperCase();
+          const value = toNumberOrNull(firstScalar(relation, "value"));
+          if (!/^[A-Z0-9]{3}$/.test(targetTag) || value == null) continue;
+          add(sourceTag, { type: "relation", target_tag: targetTag, value, source_file: normalizePath(file), source_line: sourceLine });
+          continue;
+        }
+        if (item.key === "set_owes_obligation_to") {
+          const obligation = asNode(item.value);
+          const targetTag = stripPrefix(firstValue(obligation, "country")).toUpperCase();
+          if (!/^[A-Z0-9]{3}$/.test(targetTag) || firstScalar(obligation, "setting") !== "yes") continue;
+          add(sourceTag, { type: "obligation", target_tag: targetTag, source_file: normalizePath(file), source_line: sourceLine });
+        }
+      }
+    }
+  }
+  for (const records of recordsByTag.values()) records.sort((left, right) => left.type.localeCompare(right.type) || left.target_tag.localeCompare(right.target_tag));
+  return recordsByTag;
+}
+
+function sourceLineNumber(source, token) {
+  const index = source.indexOf(token);
+  return index < 0 ? 1 : source.slice(0, index).split("\n").length;
 }
 
 function loadCountryRules(dir, kind) {
@@ -3863,6 +3951,7 @@ function buildCountryRow(context) {
     startingOwners,
     startingSubjectsByTag,
     startingCountryData,
+    startingDiplomacy,
     historyCountryTags,
     historyReligionOverrides,
     releasables,
@@ -3874,6 +3963,7 @@ function buildCountryRow(context) {
   const startingStates = [...(startingOwners.get(tag) || [])].sort();
   const startingSubject = startingSubjectsByTag.get(tag);
   const startingData = startingCountryData.get(tag) || { technology_tier: null, technologies: [], laws: [], source_file: "" };
+  const diplomacy = startingDiplomacy.get(tag) || [];
   const primaryCultures = def?.cultures || [];
   const primaryCulturesZh = primaryCultures.map((key) => locName(loc, key));
   const historyReligion = historyReligionOverrides.get(tag)?.religion || "";
@@ -3905,6 +3995,7 @@ function buildCountryRow(context) {
     starting_technology_tier: startingData.technology_tier == null ? "" : String(startingData.technology_tier),
     starting_technology_keys: joinValues(startingData.technologies.map((technology) => technology.key)),
     starting_law_keys: joinValues(startingData.laws.map((law) => law.key)),
+    starting_diplomacy: diplomacy,
     has_history_country_file: historyCountryTags.has(tag) ? "是" : "否",
     is_releasable: releasable ? "是" : "否",
     is_formable: formable ? "是" : "否",
@@ -5274,6 +5365,10 @@ function writeDatabase(dir, data) {
       starting_technology_tier: row.starting_technology_tier ? Number(row.starting_technology_tier) : null,
       starting_technologies: splitJoined(row.starting_technology_keys).map((key) => technologyRef(key, technologies, loc)),
       starting_laws: splitJoined(row.starting_law_keys).map((key) => lawRef(key, laws, loc)),
+      starting_diplomacy: (row.starting_diplomacy || []).map((item) => ({
+        ...item,
+        target: countryKeyRef(item.target_tag, loc),
+      })),
       formation: {
         required_cultures: splitJoined(row.formation_required_cultures).map((culture, index) => ({
           id: `culture:${culture}`,

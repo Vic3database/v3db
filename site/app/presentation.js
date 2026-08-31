@@ -1009,8 +1009,63 @@ function countryDetailTabContent(country, tab) {
   if (tab === "regions") return countryDetailRegionsContent(country);
   if (tab === "technology") return countryDetailTechnologyContent(country);
   if (tab === "laws") return countryDetailLawsContent(country);
+  if (tab === "diplomacy") return countryDetailDiplomacyContent(country);
   if (tab === "interest-groups") return countryInterestGroupContent(country);
   return `<div class="country-detail-placeholder"><h3>${escapeHtml(countryDetailTabs().find((item) => item.key === tab)?.label || tab)}</h3><p class="empty compact">${escapeHtml(t("board.country.detailComingSoon", "该分区内容将在后续接入。"))}</p></div>`;
+}
+
+const countryDiplomacyGroups = [
+  { key: "subject", labelKey: "board.country.diplomacy.subjects", fallback: "附属关系" },
+  { key: "pact", labelKey: "board.country.diplomacy.pacts", fallback: "预设条约" },
+  { key: "rivalry", labelKey: "board.country.diplomacy.rivalries", fallback: "宿敌" },
+  { key: "relation", labelKey: "board.country.diplomacy.relations", fallback: "关系值" },
+  { key: "truce", labelKey: "board.country.diplomacy.truces", fallback: "停战" },
+  { key: "embargo", labelKey: "board.country.diplomacy.embargoes", fallback: "禁运" },
+  { key: "obligation", labelKey: "board.country.diplomacy.obligations", fallback: "义务" },
+];
+
+function countryDetailDiplomacyContent(country) {
+  const existsAtStart = country.existsAtStart === true || country.existsAtStart === "是";
+  const records = country.startingDiplomacy || [];
+  if (!existsAtStart) return `<h3>${escapeHtml(t("board.country.tabs.diplomacy", "外交"))}</h3><p class="country-detail-data-status is-unavailable">${escapeHtml(t("board.country.startingDataNotPresent", "该国 1836 年不存在，以下没有开局数据。"))}</p>`;
+  const sections = countryDiplomacyGroups.map((group) => {
+    const items = records.filter((item) => item.type === group.key);
+    if (!items.length) return "";
+    return `<section class="country-diplomacy-section"><h4>${escapeHtml(t(group.labelKey, group.fallback))}</h4><div class="country-diplomacy-list">${items.map(countryDiplomacyRecordHtml).join("")}</div></section>`;
+  }).filter(Boolean).join("");
+  return `<h3>${escapeHtml(t("board.country.tabs.diplomacy", "外交"))}</h3><p class="country-detail-data-status">${escapeHtml(t("board.country.startingDataAvailable", "1836 年开局数据"))}</p>${sections || `<p class="empty compact">${escapeHtml(t("board.country.noStartingDiplomacy", "没有记录的开局外交关系。"))}</p>`}`;
+}
+
+function countryDiplomacyRecordHtml(item) {
+  const target = byTag.get(item.targetTag) || { tag: item.targetTag };
+  const label = countryRefLabel(target);
+  const details = item.type === "subject"
+    ? t(item.subjectRole === "subject" ? "board.country.diplomacy.subjectOf" : "board.country.diplomacy.overlordOf", item.subjectRole === "subject" ? "隶属于 {target}（{type}）" : "拥有 {target}（{type}）", { target: label, type: countryDiplomacyTypeLabel(item.subjectType) })
+      : item.type === "pact"
+      ? `${label}（${countryDiplomacyTypeLabel(item.pactType)}）`
+      : item.type === "relation"
+        ? `${label}（${item.value > 0 ? "+" : ""}${item.value}）`
+        : item.type === "truce"
+          ? `${label}（${t("board.country.diplomacy.months", "{value} 个月", { value: item.months })}）`
+          : label;
+  return `<div class="country-diplomacy-record"><span>${escapeHtml(details)}</span>${countryLinks([item.targetTag])}</div>`;
+}
+
+function countryDiplomacyTypeLabel(key) {
+  const labels = {
+    puppet: "puppet",
+    vassal: "vassal",
+    crown_land: "crownLand",
+    chartered_company: "charteredCompany",
+    colony: "colony",
+    dominion: "dominion",
+    personal_union: "personalUnion",
+    protectorate: "protectorate",
+    tributary: "tributary",
+    grant_own_market: "grantOwnMarket",
+    decrease_payments: "decreasePayments",
+  };
+  return labels[key] ? t(`board.country.diplomacy.type.${labels[key]}`, key) : key || t("ui.none", "无");
 }
 
 function countryDetailTechnologyContent(country) {

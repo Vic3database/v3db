@@ -116,6 +116,40 @@
   object-fit: contain;
 }
 
+.country-diplomacy-section {
+  margin-top: 14px;
+}
+
+.country-diplomacy-section h4 {
+  margin: 0 0 7px;
+}
+
+.country-diplomacy-list {
+  display: grid;
+  gap: 6px;
+}
+
+.country-diplomacy-record {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+  padding: 8px 9px;
+  border: 1px solid rgba(200, 164, 91, 0.18);
+  border-radius: 6px;
+  background: var(--panel-glass-strong);
+}
+
+.country-diplomacy-record > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.country-diplomacy-record .link-list {
+  flex: 0 0 auto;
+}
+
 .country-detail-reserved-slot {
   min-height: 0;
 }
