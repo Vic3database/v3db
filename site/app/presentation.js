@@ -939,8 +939,8 @@ function renderCountryDetail(country) {
     return;
   }
   const primaryCultureNames = (country.primaryCultures || []).map((item) => entityText(byCulture.get(item?.key || item) || item)).filter(Boolean);
-  const capitalName = country.capital ? entityText(byStateRegion.get(country.capital), "name", country.capital) || country.capital : "";
-  const expandablePrimaryCultureHtml = countryPrimaryCultureExpansionsHtml(country);
+  if (!countryDetailTabKeys.includes(state.countryDetailTab)) state.countryDetailTab = "variants";
+  const overview = countryDetailOverview(country, primaryCultureNames);
   els.detail.innerHTML = `
     <div class="detail-title">
       ${detailBackButton("country")}
@@ -951,64 +951,91 @@ function renderCountryDetail(country) {
       ${conceptTag(country.tag, "country", country.tag, entityText(country))}
       ${victorianCenturyBadge(country)}
     </div>
-
-    <h3>${t("board.country.section.basic", "基础")}</h3>
-    <dl class="field-grid">
-      ${field(t("board.country.type", "国家类型"), tagPill(countryTypeTagLabel(country), "tag-type"))}
-      ${field(t("board.country.tier", "国家位阶"), tagPill(countryTierLabel(country.tier), "tag-tier"))}
-      ${field(t("board.country.standardColor", "标准色"), colorValue(country.colorHex, country.colorRgb))}
-      ${field(t("board.country.unitColor", "部队颜色"), unitColorText(country))}
-      ${field(t("board.country.primaryCulture", "主流文化"), `${linkedTerms(country.primaryCultures, primaryCultureNames, "culture")} <a class="country-incorporation-calculator-link" href="#/culture/incorporation" data-incorporation-country="${escapeHtml(country.tag)}">${escapeHtml(t("nav.cultureIncorporation", "整合时长"))}</a>`)}
-      ${expandablePrimaryCultureHtml ? field(t("board.country.expandablePrimaryCultures", "可扩展的主流文化"), expandablePrimaryCultureHtml) : ""}
-      ${field(t("board.country.locationStrategicRegions", "所在战略区域"), strategicRegionLinks(country.locationStrategicRegions))}
-      ${field(t("board.country.locationStateRegions", "所在地域"), stateRegionLinks(country.locationStateRegions))}
-      ${field(t("board.country.primaryCultureHomelandStrategicRegions", "主流文化本土战略区域"), strategicRegionLinks(country.primaryCultureHomelandStrategicRegions))}
-      ${field(t("board.country.heritage", "传承"), `<span class="grouped-trait-pills">${groupedTraitPills(country.primaryCultureHeritageGroups, country.primaryCultureHeritages, "tag-heritage-group", "tag-heritage")}</span>`)}
-      ${field(t("board.country.language", "语言"), `<span class="grouped-trait-pills">${groupedTraitPills(country.primaryCultureLanguageGroups, country.primaryCultureLanguages, "tag-language-group", "tag-language")}</span>`)}
-      ${field(t("board.country.tradition", "传统"), traitList(country.primaryCultureTraditions))}
-      ${field(t("board.country.religion", "宗教"), linkedTerms([country.religion], [entityText(country.religion)], "religion") + sourceSuffix(country.religionSource))}
-      ${field(t("board.country.capital", "首都"), stateRegionLinks(country.capital ? [byStateRegion.get(country.capital) || { key: country.capital, id: `state_region:${country.capital}` }] : []))}
-    </dl>
-
-    ${countryFlavorContentHtml(country.tag)}
-
-    ${collapsibleDetailSection(t("board.country.interestGroupFlavor", "利益集团风味"), interestGroupFlavorList(country.interestGroups), t("board.country.groupCount", "{count} 组", { count: (country.interestGroups || []).length }))}
-
-    <h3>${t("board.country.section.dynamicNames", "国名变体")}</h3>
-    ${dynamicNameList(country)}
-
-    <h3>${t("board.country.section.mapColors", "地图色")}</h3>
-    ${dynamicMapColorList(country)}
-
-    ${countryFlagVariantSection(country)}
-
-    <h3>${t("board.country.section.start", "开局")}</h3>
-    <dl class="field-grid">
-      ${field(t("board.country.existsAtStart", "开局存在"), localizedBoolean(country.existsAtStart))}
-      ${field(t("board.country.startingStateCount", "开局州数"), String(country.startingStateCount))}
-      ${field(t("board.country.startingStates", "开局州"), countryStartingStateRegionLinks(country))}
-      ${field(t("board.country.historyFile", "历史文件"), localizedBoolean(country.hasHistoryCountryFile))}
-    </dl>
-
-    <h3>${t("board.country.section.formation", "成立")}</h3>
-    <dl class="field-grid">
-      ${field(t("board.country.isMinorFormable", "次要统一"), localizedBoolean(country.isMinorFormable))}
-      ${field(t("board.country.isMajorFormable", "重大统一"), localizedBoolean(country.isMajorFormable))}
-      ${field(t("board.country.specialMechanic", "特殊机制"), renderTextSpec({ message: country.specialMechanic, fallback: "" }))}
-      ${field(t("board.country.canForm", "同文化可成立"), countryLinks(country.canFormTags))}
-      ${field(t("board.country.formationCultures", "成立文化"), cultureLinks((country.formationRequiredCultures || []).map((key) => byCulture.get(key) || { key, id: `culture:${key}` })))}
-      ${field(t("board.country.formationStrategicRegions", "成立范围战略区域"), strategicRegionLinks(country.formationStrategicRegions))}
-      ${field(t("board.country.formationStateRegions", "成立范围地域"), stateRegionLinks(country.formationStateRegions))}
-      ${field(t("board.country.formationStates", "规则直接列州"), stateRegionLinks((country.formationStates || []).map((key) => byStateRegion.get(key) || { key, id: `state_region:${key}` })))}
-      ${field(t("board.country.formationRegion", "成立地区"), escapeHtml(country.formationRegion || ""))}
-    </dl>
-
-    <h3>${t("board.country.section.release", "释放")}</h3>
-    <dl class="field-grid">
-      ${field(t("board.country.isReleasable", "可释放"), localizedBoolean(country.isReleasable))}
-      ${field(t("board.country.releaseStates", "释放州"), stateRegionLinks((country.releaseStates || []).map((key) => byStateRegion.get(key) || { key, id: `state_region:${key}` })))}
-    </dl>
+    ${overview}
+    <nav class="country-detail-tabs" role="tablist" aria-label="${escapeHtml(t("board.country.detailSections", "国家详情分区"))}">
+      ${countryDetailTabs(country).map((tab) => `<button type="button" role="tab" data-country-detail-tab="${escapeHtml(tab.key)}" aria-selected="${String(tab.key === state.countryDetailTab)}">${escapeHtml(tab.label)}</button>`).join("")}
+    </nav>
+    <section class="country-detail-tab-panel" data-country-detail-panel="${escapeHtml(state.countryDetailTab)}">
+      ${countryDetailTabContent(country, state.countryDetailTab)}
+    </section>
   `;
+  els.detail.querySelectorAll("[data-country-detail-tab]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.countryDetailTab = button.dataset.countryDetailTab || "variants";
+      if (state.countryDetailTab !== "interest-groups") state.countryDetailSubtab = "";
+      if (state.countryDetailTab !== "flavor") state.countryDetailFlavorTab = "journal";
+      replaceHash(countryDetailRoute(country.tag, state.countryDetailTab, state.countryDetailSubtab, state.countryDetailFlavorTab));
+      render();
+      button.scrollIntoView({ block: "nearest", inline: "nearest" });
+    });
+  });
+}
+
+function countryDetailTabs() {
+  return [
+    { key: "variants", label: t("board.country.tabs.variants", "变体") },
+    { key: "society", label: t("board.country.tabs.society", "社会") },
+    { key: "regions", label: t("board.country.tabs.regions", "地区") },
+    { key: "technology", label: t("board.country.tabs.technology", "科技") },
+    { key: "laws", label: t("board.country.tabs.laws", "法律") },
+    { key: "diplomacy", label: t("board.country.tabs.diplomacy", "外交") },
+    { key: "interest-groups", label: t("board.country.tabs.interestGroups", "利益集团") },
+    { key: "flavor", label: t("board.country.tabs.flavor", "风味") },
+  ];
+}
+
+function countryDetailOverview(country, primaryCultureNames = []) {
+  const capital = country.capital ? byStateRegion.get(country.capital) || { key: country.capital, id: `state_region:${country.capital}` } : null;
+  return `<section class="country-detail-overview" aria-label="${escapeHtml(t("board.country.overview", "国家概览"))}">
+    ${field(t("board.country.type", "国家类型"), tagPill(countryTypeTagLabel(country), "tag-type"))}
+    ${field(t("board.country.tier", "国家位阶"), tagPill(countryTierLabel(country.tier), "tag-tier"))}
+    ${field(t("board.country.capital", "首都"), stateRegionLinks(capital ? [capital] : []))}
+    ${field(t("board.country.primaryCulture", "主流文化"), linkedTerms(country.primaryCultures, primaryCultureNames, "culture"))}
+    ${field(t("board.country.religion", "宗教"), linkedTerms([country.religion], [entityText(country.religion)], "religion") + sourceSuffix(country.religionSource))}
+    ${field(t("board.country.standardColor", "标准色"), colorValue(country.colorHex, country.colorRgb))}
+  </section>`;
+}
+
+function countryDetailTabContent(country, tab) {
+  if (tab === "variants") return `<h3>${t("board.country.section.variants", "变体")}</h3>${countryFlagVariantSection(country) || ""}<h4>${t("board.country.section.dynamicNames", "国名变体")}</h4>${dynamicNameList(country)}<h4>${t("board.country.section.mapColors", "地图色")}</h4>${dynamicMapColorList(country)}`;
+  if (tab === "society") return countryDetailSocietyContent(country);
+  if (tab === "regions") return countryDetailRegionsContent(country);
+  return `<div class="country-detail-placeholder"><h3>${escapeHtml(countryDetailTabs().find((item) => item.key === tab)?.label || tab)}</h3><p class="empty compact">${escapeHtml(t("board.country.detailComingSoon", "该分区内容将在后续接入。"))}</p></div>`;
+}
+
+function countryDetailSocietyContent(country) {
+  const primaryCultureNames = (country.primaryCultures || []).map((item) => entityText(byCulture.get(item?.key || item) || item)).filter(Boolean);
+  const expandable = countryPrimaryCultureExpansionsHtml(country);
+  return `<h3>${t("board.country.section.society", "社会")}</h3><dl class="field-grid">
+    ${field(t("board.country.primaryCulture", "主流文化"), linkedTerms(country.primaryCultures, primaryCultureNames, "culture") + ` <a class="country-incorporation-calculator-link" href="#/culture/incorporation" data-incorporation-country="${escapeHtml(country.tag)}">${escapeHtml(t("nav.cultureIncorporation", "整合时长"))}</a>`)}
+    ${expandable ? field(t("board.country.expandablePrimaryCultures", "可扩展的主流文化"), expandable) : ""}
+    ${field(t("board.country.heritage", "传承"), `<span class="grouped-trait-pills">${groupedTraitPills(country.primaryCultureHeritageGroups, country.primaryCultureHeritages, "tag-heritage-group", "tag-heritage")}</span>`)}
+    ${field(t("board.country.language", "语言"), `<span class="grouped-trait-pills">${groupedTraitPills(country.primaryCultureLanguageGroups, country.primaryCultureLanguages, "tag-language-group", "tag-language")}</span>`)}
+    ${field(t("board.country.tradition", "传统"), traitList(country.primaryCultureTraditions))}
+    <div class="country-detail-reserved-slot" data-country-population-placeholder aria-hidden="true"></div>
+  </dl>`;
+}
+
+function countryDetailRegionsContent(country) {
+  return `<h3>${t("board.country.section.regions", "地区")}</h3><dl class="field-grid">
+    ${field(t("board.country.capital", "首都"), stateRegionLinks(country.capital ? [byStateRegion.get(country.capital) || { key: country.capital, id: `state_region:${country.capital}` }] : []))}
+    ${field(t("board.country.locationStrategicRegions", "所在战略区域"), strategicRegionLinks(country.locationStrategicRegions))}
+    ${field(t("board.country.locationStateRegions", "所在地域"), stateRegionLinks(country.locationStateRegions))}
+    ${field(t("board.country.primaryCultureHomelandStrategicRegions", "主流文化本土战略区域"), strategicRegionLinks(country.primaryCultureHomelandStrategicRegions))}
+    ${field(t("board.country.startingStateCount", "开局州数"), String(country.startingStateCount))}
+    ${field(t("board.country.startingStates", "开局州"), countryStartingStateRegionLinks(country))}
+    ${field(t("board.country.specialMechanic", "特殊机制"), renderTextSpec({ message: country.specialMechanic, fallback: "" }))}
+    ${field(t("board.country.isMinorFormable", "次要统一"), localizedBoolean(country.isMinorFormable))}
+    ${field(t("board.country.isMajorFormable", "重大统一"), localizedBoolean(country.isMajorFormable))}
+    ${field(t("board.country.canForm", "同文化可成立"), countryLinks(country.canFormTags))}
+    ${field(t("board.country.formationCultures", "成立文化"), cultureLinks((country.formationRequiredCultures || []).map((key) => byCulture.get(key) || { key, id: `culture:${key}` })))}
+    ${field(t("board.country.formationStrategicRegions", "成立范围战略区域"), strategicRegionLinks(country.formationStrategicRegions))}
+    ${field(t("board.country.formationStateRegions", "成立范围地域"), stateRegionLinks(country.formationStateRegions))}
+    ${field(t("board.country.formationStates", "规则直接列州"), stateRegionLinks((country.formationStates || []).map((key) => byStateRegion.get(key) || { key, id: `state_region:${key}` })))}
+    ${field(t("board.country.formationRegion", "成立地区"), escapeHtml(country.formationRegion || ""))}
+    ${field(t("board.country.isReleasable", "可释放"), localizedBoolean(country.isReleasable))}
+    ${field(t("board.country.releaseStates", "释放州"), stateRegionLinks((country.releaseStates || []).map((key) => byStateRegion.get(key) || { key, id: `state_region:${key}` })))}
+  </dl>`;
 }
 
 function countryPrimaryCultureRoutes(country) {

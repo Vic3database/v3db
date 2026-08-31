@@ -89,6 +89,34 @@ function mapFullscreenRequested() {
     && window.matchMedia("(max-width: 760px)").matches;
 }
 
+const countryDetailTabKeys = ["variants", "society", "regions", "technology", "laws", "diplomacy", "interest-groups", "flavor"];
+const countryInterestGroupTabKeys = ["ig_armed_forces", "ig_devout", "ig_industrialists", "ig_intelligentsia", "ig_landowners", "ig_petty_bourgeoisie", "ig_rural_folk", "ig_trade_unions"];
+const countryFlavorTabKeys = ["journal", "event", "decision"];
+
+function countryDetailRoute(tag, tab = "variants", subtab = "", flavorTab = "") {
+  const params = new URLSearchParams();
+  if (countryDetailTabKeys.includes(tab) && tab !== "variants") params.set("tab", tab);
+  if (tab === "interest-groups" && countryInterestGroupTabKeys.includes(subtab)) params.set("ig", subtab);
+  if (tab === "flavor" && countryFlavorTabKeys.includes(flavorTab)) params.set("flavor", flavorTab);
+  const query = params.toString();
+  return `/country/${encodeURIComponent(tag)}${query ? `?${query}` : ""}`;
+}
+
+function countryDetailTabFromQuery(query) {
+  const tab = query?.get("tab") || "variants";
+  return countryDetailTabKeys.includes(tab) ? tab : "variants";
+}
+
+function countryInterestGroupTabFromQuery(query) {
+  const key = query?.get("ig") || "";
+  return countryInterestGroupTabKeys.includes(key) ? key : "";
+}
+
+function countryFlavorTabFromQuery(query) {
+  const key = query?.get("flavor") || "journal";
+  return countryFlavorTabKeys.includes(key) ? key : "journal";
+}
+
 function openDetailRoute(view, key) {
   replaceHash(`/${view}/${encodeURIComponent(key)}`);
 }
@@ -1399,6 +1427,9 @@ async function applyHash() {
   if (parts[0] === "country" && parts[1] && byTag.has(parts[1].toUpperCase())) {
     changeBoard("country", "country");
     state.selectedTag = parts[1].toUpperCase();
+    state.countryDetailTab = countryDetailTabFromQuery(query);
+    state.countryDetailSubtab = countryInterestGroupTabFromQuery(query);
+    state.countryDetailFlavorTab = countryFlavorTabFromQuery(query);
     return;
   }
   if (parts[0] === "culture" && !parts[1]) {
