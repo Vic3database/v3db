@@ -2092,6 +2092,13 @@ body[data-view="law"] .detail {
   }
 }
 
+@media (min-width: 761px) {
+  .map-fullscreen-button,
+  .map-collapse-button {
+    display: none !important;
+  }
+}
+
 /* Shared narrow-screen map and detail states must win over board-specific rules. */
 @media (max-width: 760px) {
   body[data-page-mode="map"]:not([data-map-fullscreen="true"]):not([data-company-solver="true"]):not([data-company-composer="true"]) .map-panel {
