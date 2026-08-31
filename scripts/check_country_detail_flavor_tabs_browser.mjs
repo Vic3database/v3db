@@ -28,7 +28,7 @@ try {
   assert.deepEqual(event.kinds, ["event"], "event flavor tab must render only events");
   assert.match(event.hash, /flavor=event/, "event flavor tab must update the route");
 
-  await page.goto(`${baseUrl}?version=1.13.11&lang=zh-Hans#/country/CHI?tab=flavor&flavor=decision`);
+  await page.goto(`${baseUrl}?version=1.13.11&lang=zh-Hans#/country/AFG?tab=flavor&flavor=decision`);
   const restored = await page.evaluate(() => ({ content: document.querySelector("[data-country-flavor-content]")?.dataset.countryFlavorContent || "", selected: document.querySelector("[data-country-flavor-tab][aria-selected='true']")?.dataset.countryFlavorTab || "", text: document.querySelector("[data-country-flavor-content]")?.innerText || "" }));
   assert.equal(restored.content, "decision", "flavor query must restore the selected subtab");
   assert.equal(restored.selected, "decision", "restored flavor tab must be selected");
