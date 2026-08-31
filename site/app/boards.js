@@ -1921,10 +1921,8 @@ function renderCompanyBoard() {
   els.resultCount.textContent = t("board.company.resultCount", { count: localizedNumber(filtered.length) });
   els.activeHint.textContent = buildActiveHint(filtered.length);
   renderCompanyList(filtered);
-  if (isDetailPageRoute() && companyDetailLocationMapEnabled(selectedCompany) && companyLocationStateRegionKeys(selectedCompany).length) {
-    renderMap(companyMapStateRegions(mapRuntime.companyMapCompanies));
-    focusCompanyOnMap(selectedCompany);
-  }
+  renderMap(companyMapStateRegions(mapRuntime.companyMapCompanies));
+  focusCompanyOnMap(selectedCompany);
 }
 
 function renderIdeologyBoard() {

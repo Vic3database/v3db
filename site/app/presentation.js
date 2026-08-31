@@ -408,11 +408,11 @@ function renderRegionList(filteredStrategicRegions, filteredStateRegions, filter
 function stateRegionRowHtml(stateRegion, { mapSelected = false } = {}) {
   const selected = mapSelected || (stateRegion.key === state.selectedStateRegion && state.detailKind === "stateRegion");
   return `
-    <article class="country-row region-row${mapSelected ? " region-map-selected" : ""} selectable-row" data-state-region="${escapeHtml(stateRegion.key)}" style="${stateRegionBorderStyle(stateRegion)}" aria-current="${selected}" tabindex="0">
+    <article class="country-row region-row${mapSelected ? " region-map-selected" : ""} selectable-row" data-state-region="${escapeHtml(stateRegion.key)}" data-map-focus-region="${escapeHtml(stateRegion.key)}" style="${stateRegionBorderStyle(stateRegion)}" aria-current="${selected}" aria-pressed="${String(selected)}" tabindex="0">
       <span class="country-heading">
         ${conceptTag(stateRegion.key, "stateRegion", stateRegion.key, entityText(stateRegion))}
         <span class="name">${stateRegionNameText(stateRegion)}</span>
-        ${rowDetailButton("data-state-region-detail", stateRegion.key)}
+        ${rowDetailButton("data-state-region-detail", stateRegion.key, "data-map-enter-region")}
       </span>
       <span class="minor country-meta">${escapeHtml(stateRegionSummaryText(stateRegion))}</span>
       <span class="minor country-meta">${t("board.region.homelandCultures", "本土文化")}：${escapeHtml(refNames(stateRegion.homeland_cultures))}</span>
@@ -479,14 +479,14 @@ function renderCultureList(filtered) {
   const visible = filtered.slice(0, 220);
   els.countryList.className = "country-list culture-list";
   els.countryList.innerHTML = visible.map((culture) => `
-    <article class="culture-row selectable-row" data-culture="${escapeHtml(culture.key)}" aria-current="${culture.key === state.selectedCulture && state.detailKind === "culture"}" tabindex="0">
+    <article class="culture-row selectable-row" data-culture="${escapeHtml(culture.key)}" data-map-focus-culture="${escapeHtml(culture.key)}" aria-current="${culture.key === state.selectedCulture && state.detailKind === "culture"}" aria-pressed="${String(culture.key === state.selectedCulture)}" tabindex="0">
       <span class="country-color" style="${colorStyle(culture.color?.hex)}" aria-hidden="true"></span>
       ${conceptTag(culture.key, "culture", culture.key, entityText(culture))}
       <span>
         <span class="name">${escapeHtml(entityText(culture))}</span>
         <span class="minor">${escapeHtml([entityText(culture.heritage), entityText(culture.language)].filter(Boolean).join("?"))}</span>
       </span>
-      ${rowDetailButton("data-culture-detail", culture.key)}
+      ${rowDetailButton("data-culture-detail", culture.key, "data-map-enter-culture")}
       <span class="minor">${escapeHtml((culture.homeland_strategic_regions || []).map((region) => entityText(region)).filter(Boolean).join("?"))}</span>
       <span class="pill-line">${traitList(culture.traditions)}${victorianCenturyBadge(culture)}</span>
     </article>
@@ -531,13 +531,14 @@ function renderCompanyList(filtered) {
   const visible = filtered;
   els.countryList.className = "country-list company-list";
   els.countryList.innerHTML = visible.map((company) => `
-    <article class="country-row company-row" data-company="${escapeHtml(company.key)}" aria-current="${company.key === state.selectedCompany && state.detailKind === "company"}" tabindex="0">
+    <article class="country-row company-row" data-company="${escapeHtml(company.key)}" data-map-focus-company="${escapeHtml(company.key)}" aria-current="${company.key === state.selectedCompany && state.detailKind === "company"}" aria-pressed="${String(company.key === state.selectedCompany)}" tabindex="0">
       <span class="company-heading">
         ${companyIconHtml(company)}
         <span class="company-title-text">
           <span class="name">${escapeHtml(entityText(company) || company.key)}</span>
         </span>
         ${companyDlcIconPill(company)}
+        ${rowDetailButton("data-company-detail", company.key, "data-map-enter-company")}
       </span>
       <span class="region-building-strip">${companyBuildingStrip(company)}</span>
       <span class="pill-line country-tags company-asset-line">${companyPrestigeGoodsPills(company)}</span>
@@ -548,13 +549,20 @@ function renderCompanyList(filtered) {
   els.countryList.querySelectorAll("[data-company]").forEach((row) => {
     row.addEventListener("click", (event) => {
       if (event.target.closest("a, button, [data-concept-key]")) return;
-      openCompanyDetail(row.dataset.company);
+      selectCompanyCard(row.dataset.company);
     });
     row.addEventListener("keydown", (event) => {
       if (event.key !== "Enter" && event.key !== " ") return;
       if (event.target.closest("a, button, [data-concept-key]")) return;
       event.preventDefault();
-      openCompanyDetail(row.dataset.company);
+      selectCompanyCard(row.dataset.company);
+    });
+  });
+  els.countryList.querySelectorAll("[data-company-detail]").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      openCompanyDetail(button.dataset.companyDetail);
     });
   });
 }
@@ -589,14 +597,13 @@ function renderIdeologyList(filtered) {
   els.countryList.innerHTML = grouped.map((type) => `
     <div class="list-section-title">${escapeHtml(ideologyTypeLabel(type.key))}</div>
     ${type.items.map((ideology) => `
-      <article class="country-row ideology-row selectable-row" data-ideology="${escapeHtml(ideology.key)}" aria-current="${ideology.key === state.selectedIdeology && state.detailKind === "ideology"}" tabindex="0">
+      <article class="country-row ideology-row selectable-row" data-ideology="${escapeHtml(ideology.key)}" aria-current="${ideology.key === state.selectedIdeology && state.detailKind === "ideology"}" aria-pressed="${String(ideology.key === state.selectedIdeology)}" tabindex="0">
         <span class="country-heading ideology-row-heading">
           ${ideologyIconHtml(ideology, "ideology-icon ideology-row-icon")}
           <span class="ideology-row-title">
             ${conceptTag(ideology.key, "ideology", ideology.key, entityText(ideology))}
             <span class="name">${escapeHtml(entityText(ideology))}</span>
           </span>
-          ${rowDetailButton("data-ideology-detail", ideology.key)}
         </span>
         <span class="minor country-meta">${escapeHtml(cleanIdeologyDescription(entityText(ideology, "description")) || t("ui.noDescription", "无描述"))}</span>
         <span class="pill-line country-tags">${victorianCenturyBadge(ideology)}</span>
@@ -607,29 +614,15 @@ function renderIdeologyList(filtered) {
   els.countryList.querySelectorAll("[data-ideology]").forEach((row) => {
     row.addEventListener("click", (event) => {
       if (event.target.closest("a, button, [data-concept-key]")) return;
-      selectIdeologyCard(row.dataset.ideology);
+      openIdeologyDetail(row.dataset.ideology);
     });
     row.addEventListener("keydown", (event) => {
       if (event.key !== "Enter" && event.key !== " ") return;
       if (event.target.closest("a, button, [data-concept-key]")) return;
       event.preventDefault();
-      selectIdeologyCard(row.dataset.ideology);
+      openIdeologyDetail(row.dataset.ideology);
     });
   });
-  els.countryList.querySelectorAll("[data-ideology-detail]").forEach((button) => {
-    button.addEventListener("click", (event) => {
-      event.preventDefault();
-      openIdeologyDetail(button.dataset.ideologyDetail);
-    });
-  });
-}
-
-function selectIdeologyCard(ideologyKey) {
-  if (!ideologyKey || !ideologyByKey.has(ideologyKey)) return;
-  state.selectedIdeology = ideologyKey;
-  state.detailKind = "ideology";
-  replaceHash(selectionHashForCard("/ideology", `/ideology/${encodeURIComponent(ideologyKey)}`));
-  render();
 }
 
 function selectionHashForCard(boardHash, detailHash) {
@@ -669,11 +662,10 @@ function renderLawList(filtered) {
         <section class="law-group-section">
           <h3 class="list-section-title">${escapeHtml(entityText(group))}</h3>
           ${group.laws.sort(sortLaws).map((law) => `
-      <article class="country-row law-row selectable-row" data-law="${escapeHtml(law.key)}" aria-current="${law.key === state.selectedLaw && state.detailKind === "law"}" tabindex="0">
+      <article class="country-row law-row selectable-row" data-law="${escapeHtml(law.key)}" aria-current="${law.key === state.selectedLaw && state.detailKind === "law"}" aria-pressed="${String(law.key === state.selectedLaw)}" tabindex="0">
           <span class="country-heading law-row-heading">
           ${lawIconHtml(law, "law-icon law-row-icon")}
           <span class="law-row-title">${conceptTag(law.key, "law", law.key, lawDisplayName(law))}<span class="name">${escapeHtml(lawDisplayName(law))}</span></span>
-          ${rowDetailButton("data-law-detail", law.key)}
         </span>
         <span class="pill-line country-tags">${victorianCenturyBadge(law)}</span>
       </article>
@@ -685,29 +677,15 @@ function renderLawList(filtered) {
   els.countryList.querySelectorAll("[data-law]").forEach((row) => {
     row.addEventListener("click", (event) => {
       if (event.target.closest("a, button, [data-concept-key]")) return;
-      selectLawCard(row.dataset.law);
+      openLawDetail(row.dataset.law);
     });
     row.addEventListener("keydown", (event) => {
       if (event.key !== "Enter" && event.key !== " ") return;
       if (event.target.closest("a, button, [data-concept-key]")) return;
       event.preventDefault();
-      selectLawCard(row.dataset.law);
+      openLawDetail(row.dataset.law);
     });
   });
-  els.countryList.querySelectorAll("[data-law-detail]").forEach((button) => {
-    button.addEventListener("click", (event) => {
-      event.preventDefault();
-      openLawDetail(button.dataset.lawDetail);
-    });
-  });
-}
-
-function selectLawCard(lawKey) {
-  if (!lawKey || !lawByKey.has(lawKey)) return;
-  state.selectedLaw = lawKey;
-  state.detailKind = "law";
-  replaceHash(selectionHashForCard("/law", `/law/${encodeURIComponent(lawKey)}`));
-  render();
 }
 
 function openLawDetail(lawKey) {

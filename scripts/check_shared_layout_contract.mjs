@@ -13,8 +13,15 @@ assert.match(ui, /function isMapView\s*\(/, "shared UI must define map view clas
 assert.match(ui, /function isContentView\s*\(/, "shared UI must define content view classification");
 assert.match(ui, /function mapFullscreenRequested\s*\(/, "shared UI must parse map fullscreen state");
 assert.match(ui, /matchMedia\("\(max-width: 760px\)"\)/, "map fullscreen state must be limited to narrow screens");
+assert.match(ui, /function enterMapFullscreen\s*\(/, "shared UI must enter map fullscreen through one transition");
+assert.match(ui, /function exitMapFullscreen\s*\(/, "shared UI must exit map fullscreen through one transition");
+assert.match(ui, /createMapFullscreenSnapshot|mapFullscreenSnapshot/, "shared UI must preserve map fullscreen state");
 assert.match(html, /data-map-fullscreen/, "page shell must expose the fullscreen map control");
 assert.match(html, /data-map-collapse/, "page shell must expose the collapse map control");
+for (const view of ["country", "culture", "region", "company"]) {
+  assert.match(shell, new RegExp(`body\\[data-page-mode="map"\\][\\s\\S]*${view}|body\\[data-view="${view}"\\]`), `narrow map layout must include ${view} view`);
+}
+assert.match(shell, /body\[data-map-fullscreen="true"\] \.map-panel[\s\S]*position:\s*fixed/, "fullscreen map override must be defined");
 for (const variable of ["--layout-gap", "--filter-width", "--detail-width", "--card-gap", "--card-radius", "--state-border", "--state-selected"]) {
   assert.match(foundation, new RegExp(`${variable.replace("--", "\\-\\-")}\\s*:`), `foundation must define ${variable}`);
 }

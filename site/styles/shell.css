@@ -377,9 +377,7 @@ body[data-view="company"][data-company-composer="true"] #companyComposerEntry {
 body[data-view="ideology"] .map-panel,
 body[data-view="ideology"] .map-toolbar,
 body[data-view="law"] .map-panel,
-body[data-view="law"] .map-toolbar,
-body[data-view="company"] .map-panel,
-body[data-view="company"] .map-toolbar {
+body[data-view="law"] .map-toolbar {
   display: none;
 }
 
@@ -462,6 +460,25 @@ body[data-view="company"][data-company-composer="true"] #companySolverDetailPane
 }
 
 @media (max-width: 760px) {
+  body[data-page-mode="map"]:not([data-map-fullscreen="true"]) .map-panel {
+    position: relative;
+    inset: auto;
+    order: 3;
+    height: min(42vh, 340px);
+    margin: 10px;
+  }
+
+  body[data-page-mode="map"]:not([data-map-fullscreen="true"]) .map-toolbar {
+    top: 10px;
+    right: 10px;
+    left: auto;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
   body[data-map-fullscreen="true"] {
     overflow: hidden;
   }
@@ -698,6 +715,8 @@ input {
 
 .country-row,
 .culture-row,
+.region-row,
+.company-row,
 .rule-item,
 .interest-group-trait-card {
   border-color: rgba(200, 164, 91, 0.16);
@@ -706,13 +725,17 @@ input {
 }
 
 .country-row:hover,
-.culture-row:hover {
+.culture-row:hover,
+.region-row:hover,
+.company-row:hover {
   border-color: rgba(200, 164, 91, 0.42);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.32);
 }
 
 .country-row[aria-current="true"],
-.culture-row[aria-current="true"] {
+.culture-row[aria-current="true"],
+.region-row[aria-current="true"],
+.company-row[aria-current="true"] {
   border-color: var(--accent);
   box-shadow: 0 0 0 2px rgba(200, 164, 91, 0.18);
 }
@@ -2066,5 +2089,67 @@ body[data-view="law"] .detail {
     left: calc(10px + var(--ideology-left-width) + var(--panel-gap) + var(--ideology-results-width) + var(--panel-gap));
     right: 10px;
     width: auto;
+  }
+}
+
+/* Shared narrow-screen map and detail states must win over board-specific rules. */
+@media (max-width: 760px) {
+  body[data-page-mode="map"]:not([data-map-fullscreen="true"]):not([data-company-solver="true"]):not([data-company-composer="true"]) .map-panel {
+    position: relative;
+    inset: auto;
+    order: 3;
+    width: auto;
+    height: min(42vh, 340px);
+    margin: 10px;
+  }
+
+  body[data-page-mode="map"]:not([data-map-fullscreen="true"]):not([data-company-solver="true"]):not([data-company-composer="true"]) .map-toolbar {
+    top: 10px;
+    right: 10px;
+    left: auto;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  body.detail-page[data-page-mode="map"]:not([data-company-solver="true"]):not([data-company-composer="true"]) .map-panel,
+  body.detail-page[data-page-mode="map"]:not([data-company-solver="true"]):not([data-company-composer="true"]) .filters,
+  body.detail-page[data-page-mode="map"]:not([data-company-solver="true"]):not([data-company-composer="true"]) .results {
+    display: none;
+  }
+
+  body.detail-page[data-page-mode="map"]:not([data-company-solver="true"]):not([data-company-composer="true"]) .detail {
+    display: block;
+    position: relative;
+    inset: auto;
+    width: auto;
+    min-height: calc(100vh - var(--chrome-height));
+    margin: 10px;
+  }
+
+  body[data-map-fullscreen="true"] .map-fullscreen-button {
+    display: none !important;
+  }
+
+  body[data-map-fullscreen="true"] .map-collapse-button {
+    display: inline-flex !important;
+  }
+
+  body[data-map-fullscreen="true"] .layout,
+  body[data-map-fullscreen="true"] .map-panel {
+    position: fixed !important;
+    inset: var(--chrome-height) 0 0 !important;
+    width: auto !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  body[data-map-fullscreen="true"] .map-viewport {
+    position: absolute !important;
+    inset: 0 !important;
+    height: auto !important;
   }
 }

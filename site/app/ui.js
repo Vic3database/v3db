@@ -104,6 +104,63 @@ function syncMapFullscreenControls() {
   if (els.mapCollapseButton) els.mapCollapseButton.hidden = !state.mapFullscreen;
 }
 
+function createMapFullscreenSnapshot() {
+  const filterKeys = [
+    "flags", "tiers", "types", "strategicRegions", "heritageGroups", "heritages",
+    "languageGroups", "languages", "resourceFilters", "stateTraitFilters", "companyKinds",
+    "companyPrestigeGoods", "companyDlcs",
+  ];
+  return {
+    view: state.view,
+    selectedTag: state.selectedTag,
+    selectedCulture: state.selectedCulture,
+    selectedStateRegion: state.selectedStateRegion,
+    mapSelectedStateRegion: state.mapSelectedStateRegion,
+    selectedStrategicRegion: state.selectedStrategicRegion,
+    selectedGeographicRegion: state.selectedGeographicRegion,
+    selectedCompany: state.selectedCompany,
+    listScrollTop: document.querySelector(".results")?.scrollTop || window.scrollY || 0,
+    mapTransform: { ...mapRuntime.transform },
+    filters: Object.fromEntries(filterKeys.map((key) => [key, [...state[key]]])),
+  };
+}
+
+function restoreMapFullscreenSnapshot(snapshot) {
+  if (!snapshot) return;
+  for (const [key, values] of Object.entries(snapshot.filters || {})) state[key] = new Set(values);
+  for (const key of [
+    "selectedTag", "selectedCulture", "selectedStateRegion", "mapSelectedStateRegion",
+    "selectedStrategicRegion", "selectedGeographicRegion", "selectedCompany",
+  ]) state[key] = snapshot[key] || "";
+  if (snapshot.mapTransform) mapRuntime.transform = { ...snapshot.mapTransform };
+  requestAnimationFrame(() => {
+    const results = document.querySelector(".results");
+    if (results) results.scrollTop = snapshot.listScrollTop || 0;
+    else window.scrollTo(0, snapshot.listScrollTop || 0);
+    paintMapCanvas?.();
+  });
+}
+
+function enterMapFullscreen() {
+  if (!isMapView(state.view) || !window.matchMedia("(max-width: 760px)").matches || state.mapFullscreen) return;
+  state.mapFullscreenSnapshot = createMapFullscreenSnapshot();
+  state.mapFullscreenReturn = { view: state.view };
+  replaceHash(`/${state.view}?map=fullscreen`);
+  void applyHash().then(render);
+}
+
+function exitMapFullscreen() {
+  if (!state.mapFullscreen) return;
+  const snapshot = state.mapFullscreenSnapshot;
+  const view = state.mapFullscreenReturn?.view || snapshot?.view || state.view;
+  state.mapFullscreen = false;
+  replaceHash(`/${view}`);
+  restoreMapFullscreenSnapshot(snapshot);
+  state.mapFullscreenSnapshot = null;
+  state.mapFullscreenReturn = null;
+  void applyHash().then(render);
+}
+
 function updateBackToTopButton() {
   if (!els.backToTopButton) return;
   els.backToTopButton.hidden = window.scrollY < 160;
@@ -473,17 +530,8 @@ function bindEvents() {
     }
     fitMapToWidth();
   });
-  els.mapFullscreenButton?.addEventListener("click", () => {
-    if (!isMapView(state.view) || !window.matchMedia("(max-width: 760px)").matches) return;
-    state.mapFullscreenReturn = { view: state.view };
-    replaceHash(`/${state.view}?map=fullscreen`);
-    void applyHash().then(render);
-  });
-  els.mapCollapseButton?.addEventListener("click", () => {
-    if (!state.mapFullscreen) return;
-    replaceHash(`/${state.view}`);
-    void applyHash().then(render);
-  });
+  els.mapFullscreenButton?.addEventListener("click", enterMapFullscreen);
+  els.mapCollapseButton?.addEventListener("click", exitMapFullscreen);
   els.leftPanelToggle?.addEventListener("click", () => {
     document.body.classList.toggle("filters-collapsed");
     updatePanelToggleState();

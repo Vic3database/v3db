@@ -139,6 +139,7 @@ const state = {
   view: "home",
   mapFullscreen: false,
   mapFullscreenReturn: null,
+  mapFullscreenSnapshot: null,
   search: "",
   globalSearch: "",
   globalSearchDialogOpen: false,
