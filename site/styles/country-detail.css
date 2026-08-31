@@ -72,6 +72,50 @@
   padding: 16px 0;
 }
 
+.country-detail-data-status {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+.country-detail-data-status.is-unavailable {
+  color: #d79b83;
+}
+
+.country-starting-law-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.country-starting-law-card {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  padding: 9px;
+  border: 1px solid rgba(200, 164, 91, 0.22);
+  border-radius: 6px;
+  background: var(--panel-glass-strong);
+}
+
+.country-starting-law-card > div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.country-starting-law-card strong {
+  overflow-wrap: anywhere;
+}
+
+.country-starting-law-icon {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  object-fit: contain;
+}
+
 .country-detail-reserved-slot {
   min-height: 0;
 }
@@ -194,5 +238,9 @@
 
   .country-interest-group-tabs {
     grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .country-starting-law-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

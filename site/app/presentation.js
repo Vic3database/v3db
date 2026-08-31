@@ -1007,8 +1007,36 @@ function countryDetailTabContent(country, tab) {
   if (tab === "variants") return `<h3>${t("board.country.section.variants", "变体")}</h3>${countryFlagVariantSection(country) || ""}<h4>${t("board.country.section.dynamicNames", "国名变体")}</h4>${dynamicNameList(country)}<h4>${t("board.country.section.mapColors", "地图色")}</h4>${dynamicMapColorList(country)}`;
   if (tab === "society") return countryDetailSocietyContent(country);
   if (tab === "regions") return countryDetailRegionsContent(country);
+  if (tab === "technology") return countryDetailTechnologyContent(country);
+  if (tab === "laws") return countryDetailLawsContent(country);
   if (tab === "interest-groups") return countryInterestGroupContent(country);
   return `<div class="country-detail-placeholder"><h3>${escapeHtml(countryDetailTabs().find((item) => item.key === tab)?.label || tab)}</h3><p class="empty compact">${escapeHtml(t("board.country.detailComingSoon", "该分区内容将在后续接入。"))}</p></div>`;
+}
+
+function countryDetailTechnologyContent(country) {
+  const existsAtStart = country.existsAtStart === true || country.existsAtStart === "是";
+  const tier = country.startingTechnologyTier;
+  const technologies = country.startingTechnologies || [];
+  const status = existsAtStart
+    ? t("board.country.startingDataAvailable", "1836 年开局数据")
+    : t("board.country.startingDataNotPresent", "该国 1836 年不存在，以下没有开局科技数据。");
+  return `<h3>${escapeHtml(t("board.country.tabs.technology", "科技"))}</h3>
+    <p class="country-detail-data-status ${existsAtStart ? "" : "is-unavailable"}">${escapeHtml(status)}</p>
+    <dl class="field-grid">
+      ${field(t("board.country.startingTechnologyTier", "开局科技层级"), tier == null ? "" : escapeHtml(t("board.country.startingTechnologyTierValue", { value: tier })))}
+      ${field(t("board.country.startingTechnologies", "开局额外科技"), technologyPills(technologies))}
+    </dl>`;
+}
+
+function countryDetailLawsContent(country) {
+  const existsAtStart = country.existsAtStart === true || country.existsAtStart === "是";
+  const lawsAtStart = country.startingLaws || [];
+  const status = existsAtStart
+    ? t("board.country.startingDataAvailable", "1836 年开局数据")
+    : t("board.country.startingDataNotPresent", "该国 1836 年不存在，以下没有开局法律数据。");
+  return `<h3>${escapeHtml(t("board.country.tabs.laws", "法律"))}</h3>
+    <p class="country-detail-data-status ${existsAtStart ? "" : "is-unavailable"}">${escapeHtml(status)}</p>
+    <div class="country-starting-law-grid">${lawsAtStart.length ? lawsAtStart.map((law) => `<article class="country-starting-law-card">${lawIconHtml(law, "country-starting-law-icon")}<div><strong>${escapeHtml(entityText(law))}</strong><span class="minor">${escapeHtml(law.group_name_zh || "")}</span></div></article>`).join("") : `<p class="empty compact">${escapeHtml(t("board.country.noStartingLaws", "没有开局法律数据。"))}</p>`}</div>`;
 }
 
 const countryInterestGroupOrder = [

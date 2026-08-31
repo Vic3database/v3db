@@ -216,6 +216,12 @@ function main() {
     technologyEras,
     loc,
   );
+  const startingCountryData = loadStartingCountryData(
+    contentPath("common", "history", "countries"),
+    technologies,
+    laws,
+    loc,
+  );
   const economy = loadEconomyData({
     buildingDirs: contentPath("common", "buildings"),
     buildingGroupDirs: contentPath("common", "building_groups"),
@@ -304,6 +310,7 @@ function main() {
       religions,
       startingOwners,
       startingSubjectsByTag,
+      startingCountryData,
       historyCountryTags,
       historyReligionOverrides,
       releasables,
@@ -340,6 +347,9 @@ function main() {
     "starting_overlord_tag",
     "starting_subject_type",
     "starting_subject_uses_overlord_color",
+    "starting_technology_tier",
+    "starting_technology_keys",
+    "starting_law_keys",
     "has_history_country_file",
     "is_releasable",
     "is_formable",
@@ -1465,6 +1475,44 @@ function loadHistoryCountryTags(dir) {
     }
   }
   return tags;
+}
+
+function loadStartingCountryData(dirs, technologies, laws, loc) {
+  const technologyByKey = new Map(technologies.map((technology) => [technology.key, technology]));
+  const lawByKey = new Map([...laws.values()].map((law) => [law.key, law]));
+  const dataByTag = new Map();
+  for (const file of listEffectiveFiles(dirs)) {
+    const root = parseScript(readText(file), file);
+    const countriesNode = asNode(firstValue(root, "COUNTRIES")) || root;
+    for (const assignment of countriesNode.assignments) {
+      const tag = stripPrefix(scriptEntryKey(assignment.key)).toUpperCase();
+      if (!/^[A-Z0-9]{3}$/.test(tag)) continue;
+      const countryNode = asNode(assignment.value);
+      if (!countryNode) continue;
+      const tierAssignment = countryNode.assignments.find((item) => /^effect_starting_technology_tier_\d+_tech$/.test(item.key));
+      const technologyTier = tierAssignment
+        ? Number(tierAssignment.key.match(/^effect_starting_technology_tier_(\d+)_tech$/)[1])
+        : null;
+      const technologyKeys = countryNode.assignments
+        .filter((item) => item.key === "add_technology_researched")
+        .map((item) => stripPrefix(scalarFromValue(item.value)))
+        .filter((key) => technologyByKey.has(key));
+      const lawKeys = [];
+      for (const item of countryNode.assignments) {
+        if (item.key !== "activate_law") continue;
+        const key = stripPrefix(scalarFromValue(item.value));
+        if (!lawByKey.has(key) || lawKeys.includes(key)) continue;
+        lawKeys.push(key);
+      }
+      dataByTag.set(tag, {
+        technology_tier: Number.isFinite(technologyTier) ? technologyTier : null,
+        technologies: [...new Set(technologyKeys)].map((key) => technologyRef(key, technologyByKey, loc)),
+        laws: lawKeys.map((key) => lawRef(key, lawByKey, loc)),
+        source_file: normalizePath(file),
+      });
+    }
+  }
+  return dataByTag;
 }
 
 function loadHistoryReligionOverrides(dir) {
@@ -3814,6 +3862,7 @@ function buildCountryRow(context) {
     cultures,
     startingOwners,
     startingSubjectsByTag,
+    startingCountryData,
     historyCountryTags,
     historyReligionOverrides,
     releasables,
@@ -3824,6 +3873,7 @@ function buildCountryRow(context) {
   } = context;
   const startingStates = [...(startingOwners.get(tag) || [])].sort();
   const startingSubject = startingSubjectsByTag.get(tag);
+  const startingData = startingCountryData.get(tag) || { technology_tier: null, technologies: [], laws: [], source_file: "" };
   const primaryCultures = def?.cultures || [];
   const primaryCulturesZh = primaryCultures.map((key) => locName(loc, key));
   const historyReligion = historyReligionOverrides.get(tag)?.religion || "";
@@ -3852,6 +3902,9 @@ function buildCountryRow(context) {
     starting_overlord_tag: startingSubject?.overlord_tag || "",
     starting_subject_type: startingSubject?.type || "",
     starting_subject_uses_overlord_color: startingSubject?.uses_overlord_color ? "是" : "否",
+    starting_technology_tier: startingData.technology_tier == null ? "" : String(startingData.technology_tier),
+    starting_technology_keys: joinValues(startingData.technologies.map((technology) => technology.key)),
+    starting_law_keys: joinValues(startingData.laws.map((law) => law.key)),
     has_history_country_file: historyCountryTags.has(tag) ? "是" : "否",
     is_releasable: releasable ? "是" : "否",
     is_formable: formable ? "是" : "否",
@@ -4104,6 +4157,34 @@ function prestigeGoodRef(key, loc) {
     id: `prestige_good:${key}`,
     key,
     name_zh: locName(loc, key),
+  };
+}
+
+function technologyRef(key, technologies, loc) {
+  const technology = technologies instanceof Map ? technologies.get(key) : technologies.find((item) => item.key === key);
+  return {
+    id: `technology:${key}`,
+    key,
+    name_zh: technology?.name_zh || locName(loc, key),
+    loc: { name: `technology:${key}.name` },
+    icon: technology?.icon || "",
+    category: technology?.category || "",
+    category_zh: technology?.category_zh || "",
+    era: technology?.era || "",
+    era_label_zh: technology?.era_label_zh || "",
+  };
+}
+
+function lawRef(key, laws, loc) {
+  const law = laws instanceof Map ? laws.get(key) : laws.find((item) => item.key === key);
+  return {
+    id: `law:${key}`,
+    key,
+    name_zh: law?.name_zh || locName(loc, key),
+    loc: { name: `law:${key}.name` },
+    icon: law?.icon || "",
+    group: law?.group || "",
+    group_name_zh: law?.group_name_zh || "",
   };
 }
 
@@ -5190,6 +5271,9 @@ function writeDatabase(dir, data) {
         type: row.starting_subject_type,
         uses_overlord_color: row.starting_subject_uses_overlord_color === "是",
       },
+      starting_technology_tier: row.starting_technology_tier ? Number(row.starting_technology_tier) : null,
+      starting_technologies: splitJoined(row.starting_technology_keys).map((key) => technologyRef(key, technologies, loc)),
+      starting_laws: splitJoined(row.starting_law_keys).map((key) => lawRef(key, laws, loc)),
       formation: {
         required_cultures: splitJoined(row.formation_required_cultures).map((culture, index) => ({
           id: `culture:${culture}`,
