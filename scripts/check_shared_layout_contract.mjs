@@ -22,9 +22,10 @@ assert.match(html, /data-map-fullscreen[^>]*>\s*<img[^>]+src="assets\/lucide\/ic
 assert.match(html, /data-map-collapse[^>]*>\s*<img[^>]+src="assets\/lucide\/icons\/minimize-2\.svg"/, "collapse control must use the minimize icon only");
 assert.doesNotMatch(html, /data-map-fullscreen[^>]*>[\s\S]*?全屏[\s\S]*?<\/button>/, "fullscreen control must not contain visible Chinese text");
 assert.doesNotMatch(html, /data-map-collapse[^>]*>[\s\S]*?收起[\s\S]*?<\/button>/, "collapse control must not contain visible Chinese text");
-for (const view of ["country", "culture", "region", "company"]) {
+for (const view of ["country", "culture", "region"]) {
   assert.match(shell, new RegExp(`body\\[data-page-mode="map"\\][\\s\\S]*${view}|body\\[data-view="${view}"\\]`), `narrow map layout must include ${view} view`);
 }
+assert.match(ui, /function isContentView\s*\(view\)\s*{[\s\S]*"company"/, "company must use the content page mode");
 assert.match(shell, /body\[data-map-fullscreen="true"\] \.map-panel[\s\S]*position:\s*fixed/, "fullscreen map override must be defined");
 assert.match(shell, /@media\s*\(min-width:\s*761px\)[\s\S]*\.map-fullscreen-button[\s\S]*display:\s*none\s*!important/, "map fullscreen controls must be hidden on desktop");
 for (const variable of ["--layout-gap", "--filter-width", "--detail-width", "--card-gap", "--card-radius", "--state-border", "--state-selected"]) {

@@ -1921,8 +1921,6 @@ function renderCompanyBoard() {
   els.resultCount.textContent = t("board.company.resultCount", { count: localizedNumber(filtered.length) });
   els.activeHint.textContent = buildActiveHint(filtered.length);
   renderCompanyList(filtered);
-  renderMap(companyMapStateRegions(mapRuntime.companyMapCompanies));
-  focusCompanyOnMap(selectedCompany);
 }
 
 function renderIdeologyBoard() {

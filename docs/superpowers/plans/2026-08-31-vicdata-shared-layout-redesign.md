@@ -15,7 +15,7 @@
 - 保留当前深蓝、灰黑、暗金和米色背景的配色体系。
 - 页面仍保持静态单页应用和现有哈希路由，不引入前端框架。
 - 不改数据抽取流程，不改数据字段，不制作新图标。
-- 国家、文化、地域、公司属于地图模式；意识形态、法律、科技、事件、日志、决议属于内容模式。
+- 国家、文化、地域属于地图模式；公司、意识形态、法律、科技、事件、日志、决议属于内容模式。
 - 利益集团和宗教保留当前成熟的整体布局、卡片组织方式和详情行为。
 - 地图模式卡片主体点击只选择条目；右上角“进入”按钮才打开详情。
 - 内容模式不显示“进入”按钮，点击卡片主体直接打开详情。
@@ -132,31 +132,32 @@ git add site/app/boards.js site/app/components.js site/app/map.js site/styles/re
 git commit -m "feat: align country map card interactions"
 ```
 
-### Task 3: 扩展地图模式到文化、地域和公司
+### Task 3: 扩展地图模式到文化和地域，并迁移公司到内容模式
 
 **Files:**
-- Modify: `site/app/boards.js` — 统一文化、地域、公司列表卡片的选择与详情入口。
-- Modify: `site/app/economy.js` — 统一公司相关卡片的主体选择、进入按钮和详情状态。
-- Modify: `site/app/map.js` — 让四类地图板块共享地图焦点和视口保存逻辑。
+- Modify: `site/app/boards.js` — 统一文化、地域列表卡片的选择与详情入口，并移除公司列表主地图渲染。
+- Modify: `site/app/presentation.js` — 将公司卡片改为直接进入详情，保留详情内部的位置地图。
+- Modify: `site/app/ui.js` — 将公司归入内容模式。
+- Modify: `site/app/map.js` — 保留国家、文化、地域的地图焦点逻辑，公司只保留详情内部位置地图。
 - Modify: `site/styles/records.css` — 应用地图模式卡片状态和详情打开布局。
 - Modify: `site/styles/economy.css` — 移除公司板块与共享详情定位冲突的规则，只保留公司字段排版。
 - Modify: `site/styles/home.css` — 保持利益集团、宗教和首页专用布局不受地图模式规则覆盖。
 - Modify: `scripts/check_shared_map_boards.mjs` — 增加静态板块交互合同。
-- Create: `scripts/check_shared_map_boards_browser.mjs` — 覆盖文化、地域、公司三类地图板块。
+- Create: `scripts/check_company_content_mode.mjs` — 验证公司内容模式和详情位置地图。
 
 **Interfaces:**
 - Consumes国家样板的 `[data-map-focus-*]` 与 `[data-map-enter-*]` 交互合同。
-- Produces四类地图板块一致的主体选择、地图焦点、进入详情和返回行为。
+- Produces国家、文化、地域三类地图板块一致的主体选择、地图焦点、进入详情和返回行为；公司使用内容板块的卡片直达详情行为。
 
 - [ ] **Step 1: Write the failing static and browser checks**
 
-静态检查逐一确认文化、地域和公司渲染函数包含主体选择处理、独立进入按钮和详情路由；确认利益集团与宗教渲染函数不增加地图全屏按钮。浏览器检查分别打开 `#/culture`、`#/region`、`#/company`，选择首个有效卡片，确认详情未打开；点击进入按钮，确认右栏详情打开且列表卡片仍为选中状态。
+静态检查确认文化、地域渲染函数包含主体选择处理和独立进入按钮，确认公司渲染函数不输出地图焦点或进入按钮且卡片点击直接打开详情；确认利益集团与宗教渲染函数不增加地图全屏按钮。浏览器检查分别打开 `#/culture`、`#/region`、`#/company`，文化和地域卡片主体只选择，公司卡片直接打开详情。
 
 - [ ] **Step 2: Run the checks and verify the expected failures**
 
 运行：`node scripts/check_shared_map_boards.mjs; node scripts/check_shared_map_boards_browser.mjs`
 
-预期：至少有文化、地域或公司板块仍沿用旧卡片点击详情的失败。
+预期：至少有公司仍被地图模式合同覆盖，或文化/地域的统一标记缺失。
 
 - [ ] **Step 3: Migrate culture selection and entry**
 
@@ -164,7 +165,7 @@ git commit -m "feat: align country map card interactions"
 
 - [ ] **Step 4: Migrate region and company selection and entry**
 
-地域卡片主体只更新 `selectedStateRegion`、`selectedStrategicRegion` 或 `selectedGeographicRegion`；公司卡片主体只更新 `selectedCompany`。分别增加对应进入按钮，统一调用详情路由函数。公司求解器和组合器的专用工具路由继续走原有路径，不被普通公司卡片进入按钮替换。
+地域卡片主体只更新 `selectedStateRegion`、`selectedStrategicRegion` 或 `selectedGeographicRegion`，并通过右上角按钮进入详情。公司卡片主体和键盘激活直接调用 `openCompanyDetail()`，不输出地图焦点或进入按钮；公司详情内部继续使用现有 `data-company-location-map` 辅助地图。公司求解器和组合器的专用工具路由继续走原有路径。
 
 - [ ] **Step 5: Remove conflicting board-specific positioning**
 
@@ -174,7 +175,7 @@ git commit -m "feat: align country map card interactions"
 
 运行：`node scripts/check_shared_map_boards.mjs; node scripts/check_shared_map_boards_browser.mjs; node scripts/check_culture_mobile_narrow_screen_browser.mjs; node scripts/check_economy_board_browser.mjs; node scripts/check_interest_group_board_browser.mjs`
 
-预期：四类地图板块交互合同通过，利益集团现有浏览器检查通过，宗教专用布局没有被共享规则改变。
+预期：国家、文化、地域三类地图板块交互合同通过，公司内容模式合同通过，利益集团现有浏览器检查通过，宗教专用布局没有被共享规则改变。
 
 - [ ] **Step 7: Commit the map boards**
 
@@ -240,7 +241,7 @@ git commit -m "feat: standardize content board details"
 - Modify: `site/index.html` — 完成“全屏”和“收起”按钮的可访问名称与位置。
 - Modify: `site/styles/map.css` — 增加窄屏全屏地图布局，隐藏筛选栏和列表。
 - Modify: `site/styles/shell.css` — 增加地图全屏状态下的页面高度和工具栏规则。
-- Create: `scripts/check_mobile_map_fullscreen_browser.mjs` — 覆盖四类地图板块。
+- Create: `scripts/check_mobile_map_fullscreen_browser.mjs` — 覆盖国家、文化、地域三类地图板块，并确认公司不显示地图全屏按钮。
 
 **Interfaces:**
 - `enterMapFullscreen()` 保存 `{ view, listScrollTop, mapViewport, selectedKey, filters }` 并将哈希改为 `#/<view>?map=fullscreen`。
@@ -249,7 +250,7 @@ git commit -m "feat: standardize content board details"
 
 - [ ] **Step 1: Write the failing browser check**
 
-在 442×844 视口打开国家、文化、地域和公司板块，断言存在“全屏”按钮；点击后断言 `body[data-map-fullscreen="true"]`、列表和筛选栏隐藏、地图占满可用区域并存在“收起”按钮；点击地图区域后断言详情没有打开；点击“收起”后断言列表、筛选栏、选中卡片和地图焦点恢复。桌面端断言“全屏”按钮不显示。
+在 442×844 视口打开国家、文化和地域板块，断言存在“全屏”按钮；点击后断言 `body[data-map-fullscreen="true"]`、列表和筛选栏隐藏、地图占满可用区域并存在“收起”按钮；点击地图区域后断言详情没有打开；点击“收起”后断言列表、筛选栏、选中卡片和地图焦点恢复。打开公司板块时断言没有“全屏”按钮，桌面端断言地图板块“全屏”按钮不显示。
 
 - [ ] **Step 2: Run it and verify it fails**
 
@@ -259,7 +260,7 @@ git commit -m "feat: standardize content board details"
 
 - [ ] **Step 3: Implement snapshot and route transitions**
 
-在 `runtime.js` 增加 `state.mapFullscreenSnapshot`。`enterMapFullscreen()` 记录当前板块、列表滚动位置、筛选集合副本、选中键和 `mapRuntime.viewport`，使用 `replaceHash(`/${state.view}?map=fullscreen`)`；`exitMapFullscreen()` 还原快照并调用 `replaceHash(`/${state.view}`)`。`applyHash()` 读取查询参数，只有国家、文化、地域、公司且窄屏时进入全屏状态；无效参数回到普通地图模式。
+在 `runtime.js` 增加 `state.mapFullscreenSnapshot`。`enterMapFullscreen()` 记录当前板块、列表滚动位置、筛选集合副本、选中键和 `mapRuntime.viewport`，使用 `replaceHash(`/${state.view}?map=fullscreen`)`；`exitMapFullscreen()` 还原快照并调用 `replaceHash(`/${state.view}`)`。`applyHash()` 读取查询参数，只有国家、文化、地域且窄屏时进入全屏状态；公司路由忽略地图全屏参数并保持内容模式。
 
 - [ ] **Step 4: Implement narrow-screen rendering**
 
@@ -269,7 +270,7 @@ git commit -m "feat: standardize content board details"
 
 运行：`node scripts/check_mobile_map_fullscreen_browser.mjs; node scripts/check_country_map_list_focus_browser.mjs; node scripts/check_culture_mobile_narrow_screen_browser.mjs; node scripts/check_economy_board_browser.mjs`
 
-预期：四类地图板块的全屏、收起、状态恢复和桌面隐藏合同通过。
+预期：国家、文化、地域三类地图板块的全屏、收起、状态恢复和桌面隐藏合同通过，公司内容模式不显示全屏按钮。
 
 - [ ] **Step 6: Commit the narrow-screen map view**
 
@@ -338,7 +339,7 @@ git commit -m "build: synchronize shared layout with Victorian Century"
 
 启动本地静态站点后运行：`node scripts/check_homepage_tools_browser.mjs`; `node scripts/check_country_shared_layout_browser.mjs`; `node scripts/check_shared_map_boards_browser.mjs`; `node scripts/check_content_board_interactions_browser.mjs`; `node scripts/check_event_board_browser.mjs`; `node scripts/check_interest_group_board_browser.mjs`。
 
-预期：首页仍为独立首页，四类地图板块主体选择不打开详情，进入按钮打开详情，六类内容板块点击直接打开详情，利益集团和宗教现有设计通过。
+预期：首页仍为独立首页，三类地图板块主体选择不打开详情，进入按钮打开详情，公司与其他内容板块点击直接打开详情，利益集团和宗教现有设计通过。
 
 - [ ] **Step 3: Run narrow-screen regression**
 
@@ -362,4 +363,4 @@ git commit -m "build: synchronize shared layout with Victorian Century"
 
 - [ ] **Step 7: Final review and handoff**
 
-按设计文档逐项核对：配色未改；利益集团和宗教未重做；地图模式与内容模式边界成立；国家、文化、地域、公司主体点击只选择；地图模式进入按钮打开详情；内容模式卡片点击打开详情；窄屏“全屏/收起”状态可恢复；VC 源目录和发布副本同步。完成后再决定是否进入推送或部署流程。
+按设计文档逐项核对：配色未改；利益集团和宗教未重做；国家、文化、地域属于地图模式；公司、意识形态、法律、科技、事件、日志、决议属于内容模式；国家、文化、地域主体点击只选择；地图模式进入按钮打开详情；公司和其他内容模式卡片点击打开详情；窄屏“全屏/收起”状态可恢复；VC 源目录和发布副本同步。完成后再决定是否进入推送或部署流程。

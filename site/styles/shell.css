@@ -339,6 +339,23 @@ body[data-view="company"]:not(.detail-page) .results {
   width: auto;
 }
 
+body[data-view="company"]:not([data-company-solver="true"]):not([data-company-composer="true"]) .results {
+  left: calc(12px + var(--left-panel-width) + var(--panel-gap));
+  right: 12px;
+  width: auto;
+}
+
+body.detail-page[data-view="company"]:not([data-company-solver="true"]):not([data-company-composer="true"]) .results {
+  left: calc(12px + var(--left-panel-width) + var(--panel-gap));
+  right: calc(12px + var(--right-panel-width) + var(--panel-gap));
+  width: auto;
+}
+
+body.detail-page[data-view="company"]:not([data-company-solver="true"]):not([data-company-composer="true"]) .detail {
+  right: 12px;
+  width: var(--right-panel-width);
+}
+
 body[data-view="culture"][data-culture-incorporation="true"] .results,
 body[data-view="culture"][data-culture-incorporation="true"] .detail {
   display: none;
@@ -377,7 +394,9 @@ body[data-view="company"][data-company-composer="true"] #companyComposerEntry {
 body[data-view="ideology"] .map-panel,
 body[data-view="ideology"] .map-toolbar,
 body[data-view="law"] .map-panel,
-body[data-view="law"] .map-toolbar {
+body[data-view="law"] .map-toolbar,
+body[data-view="company"] .map-panel,
+body[data-view="company"] .map-toolbar {
   display: none;
 }
 
@@ -2128,6 +2147,19 @@ body[data-view="law"] .detail {
   }
 
   body.detail-page[data-page-mode="map"]:not([data-company-solver="true"]):not([data-company-composer="true"]) .detail {
+    display: block;
+    position: relative;
+    inset: auto;
+    width: auto;
+    min-height: calc(100vh - var(--chrome-height));
+    margin: 10px;
+  }
+
+  body.detail-page[data-view="company"]:not([data-company-solver="true"]):not([data-company-composer="true"]) .results {
+    display: none;
+  }
+
+  body.detail-page[data-view="company"]:not([data-company-solver="true"]):not([data-company-composer="true"]) .detail {
     display: block;
     position: relative;
     inset: auto;

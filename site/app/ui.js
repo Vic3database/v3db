@@ -68,11 +68,11 @@ function syncTopbarNavigationGroups() {
 }
 
 function isMapView(view) {
-  return ["country", "culture", "region", "company"].includes(view);
+  return ["country", "culture", "region"].includes(view);
 }
 
 function isContentView(view) {
-  return ["ideology", "law", "technology", "event", "journal", "decision"].includes(view);
+  return ["company", "ideology", "law", "technology", "event", "journal", "decision"].includes(view);
 }
 
 function routeHashParts() {
@@ -1444,7 +1444,6 @@ async function applyHash() {
   }
   if (parts[0] === "company" && !parts[1]) {
     changeBoard("company", "company");
-    state.mapFullscreen = mapFullscreenRequested();
     return;
   }
   if (parts[0] === "company" && parts[1] === "solver" && typeof companySolverAvailable === "function" && companySolverAvailable()) {

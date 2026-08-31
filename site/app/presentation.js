@@ -531,14 +531,13 @@ function renderCompanyList(filtered) {
   const visible = filtered;
   els.countryList.className = "country-list company-list";
   els.countryList.innerHTML = visible.map((company) => `
-    <article class="country-row company-row" data-company="${escapeHtml(company.key)}" data-map-focus-company="${escapeHtml(company.key)}" aria-current="${company.key === state.selectedCompany && state.detailKind === "company"}" aria-pressed="${String(company.key === state.selectedCompany)}" tabindex="0">
+    <article class="country-row company-row" data-company="${escapeHtml(company.key)}" aria-current="${company.key === state.selectedCompany && state.detailKind === "company"}" aria-pressed="${String(company.key === state.selectedCompany)}" tabindex="0">
       <span class="company-heading">
         ${companyIconHtml(company)}
         <span class="company-title-text">
           <span class="name">${escapeHtml(entityText(company) || company.key)}</span>
         </span>
         ${companyDlcIconPill(company)}
-        ${rowDetailButton("data-company-detail", company.key, "data-map-enter-company")}
       </span>
       <span class="region-building-strip">${companyBuildingStrip(company)}</span>
       <span class="pill-line country-tags company-asset-line">${companyPrestigeGoodsPills(company)}</span>
@@ -549,20 +548,13 @@ function renderCompanyList(filtered) {
   els.countryList.querySelectorAll("[data-company]").forEach((row) => {
     row.addEventListener("click", (event) => {
       if (event.target.closest("a, button, [data-concept-key]")) return;
-      selectCompanyCard(row.dataset.company);
+      openCompanyDetail(row.dataset.company);
     });
     row.addEventListener("keydown", (event) => {
       if (event.key !== "Enter" && event.key !== " ") return;
       if (event.target.closest("a, button, [data-concept-key]")) return;
       event.preventDefault();
-      selectCompanyCard(row.dataset.company);
-    });
-  });
-  els.countryList.querySelectorAll("[data-company-detail]").forEach((button) => {
-    button.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      openCompanyDetail(button.dataset.companyDetail);
+      openCompanyDetail(row.dataset.company);
     });
   });
 }
