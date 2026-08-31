@@ -969,6 +969,13 @@ function renderCountryDetail(country) {
       button.scrollIntoView({ block: "nearest", inline: "nearest" });
     });
   });
+  els.detail.querySelectorAll("[data-country-interest-group]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.countryDetailSubtab = button.dataset.countryInterestGroup || "";
+      replaceHash(countryDetailRoute(country.tag, "interest-groups", state.countryDetailSubtab, state.countryDetailFlavorTab));
+      render();
+    });
+  });
 }
 
 function countryDetailTabs() {
@@ -1000,7 +1007,87 @@ function countryDetailTabContent(country, tab) {
   if (tab === "variants") return `<h3>${t("board.country.section.variants", "变体")}</h3>${countryFlagVariantSection(country) || ""}<h4>${t("board.country.section.dynamicNames", "国名变体")}</h4>${dynamicNameList(country)}<h4>${t("board.country.section.mapColors", "地图色")}</h4>${dynamicMapColorList(country)}`;
   if (tab === "society") return countryDetailSocietyContent(country);
   if (tab === "regions") return countryDetailRegionsContent(country);
+  if (tab === "interest-groups") return countryInterestGroupContent(country);
   return `<div class="country-detail-placeholder"><h3>${escapeHtml(countryDetailTabs().find((item) => item.key === tab)?.label || tab)}</h3><p class="empty compact">${escapeHtml(t("board.country.detailComingSoon", "该分区内容将在后续接入。"))}</p></div>`;
+}
+
+const countryInterestGroupOrder = [
+  "ig_armed_forces",
+  "ig_devout",
+  "ig_industrialists",
+  "ig_intelligentsia",
+  "ig_landowners",
+  "ig_petty_bourgeoisie",
+  "ig_rural_folk",
+  "ig_trade_unions",
+];
+
+function countryInterestGroupTabs(country) {
+  return countryInterestGroupOrder.map((key) => {
+    const group = (country.interestGroups || []).find((item) => item.key === key);
+    const base = byInterestGroup.get(key);
+    return {
+      key,
+      group,
+      base,
+      label: entityText(group || base, "name", key),
+      hasStartingFlavor: Boolean(group?.display_name?.is_flavored || group?.active_traits?.length || group?.active_ideologies?.length),
+      icon: group || base,
+    };
+  });
+}
+
+function countryInterestGroupContent(country) {
+  const tabs = countryInterestGroupTabs(country);
+  const selected = tabs.some((item) => item.key === state.countryDetailSubtab)
+    ? state.countryDetailSubtab
+    : tabs.find((item) => item.hasStartingFlavor)?.key || tabs[0]?.key || "";
+  state.countryDetailSubtab = selected;
+  const active = tabs.find((item) => item.key === selected) || tabs[0];
+  return `<h3>${escapeHtml(t("board.country.tabs.interestGroups", "利益集团"))}</h3>
+    <div class="country-interest-group-tabs" role="tablist" aria-label="${escapeHtml(t("board.country.interestGroupTabs", "利益集团选择"))}">
+      ${tabs.map((item) => `<button type="button" role="tab" class="country-interest-group-tab" data-country-interest-group="${escapeHtml(item.key)}" aria-selected="${String(item.key === selected)}" aria-label="${escapeHtml(item.label)}" title="${escapeHtml(item.label)}">${interestGroupIconHtml(item.icon, "country-interest-group-icon")}${item.hasStartingFlavor ? `<span class="country-interest-group-active-mark" aria-hidden="true"></span>` : ""}<span>${escapeHtml(item.label)}</span></button>`).join("")}
+    </div>
+    ${active ? countryInterestGroupPanel(country, active) : `<p class="empty compact">${escapeHtml(t("board.country.noInterestGroups", "没有利益集团数据。"))}</p>`}`;
+}
+
+function countryInterestGroupPanel(country, tab) {
+  const group = tab.group;
+  const base = tab.base;
+  if (!group) return `<section class="country-interest-group-panel" data-country-interest-group-panel="${escapeHtml(tab.key)}"><p class="empty compact">${escapeHtml(t("board.country.noInterestGroupData", "该国家没有该利益集团的开局数据。"))}</p></section>`;
+  const potential = interestGroupVariants(base || group).filter((variant) => variant.isPotential);
+  const changes = [
+    (group.added_ideologies || []).length ? field(t("board.ideology.added", "新增"), ideologyPills(group.added_ideologies, "tag-ig-added")) : "",
+    (group.removed_ideologies || []).length ? field(t("board.ideology.removed", "移除"), ideologyPills(group.removed_ideologies, "tag-ig-removed")) : "",
+    group.display_name?.is_flavored ? field(t("board.ideology.flavorName", "风味名"), tagPill(entityText(group.display_name), "tag-ig-changed")) : "",
+  ].filter(Boolean).join("");
+  return `<section class="country-interest-group-panel" data-country-interest-group-panel="${escapeHtml(tab.key)}">
+    <div class="country-interest-group-panel-head"><div><h4>${escapeHtml(entityText(group.display_name || group, "name", tab.label))}</h4><span class="minor">${escapeHtml(tab.label)}</span></div><span class="tag tag-ig-added">${escapeHtml(t("board.country.startingFlavor", "开局生效"))}</span></div>
+    <dl class="field-grid">
+      ${field(t("board.ideology.traits", "特质"), interestGroupTraitDetailsHtml(group.active_traits || []))}
+      ${field(t("board.ideology.title", "意识形态"), ideologyPills(group.active_ideologies || [], "tag-muted"))}
+      ${changes}
+      ${field(t("board.ideology.rules", "规则"), interestGroupRuleSummary(group.applied_rules))}
+    </dl>
+    ${interestGroupRuleDetails(group.applied_rules)}
+    <details class="country-interest-group-potential">
+      <summary>${escapeHtml(t("board.country.potentialFlavors", "潜在风味"))} <span class="minor">${escapeHtml(t("board.country.potentialFlavorCount", "{count} 项", { count: localizedNumber(potential.length) }))}</span></summary>
+      <div class="country-interest-group-potential-list">${potential.length ? potential.map(countryPotentialInterestGroupFlavorHtml).join("") : `<p class="empty compact">${escapeHtml(t("board.country.noPotentialFlavors", "没有可识别的潜在风味。"))}</p>`}</div>
+    </details>
+  </section>`;
+}
+
+function countryPotentialInterestGroupFlavorHtml(flavor) {
+  const traits = (flavor.traits || []).map((item) => item.trait || item).filter(Boolean);
+  const changes = [
+    traits.length ? field(t("board.ideology.traits", "特质"), interestGroupTraitDetailsHtml(traits)) : "",
+    (flavor.ideologies || []).length ? field(t("board.ideology.title", "意识形态"), ideologyPills(flavor.ideologies, "tag-ig-added")) : "",
+  ].filter(Boolean).join("");
+  return `<article class="country-interest-group-potential-item">
+    <div class="rule-head"><strong>${escapeHtml(flavor.name || flavor.key)}</strong><span class="tag tag-muted">${escapeHtml(t("board.country.potential", "潜在"))}</span></div>
+    ${changes ? `<dl class="mini-grid">${changes}</dl>` : ""}
+    ${interestGroupRuleDetails(flavor.rules || [])}
+  </article>`;
 }
 
 function countryDetailSocietyContent(country) {

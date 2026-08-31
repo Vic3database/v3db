@@ -76,6 +76,111 @@
   min-height: 0;
 }
 
+.country-interest-group-tabs {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.country-interest-group-tab {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 7px 4px 6px;
+  border: 1px solid rgba(200, 164, 91, 0.22);
+  border-radius: 6px;
+  background: var(--panel-glass-strong);
+  color: var(--ink-muted);
+  font-size: var(--text-xs);
+}
+
+.country-interest-group-tab:hover,
+.country-interest-group-tab[aria-selected="true"] {
+  border-color: var(--accent);
+  background: rgba(200, 164, 91, 0.16);
+  color: var(--ink);
+}
+
+.country-interest-group-icon {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  border-radius: 50%;
+}
+
+.country-interest-group-active-mark {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #8fbd72;
+}
+
+.country-interest-group-tab > span:last-child {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.country-interest-group-panel {
+  padding: 12px;
+  border: 1px solid rgba(200, 164, 91, 0.3);
+  border-radius: 7px;
+  background: var(--panel-glass-strong);
+}
+
+.country-interest-group-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.country-interest-group-panel-head h4 {
+  margin: 0;
+  color: var(--ink);
+  font-size: var(--text-md);
+}
+
+.country-interest-group-panel .field-grid {
+  margin-top: 8px;
+}
+
+.country-interest-group-potential {
+  margin-top: 12px;
+  padding-top: 9px;
+  border-top: 1px solid rgba(200, 164, 91, 0.2);
+}
+
+.country-interest-group-potential summary {
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.country-interest-group-potential-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.country-interest-group-potential-item {
+  padding: 9px;
+  border: 1px solid rgba(200, 164, 91, 0.18);
+  border-radius: 6px;
+  background: rgba(52, 49, 45, 0.72);
+}
+
+.country-interest-group-potential-item .mini-grid {
+  margin-top: 8px;
+}
+
 @media (max-width: 760px) {
   .country-detail-overview {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -85,5 +190,9 @@
     position: sticky;
     top: 0;
     z-index: 2;
+  }
+
+  .country-interest-group-tabs {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
