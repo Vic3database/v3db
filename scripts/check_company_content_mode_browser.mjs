@@ -52,6 +52,8 @@ try {
   assert.equal(detailState.locationMap, true, "company detail must retain its auxiliary location map when available");
   assert.ok(detailState.detailRect && detailState.detailRect.right >= detailState.viewportWidth - 20, `company detail must reach the right page edge: ${JSON.stringify(detailState)}`);
   assert.ok(detailState.resultsRect && detailState.resultsRect.right <= detailState.detailRect.left + 2, `company list must end before the detail panel: ${JSON.stringify(detailState)}`);
+  const measuredRatio = detailState.resultsRect.width / detailState.detailRect.width;
+  assert.ok(Math.abs(measuredRatio - (2 / 3)) < 0.03, `company list and detail widths must follow a 2:3 ratio: ${JSON.stringify({ measuredRatio, detailState })}`);
   page.close();
   console.log(JSON.stringify({ company_content_mode_browser: "ok", baseUrl, companyKey }, null, 2));
 } finally {

@@ -6,6 +6,7 @@ const presentation = fs.readFileSync("site/app/presentation.js", "utf8");
 const boards = fs.readFileSync("site/app/boards.js", "utf8");
 const shell = fs.readFileSync("site/styles/shell.css", "utf8");
 const companyStyles = fs.existsSync("site/styles/company.css") ? fs.readFileSync("site/styles/company.css", "utf8") : "";
+const companies = JSON.parse(fs.readFileSync("database/vic3_1.13.11/companies.json", "utf8").replace(/^\uFEFF/, ""));
 
 assert.match(ui, /function isMapView\s*\(view\)\s*{[\s\S]*\["country", "culture", "region"\]/, "company must not be classified as a map view");
 assert.match(ui, /function isContentView\s*\(view\)\s*{[\s\S]*"company"/, "company must be classified as a content view");
@@ -22,4 +23,10 @@ assert.ok(shell.includes('body.detail-page[data-view="company"]') && shell.inclu
 assert.match(companyStyles, /body\.detail-page\[data-view="company"\][\s\S]*\.detail[\s\S]*left:\s*auto[\s\S]*right:\s*12px[\s\S]*transform:\s*none/, "company detail must override the inherited content animation position");
 assert.match(companyStyles, /body\.detail-page\[data-view="company"\][\s\S]*\.results[\s\S]*right:\s*calc\(12px \+ var\(--right-panel-width\) \+ var\(--panel-gap\)\)/, "company list must reserve the right detail panel");
 assert.match(companyStyles, /@media\s*\(max-width:\s*760px\)[\s\S]*body\.detail-page\[data-view="company"\][\s\S]*\.results[\s\S]*display:\s*none/, "narrow company detail must replace the list");
+assert.match(presentation, /company-prosperity-line/, "company cards must include a dedicated prosperity-effect row");
+assert.match(presentation, /company-prosperity-line[\s\S]*modifierPills\(company\.prosperity_modifiers\)/, "company cards must render all prosperity modifiers through the shared localized pill helper");
+assert.match(companyStyles, /--company-list-ratio:\s*2fr/, "company detail layout must reserve two parts for the list");
+assert.match(companyStyles, /--company-detail-ratio:\s*3fr/, "company detail layout must reserve three parts for the detail panel");
+assert.match(companyStyles, /\.company-list\s*\{[\s\S]*max-width:\s*1120px/, "company list should have a desktop maximum width");
+assert.equal(companies.every((company) => Array.isArray(company.prosperity_modifiers) && company.prosperity_modifiers.length > 0), true, "every company should provide prosperity modifiers for the list card");
 console.log("company_content_mode: ok");

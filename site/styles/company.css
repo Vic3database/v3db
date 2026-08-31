@@ -7,7 +7,72 @@ body[data-view="company"]:not([data-company-solver="true"]):not([data-company-co
 body[data-view="company"]:not(.detail-page):not([data-company-solver="true"]):not([data-company-composer="true"]) .results {
   left: calc(12px + var(--left-panel-width) + var(--panel-gap));
   right: 12px;
-  width: auto;
+  width: min(1120px, calc(100vw - 24px - var(--left-panel-width) - var(--panel-gap)));
+}
+
+body[data-view="company"]:not(.detail-page):not([data-company-solver="true"]):not([data-company-composer="true"]) .company-list {
+  max-width: 1120px;
+  margin-inline: auto;
+}
+
+body[data-view="company"] {
+  --company-list-ratio: 2fr;
+  --company-detail-ratio: 3fr;
+}
+
+.company-prosperity-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 4px 8px;
+}
+
+.company-card-label {
+  flex: 0 0 auto;
+  color: var(--ink-muted);
+  font-size: var(--text-xs);
+  line-height: 1.7;
+}
+
+.company-prosperity-line .link-list {
+  display: flex;
+  flex: 1 1 240px;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-width: 0;
+}
+
+@media (min-width: 761px) {
+  body.detail-page[data-view="company"]:not([data-company-solver="true"]):not([data-company-composer="true"]) .layout {
+    display: grid;
+    grid-template-columns: var(--left-panel-width) minmax(0, var(--company-list-ratio)) minmax(0, var(--company-detail-ratio));
+    gap: var(--panel-gap);
+    padding: 12px;
+  }
+
+  body.detail-page[data-view="company"]:not([data-company-solver="true"]):not([data-company-composer="true"]) .filters,
+  body.detail-page[data-view="company"]:not([data-company-solver="true"]):not([data-company-composer="true"]) .results,
+  body.detail-page[data-view="company"]:not([data-company-solver="true"]):not([data-company-composer="true"]) .detail {
+    position: relative;
+    inset: auto;
+    width: auto;
+    min-width: 0;
+    height: auto;
+    max-height: none;
+    margin: 0;
+  }
+
+  body.detail-page[data-view="company"]:not([data-company-solver="true"]):not([data-company-composer="true"]) .filters {
+    grid-column: 1;
+  }
+
+  body.detail-page[data-view="company"]:not([data-company-solver="true"]):not([data-company-composer="true"]) .results {
+    grid-column: 2;
+  }
+
+  body.detail-page[data-view="company"]:not([data-company-solver="true"]):not([data-company-composer="true"]) .detail {
+    grid-column: 3;
+  }
 }
 
 body.detail-page[data-view="company"]:not([data-company-solver="true"]):not([data-company-composer="true"]) .results {
@@ -24,6 +89,19 @@ body.detail-page[data-view="company"]:not([data-company-solver="true"]):not([dat
   width: var(--right-panel-width);
   transform: none;
   animation: none;
+}
+
+@media (min-width: 761px) {
+  body.detail-page[data-view="company"]:not([data-company-solver="true"]):not([data-company-composer="true"]) .filters,
+  body.detail-page[data-view="company"]:not([data-company-solver="true"]):not([data-company-composer="true"]) .results,
+  body.detail-page[data-view="company"]:not([data-company-solver="true"]):not([data-company-composer="true"]) .detail {
+    left: auto;
+    right: auto;
+  }
+
+  body.detail-page[data-view="company"]:not([data-company-solver="true"]):not([data-company-composer="true"]) .detail {
+    width: auto;
+  }
 }
 
 @media (max-width: 760px) {

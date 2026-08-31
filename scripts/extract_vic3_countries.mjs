@@ -4783,6 +4783,7 @@ function cleanLocalizationText(text, loc, depth = 0) {
   if (!text) return "";
   let result = String(text);
   if (depth > 6) return result;
+  result = result.replace(/\[GetDefine\(\s*['"]NPops['"]\s*,\s*['"]INDIVIDUALS_PER_POP_INFRASTRUCTURE['"]\s*\)\|vK\]/g, "100K");
   result = result.replace(/\[Nbsp\]/g, " ");
   result = result.replace(/\[Concept\('([^']+)'\s*,\s*'([^']+)'\)\]/g, (_match, conceptKey, display) => {
     const displayKey = display.startsWith("$") && display.endsWith("$") ? display.slice(1, -1) : display;

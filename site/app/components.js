@@ -978,6 +978,7 @@ function cleanDescriptionText(value) {
 function cleanGameLocalizationText(value) {
   return String(value || "")
     .replace(/\\_/g, "_")
+    .replace(/\[GetDefine\(\s*['"]NPops['"]\s*,\s*['"]INDIVIDUALS_PER_POP_INFRASTRUCTURE['"]\s*\)\|vK\]/g, "100K")
     .replace(/\[Concept\(\s*'([^']+)'\s*,\s*'([^']+)'\s*\)\]/gi, (_, conceptKey, displayKey) => (
       gameLocalizationReferenceLabel(displayKey.replace(/^\$|\$$/g, "") || conceptKey)
     ))

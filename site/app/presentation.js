@@ -540,6 +540,7 @@ function renderCompanyList(filtered) {
         ${companyDlcIconPill(company)}
       </span>
       <span class="region-building-strip">${companyBuildingStrip(company)}</span>
+      <span class="company-prosperity-line"><span class="company-card-label">${escapeHtml(t("board.company.prosperityEffect", "繁荣效果"))}</span>${modifierPills(company.prosperity_modifiers)}</span>
       <span class="pill-line country-tags company-asset-line">${companyPrestigeGoodsPills(company)}</span>
       <span class="minor country-meta">${companyMetaLine(company)}</span>
       <span class="pill-line country-tags company-tag-line">${companyTagPills(company)}</span>
