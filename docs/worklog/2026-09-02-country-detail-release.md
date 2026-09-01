@@ -23,3 +23,9 @@
 本次提交为 `2e836420`，提交信息为“重做国家详情界面并完善开局信息”，已推送至 `origin/main`。服务器使用暂存目录 `/home/vicadmin/vicdata-stage-20260902-country-detail` 增量同步本地 `site/`，并完成原子切换。活动目录为 `/var/www/vicdata/site`，回退目录为 `/var/www/vicdata/site.previous-20260902-054837`。
 
 发布后检查确认主站首页、国家法律页、主站脚本、1.13.11 法律数据、VC 首页、VC 数据索引、VC 国家详情脚本和 VC 法律数据均返回 HTTP 200。GitHub 与本地提交一致；工作区未跟踪的用户文件和计划文件未纳入提交。
+
+## 2026-09-02 本地化修复补充
+
+补齐整合时长计算器的 `map.cultureIncorporation.selected` 中英文界面文本，并同步主站、Victorian Century 独立站和 `site/vc`。严格界面本地化检查、相关中英文浏览器检查、发布包检查和独立站检查通过；公网入口与英文语言包检查通过。
+
+本地新增提交为 `142a8853`，服务器已于 2026-09-02 切换至本地化修复版本，回退目录为 `/var/www/vicdata/site.previous-20260902-064539`。GitHub 推送期间连接两次中断，`origin/main` 当前仍落后本地两个提交，未影响服务器发布。
