@@ -643,6 +643,9 @@ function flattenDatabaseCountry(country, nameById, colorById, primaryCultureExpa
     startingSubjectType: country.starting_subject?.type || "",
     startingSubjectUsesOverlordColor: Boolean(country.starting_subject?.uses_overlord_color),
     startingTechnologyTier: country.starting_technology_tier == null ? null : Number(country.starting_technology_tier),
+    startingTechnologyTemplate: country.starting_technology_template || "",
+    startingTechnologyEras: country.starting_technology_eras || [],
+    startingTechnologyTemplateTechnologies: country.starting_technology_template_technologies || [],
     startingTechnologies: country.starting_technologies || [],
     startingLaws: country.starting_laws || [],
     startingDiplomacy: (country.starting_diplomacy || []).map((item) => ({

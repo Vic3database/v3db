@@ -82,7 +82,7 @@ async function loadVersion(version, options = {}) {
 }
 
 function dataChunksForView(view) {
-  if (view === "country") return ["country", "culture", "region", "ideology", "law", "content"];
+  if (view === "country") return ["country", "culture", "region", "ideology", "law", "technology", "content"];
   if (view === "culture") return ["culture", "region", "country"];
   if (view === "region") return ["region", "country", "culture", "company"];
   if (view === "company") return ["company", "region", "country"];

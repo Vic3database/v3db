@@ -20,12 +20,14 @@ try {
   const technology = await page.evaluate(() => ({
     panel: document.querySelector("[data-country-detail-panel]")?.dataset.countryDetailPanel || "",
     text: document.querySelector("[data-country-detail-panel]")?.innerText || "",
-    pills: document.querySelectorAll("[data-country-detail-panel] .tag-technology").length,
+    researched: document.querySelectorAll("[data-country-detail-panel] .country-starting-technology-researched").length,
+    unresearched: document.querySelectorAll("[data-country-detail-panel] .country-starting-technology-unresearched").length,
   }));
   assert.equal(technology.panel, "technology", "technology tab must render");
   assert.match(technology.text, /第 4 层/, "China technology tier must render");
   assert.match(technology.text, /城镇规划|养蚕学|学术界|执法/, "China extra starting technologies must render localized names");
-  assert.ok(technology.pills >= 4, "China extra starting technologies must render as technology pills");
+  assert.ok(technology.researched > 0, "China researched technologies must render");
+  assert.ok(technology.unresearched > 0, "China unresearched technologies must render");
 
   await page.goto(`${baseUrl}?version=1.13.11&lang=zh-Hans#/country/CHI?tab=laws`);
   const laws = await page.evaluate(() => ({

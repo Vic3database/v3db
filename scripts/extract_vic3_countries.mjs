@@ -219,10 +219,15 @@ function main() {
     technologyEras,
     loc,
   );
+  const startingTechnologyTemplates = loadStartingTechnologyTemplates(
+    contentPath("common", "scripted_effects"),
+    technologies,
+  );
   const startingCountryData = loadStartingCountryData(
     contentPath("common", "history", "countries"),
     technologies,
     laws,
+    startingTechnologyTemplates,
     loc,
   );
   const economy = loadEconomyData({
@@ -352,6 +357,9 @@ function main() {
     "starting_subject_type",
     "starting_subject_uses_overlord_color",
     "starting_technology_tier",
+    "starting_technology_template",
+    "starting_technology_eras",
+    "starting_technology_template_keys",
     "starting_technology_keys",
     "starting_law_keys",
     "has_history_country_file",
@@ -1481,7 +1489,34 @@ function loadHistoryCountryTags(dir) {
   return tags;
 }
 
-function loadStartingCountryData(dirs, technologies, laws, loc) {
+function loadStartingTechnologyTemplates(dirs, technologies) {
+  const technologyKeys = new Set(technologies.map((technology) => technology.key));
+  const templates = new Map();
+  for (const file of listEffectiveFiles(dirs)) {
+    const root = parseScript(readText(file), file);
+    for (const assignment of root.assignments) {
+      const match = assignment.key.match(/^effect_starting_technology_tier_(\d+)_tech$/);
+      if (!match) continue;
+      const node = asNode(assignment.value);
+      if (!node) continue;
+      templates.set(Number(match[1]), {
+        key: assignment.key,
+        technology_keys: [...new Set(node.assignments
+          .filter((item) => item.key === "add_technology_researched")
+          .map((item) => stripPrefix(scalarFromValue(item.value)))
+          .filter((key) => technologyKeys.has(key)))],
+        eras: [...new Set(node.assignments
+          .filter((item) => item.key === "add_era_researched")
+          .map((item) => stripPrefix(scalarFromValue(item.value)))
+          .filter(Boolean))],
+        source_file: normalizePath(file),
+      });
+    }
+  }
+  return templates;
+}
+
+function loadStartingCountryData(dirs, technologies, laws, startingTechnologyTemplates, loc) {
   const technologyByKey = new Map(technologies.map((technology) => [technology.key, technology]));
   const lawByKey = new Map([...laws.values()].map((law) => [law.key, law]));
   const dataByTag = new Map();
@@ -1501,6 +1536,8 @@ function loadStartingCountryData(dirs, technologies, laws, loc) {
         .filter((item) => item.key === "add_technology_researched")
         .map((item) => stripPrefix(scalarFromValue(item.value)))
         .filter((key) => technologyByKey.has(key));
+      const template = Number.isFinite(technologyTier) ? startingTechnologyTemplates.get(technologyTier) : null;
+      const templateTechnologyKeys = template?.technology_keys || [];
       const lawKeys = [];
       for (const item of countryNode.assignments) {
         if (item.key !== "activate_law") continue;
@@ -1510,6 +1547,9 @@ function loadStartingCountryData(dirs, technologies, laws, loc) {
       }
       dataByTag.set(tag, {
         technology_tier: Number.isFinite(technologyTier) ? technologyTier : null,
+        technology_template: template?.key || "",
+        technology_eras: template?.eras || [],
+        template_technologies: templateTechnologyKeys.map((key) => technologyRef(key, technologyByKey, loc)),
         technologies: [...new Set(technologyKeys)].map((key) => technologyRef(key, technologyByKey, loc)),
         laws: lawKeys.map((key) => lawRef(key, lawByKey, loc)),
         source_file: normalizePath(file),
@@ -3962,7 +4002,7 @@ function buildCountryRow(context) {
   } = context;
   const startingStates = [...(startingOwners.get(tag) || [])].sort();
   const startingSubject = startingSubjectsByTag.get(tag);
-  const startingData = startingCountryData.get(tag) || { technology_tier: null, technologies: [], laws: [], source_file: "" };
+  const startingData = startingCountryData.get(tag) || { technology_tier: null, technology_template: "", technology_eras: [], template_technologies: [], technologies: [], laws: [], source_file: "" };
   const diplomacy = startingDiplomacy.get(tag) || [];
   const primaryCultures = def?.cultures || [];
   const primaryCulturesZh = primaryCultures.map((key) => locName(loc, key));
@@ -3993,6 +4033,9 @@ function buildCountryRow(context) {
     starting_subject_type: startingSubject?.type || "",
     starting_subject_uses_overlord_color: startingSubject?.uses_overlord_color ? "是" : "否",
     starting_technology_tier: startingData.technology_tier == null ? "" : String(startingData.technology_tier),
+    starting_technology_template: startingData.technology_template || "",
+    starting_technology_eras: joinValues(startingData.technology_eras || []),
+    starting_technology_template_keys: joinValues((startingData.template_technologies || []).map((technology) => technology.key)),
     starting_technology_keys: joinValues(startingData.technologies.map((technology) => technology.key)),
     starting_law_keys: joinValues(startingData.laws.map((law) => law.key)),
     starting_diplomacy: diplomacy,
@@ -5363,6 +5406,9 @@ function writeDatabase(dir, data) {
         uses_overlord_color: row.starting_subject_uses_overlord_color === "是",
       },
       starting_technology_tier: row.starting_technology_tier ? Number(row.starting_technology_tier) : null,
+      starting_technology_template: row.starting_technology_template || "",
+      starting_technology_eras: splitJoined(row.starting_technology_eras),
+      starting_technology_template_technologies: splitJoined(row.starting_technology_template_keys).map((key) => technologyRef(key, technologies, loc)),
       starting_technologies: splitJoined(row.starting_technology_keys).map((key) => technologyRef(key, technologies, loc)),
       starting_laws: splitJoined(row.starting_law_keys).map((key) => lawRef(key, laws, loc)),
       starting_diplomacy: (row.starting_diplomacy || []).map((item) => ({

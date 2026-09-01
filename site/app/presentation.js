@@ -1106,16 +1106,39 @@ function countryDiplomacyTypeLabel(key) {
 function countryDetailTechnologyContent(country) {
   const existsAtStart = country.existsAtStart === true || country.existsAtStart === "是";
   const tier = country.startingTechnologyTier;
-  const technologies = country.startingTechnologies || [];
+  const templateTechnologies = country.startingTechnologyTemplateTechnologies || [];
+  const extraTechnologies = country.startingTechnologies || [];
+  const researched = new Set([...templateTechnologies, ...extraTechnologies].map((technology) => technology.key));
+  for (const technology of technologies) {
+    if ((country.startingTechnologyEras || []).includes(technology.era)) researched.add(technology.key);
+  }
   const status = existsAtStart
     ? t("board.country.startingDataAvailable", "1836 年开局数据")
     : t("board.country.startingDataNotPresent", "该国 1836 年不存在，以下没有开局科技数据。");
+  if (!existsAtStart) return `<h3>${escapeHtml(t("board.country.tabs.technology", "科技"))}</h3><p class="country-detail-data-status is-unavailable">${escapeHtml(status)}</p>`;
   return `<h3>${escapeHtml(t("board.country.tabs.technology", "科技"))}</h3>
     <p class="country-detail-data-status ${existsAtStart ? "" : "is-unavailable"}">${escapeHtml(status)}</p>
     <dl class="field-grid">
-      ${field(t("board.country.startingTechnologyTier", "开局科技层级"), tier == null ? "" : escapeHtml(t("board.country.startingTechnologyTierValue", { value: tier })))}
-      ${field(t("board.country.startingTechnologies", "开局额外科技"), technologyPills(technologies))}
-    </dl>`;
+      ${field(t("board.country.startingTechnologyTier", "开局科技模板"), tier == null ? "" : escapeHtml(t("board.country.startingTechnologyTierValue", { value: tier })))}
+    </dl>
+    ${countryStartingTechnologyTree(country, researched)}`;
+}
+
+function countryStartingTechnologyTree(country, researched) {
+  const visibleEras = ["era_1", "era_2"];
+  const categories = ["production", "military", "society"];
+  const categoryLabels = {
+    production: t("board.country.technologyCategory.production", "生产"),
+    military: t("board.country.technologyCategory.military", "军事"),
+    society: t("board.country.technologyCategory.society", "社会"),
+  };
+  return `<div class="country-starting-technology-tree">${visibleEras.map((era) => `<section class="country-starting-technology-era"><h4>${escapeHtml(t(`enum.technologyEra.${era}`, era))}</h4><div class="country-starting-technology-categories">${categories.map((category) => {
+    const items = technologies.filter((technology) => technology.era === era && technology.category === category).sort((left, right) => localizedCompare(entityText(left), entityText(right)) || left.key.localeCompare(right.key));
+    return `<section class="country-starting-technology-category"><h5>${escapeHtml(categoryLabels[category])}</h5><div class="country-starting-technology-list">${items.map((technology) => {
+      const isResearched = researched.has(technology.key);
+      return `<a class="country-starting-technology-${isResearched ? "researched" : "unresearched"}" href="${escapeHtml(conceptHref("technology", technology.key))}" title="${escapeHtml(entityText(technology))}">${technologyIconHtml(technology, "country-starting-technology-icon")}<span>${escapeHtml(entityText(technology))}</span></a>`;
+    }).join("")}</div></section>`;
+  }).join("")}</div></section>`).join("")}</div>`;
 }
 
 function countryDetailLawsContent(country) {
