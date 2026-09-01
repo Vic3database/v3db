@@ -669,6 +669,7 @@ window.VICDATA_UI_LOCALES["zh-Hans"] = {
     "board.country.noPotentialFlavors": "没有可识别的潜在风味。",
     "board.country.noInterestGroups": "没有利益集团数据。",
     "board.country.noInterestGroupData": "该国家没有该利益集团的开局数据。",
+    "board.country.openInterestGroup": "集团详情",
     "board.country.section.basic": "基础",
     "board.country.standardColor": "标准色",
     "board.country.unitColor": "部队颜色",

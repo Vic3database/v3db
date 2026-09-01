@@ -1000,12 +1000,13 @@ function countryDetailTabs() {
 
 function countryDetailOverview(country, primaryCultureNames = []) {
   const capital = country.capital ? byStateRegion.get(country.capital) || { key: country.capital, id: `state_region:${country.capital}` } : null;
+  const religion = country.religion ? religionByKey.get(country.religion) || { key: country.religion } : null;
   return `<section class="country-detail-overview" aria-label="${escapeHtml(t("board.country.overview", "国家概览"))}">
     ${countryOverviewCard(t("board.country.type", "国家类型"), tagPill(countryTypeTagLabel(country), "tag-type"))}
     ${countryOverviewCard(t("board.country.tier", "国家位阶"), tagPill(countryTierLabel(country.tier), "tag-tier"))}
     ${countryOverviewCard(t("board.country.capital", "首都"), stateRegionLinks(capital ? [capital] : []))}
     ${countryOverviewCard(t("board.country.primaryCulture", "主流文化"), linkedTerms(country.primaryCultures, primaryCultureNames, "culture"))}
-    ${countryOverviewCard(t("board.country.religion", "宗教"), linkedTerms([country.religion], [entityText(country.religion)], "religion") + sourceSuffix(country.religionSource))}
+    ${countryOverviewCard(t("board.country.religion", "宗教"), linkedTerms(religion ? [religion.key] : [], religion ? [entityText(religion)] : [], "religion") + sourceSuffix(country.religionSource))}
     ${countryOverviewCard(t("board.country.standardColor", "标准色"), colorValue(country.colorHex, country.colorRgb))}
   </section>`;
 }
@@ -1172,7 +1173,8 @@ function countryInterestGroupTabs(country) {
       key,
       group,
       base,
-      label: entityText(group || base, "name", key),
+      label: entityText(group?.display_name || group || base, "name", key),
+      baseLabel: entityText(base || group, "name", key),
       hasStartingFlavor: Boolean(group?.display_name?.is_flavored || group?.active_traits?.length || group?.active_ideologies?.length),
       icon: group || base,
     };
@@ -1204,9 +1206,9 @@ function countryInterestGroupPanel(country, tab) {
     group.display_name?.is_flavored ? field(t("board.ideology.flavorName", "风味名"), tagPill(entityText(group.display_name), "tag-ig-changed")) : "",
   ].filter(Boolean).join("");
   return `<section class="country-interest-group-panel" data-country-interest-group-panel="${escapeHtml(tab.key)}">
-    <div class="country-interest-group-panel-head"><div><h4>${escapeHtml(entityText(group.display_name || group, "name", tab.label))}</h4><span class="minor">${escapeHtml(tab.label)}</span></div><span class="tag tag-ig-added">${escapeHtml(t("board.country.startingFlavor", "开局生效"))}</span></div>
+    <div class="country-interest-group-panel-head"><div><h4>${escapeHtml(entityText(group.display_name || group, "name", tab.label))}</h4><span class="minor">${escapeHtml(tab.baseLabel || tab.label)}</span></div><div class="country-interest-group-panel-actions"><a class="country-interest-group-detail-link" href="#/interest-group/${encodeURIComponent(tab.key)}">${escapeHtml(t("board.country.openInterestGroup", "集团详情"))}</a><span class="tag tag-ig-added">${escapeHtml(t("board.country.startingFlavor", "开局生效"))}</span></div></div>
     <dl class="field-grid">
-      ${field(t("board.ideology.traits", "特质"), interestGroupTraitDetailsHtml(group.active_traits || []))}
+      ${field(t("board.ideology.traits", "特质"), interestGroupTraitSlotListHtml(group.active_traits || []))}
       ${field(t("board.ideology.title", "意识形态"), ideologyPills(group.active_ideologies || [], "tag-muted"))}
       ${changes}
       ${field(t("board.ideology.rules", "规则"), interestGroupRuleSummary(group.applied_rules))}

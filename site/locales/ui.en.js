@@ -669,6 +669,7 @@ window.VICDATA_UI_LOCALES.en = {
     "board.country.noPotentialFlavors": "No identifiable potential flavors.",
     "board.country.noInterestGroups": "No interest-group data.",
     "board.country.noInterestGroupData": "This country has no starting data for this interest group.",
+    "board.country.openInterestGroup": "Group details",
     "board.country.section.basic": "Basics",
     "board.country.standardColor": "Standard color",
     "board.country.unitColor": "Unit color",

@@ -306,10 +306,10 @@ body[data-view="interest-group"] .results {
   --interest-group-background: var(--surface);
   position: relative;
   display: grid;
-  grid-template-rows: minmax(clamp(142px, 14vw, 198px), 1fr) 112px;
+  grid-template-rows: auto auto;
   min-height: clamp(270px, 38vh, 430px);
   padding: clamp(20px, 2vw, 30px);
-  overflow: hidden;
+  overflow: visible;
   border: 1px solid color-mix(in srgb, var(--interest-group-color) 54%, var(--line));
   border-left: 5px solid var(--interest-group-color);
   border-radius: 0;
@@ -387,6 +387,12 @@ body[data-view="interest-group"] .results {
   color: color-mix(in srgb, var(--ink) 86%, var(--interest-group-color));
   font-size: clamp(14px, 1.05vw, 17px);
   line-height: 1.62;
+  max-height: none;
+  overflow: visible;
+  white-space: normal;
+  max-height: none;
+  overflow: visible;
+  white-space: normal;
 }
 
 .interest-group-board-detail {
@@ -476,6 +482,12 @@ body[data-view="interest-group"] .results {
   color: color-mix(in srgb, var(--ink) 90%, var(--interest-group-text-color));
   font-size: 17px;
   line-height: 1.72;
+  max-height: none;
+  overflow: visible;
+  white-space: normal;
+  max-height: none;
+  overflow: visible;
+  white-space: normal;
 }
 
 .interest-group-detail-section {
@@ -904,6 +916,8 @@ body[data-view="religion"] .religion-board {
   grid-auto-rows: 1fr;
   gap: 16px;
   margin-top: 16px;
+  grid-auto-flow: row;
+  grid-auto-flow: row;
 }
 
 .interest-group-trait-slot {
@@ -928,6 +942,14 @@ body[data-view="religion"] .religion-board {
 .interest-group-trait-slot.is-loyal {
   --slot-tone: #927338;
 }
+
+.interest-group-trait-slot.is-unhappy { order: 1; }
+.interest-group-trait-slot.is-happy { order: 2; }
+.interest-group-trait-slot.is-loyal { order: 3; }
+
+.interest-group-trait-slot.is-unhappy { order: 1; }
+.interest-group-trait-slot.is-happy { order: 2; }
+.interest-group-trait-slot.is-loyal { order: 3; }
 
 .interest-group-trait-slot .interest-group-trait-card {
   flex: 1 1 auto;
@@ -1936,7 +1958,7 @@ body[data-view="news"] .detail {
   }
 
   .interest-group-board-card {
-    grid-template-rows: minmax(164px, 1fr) 168px;
+    grid-template-rows: auto auto;
     min-height: 372px;
     padding: 18px;
   }
@@ -2001,6 +2023,10 @@ body[data-view="news"] .detail {
   .interest-group-pop-attraction-list {
     grid-template-columns: 1fr;
   }
+
+  .interest-group-trait-slot.is-unhappy { order: 3; }
+  .interest-group-trait-slot.is-happy { order: 2; }
+  .interest-group-trait-slot.is-loyal { order: 1; }
 
   .interest-group-population-disclosure summary small {
     display: none;

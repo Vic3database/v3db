@@ -906,7 +906,7 @@ function interestGroupTraitSlots(traits) {
 
 function interestGroupTraitSlotHtml(slot) {
   return `
-    <section class="interest-group-trait-slot is-${escapeHtml(slot.key)}" data-interest-group-trait-slot="${escapeHtml(slot.key)}" aria-label="${escapeHtml(t(`interestGroup.approval.${slot.key}`))}">
+    <section class="interest-group-trait-slot is-${escapeHtml(slot.key)}" data-interest-group-trait-slot="${escapeHtml(slot.key)}" data-interest-group-approval-order="${interestGroupTraitApprovalOrder(slot.key)}" aria-label="${escapeHtml(t(`interestGroup.approval.${slot.key}`))}">
       ${slot.trait ? interestGroupTraitDetailCard(slot.trait, false) : `<p class="empty compact">${escapeHtml(t("interestGroup.noTraitForSlot"))}</p>`}
     </section>
   `;
@@ -914,6 +914,10 @@ function interestGroupTraitSlotHtml(slot) {
 
 function interestGroupTraitSlotListHtml(traits) {
   return `<div class="interest-group-trait-slot-list">${interestGroupTraitSlots(traits).map(interestGroupTraitSlotHtml).join("")}</div>`;
+}
+
+function interestGroupTraitApprovalOrder(slotKey) {
+  return { unhappy: 1, happy: 2, loyal: 3 }[slotKey] || 99;
 }
 
 function interestGroupFlavorOptions(group, variants) {

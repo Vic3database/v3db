@@ -1934,7 +1934,7 @@ function countryFlagVariantSection(country) {
       `).join("")}
     </div>
   `;
-  return collapsibleDetailSection(t("board.country.flags.title"), body, t("board.country.flags.count", { count: localizedNumber(variants.length) }));
+  return `<section class="country-flag-variant-section"><div class="country-flag-variant-section-heading"><h3>${escapeHtml(t("board.country.flags.title"))}</h3><span class="minor">${escapeHtml(t("board.country.flags.count", { count: localizedNumber(variants.length) }))}</span></div>${body}</section>`;
 }
 
 function countryFlagVariantAlt(country, variant) {

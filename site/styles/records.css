@@ -2039,6 +2039,9 @@ label.culture-incorporation-effect > span,
 
 .interest-group-trait-card p {
   margin: 0;
+  max-height: none;
+  overflow: visible;
+  white-space: normal;
 }
 
 .interest-group-rule-details {
