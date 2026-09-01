@@ -8,7 +8,7 @@ const chrome = spawn(chromePath, [`--remote-debugging-port=${debugPort}`, "--hea
 
 try {
   const page = await openPage();
-  await page.goto(`${baseUrl}?version=1.13.11&lang=zh-Hans#/country/CHI?tab=flavor`);
+  await page.goto(`${baseUrl}?version=1.13.11&lang=zh-Hans#/country/AUS?tab=flavor`);
   const journal = await page.evaluate(() => ({
     panel: document.querySelector("[data-country-detail-panel]")?.dataset.countryDetailPanel || "",
     tabs: [...document.querySelectorAll("[data-country-flavor-tab]")].map((node) => `${node.dataset.countryFlavorTab}:${node.querySelector("small")?.textContent.trim()}`),
@@ -19,7 +19,9 @@ try {
   assert.deepEqual(journal.tabs.map((item) => item.split(":")[0]), ["journal", "event", "decision"], "flavor tabs must keep the approved order");
   assert.equal(journal.content, "journal", "flavor must default to journals");
   assert.deepEqual(journal.kinds, ["journal"], "flavor must render only the selected content category");
-  assert.match(journal.tabs[0], /[1-9]/, "China must expose journal count");
+  assert.match(journal.tabs[0], /[1-9]/, "Austria must expose journal count");
+  assert.match(journal.tabs[1], /[1-9]/, "Austria must expose event count");
+  assert.match(journal.tabs[2], /[1-9]/, "Austria must expose decision count");
 
   await page.click("[data-country-flavor-tab='event']");
   await new Promise((resolve) => setTimeout(resolve, 350));

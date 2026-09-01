@@ -12,6 +12,10 @@ assert.match(presentation, /function countryStartingTechnologyTree\s*\(/, "count
 assert.match(presentation, /era_1[\s\S]*era_2/, "country technology tree must include eras I and II");
 assert.match(presentation, /production[\s\S]*military[\s\S]*society/, "country technology tree must separate production, military, and society");
 assert.match(presentation, /"researched"\s*:\s*|"unresearched"\s*:/, "technology state must have separate visual classes");
+assert.match(extractor, /sort_order: sortOrder\+\+/, "technologies must retain source-table order");
+assert.match(presentation, /technologyPosition[\s\S]*?leftPosition\.row[\s\S]*?leftPosition\.column/, "country technology list must use in-game grid order");
+assert.match(presentation, /technologyGridPositions/, "country technology list must reuse the in-game technology grid positions");
+assert.match(presentation, /country-technology-era-complete/, "country technology tree must label a fully unlocked era");
 
 const china = countries.find((country) => country.tag === "CHI");
 const greatBritain = countries.find((country) => country.tag === "GBR");

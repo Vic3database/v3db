@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import vm from "node:vm";
 import { collectLocalizationRefs, sha256Text } from "./lib/localization-schema.mjs";
 import { searchAliasFields } from "./search_aliases.mjs";
 import { deriveCultureHomelandEffects } from "./culture_homeland_effects.mjs";
@@ -67,6 +68,8 @@ if (baselineSource && !fs.existsSync(baselineSource)) {
 fs.mkdirSync(outDir, { recursive: true });
 
 const siteData = loadSiteData(source);
+const previousDataIndexFile = path.join(outDir, "data-index.js");
+const previousDataIndex = fs.existsSync(previousDataIndexFile) ? readGlobal(previousDataIndexFile, "VIC3_DATA_INDEX") : null;
 registerSiteCountryDisplayNames(siteData);
 const baselineData = baselineSource ? loadSiteData(baselineSource) : null;
 if (baselineData) registerSiteCountryDisplayNames(baselineData);
@@ -222,19 +225,27 @@ const dataIndex = {
     search_index: { path: "search-index.js", sha256: sha256Text(searchSource) },
   },
 };
+for (const key of ["event", "content"]) {
+  if (previousDataIndex?.chunks?.[key]) dataIndex.chunks[key] = previousDataIndex.chunks[key];
+}
+for (const locale of dataIndex.locales.supported) {
+  for (const key of ["event"]) {
+    const descriptor = previousDataIndex?.locales?.chunks?.[locale]?.[key];
+    if (descriptor) dataIndex.locales.chunks[locale][key] = descriptor;
+  }
+}
+if (previousDataIndex?.locales?.content) dataIndex.locales.content = previousDataIndex.locales.content;
 
-fs.writeFileSync(
-  path.join(outDir, "data-index.js"),
-  `window.VIC3_DATA_INDEX = ${JSON.stringify(dataIndex)};\n`,
-  "utf8",
-);
+writeTextAtomically(path.join(outDir, "data-index.js"), `window.VIC3_DATA_INDEX = ${JSON.stringify(dataIndex)};\n`);
 for (const generatedFile of fs.readdirSync(outDir)) {
   if (!/^(?:data-.+|locale-.+|search-index)\.js$/.test(generatedFile)) continue;
-  const active = generatedFile === "data-index.js"
-    || generatedFile === "search-index.js"
+   const active = generatedFile === "data-index.js"
+     || generatedFile === "search-index.js"
     || countryShardFiles.includes(generatedFile)
-    || Object.values(dataChunkFileNames).includes(generatedFile)
-    || Object.values(localeChunkDescriptors).some((byBoard) => Object.values(byBoard).some((entry) => entry.files.some((file) => file.path === generatedFile)));
+     || Object.values(dataChunkFileNames).includes(generatedFile)
+     || Object.values(dataIndex.chunks).some((chunk) => chunk.files?.includes(generatedFile))
+     || Object.values(dataIndex.locales.chunks).some((byBoard) => Object.values(byBoard).some((entry) => entry.files?.some((file) => file.path === generatedFile)))
+     || Object.values(localeChunkDescriptors).some((byBoard) => Object.values(byBoard).some((entry) => entry.files.some((file) => file.path === generatedFile)));
   if (!active) fs.rmSync(path.join(outDir, generatedFile), { force: true });
 }
 
@@ -706,6 +717,18 @@ function flattenDatabaseCountry(country, nameById, colorById, primaryCultureExpa
 function readJson(file) {
   const raw = fs.readFileSync(file, "utf8").replace(/^\uFEFF/, "");
   return JSON.parse(raw);
+}
+
+function readGlobal(file, globalName) {
+  const sandbox = { window: {} };
+  vm.runInNewContext(fs.readFileSync(file, "utf8"), sandbox, { filename: file });
+  return sandbox.window[globalName];
+}
+
+function writeTextAtomically(file, content) {
+  const temporary = `${file}.${process.pid}.${Date.now()}.tmp`;
+  fs.writeFileSync(temporary, content, "utf8");
+  try { fs.renameSync(temporary, file); } catch { fs.copyFileSync(temporary, file); fs.rmSync(temporary, { force: true }); }
 }
 
 function createSearchEntries(data, messagesByLocale) {

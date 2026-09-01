@@ -947,13 +947,26 @@ function showConceptTooltip(target, event) {
   }
   suppressNativeTooltip(target);
   const isIdeology = target.dataset.conceptKind === "ideology";
+  const isLawAmendment = target.dataset.conceptKind === "lawAmendment";
   els.conceptTooltip.classList.toggle("ideology-tooltip", isIdeology);
-  els.conceptTooltip.classList.toggle("standard-tooltip", !isIdeology);
+  els.conceptTooltip.classList.toggle("law-amendment-tooltip", isLawAmendment);
+  els.conceptTooltip.classList.toggle("standard-tooltip", !isIdeology && !isLawAmendment);
   els.conceptTooltip.innerHTML = isIdeology
     ? ideologyTooltipRows(target)
+    : isLawAmendment ? lawAmendmentTooltipRows(target)
     : conceptTooltipRows(target);
   els.conceptTooltip.hidden = false;
   moveConceptTooltip(event);
+}
+
+function lawAmendmentTooltipRows(target) {
+  const key = target.dataset.conceptKey || "";
+  const amendment = laws.flatMap((law) => law.amendments || []).find((item) => item.key === key);
+  const effects = (amendment?.modifiers || []).map(modifierSummaryLabel).filter(Boolean);
+  const description = cleanDescriptionText(entityText(amendment, "description", ""));
+  const explicit = target.dataset.conceptDescription || "";
+  const parentLaw = amendment?.parent_law ? lawByKey.get(amendment.parent_law) : null;
+  return `<div class="law-amendment-tooltip-head"><strong>${escapeHtml(target.dataset.conceptLabel || entityText(amendment) || key)}</strong><span>${escapeHtml(t("board.law.amendmentTooltipType", "法律修正案"))}</span></div>${effects.length ? `<section class="law-amendment-tooltip-effects"><h4>${escapeHtml(t("board.law.effects", "效果"))}</h4><ul>${effects.map((effect) => `<li>${escapeHtml(effect)}</li>`).join("")}</ul></section>` : ""}${parentLaw ? `<div class="law-amendment-tooltip-parent">${escapeHtml(t("board.law.parentLaw", "上位法"))}${escapeHtml(t("ui.colon", "："))}${escapeHtml(entityText(parentLaw))}</div>` : ""}${description ? `<p class="law-amendment-tooltip-description">${escapeHtml(description)}</p>` : ""}${explicit && explicit !== description ? `<p class="law-amendment-tooltip-description">${escapeHtml(explicit)}</p>` : ""}`;
 }
 
 function ideologyTooltipRows(target) {
@@ -1257,7 +1270,7 @@ function hideConceptTooltip() {
   clearConceptTooltipTimer();
   if (!els.conceptTooltip) return;
   els.conceptTooltip.hidden = true;
-  els.conceptTooltip.classList.remove("ideology-tooltip", "standard-tooltip");
+  els.conceptTooltip.classList.remove("ideology-tooltip", "law-amendment-tooltip", "standard-tooltip");
 }
 
 function searchConcept(target) {
@@ -1551,11 +1564,13 @@ async function applyHash() {
   }
   if (parts[0] === "law" && !parts[1]) {
     changeBoard("law", "law");
+    state.selectedLawAmendment = "";
     return;
   }
   if (parts[0] === "law" && parts[1] && lawByKey.has(decodeURIComponent(parts[1]))) {
     changeBoard("law", "law");
     state.selectedLaw = decodeURIComponent(parts[1]);
+    state.selectedLawAmendment = query.get("amendment") || "";
     return;
   }
   if (parts[0] === "technology" && !parts[1]) {

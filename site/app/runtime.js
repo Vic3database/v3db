@@ -238,6 +238,7 @@ const state = {
   selectedInterestGroup: "",
   selectedInterestGroupFlavor: "",
   selectedLaw: "",
+  selectedLawAmendment: "",
   selectedTechnology: "",
   selectedAchievement: "",
   selectedEvent: "",

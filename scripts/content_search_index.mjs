@@ -15,14 +15,14 @@ export function updateContentSearchIndex({ site, content }) {
     ...contentEntries,
   ];
   const searchSource = `window.VIC3_SEARCH_INDEX = ${JSON.stringify(search)};\n`;
-  fs.writeFileSync(searchFile, searchSource, "utf8");
+  writeTextAtomically(searchFile, searchSource);
 
   if (fs.existsSync(dataIndexFile)) {
     const dataIndex = readGlobal(dataIndexFile, "VIC3_DATA_INDEX");
     dataIndex.locales = dataIndex.locales || {};
     dataIndex.locales.search_index = dataIndex.locales.search_index || { path: "search-index.js" };
     dataIndex.locales.search_index.sha256 = sha256(searchSource);
-    fs.writeFileSync(dataIndexFile, `window.VIC3_DATA_INDEX = ${JSON.stringify(dataIndex)};\n`, "utf8");
+    writeTextAtomically(dataIndexFile, `window.VIC3_DATA_INDEX = ${JSON.stringify(dataIndex)};\n`);
   }
 
   return Object.fromEntries([...contentKinds].map((kind) => [kind, contentEntries.filter((entry) => entry.kind === kind).length]));
@@ -92,4 +92,10 @@ function readGlobal(file, name) {
 
 function sha256(content) {
   return crypto.createHash("sha256").update(content).digest("hex");
+}
+
+function writeTextAtomically(file, content) {
+  const temporary = `${file}.${process.pid}.${Date.now()}.tmp`;
+  fs.writeFileSync(temporary, content, "utf8");
+  try { fs.renameSync(temporary, file); } catch { fs.copyFileSync(temporary, file); fs.rmSync(temporary, { force: true }); }
 }

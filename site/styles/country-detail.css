@@ -101,9 +101,20 @@
 .country-starting-technology-unresearched { border-color: rgba(149, 157, 159, 0.36); color: var(--muted); background: rgba(75, 78, 78, 0.14); }
 .country-starting-technology-icon { width: 22px; height: 22px; flex: 0 0 22px; object-fit: contain; }
 
+.country-starting-law-columns { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; align-items: start; }
+
+.country-starting-law-category {
+  min-width: 0;
+}
+
+.country-starting-law-category > h4 {
+  margin: 0 0 8px;
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+}
+
 .country-starting-law-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -127,6 +138,30 @@
 .country-starting-law-card strong {
   overflow-wrap: anywhere;
 }
+
+.country-starting-law-source {
+  color: var(--muted);
+  font-size: var(--text-xs);
+}
+
+.country-starting-law-amendments { color: var(--accent); font-size: var(--text-xs); }
+.country-starting-law-amendment-link { display: inline-block; padding: 2px 7px; border: 1px solid rgba(200, 164, 91, 0.55); border-radius: 5px; background: rgba(200, 164, 91, 0.12); color: var(--accent); text-decoration: none; }
+.country-starting-law-amendment-link:hover, .country-starting-law-amendment-link:focus-visible { border-color: var(--accent); background: rgba(200, 164, 91, 0.22); color: var(--ink); }
+.country-technology-era-complete { margin: 10px 0; color: var(--accent); }
+
+.country-incorporation-calculator-button {
+  margin-left: 8px;
+  padding: 4px 8px;
+  border: 1px solid rgba(200, 164, 91, 0.45);
+  border-radius: 5px;
+  background: rgba(200, 164, 91, 0.12);
+  color: var(--accent);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.country-incorporation-calculator-button:hover { background: rgba(200, 164, 91, 0.22); }
+.country-region-calculator-entry { margin: 0 0 10px; }
 
 .country-starting-law-icon {
   width: 30px;
@@ -158,6 +193,10 @@
   border: 1px solid rgba(200, 164, 91, 0.18);
   border-radius: 6px;
   background: var(--panel-glass-strong);
+}
+
+.country-starting-law-columns .country-starting-law-card {
+  min-height: 48px;
 }
 
 .country-diplomacy-target {
@@ -256,17 +295,14 @@
   border-radius: 50%;
 }
 
-.country-interest-group-active-mark {
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #8fbd72;
+.country-interest-group-tab-label {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  max-width: 100%;
 }
 
-.country-interest-group-tab > span:last-child {
+.country-interest-group-tab-name {
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -293,6 +329,10 @@
   color: var(--ink);
   font-size: var(--text-md);
 }
+
+.country-interest-group-status-badges { display: flex; justify-content: center; flex-wrap: wrap; gap: 3px; }
+.country-interest-group-status-badge { padding: 1px 4px; border: 1px solid rgba(200, 164, 91, 0.5); border-radius: 3px; color: var(--accent); font-size: 10px; line-height: 1.2; }
+.country-interest-group-status-badge.is-vc { border-color: rgba(112, 172, 222, 0.55); color: #9bc9e5; }
 
 .country-interest-group-panel-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 7px; }
 .country-interest-group-detail-link { color: var(--accent); font-size: var(--text-xs); text-decoration: none; }
@@ -353,8 +393,10 @@
   }
 
   .country-starting-law-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
   }
+
+  .country-starting-law-columns { grid-template-columns: 1fr; }
 
   .country-starting-technology-categories { grid-template-columns: 1fr; }
 

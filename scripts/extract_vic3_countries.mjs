@@ -227,6 +227,11 @@ function main() {
     contentPath("common", "history", "countries"),
     technologies,
     laws,
+    amendments,
+    lawGroups,
+    contentPath("common", "scripted_effects"),
+    definitions,
+    cultures,
     startingTechnologyTemplates,
     loc,
   );
@@ -1516,9 +1521,11 @@ function loadStartingTechnologyTemplates(dirs, technologies) {
   return templates;
 }
 
-function loadStartingCountryData(dirs, technologies, laws, startingTechnologyTemplates, loc) {
+function loadStartingCountryData(dirs, technologies, laws, amendments, lawGroups, scriptedEffectDirs, definitions, cultures, startingTechnologyTemplates, loc) {
   const technologyByKey = new Map(technologies.map((technology) => [technology.key, technology]));
   const lawByKey = new Map([...laws.values()].map((law) => [law.key, law]));
+  const amendmentByKey = new Map((amendments || []).map((amendment) => [amendment.key, amendment]));
+  const startingPoliticsEffects = loadStartingPoliticsEffects(scriptedEffectDirs);
   const dataByTag = new Map();
   for (const file of listEffectiveFiles(dirs)) {
     const root = parseScript(readText(file), file);
@@ -1538,12 +1545,40 @@ function loadStartingCountryData(dirs, technologies, laws, startingTechnologyTem
         .filter((key) => technologyByKey.has(key));
       const template = Number.isFinite(technologyTier) ? startingTechnologyTemplates.get(technologyTier) : null;
       const templateTechnologyKeys = template?.technology_keys || [];
-      const lawKeys = [];
+      const lawEntries = new Map();
+      const context = startingPoliticsContext(tag, definitions, cultures);
+      const politicsEffectKey = countryNode.assignments
+        .find((item) => item.key.startsWith("effect_starting_politics_") && scalarFromValue(item.value) === "yes")
+        ?.key || "";
+      const politicsEffect = politicsEffectKey ? startingPoliticsEffects.get(politicsEffectKey) : null;
+      for (const group of lawGroups.values()) {
+        if (["lawgroup_caste_hegemony", "lawgroup_edo_social_system"].includes(group.key)) continue;
+        const defaultLaw = [...lawByKey.values()]
+          .filter((law) => law.group_key === group.key)
+          .sort((left, right) => left.sort_order - right.sort_order || left.key.localeCompare(right.key))[0];
+        if (defaultLaw) addStartingLawEntry(lawEntries, defaultLaw.key, "law_group_default", group.key, lawByKey, lawGroups, loc);
+      }
+      for (const key of collectStartingPoliticsLaws(politicsEffect, context)) {
+        addStartingLawEntry(lawEntries, key, "starting_politics_effect", politicsEffectKey, lawByKey, lawGroups, loc);
+      }
       for (const item of countryNode.assignments) {
         if (item.key !== "activate_law") continue;
         const key = stripPrefix(scalarFromValue(item.value));
-        if (!lawByKey.has(key) || lawKeys.includes(key)) continue;
-        lawKeys.push(key);
+        if (!lawByKey.has(key)) continue;
+        addStartingLawEntry(lawEntries, key, "country_history", normalizePath(file), lawByKey, lawGroups, loc);
+      }
+      for (const assignment of countryNode.assignments) {
+        if (!assignment.key.startsWith("active_law:")) continue;
+        const lawGroupKey = stripPrefix(assignment.key.slice("active_law:".length));
+        const amendmentNode = asNode(assignment.value);
+        if (!lawGroupKey || !amendmentNode) continue;
+        const entry = lawEntries.get(lawGroupKey);
+        if (!entry) continue;
+        const amendmentKeys = amendmentNode.assignments
+          .filter((item) => item.key === "add_amendment")
+          .map((item) => stripPrefix(firstScalar(asNode(item.value) || { assignments: [] }, "type")))
+          .filter(Boolean);
+        if (amendmentKeys.length) entry.law.starting_amendments = amendmentKeys.map((key) => amendmentRef(key, amendmentByKey));
       }
       dataByTag.set(tag, {
         technology_tier: Number.isFinite(technologyTier) ? technologyTier : null,
@@ -1551,12 +1586,92 @@ function loadStartingCountryData(dirs, technologies, laws, startingTechnologyTem
         technology_eras: template?.eras || [],
         template_technologies: templateTechnologyKeys.map((key) => technologyRef(key, technologyByKey, loc)),
         technologies: [...new Set(technologyKeys)].map((key) => technologyRef(key, technologyByKey, loc)),
-        laws: lawKeys.map((key) => lawRef(key, lawByKey, loc)),
+        laws: [...lawEntries.values()].map((entry) => entry.law),
         source_file: normalizePath(file),
       });
     }
   }
   return dataByTag;
+}
+
+function loadStartingPoliticsEffects(dirs) {
+  const effects = new Map();
+  for (const file of listEffectiveFiles(dirs)) {
+    const root = parseScript(readText(file), file);
+    for (const assignment of root.assignments) {
+      if (!assignment.key.startsWith("effect_starting_politics_")) continue;
+      const node = asNode(assignment.value);
+      if (node) effects.set(assignment.key, node);
+    }
+  }
+  return effects;
+}
+
+function startingPoliticsContext(tag, definitions, cultures) {
+  const definition = definitions.get(tag);
+  const cultureReligion = (definition?.cultures || [])
+    .map((key) => cultures.get(key)?.religion)
+    .find(Boolean) || "";
+  const religion = definition?.religion || cultureReligion;
+  return {
+    isIslamic: ["sunni", "shiite", "ibadi"].includes(religion),
+    isDecentralized: definition?.country_type === "decentralized",
+  };
+}
+
+function collectStartingPoliticsLaws(node, context) {
+  if (!node) return [];
+  const laws = [];
+  for (let index = 0; index < node.assignments.length; index += 1) {
+    const assignment = node.assignments[index];
+    if (assignment.key === "activate_law") {
+      const key = stripPrefix(scalarFromValue(assignment.value));
+      if (key) laws.push(key);
+      continue;
+    }
+    if (assignment.key !== "if") continue;
+    const branch = asNode(assignment.value);
+    if (!branch) continue;
+    const limit = asNode(firstValue(branch, "limit"));
+    const condition = evaluateStartingPoliticsCondition(limit, context);
+    const selected = condition ? branch : null;
+    if (selected) laws.push(...collectStartingPoliticsLaws(selected, context));
+    const next = node.assignments[index + 1];
+    if (!condition && next?.key === "else") {
+      const elseNode = asNode(next.value);
+      if (elseNode) laws.push(...collectStartingPoliticsLaws(elseNode, context));
+      index += 1;
+    }
+  }
+  return laws;
+}
+
+function evaluateStartingPoliticsCondition(node, context) {
+  if (!node) return false;
+  for (const assignment of node.assignments) {
+    if (assignment.key === "country_is_islamic") return scalarFromValue(assignment.value) === "yes" ? context.isIslamic : !context.isIslamic;
+    if (assignment.key === "is_country_type") return stripPrefix(scalarFromValue(assignment.value)) === "decentralized" ? context.isDecentralized : false;
+    if (assignment.key === "NOT") return !evaluateStartingPoliticsCondition(asNode(assignment.value), context);
+    if (assignment.key === "OR") return asNode(assignment.value)?.assignments.some((item) => evaluateStartingPoliticsCondition({ assignments: [item] }, context)) || false;
+    if (assignment.key === "NOR") return !(asNode(assignment.value)?.assignments.some((item) => evaluateStartingPoliticsCondition({ assignments: [item] }, context)) || false);
+  }
+  return false;
+}
+
+function addStartingLawEntry(entries, key, source, sourceDetail, lawByKey, lawGroups, loc) {
+  const law = lawByKey.get(key);
+  if (!law) return;
+  const group = lawGroups.get(law.group_key);
+  entries.set(law.group_key, {
+    law: lawRef(key, lawByKey, loc, {
+      source,
+      source_detail: sourceDetail,
+      category: group?.category || "",
+      group_sort_order: group?.sort_order ?? null,
+    }),
+    source,
+    source_detail: sourceDetail,
+  });
 }
 
 function loadHistoryReligionOverrides(dir) {
@@ -2115,6 +2230,7 @@ function loadLawAmendments(dir, loc) {
       if (!node) continue;
       rows.push({
         key,
+        id: `law_amendment:${key}`,
         name_zh: locCleanName(loc, key),
         desc_zh: loc.has(`${key}_desc`) ? cleanLocalizationText(locName(loc, `${key}_desc`), loc) : "",
         parent_law: firstScalar(node, "parent"),
@@ -2122,6 +2238,7 @@ function loadLawAmendments(dir, loc) {
         modifiers: allValues(node, "modifier").map(asNode).filter(Boolean)
           .flatMap((modifierNode) => modifierNode.assignments.map((item) => modifierRef(item.key, item.value, loc))),
         possible: conditionSummaryObject(firstValue(node, "possible"), loc),
+        loc: { name: `law:${firstScalar(node, "parent") || "unknown"}:${key}.name`, description: `law:${firstScalar(node, "parent") || "unknown"}:${key}.description` },
         source_file: normalizePath(file),
       });
     }
@@ -2895,6 +3012,7 @@ function achievementIconPath(iconDirs, filename, key) {
 function loadTechnologies(dir, technologyEras, loc) {
   const eraByKey = new Map(technologyEras.map((era) => [era.key, era]));
   const technologies = [];
+  let sortOrder = 0;
   for (const file of listFiles(dir)) {
     const root = parseScript(readText(file), file);
     for (const assignment of root.assignments) {
@@ -2929,10 +3047,11 @@ function loadTechnologies(dir, technologyEras, loc) {
         modifier_summary_zh: joinValues(modifiers.map((modifier) => modifier.summary_zh)),
         references: { laws: [], companies: [] },
         source_file: normalizePath(file),
+        sort_order: sortOrder++,
       });
     }
   }
-  return technologies.sort((left, right) => left.key.localeCompare(right.key, "en"));
+  return technologies;
 }
 
 function attachTechnologyReferences(technologies, { laws, companies }) {
@@ -4037,7 +4156,8 @@ function buildCountryRow(context) {
     starting_technology_eras: joinValues(startingData.technology_eras || []),
     starting_technology_template_keys: joinValues((startingData.template_technologies || []).map((technology) => technology.key)),
     starting_technology_keys: joinValues(startingData.technologies.map((technology) => technology.key)),
-    starting_law_keys: joinValues(startingData.laws.map((law) => law.key)),
+     starting_law_keys: startingStates.length ? joinValues(startingData.laws.map((law) => law.key)) : "",
+     starting_laws: startingStates.length ? startingData.laws : [],
     starting_diplomacy: diplomacy,
     has_history_country_file: historyCountryTags.has(tag) ? "是" : "否",
     is_releasable: releasable ? "是" : "否",
@@ -4309,7 +4429,7 @@ function technologyRef(key, technologies, loc) {
   };
 }
 
-function lawRef(key, laws, loc) {
+function lawRef(key, laws, loc, metadata = {}) {
   const law = laws instanceof Map ? laws.get(key) : laws.find((item) => item.key === key);
   return {
     id: `law:${key}`,
@@ -4317,9 +4437,18 @@ function lawRef(key, laws, loc) {
     name_zh: law?.name_zh || locName(loc, key),
     loc: { name: `law:${key}.name` },
     icon: law?.icon || "",
-    group: law?.group || "",
-    group_name_zh: law?.group_name_zh || "",
+    group: law?.group_key || "",
+    group_name_zh: law?.group_name_zh || locName(loc, law?.group_key || ""),
+    group_sort_order: metadata.group_sort_order ?? null,
+    category: metadata.category || "",
+    source: metadata.source || "",
+    source_detail: metadata.source_detail || "",
   };
+}
+
+function amendmentRef(key, amendments) {
+  const amendment = amendments.get(key);
+  return { id: amendment?.id || `law_amendment:${key}`, key, loc: { name: `law_amendment:${key}.name` } };
 }
 
 function interestGroupRef(key, groups) {
@@ -5410,7 +5539,7 @@ function writeDatabase(dir, data) {
       starting_technology_eras: splitJoined(row.starting_technology_eras),
       starting_technology_template_technologies: splitJoined(row.starting_technology_template_keys).map((key) => technologyRef(key, technologies, loc)),
       starting_technologies: splitJoined(row.starting_technology_keys).map((key) => technologyRef(key, technologies, loc)),
-      starting_laws: splitJoined(row.starting_law_keys).map((key) => lawRef(key, laws, loc)),
+       starting_laws: row.starting_laws || splitJoined(row.starting_law_keys).map((key) => lawRef(key, laws, loc)),
       starting_diplomacy: (row.starting_diplomacy || []).map((item) => ({
         ...item,
         target: countryKeyRef(item.target_tag, loc),

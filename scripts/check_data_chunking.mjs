@@ -22,7 +22,7 @@ assert(fs.existsSync(path.join(versionDir, index.locales.search_index.path)), "s
 const expectedChunks = {
   country: ["countries", "dynamicCountryNameVariants", "dynamicCountryMapColorRules", "formables", "releasables"],
   culture: ["cultures", "cultureTraits", "cultureTraitGroups"],
-  region: ["stateRegions", "strategicRegions", "geographicRegions"],
+  region: ["stateRegions", "strategicRegions", "geographicRegions", "cultureHomelandEffects"],
   company: ["companies", "companyCharterTypes"],
   ideology: ["interestGroups", "interestGroupTraits", "ideologies"],
   law: ["laws", "lawGroups"],

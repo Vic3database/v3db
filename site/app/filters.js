@@ -381,6 +381,9 @@ function renderLawDetail(law) {
     ${conditionDetails(t("board.law.groupEnableCondition", "法律组启用条件"), group?.enable)}
     ${conditionDetails(t("board.law.groupChangeCondition", "法律组变更条件"), group?.change_allowed_trigger)}
   `;
+  if (state.selectedLawAmendment) {
+    requestAnimationFrame(() => els.detail.querySelector(`[data-law-amendment="${CSS.escape(state.selectedLawAmendment)}"]`)?.scrollIntoView({ block: "nearest" }));
+  }
 }
 
 function lawIdeologyStances(law) {

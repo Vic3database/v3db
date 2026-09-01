@@ -782,8 +782,8 @@ function lawAmendmentDetailsHtml(amendments) {
     <h3>${t("board.law.amendments", "相关修正案")}</h3>
     <div class="law-amendment-list">
       ${amendments.map((amendment) => `
-        <details class="law-amendment-card">
-          <summary>${escapeHtml(entityText(amendment))}</summary>
+        <details class="law-amendment-card" data-law-amendment="${escapeHtml(amendment.key)}" ${state.selectedLawAmendment === amendment.key ? "open" : ""}>
+          <summary data-concept-kind="lawAmendment" data-concept-key="${escapeHtml(amendment.key)}" data-concept-label="${escapeHtml(entityText(amendment))}">${escapeHtml(entityText(amendment))}</summary>
           ${entityText(amendment, "description", "") ? `<p>${escapeHtml(cleanDescriptionText(entityText(amendment, "description", "")))}</p>` : ""}
           <dl class="field-grid">
             ${field(t("board.law.parentLaw", "上位法"), lawPill(lawByKey.get(amendment.parent_law) || { key: amendment.parent_law }))}
@@ -1006,9 +1006,21 @@ function countryDetailOverview(country, primaryCultureNames = []) {
     ${countryOverviewCard(t("board.country.tier", "国家位阶"), tagPill(countryTierLabel(country.tier), "tag-tier"))}
     ${countryOverviewCard(t("board.country.capital", "首都"), stateRegionLinks(capital ? [capital] : []))}
     ${countryOverviewCard(t("board.country.primaryCulture", "主流文化"), linkedTerms(country.primaryCultures, primaryCultureNames, "culture"))}
-    ${countryOverviewCard(t("board.country.religion", "宗教"), linkedTerms(religion ? [religion.key] : [], religion ? [entityText(religion)] : [], "religion") + sourceSuffix(country.religionSource))}
+    ${countryOverviewCard(t("board.country.religion", "宗教"), linkedTerms(religion ? [religion.key] : [], religion ? [entityText(religion)] : [], "religion"))}
     ${countryOverviewCard(t("board.country.standardColor", "标准色"), colorValue(country.colorHex, country.colorRgb))}
   </section>`;
+}
+
+function lawAmendmentByKey(key) {
+  return laws.flatMap((law) => law.amendments || []).find((amendment) => amendment.key === key) || null;
+}
+
+function startingLawAmendmentLink(law, amendment) {
+  const key = amendment?.key || "";
+  if (!key) return "";
+  const record = lawAmendmentByKey(key) || amendment;
+  const label = entityText(amendment) || entityText(record) || key;
+  return `<a class="country-starting-law-amendment-link" href="${escapeHtml(conceptHref("law", law.key))}?amendment=${encodeURIComponent(key)}" data-concept-kind="lawAmendment" data-concept-key="${escapeHtml(key)}" data-concept-label="${escapeHtml(label)}" aria-label="${escapeHtml(label)}">${escapeHtml(label)}</a>`;
 }
 
 function countryOverviewCard(label, value) {
@@ -1077,13 +1089,17 @@ function countryDetailDiplomacyContent(country) {
 }
 
 function countryDiplomacyRecordHtml(item) {
-  const target = byTag.get(item.targetTag) || { tag: item.targetTag };
   const targetLink = countryLinks([item.targetTag]);
+  const subjectRole = item.subjectRole || item.subject_role || "";
+  const subjectType = item.subjectType || item.subject_type || "";
+  const pactType = item.pactType || item.pact_type || "";
   const relation = item.type === "subject"
-    ? `${item.subjectRole === "subject" ? t("board.country.diplomacy.subjectRole", "附属国") : t("board.country.diplomacy.overlordRole", "宗主国")} · ${countryDiplomacyTypeLabel(item.subjectType)}`
-      : item.type === "pact" ? countryDiplomacyTypeLabel(item.pactType)
+    ? `${subjectRole === "subject" ? t("board.country.diplomacy.subjectRole", "附属国") : t("board.country.diplomacy.overlordRole", "宗主国")} · ${countryDiplomacyTypeLabel(subjectType)}`
+      : item.type === "pact" ? countryDiplomacyTypeLabel(pactType)
       : item.type === "relation" ? `${t("board.country.diplomacy.relationValue", "关系值")} ${item.value > 0 ? "+" : ""}${item.value}`
-        : item.type === "truce" ? t("board.country.diplomacy.months", "{value} 个月", { value: item.months }) : "";
+        : item.type === "truce" ? t("board.country.diplomacy.months", "{value} 个月", { value: item.months })
+          : item.type === "embargo" ? t("board.country.diplomacy.embargoTarget", "禁运")
+            : item.type === "obligation" ? t("board.country.diplomacy.obligationTarget", "对其负有义务") : "";
   const valueClass = item.type === "relation" ? (item.value >= 0 ? " is-positive" : " is-negative") : "";
   return `<div class="country-diplomacy-record"><div class="country-diplomacy-target">${targetLink}</div><span class="country-diplomacy-kind${valueClass}">${escapeHtml(relation)}</span></div>`;
 }
@@ -1123,21 +1139,35 @@ function countryDetailTechnologyContent(country) {
     <dl class="field-grid">
       ${field(t("board.country.startingTechnologyTier", "开局科技模板"), tier == null ? "" : escapeHtml(t("board.country.startingTechnologyTierValue", { value: tier })))}
     </dl>
+    ${technologies.some((technology) => technology.era === "era_1") && technologies.filter((technology) => technology.era === "era_1").every((technology) => researched.has(technology.key)) ? `<p class="country-technology-era-complete">${escapeHtml(t("board.country.technologyEraOneComplete", "时代 I 全部解锁"))}</p>` : ""}
     ${countryStartingTechnologyTree(country, researched)}`;
 }
 
 function countryStartingTechnologyTree(country, researched) {
-  const visibleEras = ["era_1", "era_2"];
   const categories = ["production", "military", "society"];
   const categoryLabels = {
     production: t("board.country.technologyCategory.production", "生产"),
     military: t("board.country.technologyCategory.military", "军事"),
     society: t("board.country.technologyCategory.society", "社会"),
   };
+  const visibleEras = ["era_1", "era_2"].filter((era) => {
+    const items = technologies.filter((technology) => technology.era === era);
+    if (!items.length) return false;
+    const researchedCount = items.filter((technology) => researched.has(technology.key)).length;
+    return era === "era_1" ? researchedCount < items.length : researchedCount > 0;
+  });
+  const technologyPosition = (technology) => technologyGridPositions?.[technology.category]?.[technology.key] || null;
   return `<div class="country-starting-technology-tree">${visibleEras.map((era) => `<section class="country-starting-technology-era"><h4>${escapeHtml(t(`enum.technologyEra.${era}`, era))}</h4><div class="country-starting-technology-categories">${categories.map((category) => {
-    const items = technologies.filter((technology) => technology.era === era && technology.category === category).sort((left, right) => localizedCompare(entityText(left), entityText(right)) || left.key.localeCompare(right.key));
+    const items = technologies.filter((technology) => technology.era === era && technology.category === category).sort((left, right) => {
+      const leftPosition = technologyPosition(left);
+      const rightPosition = technologyPosition(right);
+      if (leftPosition && rightPosition) return leftPosition.row - rightPosition.row || leftPosition.column - rightPosition.column || left.key.localeCompare(right.key);
+      if (leftPosition) return -1;
+      if (rightPosition) return 1;
+      return Number(left.sort_order ?? Number.MAX_SAFE_INTEGER) - Number(right.sort_order ?? Number.MAX_SAFE_INTEGER) || left.key.localeCompare(right.key);
+    });
     return `<section class="country-starting-technology-category"><h5>${escapeHtml(categoryLabels[category])}</h5><div class="country-starting-technology-list">${items.map((technology) => {
-      const isResearched = researched.has(technology.key);
+       const isResearched = researched.has(technology.key);
       return `<a class="country-starting-technology-${isResearched ? "researched" : "unresearched"}" href="${escapeHtml(conceptHref("technology", technology.key))}" title="${escapeHtml(entityText(technology))}">${technologyIconHtml(technology, "country-starting-technology-icon")}<span>${escapeHtml(entityText(technology))}</span></a>`;
     }).join("")}</div></section>`;
   }).join("")}</div></section>`).join("")}</div>`;
@@ -1149,9 +1179,31 @@ function countryDetailLawsContent(country) {
   const status = existsAtStart
     ? t("board.country.startingDataAvailable", "1836 年开局数据")
     : t("board.country.startingDataNotPresent", "该国 1836 年不存在，以下没有开局法律数据。");
+  const categories = ["power_structure", "economy", "human_rights"]
+    .map((key) => ({
+      key,
+      laws: lawsAtStart
+        .filter((law) => startingLawCategoryKey(law) === key)
+      .sort((left, right) => Number(left.group_sort_order ?? Number.MAX_SAFE_INTEGER) - Number(right.group_sort_order ?? Number.MAX_SAFE_INTEGER)
+          || localizedCompare(entityText(left), entityText(right))),
+    }))
+    .filter((section) => existsAtStart && section.laws.length);
   return `<h3>${escapeHtml(t("board.country.tabs.laws", "法律"))}</h3>
     <p class="country-detail-data-status ${existsAtStart ? "" : "is-unavailable"}">${escapeHtml(status)}</p>
-    <div class="country-starting-law-grid">${lawsAtStart.length ? lawsAtStart.map((law) => `<article class="country-starting-law-card">${lawIconHtml(law, "country-starting-law-icon")}<div><strong>${escapeHtml(entityText(law))}</strong><span class="minor">${escapeHtml(law.group_name_zh || "")}</span></div></article>`).join("") : `<p class="empty compact">${escapeHtml(t("board.country.noStartingLaws", "没有开局法律数据。"))}</p>`}</div>`;
+    <div class="country-starting-law-columns">${categories.map((section) => `<section class="country-starting-law-category" data-law-category="${escapeHtml(section.key)}"><h4>${escapeHtml(lawGroupCategoryLabel(section.key))}</h4><div class="country-starting-law-grid">${section.laws.map((law) => `<article class="country-starting-law-card">${lawIconHtml(law, "country-starting-law-icon")}<div><strong>${escapeHtml(entityText(law))}</strong><span class="minor">${escapeHtml(law.group_name_zh || "")}</span><span class="country-starting-law-source">${escapeHtml(startingLawSourceLabel(law))}</span>${law.starting_amendments?.length ? `<span class="country-starting-law-amendments">${escapeHtml(t("board.country.startingLawAmendments", "含修正案"))}：${law.starting_amendments.map((amendment) => startingLawAmendmentLink(law, amendment)).join(t("ui.listSeparator", "、"))}</span>` : ""}</div></article>`).join("")}</div></section>`).join("") || `<p class="empty compact">${escapeHtml(t("board.country.noStartingLaws", "没有开局法律数据。"))}</p>`}</div>`;
+}
+
+function startingLawCategoryKey(law) {
+  return law?.category || lawGroupByKey.get(law?.group || law?.group_key)?.category || "uncategorized";
+}
+
+function startingLawSourceLabel(law) {
+  const labels = {
+    country_history: t("board.country.startingLawSource.history", "国家历史"),
+    starting_politics_effect: t("board.country.startingLawSource.politics", "政治模板"),
+    law_group_default: t("board.country.startingLawSource.default", "法律组默认"),
+  };
+  return labels[law?.source] || t("board.country.startingLawSource.unknown", "初始化数据");
 }
 
 const countryInterestGroupOrder = [
@@ -1175,7 +1227,8 @@ function countryInterestGroupTabs(country) {
       base,
       label: entityText(group?.display_name || group || base, "name", key),
       baseLabel: entityText(base || group, "name", key),
-      hasStartingFlavor: Boolean(group?.display_name?.is_flavored || group?.active_traits?.length || group?.active_ideologies?.length),
+      hasStartingFlavor: Boolean(group?.display_name?.is_flavored || group?.applied_rules?.some((rule) => rule?.condition_raw)),
+      hasVcChange: Boolean(group?.vc_change_kind || base?.vc_change_kind),
       icon: group || base,
     };
   });
@@ -1190,9 +1243,16 @@ function countryInterestGroupContent(country) {
   const active = tabs.find((item) => item.key === selected) || tabs[0];
   return `<h3>${escapeHtml(t("board.country.tabs.interestGroups", "利益集团"))}</h3>
     <div class="country-interest-group-tabs" role="tablist" aria-label="${escapeHtml(t("board.country.interestGroupTabs", "利益集团选择"))}">
-      ${tabs.map((item) => `<button type="button" role="tab" class="country-interest-group-tab" data-country-interest-group="${escapeHtml(item.key)}" aria-selected="${String(item.key === selected)}" aria-label="${escapeHtml(item.label)}" title="${escapeHtml(item.label)}">${interestGroupIconHtml(item.icon, "country-interest-group-icon")}${item.hasStartingFlavor ? `<span class="country-interest-group-active-mark" aria-hidden="true"></span>` : ""}<span>${escapeHtml(item.label)}</span></button>`).join("")}
+      ${tabs.map((item) => `<button type="button" role="tab" class="country-interest-group-tab" data-country-interest-group="${escapeHtml(item.key)}" aria-selected="${String(item.key === selected)}" aria-label="${escapeHtml(item.label)}" title="${escapeHtml(item.label)}">${interestGroupIconHtml(item.icon, "country-interest-group-icon")}<span class="country-interest-group-tab-label"><span class="country-interest-group-tab-name">${escapeHtml(item.label)}</span>${interestGroupStatusBadges(item)}</span></button>`).join("")}
     </div>
     ${active ? countryInterestGroupPanel(country, active) : `<p class="empty compact">${escapeHtml(t("board.country.noInterestGroups", "没有利益集团数据。"))}</p>`}`;
+}
+
+function interestGroupStatusBadges(item) {
+  const badges = [];
+  if (item.hasStartingFlavor) badges.push(`<span class="country-interest-group-status-badge" data-interest-group-status="flavor">${escapeHtml(t("board.country.interestGroupStatus.flavor", "风味"))}</span>`);
+  if (item.hasVcChange) badges.push(`<span class="country-interest-group-status-badge is-vc" data-interest-group-status="vc">${escapeHtml(t("vc.badge.adjusted", "VC调整"))}</span>`);
+  return badges.length ? `<span class="country-interest-group-status-badges">${badges.join("")}</span>` : "";
 }
 
 function countryInterestGroupPanel(country, tab) {
@@ -1238,7 +1298,7 @@ function countryDetailSocietyContent(country) {
   const primaryCultureNames = (country.primaryCultures || []).map((item) => entityText(byCulture.get(item?.key || item) || item)).filter(Boolean);
   const expandable = countryPrimaryCultureExpansionsHtml(country);
   return `<h3>${t("board.country.section.society", "社会")}</h3><dl class="field-grid">
-    ${field(t("board.country.primaryCulture", "主流文化"), linkedTerms(country.primaryCultures, primaryCultureNames, "culture") + ` <a class="country-incorporation-calculator-link" href="#/culture/incorporation" data-incorporation-country="${escapeHtml(country.tag)}">${escapeHtml(t("nav.cultureIncorporation", "整合时长"))}</a>`)}
+    ${field(t("board.country.primaryCulture", "主流文化"), linkedTerms(country.primaryCultures, primaryCultureNames, "culture"))}
     ${expandable ? field(t("board.country.expandablePrimaryCultures", "可扩展的主流文化"), expandable) : ""}
     ${field(t("board.country.heritage", "传承"), `<span class="grouped-trait-pills">${groupedTraitPills(country.primaryCultureHeritageGroups, country.primaryCultureHeritages, "tag-heritage-group", "tag-heritage")}</span>`)}
     ${field(t("board.country.language", "语言"), `<span class="grouped-trait-pills">${groupedTraitPills(country.primaryCultureLanguageGroups, country.primaryCultureLanguages, "tag-language-group", "tag-language")}</span>`)}
@@ -1248,7 +1308,7 @@ function countryDetailSocietyContent(country) {
 }
 
 function countryDetailRegionsContent(country) {
-  return `<h3>${t("board.country.section.regions", "地区")}</h3><dl class="field-grid">
+  return `<h3>${t("board.country.section.regions", "地区")}</h3><div class="country-region-calculator-entry"><button type="button" class="country-incorporation-calculator-button" data-incorporation-country="${escapeHtml(country.tag)}">${escapeHtml(t("board.country.openIncorporationCalculator", "整合时长计算器"))}</button></div><dl class="field-grid">
     ${field(t("board.country.capital", "首都"), stateRegionLinks(country.capital ? [byStateRegion.get(country.capital) || { key: country.capital, id: `state_region:${country.capital}` }] : []))}
     ${field(t("board.country.locationStrategicRegions", "所在战略区域"), strategicRegionLinks(country.locationStrategicRegions))}
     ${field(t("board.country.locationStateRegions", "所在地域"), stateRegionLinks(country.locationStateRegions))}

@@ -38,6 +38,11 @@ try {
   assert.match(britain, /宿敌/, "Great Britain diplomacy must show rivalries");
   assert.match(britain, /俄罗斯/, "Great Britain rivalry target must render");
 
+  await page.goto(`${baseUrl}?version=1.13.11&lang=zh-Hans#/country/AUS?tab=diplomacy`);
+  const austria = await page.evaluate(() => document.querySelector("[data-country-detail-panel]")?.innerText || "");
+  assert.match(austria, /预设条约/, "Austria diplomacy must show starting treaties");
+  assert.match(austria, /王室领地/, "Austria diplomacy must show crown-land subject relationships");
+
   await page.setViewport({ width: 442, height: 844 });
   await page.goto(`${baseUrl}?version=1.13.11&lang=zh-Hans#/country/ALK?tab=diplomacy`);
   const mobile = await page.evaluate(() => ({

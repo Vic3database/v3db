@@ -52,7 +52,7 @@ dataIndex.chunks.content = {
 };
 dataIndex.locales = dataIndex.locales || { supported: ["zh-Hans", "en"], chunks: {} };
 dataIndex.locales.content = { source: "data-content.js", sha256: sha256(fs.readFileSync(dataFile)) };
-fs.writeFileSync(dataIndexFile, `window.VIC3_DATA_INDEX = ${JSON.stringify(dataIndex)};\n`, "utf8");
+writeTextAtomically(dataIndexFile, `window.VIC3_DATA_INDEX = ${JSON.stringify(dataIndex)};\n`);
 const searchCounts = updateContentSearchIndex({ site, content: value });
 console.log(JSON.stringify({ victorian_century_content_site_data: "ok", dataFile: path.relative(root, dataFile), counts: dataIndex.chunks.content.counts, search_counts: searchCounts }, null, 2));
 
@@ -61,3 +61,4 @@ function readArg(name, fallback) {
   return index >= 0 ? process.argv[index + 1] || fallback : fallback;
 }
 function sha256(content) { return crypto.createHash("sha256").update(content).digest("hex"); }
+function writeTextAtomically(file, content) { const temporary = `${file}.${process.pid}.${Date.now()}.tmp`; fs.writeFileSync(temporary, content, "utf8"); try { fs.renameSync(temporary, file); } catch { fs.copyFileSync(temporary, file); fs.rmSync(temporary, { force: true }); } }
