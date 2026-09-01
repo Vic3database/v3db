@@ -606,6 +606,8 @@ window.VICDATA_UI_LOCALES.en = {
     "board.culture.incorporation.description": "Choose cultures, then start the map calculation",
     "map.cultureIncorporation.empty": "Select cultures",
     "map.cultureIncorporation.match": "Matching culture",
+    "map.cultureIncorporation.selected": "Selected cultures",
+    "map.cultureIncorporation.selected": "Selected cultures",
     "board.country.resultCount": "{count} countries",
     "board.country.none": "None",
     "board.country.empty": "No matching results.",

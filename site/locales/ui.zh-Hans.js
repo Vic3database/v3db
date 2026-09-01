@@ -606,6 +606,8 @@ window.VICDATA_UI_LOCALES["zh-Hans"] = {
     "board.culture.incorporation.description": "选择文化后启动地图计算",
     "map.cultureIncorporation.empty": "请选择文化",
     "map.cultureIncorporation.match": "命中文化",
+    "map.cultureIncorporation.selected": "选中文化",
+    "map.cultureIncorporation.selected": "选中文化",
     "board.country.resultCount": "{count} 个国家",
     "board.country.none": "无",
     "board.country.empty": "没有匹配结果。",

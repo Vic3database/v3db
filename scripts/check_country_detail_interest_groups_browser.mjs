@@ -24,6 +24,20 @@ try {
   assert.equal(state.panel, "ig_landowners", "requested interest group panel must be shown");
   assert.equal(state.potentialOpen, false, "potential flavor details must start collapsed");
   assert.match(await page.evaluate(() => document.querySelector(".country-interest-group-panel")?.innerText || ""), /开局生效/, "selected interest-group panel must show starting flavor status");
+  const chinaStatusLabels = await page.evaluate(() => [...document.querySelectorAll(".country-interest-group-status-badge[data-interest-group-status='flavor']")].map((node) => node.closest("[data-country-interest-group]")?.dataset.countryInterestGroup || ""));
+  assert.equal(chinaStatusLabels.includes("ig_petty_bourgeoisie"), false, "China petty bourgeoisie must not receive a flavor label");
+  assert.equal(chinaStatusLabels.includes("ig_rural_folk"), false, "China rural folk must not receive a flavor label");
+  assert.equal(chinaStatusLabels.includes("ig_trade_unions"), false, "China trade unions must not receive a flavor label");
+  assert.ok(chinaStatusLabels.includes("ig_landowners"), "China scholar officials must retain a flavor label");
+
+  await page.click(".country-interest-group-potential > summary");
+  const chinaPotential = await page.evaluate(() => document.querySelector(".country-interest-group-potential")?.innerText || "");
+  assert.doesNotMatch(chinaPotential, /大名|奥地利贵族/, "China must not show unrelated country-specific potential flavors");
+
+  await page.goto(`${baseUrl}?version=1.13.11&lang=zh-Hans#/country/JAP?tab=interest-groups&ig=ig_landowners`);
+  await page.click(".country-interest-group-potential > summary");
+  const japanPotential = await page.evaluate(() => document.querySelector(".country-interest-group-potential")?.innerText || "");
+  assert.match(japanPotential, /大名/, "Japan must show its country-specific potential flavor");
 
   await page.click("[data-country-interest-group='ig_devout']");
   await new Promise((resolve) => setTimeout(resolve, 500));

@@ -14,6 +14,8 @@ assert.match(presentation, /interestGroupVariants\(/, "country detail must reuse
 assert.match(presentation, /active_traits[\s\S]*active_ideologies/, "interest-group panel must show starting traits and ideologies");
 assert.match(presentation, /interestGroupStatusBadges/, "interest-group tabs must explain their status markers with text badges");
 assert.match(presentation, /data-interest-group-status="flavor"/, "interest-group tabs must label flavored groups");
+assert.match(presentation, /hasStartingFlavor: Boolean\(group\?\.display_name\?\.is_flavored\)/, "country interest-group flavor labels must require a flavored starting name");
+assert.doesNotMatch(presentation, /hasStartingFlavor: Boolean\(group\?\.display_name\?\.is_flavored \|\| group\?\.applied_rules/, "ordinary condition rules must not create a flavor label");
 assert.match(presentation, /vc\.badge\.adjusted/, "interest-group tabs must label Victorian Century adjustments");
 assert.match(presentation, /country-interest-group-tab-name/, "interest-group status labels must sit below the group name");
 assert.doesNotMatch(presentation, /country-interest-group-active-mark/, "interest-group tabs must not use unexplained dot markers");
@@ -21,5 +23,7 @@ assert.doesNotMatch(presentation, /country-interest-group-active-mark/, "interes
 const china = countryData.find((country) => country.tag === "CHI");
 assert.equal(china?.interest_groups?.length, 8, "China must expose all eight interest groups");
 assert.ok(interestGroupData.some((group) => (group.potential_flavors || []).length > 0), "interest-group data must include potential flavors");
+assert.ok(interestGroupData.flatMap((group) => group.potential_flavors || []).some((flavor) => Array.isArray(flavor.country_tags)), "potential flavors must retain applicable country tags");
+assert.match(fs.readFileSync("site/app/boards.js", "utf8"), /variant\.countryTags = .*flavor\.country_tags/, "interest-group variant normalization must retain applicable country tags");
 
 console.log("country_detail_interest_groups: ok");

@@ -337,6 +337,11 @@ function main() {
   const existingAtStartTags = new Set(countryRows
     .filter((row) => row.exists_at_start === "是")
     .map((row) => row.tag));
+  attachInterestGroupPotentialFlavorCountryTags(interestGroups, countryRows, {
+    cultures,
+    cultureTraits,
+    existingAtStartTags,
+  });
   const cultureRows = buildCultureRows(cultures, cultureTraits, cultureTraitGroups, relatedCountriesByCulture, stateRegionRows, loc, economyLoc);
   const cultureTraitRows = [...cultureTraits.values()].sort((a, b) => a.key.localeCompare(b.key));
   const cultureTraitGroupRows = [...cultureTraitGroups.values()].sort((a, b) => a.key.localeCompare(b.key));
@@ -4444,6 +4449,45 @@ function lawRef(key, laws, loc, metadata = {}) {
     source: metadata.source || "",
     source_detail: metadata.source_detail || "",
   };
+}
+
+function attachInterestGroupPotentialFlavorCountryTags(interestGroups, countryRows, { cultures, cultureTraits, existingAtStartTags }) {
+  const contexts = countryRows.map((row) => ({
+    tag: row.tag,
+    primaryCultureKeys: splitJoined(row.primary_cultures),
+    religion: row.religion,
+    cultures,
+    cultureTraits,
+    existingAtStartTags,
+  }));
+  for (const group of interestGroups || []) {
+    for (const flavor of group.potential_flavors || []) {
+      const countryTags = new Set();
+      for (const rule of flavor.rules || []) {
+        const raw = String(rule.condition_raw || "").trim();
+        const historyTag = raw ? "" : historyCountryTagFromSource(rule.source_file);
+        if (historyTag) {
+          countryTags.add(historyTag);
+          continue;
+        }
+        if (!raw || !interestGroupConditionHasCountryEvidence(raw)) continue;
+        const condition = parseScript(raw, `<interest-group-potential:${group.key}:${flavor.key}>`);
+        for (const context of contexts) {
+          if (evaluateInterestGroupCondition(condition, context) !== "false") countryTags.add(context.tag);
+        }
+      }
+      flavor.country_tags = [...countryTags].sort();
+    }
+  }
+}
+
+function historyCountryTagFromSource(sourceFile) {
+  const match = String(sourceFile || "").replaceAll("\\", "/").match(/\/([a-z0-9]{3})\s+-[^/]+\.txt$/i);
+  return match ? match[1].toUpperCase() : "";
+}
+
+function interestGroupConditionHasCountryEvidence(raw) {
+  return /\bc:[A-Z0-9]{3}\b|country_has_primary_culture|country_has_state_religion|has_discrimination_trait(?:_group)?\b/.test(raw);
 }
 
 function amendmentRef(key, amendments) {

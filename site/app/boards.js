@@ -808,6 +808,7 @@ function interestGroupVariants(group) {
     const variant = ensureVariant(flavor);
     if (!variant) continue;
     variant.isPotential = true;
+    variant.countryTags = [...new Set([...(variant.countryTags || []), ...(flavor.country_tags || [])])];
     for (const rule of flavor.rules || []) variant.rules.set(interestGroupRuleSignature(rule), rule);
     for (const trait of flavor.traits || []) {
       if (!trait?.key) continue;

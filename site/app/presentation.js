@@ -1227,7 +1227,7 @@ function countryInterestGroupTabs(country) {
       base,
       label: entityText(group?.display_name || group || base, "name", key),
       baseLabel: entityText(base || group, "name", key),
-      hasStartingFlavor: Boolean(group?.display_name?.is_flavored || group?.applied_rules?.some((rule) => rule?.condition_raw)),
+      hasStartingFlavor: Boolean(group?.display_name?.is_flavored),
       hasVcChange: Boolean(group?.vc_change_kind || base?.vc_change_kind),
       icon: group || base,
     };
@@ -1259,7 +1259,7 @@ function countryInterestGroupPanel(country, tab) {
   const group = tab.group;
   const base = tab.base;
   if (!group) return `<section class="country-interest-group-panel" data-country-interest-group-panel="${escapeHtml(tab.key)}"><p class="empty compact">${escapeHtml(t("board.country.noInterestGroupData", "该国家没有该利益集团的开局数据。"))}</p></section>`;
-  const potential = interestGroupVariants(base || group).filter((variant) => variant.isPotential);
+  const potential = interestGroupVariants(base || group).filter((variant) => variant.isPotential && (variant.country_tags || variant.countryTags || []).includes(country.tag));
   const changes = [
     (group.added_ideologies || []).length ? field(t("board.ideology.added", "新增"), ideologyPills(group.added_ideologies, "tag-ig-added")) : "",
     (group.removed_ideologies || []).length ? field(t("board.ideology.removed", "移除"), ideologyPills(group.removed_ideologies, "tag-ig-removed")) : "",
