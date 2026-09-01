@@ -9,7 +9,7 @@
   background: var(--panel-glass-strong);
 }
 
-.country-detail-overview .field {
+.country-overview-card {
   min-width: 0;
   padding: 8px 9px;
   border: 1px solid rgba(112, 172, 222, 0.25);
@@ -17,15 +17,22 @@
   background: rgba(27, 49, 64, 0.7);
 }
 
-.country-detail-overview .field dt {
+.country-overview-label {
+  display: block;
   color: var(--muted);
   font-size: var(--text-xs);
 }
 
-.country-detail-overview .field dd {
+.country-overview-value {
   min-width: 0;
   margin-top: 4px;
   overflow-wrap: anywhere;
+}
+
+.country-overview-value .link-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
 }
 
 .country-detail-tabs {
@@ -153,13 +160,24 @@
   background: var(--panel-glass-strong);
 }
 
-.country-diplomacy-record > span {
+.country-diplomacy-target {
   min-width: 0;
+}
+
+.country-diplomacy-kind {
+  flex: 0 0 auto;
+  max-width: 54%;
+  color: var(--ink-muted);
+  text-align: right;
   overflow-wrap: anywhere;
 }
 
-.country-diplomacy-record .link-list {
-  flex: 0 0 auto;
+.country-diplomacy-kind.is-positive {
+  color: #a9d68a;
+}
+
+.country-diplomacy-kind.is-negative {
+  color: #d79b83;
 }
 
 .country-flavor-tabs {
@@ -328,4 +346,14 @@
   }
 
   .country-starting-technology-categories { grid-template-columns: 1fr; }
+
+  .country-diplomacy-record {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .country-diplomacy-kind {
+    max-width: 100%;
+    text-align: left;
+  }
 }

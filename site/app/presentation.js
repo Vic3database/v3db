@@ -1001,13 +1001,17 @@ function countryDetailTabs() {
 function countryDetailOverview(country, primaryCultureNames = []) {
   const capital = country.capital ? byStateRegion.get(country.capital) || { key: country.capital, id: `state_region:${country.capital}` } : null;
   return `<section class="country-detail-overview" aria-label="${escapeHtml(t("board.country.overview", "国家概览"))}">
-    ${field(t("board.country.type", "国家类型"), tagPill(countryTypeTagLabel(country), "tag-type"))}
-    ${field(t("board.country.tier", "国家位阶"), tagPill(countryTierLabel(country.tier), "tag-tier"))}
-    ${field(t("board.country.capital", "首都"), stateRegionLinks(capital ? [capital] : []))}
-    ${field(t("board.country.primaryCulture", "主流文化"), linkedTerms(country.primaryCultures, primaryCultureNames, "culture"))}
-    ${field(t("board.country.religion", "宗教"), linkedTerms([country.religion], [entityText(country.religion)], "religion") + sourceSuffix(country.religionSource))}
-    ${field(t("board.country.standardColor", "标准色"), colorValue(country.colorHex, country.colorRgb))}
+    ${countryOverviewCard(t("board.country.type", "国家类型"), tagPill(countryTypeTagLabel(country), "tag-type"))}
+    ${countryOverviewCard(t("board.country.tier", "国家位阶"), tagPill(countryTierLabel(country.tier), "tag-tier"))}
+    ${countryOverviewCard(t("board.country.capital", "首都"), stateRegionLinks(capital ? [capital] : []))}
+    ${countryOverviewCard(t("board.country.primaryCulture", "主流文化"), linkedTerms(country.primaryCultures, primaryCultureNames, "culture"))}
+    ${countryOverviewCard(t("board.country.religion", "宗教"), linkedTerms([country.religion], [entityText(country.religion)], "religion") + sourceSuffix(country.religionSource))}
+    ${countryOverviewCard(t("board.country.standardColor", "标准色"), colorValue(country.colorHex, country.colorRgb))}
   </section>`;
+}
+
+function countryOverviewCard(label, value) {
+  return `<div class="country-overview-card"><span class="country-overview-label">${escapeHtml(label)}</span><div class="country-overview-value">${value || `<span class="empty">${escapeHtml(t("ui.none"))}</span>`}</div></div>`;
 }
 
 function countryDetailTabContent(country, tab) {
@@ -1073,17 +1077,14 @@ function countryDetailDiplomacyContent(country) {
 
 function countryDiplomacyRecordHtml(item) {
   const target = byTag.get(item.targetTag) || { tag: item.targetTag };
-  const label = countryRefLabel(target);
-  const details = item.type === "subject"
-    ? t(item.subjectRole === "subject" ? "board.country.diplomacy.subjectOf" : "board.country.diplomacy.overlordOf", item.subjectRole === "subject" ? "隶属于 {target}（{type}）" : "拥有 {target}（{type}）", { target: label, type: countryDiplomacyTypeLabel(item.subjectType) })
-      : item.type === "pact"
-      ? `${label}（${countryDiplomacyTypeLabel(item.pactType)}）`
-      : item.type === "relation"
-        ? `${label}（${item.value > 0 ? "+" : ""}${item.value}）`
-        : item.type === "truce"
-          ? `${label}（${t("board.country.diplomacy.months", "{value} 个月", { value: item.months })}）`
-          : label;
-  return `<div class="country-diplomacy-record"><span>${escapeHtml(details)}</span>${countryLinks([item.targetTag])}</div>`;
+  const targetLink = countryLinks([item.targetTag]);
+  const relation = item.type === "subject"
+    ? `${item.subjectRole === "subject" ? t("board.country.diplomacy.subjectRole", "附属国") : t("board.country.diplomacy.overlordRole", "宗主国")} · ${countryDiplomacyTypeLabel(item.subjectType)}`
+      : item.type === "pact" ? countryDiplomacyTypeLabel(item.pactType)
+      : item.type === "relation" ? `${t("board.country.diplomacy.relationValue", "关系值")} ${item.value > 0 ? "+" : ""}${item.value}`
+        : item.type === "truce" ? t("board.country.diplomacy.months", "{value} 个月", { value: item.months }) : "";
+  const valueClass = item.type === "relation" ? (item.value >= 0 ? " is-positive" : " is-negative") : "";
+  return `<div class="country-diplomacy-record"><div class="country-diplomacy-target">${targetLink}</div><span class="country-diplomacy-kind${valueClass}">${escapeHtml(relation)}</span></div>`;
 }
 
 function countryDiplomacyTypeLabel(key) {

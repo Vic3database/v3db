@@ -26,11 +26,28 @@ try {
   assert.match(china.text, /附属关系|关系值/, "China diplomacy headings must render");
   assert.match(china.text, /西藏|朝鲜/, "China diplomacy targets must render localized names or labels");
   assert.ok(china.records >= 5, "China diplomacy records must render");
+  const chinaLayout = await page.evaluate(() => ({
+    records: [...document.querySelectorAll(".country-diplomacy-record")].slice(0, 3).map((node) => ({ width: node.getBoundingClientRect().width, target: node.querySelector(".country-diplomacy-target")?.getBoundingClientRect().width || 0, kind: node.querySelector(".country-diplomacy-kind")?.getBoundingClientRect().width || 0 })),
+    overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  }));
+  assert.ok(chinaLayout.records.every((item) => item.width > item.target && item.width > item.kind), "diplomacy cards must keep target and metadata inside the card");
+  assert.ok(chinaLayout.overflow <= 1, `diplomacy detail must not overflow horizontally: ${JSON.stringify(chinaLayout)}`);
 
   await page.goto(`${baseUrl}?version=1.13.11&lang=zh-Hans#/country/GBR?tab=diplomacy`);
   const britain = await page.evaluate(() => document.querySelector("[data-country-detail-panel]")?.innerText || "");
   assert.match(britain, /宿敌/, "Great Britain diplomacy must show rivalries");
   assert.match(britain, /俄罗斯/, "Great Britain rivalry target must render");
+
+  await page.setViewport({ width: 442, height: 844 });
+  await page.goto(`${baseUrl}?version=1.13.11&lang=zh-Hans#/country/ALK?tab=diplomacy`);
+  const mobile = await page.evaluate(() => ({
+    overviewCards: document.querySelectorAll(".country-overview-card").length,
+    record: document.querySelector(".country-diplomacy-record")?.innerText || "",
+    overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  }));
+  assert.equal(mobile.overviewCards, 6, "mobile country overview must keep six cards");
+  assert.match(mobile.record, /宗主国|俄罗斯/, "Alaska diplomacy card must keep its relationship content");
+  assert.ok(mobile.overflow <= 1, `mobile country detail must not overflow horizontally: ${JSON.stringify(mobile)}`);
 
   await page.goto(`${baseUrl}?version=1.13.11&lang=zh-Hans#/country/ABK?tab=diplomacy`);
   const empty = await page.evaluate(() => document.querySelector("[data-country-detail-panel]")?.innerText || "");
@@ -50,6 +67,7 @@ async function openPage(viewport) {
   await session.send("Runtime.enable");
   await session.send("Emulation.setDeviceMetricsOverride", { width: viewport.width, height: viewport.height, deviceScaleFactor: 1, mobile: false });
   return {
+    async setViewport(next) { await session.send("Emulation.setDeviceMetricsOverride", { width: next.width, height: next.height, deviceScaleFactor: 1, mobile: false }); },
     async goto(url) {
       const response = await session.send("Page.navigate", { url });
       if (response.error) throw new Error(`Page.navigate: ${response.error.message}`);
