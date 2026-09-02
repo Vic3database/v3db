@@ -653,7 +653,10 @@ function bindPrimaryListEvents() {
     }
     if (event.target.closest("a, button, [data-concept-key]")) return;
     const row = event.target.closest("[data-country], [data-state-region]");
-    if (row && els.countryList.contains(row)) selectRow(row);
+    if (row && els.countryList.contains(row)) {
+      if (row.dataset.country) openCountryDetail(row.dataset.country);
+      else selectRow(row);
+    }
   });
   els.countryList?.addEventListener("keydown", (event) => {
     if (event.key !== "Enter" && event.key !== " ") return;
@@ -661,7 +664,8 @@ function bindPrimaryListEvents() {
     const row = event.target.closest("[data-country], [data-state-region]");
     if (!row || !els.countryList.contains(row)) return;
     event.preventDefault();
-    selectRow(row);
+    if (row.dataset.country) openCountryDetail(row.dataset.country);
+    else selectRow(row);
   });
 }
 

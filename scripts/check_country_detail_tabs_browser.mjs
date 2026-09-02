@@ -16,6 +16,11 @@ const chrome = spawn(chromePath, [
 
 try {
   const page = await openPage({ width: 1440, height: 900 });
+  await page.goto(`${baseUrl}?version=1.13.11&lang=zh-Hans#/country`);
+  await page.click("[data-country] .name");
+  assert.equal(await page.evaluate(() => location.hash), "#/country/ABK", "clicking a country card name must open the country detail route");
+  assert.equal(await page.evaluate(() => document.body.classList.contains("detail-page")), true, "clicking a country card name must open the detail page");
+
   await page.goto(`${baseUrl}?version=1.13.11&lang=zh-Hans#/country/CHI`);
   const desktop = await page.evaluate(() => ({
     view: document.body.dataset.view,
