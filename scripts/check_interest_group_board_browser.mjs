@@ -54,6 +54,18 @@ try {
       return;
     }
     if (options.victorianCenturyFlavorsOnly) {
+      if (options.catholicOnly) {
+        const catholic = await checkVictorianCenturyCatholicFlavors(desktop, server.url);
+        const collisions = await checkVictorianCenturyFlavorCollisions(desktop, server.url);
+        console.log(JSON.stringify({
+          victorian_century_catholic_flavors_browser: "ok",
+          siteRoot: options.siteRoot,
+          catholic,
+          collisions,
+        }, null, 2));
+        await desktop.close();
+        return;
+      }
       const homeInterestGroupEntry = await checkHomeInterestGroupEntry(desktop, server.url);
       const victorianCenturyFlavors = await checkVictorianCenturyFlavorGroups(desktop, server.url);
       const flavorPage = await checkInterestGroupFlavorPage(desktop, server.url);
@@ -150,6 +162,7 @@ function browserCheckOptions(root) {
     siteRoot,
     englishIdeologyLabelsOnly: args.includes("--english-ideology-labels-only"),
     victorianCenturyFlavorsOnly: args.includes("--victorian-century-flavors-only"),
+    catholicOnly: args.includes("--catholic-only"),
     religionOnly: args.includes("--religion-only"),
   };
 }
@@ -775,7 +788,90 @@ async function checkVictorianCenturyFlavorGroups(page, baseUrl) {
   const landownerNamed = landowners.find((group) => group.label === '\u98ce\u5473\u540d\u79f0');
   assert.ok(landownerNamed?.options.includes('\u5965\u5730\u5229\u8d35\u65cf'), `VC flavored names must include Austrian Aristocracy: ${JSON.stringify(landowners)}`);
   assert.ok(landownerNamed?.options.includes('\u534e\u65cf'), `VC flavored names must include Kazoku: ${JSON.stringify(landowners)}`);
-  return { armedForces, landowners };
+  const catholic = await checkVictorianCenturyCatholicFlavors(page, baseUrl);
+  return { armedForces, landowners, catholic };
+}
+
+async function checkVictorianCenturyCatholicFlavors(page, baseUrl) {
+  await navigateAndWait(page, `${baseUrl}/index.html?lang=zh-Hans#/interest-group/ig_devout`, () => (
+    document.body.dataset.view === 'interest-group' && Boolean(document.querySelector('.interest-group-devout-religion-legend'))
+  ));
+  const catholic = await page.evaluate(`(() => {
+    const row = [...document.querySelectorAll('.interest-group-devout-religion-row')]
+      .find((node) => node.querySelector('.interest-group-devout-religion-name')?.textContent?.trim() === '\u5929\u4e3b\u6559');
+    return {
+      flavors: [...(row?.querySelectorAll('.interest-group-devout-religion-flavors a') || [])]
+        .map((link) => ({
+          name: link.textContent?.trim() || '',
+          href: link.getAttribute('href') || '',
+        })),
+    };
+  })()`);
+  assert.deepEqual(catholic.flavors.map((flavor) => flavor.href), [
+    '#/interest-group/ig_devout/flavor/ig_roman_curia',
+    '#/interest-group/ig_devout/flavor/ig_catholic_church',
+    '#/interest-group/ig_devout/flavor/ig_catholic_church%3Aig_trait_daughter_of_god%7Cig_trait_moral_blasphemy%7Cig_trait_secularism',
+    '#/interest-group/ig_devout/flavor/ig_catholic_church%3Aig_trait_land_of_peace%7Cig_trait_sancti_et_dilecti%7Cig_trait_supplication_prayer',
+    '#/interest-group/ig_devout/flavor/ig_catholic_church%3Aig_trait_faith_in_chains%7Cig_trait_jihad%7Cig_trait_words_remain',
+    '#/interest-group/ig_devout/flavor/ig_catholic_church%3Aig_trait_abbey_system%7Cig_trait_dios_patria_rey%7Cig_trait_pious_fiction',
+  ], `VC Catholic navigation must retain all source flavor variants: ${JSON.stringify(catholic)}`);
+  assert.ok(catholic.flavors.every((flavor) => flavor.name === '\u5929\u4e3b\u6559\u4f1a' || flavor.name === '\u7f57\u9a6c\u6559\u5ef7'), `VC Catholic flavor labels must remain localized: ${JSON.stringify(catholic)}`);
+  for (const flavor of catholic.flavors) {
+    await navigateAndWait(page, `${baseUrl}/index.html?lang=zh-Hans${flavor.href}`, () => (
+      document.body.dataset.view === 'interest-group'
+        && Boolean(document.querySelector('.interest-group-flavor-page'))
+    ));
+    const detail = await page.evaluate(`({
+      heading: document.querySelector('.interest-group-flavor-page .interest-group-detail-heading h2')?.textContent?.trim() || '',
+      key: document.querySelector('.interest-group-flavor-page .interest-group-detail-heading .minor')?.textContent?.trim() || '',
+    })`);
+    assert.equal(detail.key, decodeURIComponent(flavor.href.split('/flavor/')[1]), `VC Catholic flavor detail must preserve its route key: ${JSON.stringify({ flavor, detail })}`);
+    assert.ok(detail.heading.includes(flavor.name), `VC Catholic flavor detail must show its localized name: ${JSON.stringify({ flavor, detail })}`);
+  }
+  return catholic;
+}
+
+async function checkVictorianCenturyFlavorCollisions(page, baseUrl) {
+  const audit = await page.evaluate(`(() => {
+    const signature = (group) => [
+      ...(group.active_traits || []).map((item) => item.key).filter(Boolean).sort(),
+      '::',
+      ...(group.active_ideologies || []).map((item) => item.key).filter(Boolean).sort(),
+    ].join('|');
+    const sourceGroups = new Map();
+    for (const country of countries || []) {
+      for (const group of country.interestGroups || []) {
+        if (!group.display_name?.is_flavored) continue;
+        const key = group.key + ':' + (group.display_name.key || group.key);
+        const row = sourceGroups.get(key) || new Map();
+        const sourceSignature = signature(group);
+        row.set(sourceSignature, [...(row.get(sourceSignature) || []), country.tag]);
+        sourceGroups.set(key, row);
+      }
+    }
+    return [...sourceGroups.entries()]
+      .filter(([, variants]) => variants.size > 1)
+      .map(([key, variants]) => {
+        const [groupKey, displayKey] = key.split(':');
+        const group = byInterestGroup.get(groupKey);
+        const renderedKeys = new Set([displayKey]);
+        if (groupKey === 'ig_devout' && displayKey === 'ig_sunni_madrasahs') renderedKeys.add('ig_sunni_madrasahs_turkey');
+        const rendered = interestGroupVariants(group).filter((item) => renderedKeys.has(item.key) || item.key.startsWith(displayKey + ':'));
+        const renderedByCountry = new Map();
+        for (const item of rendered) {
+          for (const tag of item.countries || []) renderedByCountry.set(tag, item.key);
+        }
+        const missing = [...variants.values()].flatMap((tags) => tags.filter((tag) => !renderedByCountry.has(tag)));
+        const mixed = rendered.filter((item) => {
+          const tags = new Set(item.countries || []);
+          return [...variants.values()].filter((sourceTags) => sourceTags.some((tag) => tags.has(tag))).length > 1;
+        }).map((item) => item.key);
+        return { key, sourceSignatures: variants.size, renderedVariants: rendered.map((item) => item.key), missing, mixed };
+      });
+  })()`);
+  assert.ok(audit.length > 0, `VC flavor collision audit must find source cases: ${JSON.stringify(audit)}`);
+  assert.ok(audit.every((item) => item.missing.length === 0 && item.mixed.length === 0), `VC flavor collision audit found collapsed variants: ${JSON.stringify(audit)}`);
+  return audit.map((item) => ({ key: item.key, sourceSignatures: item.sourceSignatures, renderedVariants: item.renderedVariants }));
 }
 
 async function readArmedForcesFinalEffectGroups(page) {

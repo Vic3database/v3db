@@ -605,6 +605,13 @@ function interestGroupDevoutReligionName(key) {
   return t(`religion.name.${key}`, interestGroupDevoutReligionNames[key] || key);
 }
 
+function interestGroupDevoutReligionForVariantKey(key) {
+  const variantKey = String(key || "");
+  return interestGroupDevoutReligion[variantKey]
+    || interestGroupDevoutReligion[variantKey.split(":", 1)[0]]
+    || "";
+}
+
 const interestGroupDevoutReligionIcon = {
   oriental_orthodox: "coptic", orthodox: "orthodox", catholic: "catholic", protestant: "protestant", sunni: "sunni",
   shiite: "shiite", ibadi: "ibadi", jewish: "jewish", mahayana: "mahayana", gelugpa: "gelugpa", theravada: "theravada",
@@ -667,7 +674,7 @@ function interestGroupDevoutReligionLegendHtml(optionGroups) {
 }
 
 function interestGroupFlavorCategory(groupKey, variant) {
-  if (groupKey === "ig_devout" && interestGroupDevoutReligion[variant.key]) return "religion";
+  if (groupKey === "ig_devout" && interestGroupDevoutReligionForVariantKey(variant.key)) return "religion";
   if (variant.isConditionVariant) return "condition";
   if (variant.isTraitOnly) return "country";
   if (interestGroupUsesScriptedRenameCategory() && interestGroupIsScriptedRename(variant)) return "scripted";
@@ -687,7 +694,7 @@ function interestGroupUsesScriptedRenameCategory() {
 
 function interestGroupFlavorOrder(groupKey, variant) {
   if (groupKey === "ig_devout") {
-    const religion = interestGroupDevoutReligion[variant.key] || "";
+    const religion = interestGroupDevoutReligionForVariantKey(variant.key);
     const religionOrder = interestGroupDevoutReligionOrder.indexOf(religion);
     return religionOrder < 0 ? Number.MAX_SAFE_INTEGER : religionOrder;
   }
@@ -701,6 +708,38 @@ function interestGroupVariants(group) {
   const baseTraitSignature = interestGroupTraitSignature(group?.base_traits);
   const baseIdeologySignature = interestGroupIdeologySignature(group?.ideologies);
   const variants = new Map();
+  const flavoredDisplaySignatures = new Map();
+  const flavoredDisplayCanonicalSignatures = new Map();
+  const flavoredDisplayTraitIdeologySignatures = new Map();
+  for (const country of countries || []) {
+    for (const countryGroup of country.interestGroups || []) {
+      if (countryGroup.key !== groupKey || !countryGroup.display_name?.is_flavored) continue;
+      const displayKey = countryGroup.display_name.key || countryGroup.key;
+      const signature = interestGroupCountryVariantKey(groupKey, countryGroup.active_traits || [], countryGroup.active_ideologies || []);
+      const signatures = flavoredDisplaySignatures.get(displayKey) || new Set();
+      signatures.add(signature);
+      flavoredDisplaySignatures.set(displayKey, signatures);
+      if (!flavoredDisplayCanonicalSignatures.has(displayKey)) flavoredDisplayCanonicalSignatures.set(displayKey, signature);
+      const traitSignature = interestGroupTraitSignature(countryGroup.active_traits || []);
+      const ideologySignatures = flavoredDisplayTraitIdeologySignatures.get(displayKey) || new Map();
+      const ideologySet = ideologySignatures.get(traitSignature) || new Set();
+      ideologySet.add(interestGroupIdeologySignature(countryGroup.active_ideologies || []));
+      ideologySignatures.set(traitSignature, ideologySet);
+      flavoredDisplayTraitIdeologySignatures.set(displayKey, ideologySignatures);
+    }
+  }
+  const flavoredVariantKey = (display, activeTraits, activeIdeologies) => {
+    const displayKey = display?.key || groupKey;
+    const signatures = flavoredDisplaySignatures.get(displayKey);
+    if (!display?.is_flavored || !signatures || signatures.size <= 1) return displayKey;
+    const traitSignature = interestGroupTraitSignature(activeTraits);
+    const ideologySignature = interestGroupIdeologySignature(activeIdeologies);
+    if (interestGroupCountryVariantKey(groupKey, activeTraits, activeIdeologies) === flavoredDisplayCanonicalSignatures.get(displayKey)) return displayKey;
+    const devoutIdeologySignatures = flavoredDisplayTraitIdeologySignatures.get(displayKey)?.get(traitSignature);
+    return groupKey === "ig_devout"
+      ? `${displayKey}:${traitSignature}${devoutIdeologySignatures?.size > 1 ? `:${ideologySignature}` : ""}`
+      : `${displayKey}:${traitSignature}:${ideologySignature}`;
+  };
   const ensureVariant = (source) => {
     const key = source?.key || "";
     if (!key) return null;
@@ -779,7 +818,7 @@ function interestGroupVariants(group) {
         && display?.key === "ig_sunni_madrasahs";
       const displaySource = isTurkeySunni ? { ...display, key: "ig_sunni_madrasahs_turkey", name: "逊尼派乌理玛（土耳其）" } : display;
       const variant = ensureVariant(displaySource?.is_flavored
-        ? displaySource
+        ? { ...displaySource, key: flavoredVariantKey(displaySource, activeTraits, activeIdeologies) }
         : {
           key: `country-variant:${interestGroupCountryVariantKey(groupKey, activeTraits, activeIdeologies)}`,
           name: "",
@@ -805,7 +844,13 @@ function interestGroupVariants(group) {
   }
   applyArmedForcesConditionFlavorGrouping(groupKey, variants);
   for (const flavor of group?.potential_flavors || []) {
-    const variant = ensureVariant(flavor);
+    const potentialTraitSignature = interestGroupTraitSignature(flavor.traits || []);
+    const potentialIdeologySignature = interestGroupIdeologySignature(flavor.ideologies || []);
+    const variant = variants.get(flavor.key) || [...variants.values()].find((candidate) => (
+      candidate.key.startsWith(`${flavor.key}:`)
+      && interestGroupTraitSignature([...candidate.traits.keys()].map((key) => ({ key }))) === potentialTraitSignature
+      && interestGroupIdeologySignature([...candidate.ideologies.values()]) === potentialIdeologySignature
+    )) || ensureVariant(flavor);
     if (!variant) continue;
     variant.isPotential = true;
     variant.countryTags = [...new Set([...(variant.countryTags || []), ...(flavor.country_tags || [])])];
@@ -956,7 +1001,7 @@ function interestGroupFlavorOptions(group, variants) {
       isConditionVariant: Boolean(variant.isConditionVariant),
       isPotential: Boolean(variant.isPotential),
       category: interestGroupFlavorCategory(group.key, variant),
-      religion: group.key === "ig_devout" ? interestGroupDevoutReligion[variant.key] || "" : "",
+      religion: group.key === "ig_devout" ? interestGroupDevoutReligionForVariantKey(variant.key) : "",
       isBase: false,
     })),
   ];
