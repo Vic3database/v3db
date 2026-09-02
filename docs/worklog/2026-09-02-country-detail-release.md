@@ -29,3 +29,9 @@
 补齐整合时长计算器的 `map.cultureIncorporation.selected` 中英文界面文本，并同步主站、Victorian Century 独立站和 `site/vc`。严格界面本地化检查、相关中英文浏览器检查、发布包检查和独立站检查通过；公网入口与英文语言包检查通过。
 
 本地新增提交为 `142a8853`，服务器已于 2026-09-02 切换至本地化修复版本，回退目录为 `/var/www/vicdata/site.previous-20260902-064539`。GitHub 推送期间连接两次中断，`origin/main` 当前仍落后本地两个提交，未影响服务器发布。
+
+## 2026-09-02 公告补发
+
+检查发现国家详情更新公告未进入公网版本。已在 `announcements.md` 新增 2026-09-02 公告，并重新生成 `site/announcement-data.js`。公告检查和发布包检查通过，提交为 `ab480f56`。
+
+服务器已于 2026-09-02 切换公告版本，回退目录为 `/var/www/vicdata/site.previous-20260902-171433`。公网首页、公告数据文件和 VC 首页均返回 HTTP 200，公网公告内容已包含国家详情更新。GitHub 推送连续失败，`origin/main` 当前落后本地 4 个提交。
