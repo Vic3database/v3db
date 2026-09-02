@@ -17,6 +17,11 @@ const chrome = spawn(chromePath, [
 try {
   const page = await openPage({ width: 1440, height: 900 });
   await page.goto(`${baseUrl}?version=1.13.11&lang=zh-Hans#/country`);
+  assert.match(
+    await page.evaluate(() => [...document.scripts].find((script) => script.src.includes("/app/ui.js"))?.src || ""),
+    /app\/ui\.js\?v=20260902-country-card-detail1$/,
+    "country interaction script must use the current cache-busting version",
+  );
   await page.click("[data-country] .name");
   assert.equal(await page.evaluate(() => location.hash), "#/country/ABK", "clicking a country card name must open the country detail route");
   assert.equal(await page.evaluate(() => document.body.classList.contains("detail-page")), true, "clicking a country card name must open the detail page");

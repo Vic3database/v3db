@@ -73,6 +73,7 @@ for (const relative of ["index.html", "data-index.js", "map-data.js", "victorian
 
 const html = fs.readFileSync(htmlFile, "utf8");
 const publishedHtml = fs.readFileSync(path.join(publishedRoot, "index.html"), "utf8");
+const sourceHtml = fs.readFileSync(path.join(root, "site", "index.html"), "utf8");
 const standaloneFilters = fs.readFileSync(path.join(siteRoot, "app", "filters.js"), "utf8");
 const publishedFilters = fs.readFileSync(path.join(publishedRoot, "app", "filters.js"), "utf8");
 assert.match(html, /<title>Victorian Century Database<\/title>/, "page title must identify Victorian Century");
@@ -90,6 +91,12 @@ assert.doesNotMatch(html, /data-nav-view="content"|app\/content\.js/, "standalon
 assert(!fs.existsSync(path.join(siteRoot, "app", "content.js")), "standalone site must remove the legacy content renderer");
 assert.match(html, /app\/filters\.js\?v=20260818-company-filter-exclusions1/, "standalone VC page must load the company-filter exclusion release");
 assert.match(publishedHtml, /app\/filters\.js\?v=20260818-company-filter-exclusions1/, "published VC page must load the company-filter exclusion release");
+const sourceUiVersion = sourceHtml.match(/app\/ui\.js\?v=([^\"']+)/)?.[1] || "";
+const standaloneUiVersion = html.match(/app\/ui\.js\?v=([^\"']+)/)?.[1] || "";
+const publishedUiVersion = publishedHtml.match(/app\/ui\.js\?v=([^\"']+)/)?.[1] || "";
+assert.ok(sourceUiVersion, "main page must expose a UI script cache version");
+assert.equal(standaloneUiVersion, sourceUiVersion, "standalone VC UI script cache version must match the main page");
+assert.equal(publishedUiVersion, sourceUiVersion, "published VC UI script cache version must match the main page");
 const standaloneStylesheetVersion = html.match(/href="styles\.css\?v=([^\"']+)/)?.[1] || "";
 const publishedStylesheetVersion = publishedHtml.match(/href="styles\.css\?v=([^\"']+)/)?.[1] || "";
 assert.ok(standaloneStylesheetVersion, "standalone VC stylesheet must expose a cache version");
