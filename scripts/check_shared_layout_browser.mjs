@@ -27,16 +27,18 @@ try {
 
   const tag = await page.evaluate(() => document.querySelector("#countryList [data-country]")?.dataset.country || "");
   await page.evaluate((countryTag) => document.querySelector(`[data-country="${CSS.escape(countryTag)}"]`)?.click(), tag);
-  await page.waitFor((countryTag) => window.eval("state.selectedTag") === countryTag && location.hash === "#/country", "country selection", tag);
+  await page.waitFor((countryTag) => window.eval("state.selectedTag") === countryTag && location.hash === `#/country/${encodeURIComponent(countryTag)}` && document.body.classList.contains("detail-page"), "country card detail entry", tag);
   const selected = await page.evaluate((countryTag) => ({
     tag: window.eval("state.selectedTag"),
-    pressed: document.querySelector(`[data-country="${CSS.escape(countryTag)}"]`)?.getAttribute("aria-pressed"),
+    detail: location.hash === `#/country/${encodeURIComponent(countryTag)}`,
     detailPage: document.body.classList.contains("detail-page"),
   }), tag);
   assert.equal(selected.tag, tag, "country card click must select the country");
-  assert.equal(selected.pressed, "true", "selected country card must expose pressed state");
-  assert.equal(selected.detailPage, false, "country card click must not open detail");
+  assert.equal(selected.detail, true, "country card click must open country detail");
+  assert.equal(selected.detailPage, true, "country card click must enter detail mode");
 
+  await page.click("[data-detail-back='country']");
+  await page.waitFor(() => location.hash === "#/country" && !document.body.classList.contains("detail-page"), "return to country list");
   await page.evaluate((countryTag) => document.querySelector(`[data-country="${CSS.escape(countryTag)}"] [data-map-enter-tag]`)?.click(), tag);
   await page.waitFor((countryTag) => location.hash === `#/country/${encodeURIComponent(countryTag)}` && document.body.classList.contains("detail-page"), "country detail entry", tag);
 

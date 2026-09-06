@@ -1259,39 +1259,98 @@ function countryInterestGroupPanel(country, tab) {
   const group = tab.group;
   const base = tab.base;
   if (!group) return `<section class="country-interest-group-panel" data-country-interest-group-panel="${escapeHtml(tab.key)}"><p class="empty compact">${escapeHtml(t("board.country.noInterestGroupData", "该国家没有该利益集团的开局数据。"))}</p></section>`;
-  const potential = interestGroupVariants(base || group).filter((variant) => variant.isPotential && (variant.country_tags || variant.countryTags || []).includes(country.tag));
-  const changes = [
-    (group.added_ideologies || []).length ? field(t("board.ideology.added", "新增"), ideologyPills(group.added_ideologies, "tag-ig-added")) : "",
-    (group.removed_ideologies || []).length ? field(t("board.ideology.removed", "移除"), ideologyPills(group.removed_ideologies, "tag-ig-removed")) : "",
-    group.display_name?.is_flavored ? field(t("board.ideology.flavorName", "风味名"), tagPill(entityText(group.display_name), "tag-ig-changed")) : "",
-  ].filter(Boolean).join("");
+  const activeFlavorKey = group.display_name?.is_flavored ? group.display_name.key : "";
+  const variants = interestGroupVariants(base || group);
+  const startingFlavor = countryInterestGroupStartingFlavor(group, variants.find((variant) => variant.key === activeFlavorKey));
+  const potential = variants.filter((variant) => variant.isPotential && variant.key !== activeFlavorKey && (variant.country_tags || variant.countryTags || []).includes(country.tag));
   return `<section class="country-interest-group-panel" data-country-interest-group-panel="${escapeHtml(tab.key)}">
-    <div class="country-interest-group-panel-head"><div><h4>${escapeHtml(entityText(group.display_name || group, "name", tab.label))}</h4><span class="minor">${escapeHtml(tab.baseLabel || tab.label)}</span></div><div class="country-interest-group-panel-actions"><a class="country-interest-group-detail-link" href="#/interest-group/${encodeURIComponent(tab.key)}">${escapeHtml(t("board.country.openInterestGroup", "集团详情"))}</a><span class="tag tag-ig-added">${escapeHtml(t("board.country.startingFlavor", "开局生效"))}</span></div></div>
-    <dl class="field-grid">
-      ${field(t("board.ideology.traits", "特质"), interestGroupTraitSlotListHtml(group.active_traits || []))}
-      ${field(t("board.ideology.title", "意识形态"), ideologyPills(group.active_ideologies || [], "tag-muted"))}
-      ${changes}
-      ${field(t("board.ideology.rules", "规则"), interestGroupRuleSummary(group.applied_rules))}
-    </dl>
-    ${interestGroupRuleDetails(group.applied_rules)}
-    <details class="country-interest-group-potential">
-      <summary>${escapeHtml(t("board.country.potentialFlavors", "潜在风味"))} <span class="minor">${escapeHtml(t("board.country.potentialFlavorCount", "{count} 项", { count: localizedNumber(potential.length) }))}</span></summary>
-      <div class="country-interest-group-potential-list">${potential.length ? potential.map(countryPotentialInterestGroupFlavorHtml).join("") : `<p class="empty compact">${escapeHtml(t("board.country.noPotentialFlavors", "没有可识别的潜在风味。"))}</p>`}</div>
-    </details>
+    <div class="country-interest-group-panel-head"><div><h4>${escapeHtml(tab.baseLabel || tab.label)}</h4></div><div class="country-interest-group-panel-actions"><a class="country-interest-group-detail-link" href="#/interest-group/${encodeURIComponent(tab.key)}">${escapeHtml(t("board.country.openInterestGroup", "集团详情"))}</a><span class="country-interest-group-flavor-count" data-country-interest-group-flavor-count>${escapeHtml(t("board.country.potentialFlavorCountLabel", { count: localizedNumber(potential.length) }))}</span></div></div>
+    <div class="country-interest-group-flavor-list" data-country-interest-group-flavor-list>
+      ${startingFlavor ? countryInterestGroupFlavorCardHtml(startingFlavor, "starting") : ""}
+      ${potential.map((variant) => countryInterestGroupFlavorCardHtml(variant, "potential")).join("") || (!startingFlavor ? `<p class="empty compact">${escapeHtml(t("board.country.noInterestGroupFlavors", "没有风味数据。"))}</p>` : "")}
+    </div>
   </section>`;
 }
 
+function countryInterestGroupStartingFlavor(group, variant) {
+  return {
+    ...(variant || {}),
+    key: group.display_name?.key || group.key,
+    name: entityText(group.display_name || group),
+    traits: (group.active_traits || []).map((trait) => ({ trait, countries: [] })),
+    ideologies: group.active_ideologies || [],
+    added_ideologies: group.added_ideologies || [],
+    removed_ideologies: group.removed_ideologies || [],
+    rules: group.applied_rules || [],
+    trigger_event_ids: [],
+    trigger_event_title: "",
+    trigger_content_kind: "",
+    trigger_content_id: "",
+    trigger_content_title: "",
+    trigger_interest_group_key: "",
+    trigger_interest_group_flavor_key: "",
+  };
+}
+
+function countryInterestGroupFlavorCardHtml(flavor, status) {
+  const statusLabel = status === "starting" ? t("board.country.startingFlavor", "开局生效") : t("board.country.potential", "潜在");
+  const rawTraits = (flavor.traits || []).map((item) => item.trait || item).filter(Boolean);
+  const traits = typeof interestGroupTraitSlots === "function"
+    ? interestGroupTraitSlots(rawTraits).map((slot) => slot.trait).filter(Boolean)
+    : rawTraits.slice(0, 3);
+  const changes = [
+    traits.length ? field(t("board.ideology.traits", "特质"), interestGroupTraitDetailsHtml(traits)) : "",
+    (flavor.ideologies || []).length ? field(t("board.ideology.title", "意识形态"), ideologyPills(flavor.ideologies, "tag-ig-added")) : "",
+    (flavor.added_ideologies || []).length ? field(t("board.ideology.added", "新增"), ideologyPills(flavor.added_ideologies, "tag-ig-added")) : "",
+    (flavor.removed_ideologies || []).length ? field(t("board.ideology.removed", "移除"), ideologyPills(flavor.removed_ideologies, "tag-ig-removed")) : "",
+    field(t("board.ideology.rules", "规则"), interestGroupRuleSummary(flavor.rules || [])),
+  ].filter(Boolean).join("");
+  return `<article class="country-interest-group-flavor-card" data-country-interest-group-flavor-status="${escapeHtml(status)}"><div class="rule-head"><strong>${escapeHtml(flavor.name || flavor.key)}</strong><span class="tag ${status === "starting" ? "tag-ig-added" : "tag-muted"}">${escapeHtml(statusLabel)}</span></div>${interestGroupPotentialFlavorTriggerHtml(flavor)}${changes ? `<dl class="mini-grid">${changes}</dl>` : ""}${interestGroupRuleDetails(flavor.rules || [])}</article>`;
+}
+
 function countryPotentialInterestGroupFlavorHtml(flavor) {
-  const traits = (flavor.traits || []).map((item) => item.trait || item).filter(Boolean);
+  const rawTraits = (flavor.traits || []).map((item) => item.trait || item).filter(Boolean);
+  const traits = typeof interestGroupTraitSlots === "function"
+    ? interestGroupTraitSlots(rawTraits).map((slot) => slot.trait).filter(Boolean)
+    : rawTraits.slice(0, 3);
+  const trigger = interestGroupPotentialFlavorTriggerHtml(flavor);
   const changes = [
     traits.length ? field(t("board.ideology.traits", "特质"), interestGroupTraitDetailsHtml(traits)) : "",
     (flavor.ideologies || []).length ? field(t("board.ideology.title", "意识形态"), ideologyPills(flavor.ideologies, "tag-ig-added")) : "",
   ].filter(Boolean).join("");
   return `<article class="country-interest-group-potential-item">
     <div class="rule-head"><strong>${escapeHtml(flavor.name || flavor.key)}</strong><span class="tag tag-muted">${escapeHtml(t("board.country.potential", "潜在"))}</span></div>
+    ${trigger}
     ${changes ? `<dl class="mini-grid">${changes}</dl>` : ""}
     ${interestGroupRuleDetails(flavor.rules || [])}
   </article>`;
+}
+
+function interestGroupPotentialFlavorTriggerHtml(flavor) {
+  const contentKind = flavor?.trigger_content_kind || ((flavor?.trigger_event_ids || []).length ? "event" : "");
+  const contentId = flavor?.trigger_content_id || flavor?.trigger_event_ids?.[0] || "";
+  const sourceGroupKey = flavor?.trigger_interest_group_key || "";
+  const sourceFlavorKey = flavor?.trigger_interest_group_flavor_key || "";
+  if (!contentKind || !contentId || !sourceGroupKey) return "";
+  const event = contentKind === "event" ? eventByKey.get(contentId) : null;
+  const group = byInterestGroup.get(sourceGroupKey);
+  if (!group) return "";
+  const contentLabel = renderTextSpec({ message: flavor?.trigger_content_title, fallback: "" }) || renderTextSpec({ message: flavor?.trigger_event_title, fallback: "" }) || event?.locales?.zhHans?.title || event?.locales?.en?.title || contentId;
+  const sourceFlavor = sourceFlavorKey
+    ? interestGroupVariants(group).find((variant) => variant.key === sourceFlavorKey)
+    : null;
+  const sourceLabel = sourceFlavor?.name || entityText(group);
+  const contentLink = `<a class="country-interest-group-potential-link" href="#/${encodeURIComponent(contentKind)}/${encodeURIComponent(contentId)}">${escapeHtml(contentLabel)}</a>`;
+  const sourceHref = sourceFlavorKey
+    ? `#/interest-group/${encodeURIComponent(sourceGroupKey)}/flavor/${encodeURIComponent(sourceFlavorKey)}`
+    : `#/interest-group/${encodeURIComponent(sourceGroupKey)}`;
+  const sourceLink = `<a class="country-interest-group-potential-link" href="#/${sourceHref.replace(/^#\//, "")}">${escapeHtml(sourceLabel)}</a>`;
+  const templates = {
+    event: translateMessage("board.country.potentialFlavorTrigger.event", "触发{content}事件后，{source}会转变为该风味。"),
+    journal: translateMessage("board.country.potentialFlavorTrigger.journal", "完成{content}日志后，{source}会转变为该风味。"),
+    decision: translateMessage("board.country.potentialFlavorTrigger.decision", "执行{content}决议后，{source}会转变为该风味。"),
+  };
+  return `<p class="country-interest-group-potential-trigger">${(templates[contentKind] || templates.event).replace("{content}", contentLink).replace("{source}", sourceLink)}</p>`;
 }
 
 function countryDetailSocietyContent(country) {

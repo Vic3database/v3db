@@ -1785,7 +1785,11 @@ function syncBoardOwnedToolPanels() {
   const cultureCalculator = state.view === "culture" && state.detailKind === "cultureIncorporation";
   const cultureBoard = state.view === "culture";
   if (els.cultureIncorporationEntry) els.cultureIncorporationEntry.hidden = !cultureBoard || cultureCalculator;
-  if (els.cultureIncorporationPanel) els.cultureIncorporationPanel.hidden = !cultureCalculator;
+  if (els.cultureIncorporationPanel) {
+    els.cultureIncorporationPanel.hidden = !cultureCalculator;
+    els.cultureIncorporationPanel.style.display = cultureCalculator ? "" : "none";
+    if (!cultureCalculator) els.cultureIncorporationPanel.replaceChildren();
+  }
 
   const companyBoard = state.view === "company";
   const companyToolOpen = ["companySolver", "companyComposer"].includes(state.detailKind);

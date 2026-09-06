@@ -88,7 +88,7 @@ function dataChunksForView(view) {
   if (view === "company") return ["company", "region", "country"];
   if (view === "ideology") return ["ideology", "law", "country"];
   if (view === "religion") return ["religion", "country", "ideology", "culture"];
-  if (view === "interest-group") return ["ideology", "country", "culture", "region", "law"];
+  if (view === "interest-group") return ["ideology", "country", "culture", "region", "law", "event"];
   if (view === "law") return ["law", "ideology", "country"];
   if (view === "technology") return ["technology"];
   if (view === "achievement") return ["achievement"];

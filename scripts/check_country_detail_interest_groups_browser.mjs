@@ -15,14 +15,14 @@ try {
     icons: document.querySelectorAll("[data-country-interest-group]").length,
     selected: document.querySelector("[data-country-interest-group][aria-selected='true']")?.dataset.countryInterestGroup || "",
     panel: document.querySelector("[data-country-interest-group-panel]")?.dataset.countryInterestGroupPanel || "",
-    potentialOpen: document.querySelector(".country-interest-group-potential")?.open,
+    flavorCount: document.querySelector("[data-country-interest-group-flavor-count]")?.textContent?.trim() || "",
   }));
   assert.equal(state.tab, "interest-groups", "interest-group tab query must restore");
   assert.equal(state.subtab, "ig_landowners", "interest-group subtab query must restore");
   assert.equal(state.icons, 8, "country detail must render eight interest-group icons");
   assert.equal(state.selected, "ig_landowners", "requested interest group must be selected");
   assert.equal(state.panel, "ig_landowners", "requested interest group panel must be shown");
-  assert.equal(state.potentialOpen, false, "potential flavor details must start collapsed");
+  assert.match(state.flavorCount, /^潜在风味 \d+ 项$/, "country detail must show the potential flavor count");
   assert.match(await page.evaluate(() => document.querySelector(".country-interest-group-panel")?.innerText || ""), /开局生效/, "selected interest-group panel must show starting flavor status");
   const chinaStatusLabels = await page.evaluate(() => [...document.querySelectorAll(".country-interest-group-status-badge[data-interest-group-status='flavor']")].map((node) => node.closest("[data-country-interest-group]")?.dataset.countryInterestGroup || ""));
   assert.equal(chinaStatusLabels.includes("ig_petty_bourgeoisie"), false, "China petty bourgeoisie must not receive a flavor label");
@@ -30,14 +30,20 @@ try {
   assert.equal(chinaStatusLabels.includes("ig_trade_unions"), false, "China trade unions must not receive a flavor label");
   assert.ok(chinaStatusLabels.includes("ig_landowners"), "China scholar officials must retain a flavor label");
 
-  await page.click(".country-interest-group-potential > summary");
-  const chinaPotential = await page.evaluate(() => document.querySelector(".country-interest-group-potential")?.innerText || "");
+  const chinaPotential = await page.evaluate(() => document.querySelector("[data-country-interest-group-flavor-list]")?.innerText || "");
   assert.doesNotMatch(chinaPotential, /大名|奥地利贵族/, "China must not show unrelated country-specific potential flavors");
 
-  await page.goto(`${baseUrl}?version=1.13.11&lang=zh-Hans#/country/JAP?tab=interest-groups&ig=ig_landowners`);
-  await page.click(".country-interest-group-potential > summary");
-  const japanPotential = await page.evaluate(() => document.querySelector(".country-interest-group-potential")?.innerText || "");
-  assert.match(japanPotential, /大名/, "Japan must show its country-specific potential flavor");
+  await page.goto(`${baseUrl}?version=1.13.11&lang=zh-Hans#/country/JAP?tab=interest-groups&ig=ig_industrialists`);
+  const japanPotential = await page.evaluate(() => ({
+    count: document.querySelector("[data-country-interest-group-flavor-count]")?.textContent?.trim() || "",
+    cards: [...document.querySelectorAll("[data-country-interest-group-flavor-status]")].map((card) => ({ status: card.dataset.countryInterestGroupFlavorStatus, text: card.innerText, eventHref: card.querySelector('a[href="#/event/japan_politics.2"]')?.getAttribute("href") || "", sourceHref: card.querySelector('a[href$="/flavor/ig_gosho"]')?.getAttribute("href") || "" })),
+  }));
+  assert.equal(japanPotential.count, "潜在风味 1 项");
+  assert.equal(japanPotential.cards.length, 2);
+  assert.match(japanPotential.cards[0].text, /豪商[\s\S]*开局生效/);
+  assert.match(japanPotential.cards[1].text, /财阀[\s\S]*潜在[\s\S]*豪门[\s\S]*意识形态[\s\S]*新增[\s\S]*移除[\s\S]*匹配规则/);
+  assert.equal(japanPotential.cards[1].eventHref, "#/event/japan_politics.2");
+  assert.equal(japanPotential.cards[1].sourceHref, "#/interest-group/ig_industrialists/flavor/ig_gosho");
 
   await page.click("[data-country-interest-group='ig_devout']");
   await new Promise((resolve) => setTimeout(resolve, 500));

@@ -750,11 +750,20 @@ function interestGroupVariants(group) {
       rules: new Map(),
       traits: new Map(),
       ideologies: new Map(),
+      addedIdeologies: new Map(),
+      removedIdeologies: new Map(),
       isPotential: false,
       isTraitOnly: false,
       isConditionVariant: false,
       hasCompleteTraits: false,
     };
+    if (source?.trigger_event_ids?.length) variant.triggerEventIds = [...new Set([...(variant.triggerEventIds || []), ...source.trigger_event_ids])];
+    if (source?.loc?.triggerEventTitle) variant.triggerEventTitle = source.loc.triggerEventTitle;
+    if (source?.trigger_content_kind) variant.triggerContentKind = source.trigger_content_kind;
+    if (source?.trigger_content_id) variant.triggerContentId = source.trigger_content_id;
+    if (source?.loc?.triggerContentTitle) variant.triggerContentTitle = source.loc.triggerContentTitle;
+    if (source?.trigger_interest_group_key) variant.triggerInterestGroupKey = source.trigger_interest_group_key;
+    if (source?.trigger_interest_group_flavor_key) variant.triggerInterestGroupFlavorKey = source.trigger_interest_group_flavor_key;
     variants.set(key, variant);
     return variant;
   };
@@ -840,6 +849,12 @@ function interestGroupVariants(group) {
       for (const ideology of activeIdeologies) {
         if (ideology?.key) variant.ideologies.set(ideology.key, ideology);
       }
+      for (const ideology of group.added_ideologies || []) {
+        if (ideology?.key) variant.addedIdeologies.set(ideology.key, ideology);
+      }
+      for (const ideology of group.removed_ideologies || []) {
+        if (ideology?.key) variant.removedIdeologies.set(ideology.key, ideology);
+      }
     }
   }
   applyArmedForcesConditionFlavorGrouping(groupKey, variants);
@@ -853,6 +868,27 @@ function interestGroupVariants(group) {
     )) || ensureVariant(flavor);
     if (!variant) continue;
     variant.isPotential = true;
+    variant.trigger_event_ids = variant.triggerEventIds || flavor.trigger_event_ids || [];
+    variant.trigger_event_title = variant.triggerEventTitle || flavor.loc?.triggerEventTitle || "";
+    variant.trigger_content_kind = variant.triggerContentKind || flavor.trigger_content_kind || "";
+    variant.trigger_content_id = variant.triggerContentId || flavor.trigger_content_id || "";
+    variant.trigger_content_title = variant.triggerContentTitle || flavor.loc?.triggerContentTitle || "";
+    variant.trigger_interest_group_key = variant.triggerInterestGroupKey || flavor.trigger_interest_group_key || "";
+    variant.trigger_interest_group_flavor_key = variant.triggerInterestGroupFlavorKey || flavor.trigger_interest_group_flavor_key || "";
+    const sourceVariant = variant.trigger_interest_group_flavor_key ? variants.get(variant.trigger_interest_group_flavor_key) : null;
+    if (sourceVariant) {
+      for (const [key, ideology] of sourceVariant.ideologies) variant.ideologies.set(key, ideology);
+      for (const [key, ideology] of sourceVariant.addedIdeologies) variant.addedIdeologies.set(key, ideology);
+      for (const [key, ideology] of sourceVariant.removedIdeologies) variant.removedIdeologies.set(key, ideology);
+    }
+    if (flavor.trigger_content_kind) {
+      variant.ideologies.clear();
+      variant.addedIdeologies.clear();
+      variant.removedIdeologies.clear();
+    }
+    for (const ideology of flavor.ideologies || []) if (ideology?.key) variant.ideologies.set(ideology.key, ideology);
+    for (const ideology of flavor.added_ideologies || []) if (ideology?.key) variant.addedIdeologies.set(ideology.key, ideology);
+    for (const ideology of flavor.removed_ideologies || []) if (ideology?.key) variant.removedIdeologies.set(ideology.key, ideology);
     variant.countryTags = [...new Set([...(variant.countryTags || []), ...(flavor.country_tags || [])])];
     for (const rule of flavor.rules || []) variant.rules.set(interestGroupRuleSignature(rule), rule);
     for (const trait of flavor.traits || []) {
@@ -867,6 +903,8 @@ function interestGroupVariants(group) {
       countries: interestGroupCountryTags(variant.countries),
       rules: [...variant.rules.values()],
       ideologies: [...variant.ideologies.values()],
+      added_ideologies: [...variant.addedIdeologies.values()],
+      removed_ideologies: [...variant.removedIdeologies.values()],
       traits: [...variant.traits.values()].map((traitUse) => ({
         ...traitUse,
         countries: interestGroupCountryTags(traitUse.countries),
@@ -1000,6 +1038,15 @@ function interestGroupFlavorOptions(group, variants) {
       isTraitOnly: Boolean(variant.isTraitOnly),
       isConditionVariant: Boolean(variant.isConditionVariant),
       isPotential: Boolean(variant.isPotential),
+      trigger_event_ids: variant.trigger_event_ids || [],
+      trigger_event_title: variant.trigger_event_title || "",
+      trigger_content_kind: variant.trigger_content_kind || "",
+      trigger_content_id: variant.trigger_content_id || "",
+      trigger_content_title: variant.trigger_content_title || "",
+      trigger_interest_group_key: variant.trigger_interest_group_key || "",
+      trigger_interest_group_flavor_key: variant.trigger_interest_group_flavor_key || "",
+      added_ideologies: variant.added_ideologies || [],
+      removed_ideologies: variant.removed_ideologies || [],
       category: interestGroupFlavorCategory(group.key, variant),
       religion: group.key === "ig_devout" ? interestGroupDevoutReligionForVariantKey(variant.key) : "",
       isBase: false,
@@ -1157,6 +1204,10 @@ function renderInterestGroupFlavorBoardDetail(group, flavor) {
   const flavorOption = interestGroupFlavorOptions(group, [flavor]).find((option) => option.key === flavor.key);
   const flavorTraits = flavorOption?.traits || group.base_traits || [];
   const ideologies = interestGroupFlavorIdeologies(group, flavor);
+  const ideologyChanges = [
+    (flavorOption?.added_ideologies || []).length ? field(t("board.ideology.added", "新增"), ideologyPills(flavorOption.added_ideologies, "tag-ig-added")) : "",
+    (flavorOption?.removed_ideologies || []).length ? field(t("board.ideology.removed", "移除"), ideologyPills(flavorOption.removed_ideologies, "tag-ig-removed")) : "",
+  ].filter(Boolean).join("");
   return `
     <section class="interest-group-board-shell interest-group-board-detail interest-group-flavor-page" style="${escapeHtml(interestGroupBoardColorStyle(group))}">
       <a class="detail-back-button" href="#/interest-group/${encodeURIComponent(group.key)}" aria-label="${escapeHtml(t("ui.back"))}" title="${escapeHtml(t("ui.back"))}"><img class="lucide-icon" src="assets/lucide/icons/arrow-left.svg" alt="" aria-hidden="true"></a>
@@ -1176,6 +1227,7 @@ function renderInterestGroupFlavorBoardDetail(group, flavor) {
         <div class="interest-group-detail-section-heading"><h2>${escapeHtml(t("interestGroup.applicableCountries"))}</h2></div>
         ${interestGroupCountryList(flavor.countries)}
       </section>
+      ${interestGroupPotentialFlavorTriggerHtml(flavorOption)}
       ${flavor.rules.length ? `
         <section class="interest-group-detail-section">
           <div class="interest-group-detail-section-heading"><h2>${escapeHtml(t("interestGroup.triggerRules"))}</h2></div>
@@ -1185,6 +1237,7 @@ function renderInterestGroupFlavorBoardDetail(group, flavor) {
       <section class="interest-group-detail-section">
         <div class="interest-group-detail-section-heading"><h2>${escapeHtml(t("interestGroup.ideologies"))}</h2></div>
         ${interestGroupIdeologySummaryHtml(group, ideologies)}
+        ${ideologyChanges ? `<dl class="mini-grid">${ideologyChanges}</dl>` : ""}
       </section>
       ${interestGroupPopulationAttractionHtml(group.pop_attraction)}
     </section>

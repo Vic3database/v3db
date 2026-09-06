@@ -1714,6 +1714,10 @@ body.results-collapsed .concept-tooltip {
   border-top: 1px solid var(--line);
 }
 
+.culture-incorporation-panel[hidden] {
+  display: none !important;
+}
+
 .culture-incorporation-calculator {
   display: grid;
   gap: 14px;

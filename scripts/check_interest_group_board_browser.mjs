@@ -107,10 +107,25 @@ try {
       await desktop.close();
       return;
     }
+    if (options.japanZaibatsuOnly) {
+      const japanZaibatsu = await checkJapanZaibatsuFlavor(desktop, server.url);
+      const japanCountry = await checkJapanCountryInterestGroup(desktop, server.url);
+      const japanTransitions = await checkJapaneseInterestGroupTransitions(desktop, server.url);
+      console.log(JSON.stringify({
+        japan_zaibatsu_browser: "ok",
+        siteRoot: options.siteRoot,
+        zaibatsu: { eventHref: japanZaibatsu.eventHref, sourceHref: japanZaibatsu.sourceHref, traitCards: japanZaibatsu.traitCards },
+        country: { count: japanCountry.count, cards: japanCountry.cards.map((card) => ({ status: card.status, eventHref: card.eventHref, sourceHref: card.sourceHref, traits: card.traits })), oldDisclosure: japanCountry.oldDisclosure },
+        transitions: japanTransitions.map(({ group, opening, target, trigger, kind, id, count, href, sourceHref, textDecoration, borderRadius, detailHref }) => ({ group, opening, target, trigger, kind, id, count, href, sourceHref, detailHref, textDecoration, borderRadius })),
+      }, null, 2));
+      await desktop.close();
+      return;
+    }
     const homeInterestGroupEntry = await checkHomeInterestGroupEntry(desktop, server.url);
     const desktopBoard = await checkDesktopBoard(desktop, server.url);
     const landowners = await checkSelectedFlavorDetail(desktop, server.url, "ig_landowners");
     const flavorPage = await checkInterestGroupFlavorPage(desktop, server.url);
+    const japanZaibatsu = await checkJapanZaibatsuFlavor(desktop, server.url);
     const intelligentsia = await checkIntelligentsiaDetail(desktop, server.url);
     const englishIdeologyLabels = await checkEnglishIdeologyLabels(desktop, server.url);
     fs.writeFileSync(path.join(screenshotDir, "interest-group-intelligentsia-detail.png"), Buffer.from(await desktop.screenshot(), "base64"));
@@ -128,6 +143,7 @@ try {
       desktop: desktopBoard,
       landowners,
       flavorPage,
+      japanZaibatsu,
       intelligentsia,
       englishIdeologyLabels,
       tradeUnions,
@@ -164,6 +180,7 @@ function browserCheckOptions(root) {
     victorianCenturyFlavorsOnly: args.includes("--victorian-century-flavors-only"),
     catholicOnly: args.includes("--catholic-only"),
     religionOnly: args.includes("--religion-only"),
+    japanZaibatsuOnly: args.includes("--japan-zaibatsu-only"),
   };
 }
 }
@@ -351,6 +368,110 @@ async function checkInterestGroupFlavorPage(page, baseUrl) {
   return { detail, parent, linkedFlavors };
 }
 
+async function checkJapanZaibatsuFlavor(page, baseUrl) {
+  await navigateAndWait(page, `${baseUrl}/index.html?lang=zh-Hans#/interest-group/ig_industrialists/flavor/ig_zaibatsu`, () => (
+    document.body.dataset.view === "interest-group" && Boolean(document.querySelector(".interest-group-flavor-page"))
+  ));
+  const detail = await page.evaluate(`(() => ({
+    text: document.querySelector('.interest-group-flavor-page')?.innerText || '',
+    eventHref: document.querySelector('.interest-group-flavor-page a[href="#/event/japan_politics.2"]')?.getAttribute('href') || '',
+    sourceHref: document.querySelector('.interest-group-flavor-page a[href$="/flavor/ig_gosho"]')?.getAttribute('href') || '',
+    traitCards: document.querySelectorAll('.interest-group-flavor-page .interest-group-trait-card').length,
+  }))()`);
+  assert.match(detail.text, /豪门/);
+  assert.equal(detail.eventHref, "#/event/japan_politics.2");
+  assert.equal(detail.sourceHref, "#/interest-group/ig_industrialists/flavor/ig_gosho");
+  assert.ok(detail.traitCards >= 3);
+  for (const label of ["意识形态", "新增", "移除", "匹配规则"]) assert.ok(detail.text.includes(label), `Zaibatsu detail must show ${label}`);
+  await page.evaluate(`document.querySelector('.interest-group-flavor-page a[href="#/event/japan_politics.2"]')?.click()`);
+  await waitFor(async () => page.evaluate(`location.hash === "#/event/japan_politics.2"`), "Zaibatsu event-link route");
+  await new Promise((resolve) => setTimeout(resolve, 1500));
+  const eventDiagnostic = await page.evaluate(`(() => ({ hash: location.hash, view: state.view, selectedEvent: state.selectedEvent, eventExists: eventByKey.has('japan_politics.2'), events: events.length, contentEvents: contentEvents.length, detail: document.querySelector('#detail')?.innerText || '', fatal: document.querySelector('.fatal-error')?.innerText || '' }))()`);
+  if (!eventDiagnostic.eventExists || eventDiagnostic.view !== "event") throw new Error(`Zaibatsu event navigation failed: ${JSON.stringify(eventDiagnostic)}`);
+  await waitFor(async () => page.evaluate(`Boolean(document.querySelector('.event-detail'))`), "Zaibatsu event-link detail");
+  assert.match(await page.evaluate(`document.querySelector('.event-detail')?.innerText || ''`), /豪门/);
+  await navigateAndWait(page, `${baseUrl}/index.html?lang=zh-Hans#/interest-group/ig_industrialists/flavor/ig_zaibatsu`, () => Boolean(document.querySelector(".interest-group-flavor-page")));
+  await page.evaluate(`document.querySelector('.interest-group-flavor-page a[href$="/flavor/ig_gosho"]')?.click()`);
+  await waitFor(async () => page.evaluate(`location.hash === "#/interest-group/ig_industrialists/flavor/ig_gosho" && Boolean(document.querySelector('.interest-group-flavor-page'))`), "Zaibatsu source flavor link");
+  assert.match(await page.evaluate(`document.querySelector('.interest-group-detail-heading')?.innerText || ''`), /豪商/);
+  return detail;
+}
+
+async function checkJapanCountryInterestGroup(page, baseUrl) {
+  await navigateAndWait(page, `${baseUrl}/index.html?version=1.13.11&lang=zh-Hans#/country/JAP?tab=interest-groups&ig=ig_industrialists`, () => (
+    document.body.dataset.view === "country" && document.querySelectorAll("[data-country-interest-group-flavor-status]").length === 2
+  ));
+  const detail = await page.evaluate(`(() => ({
+    count: document.querySelector('[data-country-interest-group-flavor-count]')?.textContent?.trim() || '',
+    cards: [...document.querySelectorAll('[data-country-interest-group-flavor-status]')].map((card) => ({
+      status: card.dataset.countryInterestGroupFlavorStatus,
+      text: card.innerText,
+      eventHref: card.querySelector('a[href="#/event/japan_politics.2"]')?.getAttribute('href') || '',
+      sourceHref: card.querySelector('a[href$="/flavor/ig_gosho"]')?.getAttribute('href') || '',
+      traits: card.querySelectorAll('.interest-group-trait-card').length,
+    })),
+    oldDisclosure: Boolean(document.querySelector('.country-interest-group-potential')),
+  }))()`);
+  assert.equal(detail.count, "潜在风味 1 项");
+  assert.equal(detail.oldDisclosure, false);
+  assert.equal(detail.cards.length, 2);
+  assert.equal(detail.cards[0].status, "starting");
+  assert.match(detail.cards[0].text, /豪商[\s\S]*开局生效[\s\S]*意识形态[\s\S]*新增[\s\S]*移除[\s\S]*规则/);
+  assert.equal(detail.cards[1].status, "potential");
+  assert.match(detail.cards[1].text, /财阀[\s\S]*潜在[\s\S]*豪门[\s\S]*意识形态[\s\S]*新增[\s\S]*移除[\s\S]*规则[\s\S]*匹配规则/);
+  assert.equal(detail.cards[1].eventHref, "#/event/japan_politics.2");
+  assert.equal(detail.cards[1].sourceHref, "#/interest-group/ig_industrialists/flavor/ig_gosho");
+  assert.ok(detail.cards[1].traits >= 3);
+  return detail;
+}
+
+async function checkJapaneseInterestGroupTransitions(page, baseUrl) {
+  const vc = await page.evaluate(`Boolean(window.VICTORIAN_CENTURY_SITE_CONFIG)`);
+  const cases = [
+    ["ig_intelligentsia", "兰学者", "知识分子", "实学", "event", "japan_politics.1"],
+    ["ig_industrialists", "豪商", "财阀", "豪门", "event", "japan_politics.2"],
+    ["ig_petty_bourgeoisie", "町人", "小市民", "公民大众", "event", "japan_politics.3"],
+    ["ig_armed_forces", "武士", "军队", vc ? "最后的武士" : "武士的落幕", "event", vc ? "joi_flavor_jap.17" : "meiji.3"],
+    ["ig_landowners", "大名", "华族", vc ? "华族令" : "御一新", vc ? "event" : "journal", vc ? "joi_flavor_jap.20" : "je_meiji_restoration"],
+    ["ig_devout", "寺社", "神道教祠官", "采用国家神道", "decision", "shinto_decision"],
+  ];
+  if (vc) cases.push(["ig_landowners", "大名", "幕府", "京都陷落", "event", "joi_flavor_jap.21"]);
+  const results = [];
+  for (const [group, opening, target, trigger, kind, id] of cases) {
+    await navigateAndWait(page, `${baseUrl}/index.html?version=1.13.11&lang=zh-Hans#/country/JAP?tab=interest-groups&ig=${group}`, () => document.querySelectorAll("[data-country-interest-group-flavor-status]").length >= 2);
+    const detail = await page.evaluate(`(() => {
+      const cards = [...document.querySelectorAll('[data-country-interest-group-flavor-status]')];
+      const target = cards.find((card) => card.dataset.countryInterestGroupFlavorStatus === 'potential' && card.innerText.includes(${JSON.stringify(target)}));
+      const link = target?.querySelector(${JSON.stringify(`a[href="#/${kind}/${id}"]`)});
+      const style = link ? getComputedStyle(link) : null;
+      return { count: document.querySelector('[data-country-interest-group-flavor-count]')?.textContent?.trim() || '', opening: cards[0]?.innerText || '', openingTraitCards: cards[0]?.querySelectorAll('.interest-group-trait-card').length || 0, openingTrigger: Boolean(cards[0]?.querySelector('.country-interest-group-potential-trigger')), target: target?.innerText || '', targetTraitCards: target?.querySelectorAll('.interest-group-trait-card').length || 0, href: link?.getAttribute('href') || '', sourceHref: target?.querySelector('a[href*="/interest-group/"]')?.getAttribute('href') || '', textDecoration: style?.textDecorationLine || '', borderRadius: style?.borderRadius || '' };
+    })()`);
+    assert.match(detail.opening, new RegExp(`${opening}[\\s\\S]*开局生效`));
+    assert.equal(detail.openingTrigger, false, `opening flavor must not inherit a later transition: ${JSON.stringify(detail)}`);
+    assert.ok(detail.openingTraitCards <= 3, `an opening interest group flavor must render at most one trait per approval slot: ${JSON.stringify(detail)}`);
+    assert.ok(detail.targetTraitCards <= 3, `an interest group flavor must render at most one trait per approval slot: ${JSON.stringify(detail)}`);
+    assert.match(detail.target, new RegExp(`${target}[\\s\\S]*潜在[\\s\\S]*${trigger}`));
+    assert.equal(detail.href, `#/${kind}/${id}`);
+    assert.ok(detail.sourceHref.endsWith(`/flavor/${cases.find((item) => item[0] === group)?.[1] === opening ? ({ 兰学者: 'ig_rangakusha', 豪商: 'ig_gosho', 町人: 'ig_chonin', 武士: 'ig_samurai', 大名: 'ig_daimyo', 寺社: 'ig_jisha' }[opening]) : ''}`));
+    assert.equal(detail.textDecoration, "none");
+    assert.equal(detail.borderRadius, "5px", `interest-group content links must use the site's rounded-rectangle label style: ${JSON.stringify(detail)}`);
+    await page.evaluate(`document.querySelector(${JSON.stringify(`a[href="#/${kind}/${id}"]`)})?.click()`);
+    const detailSelector = kind === "event" ? ".event-detail" : kind === "journal" ? ".journal-detail" : ".decision-detail";
+    await waitFor(async () => page.evaluate(`location.hash === ${JSON.stringify(`#/${kind}/${id}`)} && Boolean(document.querySelector(${JSON.stringify(detailSelector)}))`), `${trigger} content link`);
+    await navigateAndWait(page, `${baseUrl}/index.html?version=1.13.11&lang=zh-Hans#/country/JAP?tab=interest-groups&ig=${group}`, () => document.querySelectorAll("[data-country-interest-group-flavor-status]").length >= 2);
+    await page.evaluate(`document.querySelector(${JSON.stringify(`a[href$="/flavor/${({ 兰学者: 'ig_rangakusha', 豪商: 'ig_gosho', 町人: 'ig_chonin', 武士: 'ig_samurai', 大名: 'ig_daimyo', 寺社: 'ig_jisha' }[opening])}"]`)})?.click()`);
+    await waitFor(async () => page.evaluate(`location.hash.endsWith(${JSON.stringify(`/flavor/${({ 兰学者: 'ig_rangakusha', 豪商: 'ig_gosho', 町人: 'ig_chonin', 武士: 'ig_samurai', 大名: 'ig_daimyo', 寺社: 'ig_jisha' }[opening])}`)}) && Boolean(document.querySelector('.interest-group-flavor-page'))`), `${opening} source flavor link`);
+    const targetKey = ({ 知识分子: 'ig_intelligentsia', 财阀: 'ig_zaibatsu', 小市民: 'ig_petty_bourgeoisie', 军队: 'ig_armed_forces', 华族: 'ig_kazoku', 神道教祠官: 'ig_shinto_monks', 幕府: 'ig_shogunate' }[target]);
+    await navigateAndWait(page, `${baseUrl}/index.html?lang=zh-Hans#/interest-group/${group}/flavor/${targetKey}`, () => Boolean(document.querySelector('.interest-group-flavor-page')));
+    const flavorDetail = await page.evaluate(`(() => ({ text: document.querySelector('.interest-group-flavor-page')?.innerText || '', href: document.querySelector(${JSON.stringify(`a[href="#/${kind}/${id}"]`)})?.getAttribute('href') || '', sourceHref: document.querySelector(${JSON.stringify(`a[href$="/flavor/${({ 兰学者: 'ig_rangakusha', 豪商: 'ig_gosho', 町人: 'ig_chonin', 武士: 'ig_samurai', 大名: 'ig_daimyo', 寺社: 'ig_jisha' }[opening])}"]`)})?.getAttribute('href') || '' }))()`);
+    assert.match(flavorDetail.text, new RegExp(`${trigger}[\\s\\S]*${opening}`));
+    assert.equal(flavorDetail.href, `#/${kind}/${id}`);
+    assert.ok(flavorDetail.sourceHref.endsWith(`/flavor/${({ 兰学者: 'ig_rangakusha', 豪商: 'ig_gosho', 町人: 'ig_chonin', 武士: 'ig_samurai', 大名: 'ig_daimyo', 寺社: 'ig_jisha' }[opening])}`));
+    results.push({ group, opening, target, trigger, kind, id, detailHref: `#/interest-group/${group}/flavor/${targetKey}`, ...detail });
+  }
+  return results;
+}
+
 async function checkInterestGroupFlavorLinksAndTooltips(page, baseUrl) {
   await navigateAndWait(page, `${baseUrl}/index.html?lang=zh-Hans#/interest-group/ig_landowners`, () => (
     document.body.dataset.view === "interest-group"
@@ -373,9 +494,9 @@ async function checkInterestGroupFlavorLinksAndTooltips(page, baseUrl) {
   assert.ok(links.every((row) => row.text.includes(' / ')), `condition and country flavors must use slash separators: ${JSON.stringify(links)}`);
   assert.ok(links.every((row) => row.links.every((link) => link.decoration.includes('underline'))), `condition and country flavor links must be underlined: ${JSON.stringify(links)}`);
 
-  await navigateAndWait(page, `${baseUrl}/index.html?lang=zh-Hans#/country/HOH`, () => (
+  await navigateAndWait(page, `${baseUrl}/index.html?lang=zh-Hans#/country/HOH?tab=interest-groups`, () => (
     document.body.dataset.view === "country"
-      && Boolean(document.querySelector('[data-concept-kind="ideology"]'))
+      && Boolean(document.querySelector('[data-country-detail-tab="interest-groups"]'))
   ));
   const countryTooltip = await page.evaluate(`(() => {
     const countryTarget = document.querySelector('[data-concept-kind="country"][data-concept-key="HOH"]') || document.querySelector('[data-concept-kind="country"]');
@@ -385,6 +506,7 @@ async function checkInterestGroupFlavorLinksAndTooltips(page, baseUrl) {
       text: document.querySelector('#conceptTooltip')?.textContent?.replace(/\\s+/g, ' ').trim() || '',
     };
   })()`);
+  await waitFor(async () => page.evaluate(`document.querySelector('[data-country-detail-panel="interest-groups"] [data-concept-kind="ideology"]') != null`), "country interest-group ideology target");
   await page.evaluate(`(() => {
     const target = document.querySelector('[data-concept-kind="ideology"]');
     const section = target?.closest('details');

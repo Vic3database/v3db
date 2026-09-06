@@ -1,7 +1,7 @@
 @import url("styles/foundation.css?v=20260810-topbar-cache1");
 @import url("styles/filters.css");
 @import url("styles/map.css?v=20260828-culture-search1");
-@import url("styles/records.css?v=20260828-calculator-overflow1");
+@import url("styles/records.css?v=20260906-calculator-back1");
 @import url("styles/shell.css?v=20260828-culture-search1");
 @import url("styles/home.css?v=20260829-religion-board1");
 @import url("styles/dialogs.css?v=20260816-global-search-row-height1");
@@ -12,4 +12,4 @@
 @import url("styles/economy.css?v=20260811-goods-needs2");
 @import url("styles/needs.css?v=20260811-goods-needs2");
 @import url("styles/company.css?v=20260831-company-content-mode1");
-@import url("styles/country-detail.css?v=20260901-country-starting-technology1");
+@import url("styles/country-detail.css?v=20260906-ig-label1");

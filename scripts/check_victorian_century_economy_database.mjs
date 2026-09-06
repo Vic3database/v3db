@@ -40,7 +40,7 @@ assert.equal(new Set(buildings.map((item) => item.key)).size, buildings.length);
 assert.equal(buildingGroups.length, 69);
 assert.equal(productionMethodGroups.length, 197);
 assert.equal(goods.length, 53);
-assert.equal(prestigeGoods.length, 98);
+assert.equal(prestigeGoods.length, 96);
 assert.equal(productionMethods.length, 437);
 const productionEffectScalingCounts = productionMethods
   .flatMap((method) => method.effects || [])

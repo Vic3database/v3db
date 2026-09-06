@@ -86,7 +86,7 @@ try {
     }
   }
   assert(actual.buildings.adjusted > 0, "VC must retain buildings with substantive changes");
-  assert.equal(actual.prestigeGoods.added, 26, "VC must mark the 26 new prestige goods as added");
+  assert.equal(actual.prestigeGoods.added, 24, "VC must mark the 24 active new prestige goods as added");
 
   console.log(JSON.stringify({
     victorian_century_change_tags: "ok",

@@ -195,7 +195,6 @@ function incorporationCalculatorEffectSummary(effect) {
 
 function renderCultureIncorporationCalculator() {
   const root = els.cultureIncorporationPanel || els.countryList;
-  if (els.cultureIncorporationPanel) els.cultureIncorporationPanel.hidden = false;
   const candidates = [...(state.incorporationCalculatorCandidateCultures?.values() || [])]
     .sort((left, right) => localizedCompare(incorporationCalculatorCandidateLabel(left), incorporationCalculatorCandidateLabel(right)));
   const selected = [...(state.incorporationCalculatorCultures || [])].map((key) => byCulture.get(key) || { key }).filter(Boolean);
@@ -226,7 +225,8 @@ function renderCultureIncorporationCalculator() {
         <button type="button" class="detail-back-button" data-incorporation-back aria-label="${escapeHtml(t("board.culture.incorporation.back", "返回文化板块"))}" title="${escapeHtml(t("board.culture.incorporation.back", "返回文化板块"))}"><img class="lucide-icon" src="assets/lucide/icons/arrow-left.svg" alt="" aria-hidden="true"></button>
         <div class="detail-title-main"><h2>${escapeHtml(t("board.culture.incorporation.title", "整合时长计算器"))}</h2></div>
       </header>
-      <p class="culture-incorporation-calculator-description">${escapeHtml(t("board.culture.incorporation.description", "选择文化后启动地图计算"))}</p>
+      <p class="culture-incorporation-calculator-description">${escapeHtml(t("board.culture.incorporation.description", "先选择要作为本土的文化，再点击“开始计算”。地图会按所选文化与各地域的传承、语言和文化关系显示基础整合年数；这不是游戏时间推进模拟，法律、科技、行政力和速度修正不会自动加入。"))}</p>
+      <ol class="culture-incorporation-calculator-guide"><li>${escapeHtml(t("board.culture.incorporation.guide.select", "在“已选文化”中确认本土文化；从“可能涉及的文化”或筛选结果点击文化即可加入或移除。"))}</li><li>${escapeHtml(t("board.culture.incorporation.guide.effects", "需要模拟事件带来的本土变化时，在“文化本土变化”中勾选固定地域效果；动态范围效果只提供条件说明。"))}</li><li>${escapeHtml(t("board.culture.incorporation.guide.start", "点击“开始计算”后，地图颜色和地域提示才会更新；修改选择后需要再次点击。"))}</li></ol>
       <button type="button" class="culture-incorporation-start" data-incorporation-start>${escapeHtml(t("board.culture.incorporation.start", "开始计算"))}</button>
       <section class="culture-incorporation-calculator-section"><h3>${escapeHtml(t("board.culture.incorporation.selected", "已选文化"))}</h3><div class="culture-incorporation-selected" data-incorporation-selected>${selectedHtml}</div><button type="button" class="culture-incorporation-clear" data-incorporation-clear>${escapeHtml(t("board.culture.incorporation.clear", "清空文化"))}</button></section>
       <section class="culture-incorporation-calculator-section"><h3>${escapeHtml(t("board.culture.incorporation.candidates", "可能涉及的文化"))}</h3><div class="culture-incorporation-candidates" data-incorporation-candidates>${candidateHtml || `<span class="empty">${escapeHtml(t("ui.none", "无"))}</span>`}</div></section>
@@ -240,6 +240,10 @@ function renderCultureIncorporationCalculator() {
 function bindCultureIncorporationCalculatorEvents() {
   const root = els.cultureIncorporationPanel || els.countryList;
   root.querySelector("[data-incorporation-back]")?.addEventListener("click", async () => {
+    clearCultureIncorporationCalculatorState();
+    state.detailKind = "culture";
+    if (els.cultureIncorporationPanel) els.cultureIncorporationPanel.hidden = true;
+    if (els.cultureIncorporationEntry) els.cultureIncorporationEntry.hidden = false;
     replaceHash("/culture");
     await applyHash();
     render();

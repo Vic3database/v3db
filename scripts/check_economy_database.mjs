@@ -31,7 +31,7 @@ assert.equal(buildings.length, 101, "picture wall must contain 101 icon-bearing 
 assert.equal(excludedGraphicalBuildings.length, 14, "only fourteen iconless decorative buildings may be excluded");
 assert.equal(buildings.length + excludedGraphicalBuildings.length, 115, "all 115 top-level building definitions must be accounted for");
 assert.equal(goods.length, 53, "all 53 base goods must be published");
-assert.equal(prestigeGoods.length, isVictorianCentury ? 98 : 72, isVictorianCentury ? "Victorian Century must publish all 98 prestige goods" : "all 72 base-game prestige goods must be published");
+assert.equal(prestigeGoods.length, isVictorianCentury ? 96 : 72, isVictorianCentury ? "Victorian Century must publish all 96 active prestige goods" : "all 72 base-game prestige goods must be published");
 assert(groups.length > 0, "building groups must be published");
 assert(productionMethodGroups.length > 0, "production method groups must be published");
 assert(productionMethods.length > 0, "production methods must be published");

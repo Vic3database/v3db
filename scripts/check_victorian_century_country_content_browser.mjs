@@ -14,40 +14,43 @@ const chrome = spawn(chromePath, [`--remote-debugging-port=${debugPort}`, "--hea
 
 try {
   const page = await openPage({ width: 1440, height: 1000 });
-  await page.goto(`${baseUrl}#/country/GBR`);
-  await page.waitFor(() => Boolean(document.querySelector(".country-flavor-content")), "country flavor content");
+  await page.goto(`${baseUrl}#/country/GBR?tab=flavor`);
+  await page.waitFor(() => Boolean(document.querySelector(".country-flavor-tab-content")), "country flavor content");
   const initial = await page.evaluate(() => ({
     kinds: [...document.querySelectorAll("[data-country-content-kind]")].map((node) => node.dataset.countryContentKind),
     open: [...document.querySelectorAll("[data-country-content-kind]")].map((node) => node.open),
     ids: [...document.querySelectorAll("[data-country-content-link]")].map((node) => node.dataset.countryContentId),
-    overflow: getComputedStyle(document.querySelector(".country-flavor-content")).overflowY,
+    overflow: getComputedStyle(document.querySelector(".country-flavor-tab-content")).overflowY,
   }));
-  assert.deepEqual(initial.kinds, ["journal", "event", "decision"]);
-  assert.deepEqual(initial.open, [false, false, false]);
+  assert.deepEqual(initial.kinds, ["journal"]);
+  assert.deepEqual(initial.open, [true]);
   assert.ok(initial.ids.length > 0);
   assert.equal(initial.overflow, "visible");
 
   for (const kind of ["journal", "event", "decision"]) {
-    await page.click(`[data-country-content-kind='${kind}'] summary`);
+    await page.click(`[data-country-flavor-tab='${kind}']`);
+    await page.waitFor((expected) => document.querySelector("[data-country-flavor-content]")?.dataset.countryFlavorContent === expected, `${kind} flavor tab`, kind);
     const id = await page.evaluate((selector) => document.querySelector(selector)?.dataset.countryContentId || "", `[data-country-content-kind='${kind}'] [data-country-content-link]`);
     assert.ok(id, `${kind} section must contain links`);
     await page.click(`[data-country-content-kind='${kind}'] [data-country-content-link]`);
     await page.waitFor((expected) => location.hash === expected, `${kind} detail route`, `#/${kind}/${encodeURIComponent(id)}`);
     await page.waitFor(() => Boolean(document.querySelector("[data-related-country='GBR']")), `${kind} related country return link`);
     await page.click("[data-related-country='GBR']");
-    await page.waitFor(() => location.hash === "#/country/GBR" && Boolean(document.querySelector(".country-flavor-content")), `${kind} return to country`);
+    await page.waitFor(() => location.hash === "#/country/GBR" && Boolean(document.querySelector("[data-country-detail-tab='flavor']")), `${kind} return to country`);
+    await page.click("[data-country-detail-tab='flavor']");
+    await page.waitFor(() => Boolean(document.querySelector(".country-flavor-tab-content")), `${kind} reopen flavor tab`);
   }
   await page.close();
 
   const mobile = await openPage({ width: 442, height: 844 });
-  await mobile.goto(`${baseUrl}#/country/GBR`);
-  await mobile.waitFor(() => Boolean(document.querySelector(".country-flavor-content")), "mobile country flavor content");
+  await mobile.goto(`${baseUrl}#/country/GBR?tab=flavor`);
+  await mobile.waitFor(() => Boolean(document.querySelector(".country-flavor-tab-content")), "mobile country flavor content");
   const mobileLayout = await mobile.evaluate(() => ({
     kinds: [...document.querySelectorAll("[data-country-content-kind]")].map((node) => node.dataset.countryContentKind),
     overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
-    sectionOverflow: getComputedStyle(document.querySelector(".country-flavor-content")).overflowY,
+    sectionOverflow: getComputedStyle(document.querySelector(".country-flavor-tab-content")).overflowY,
   }));
-  assert.deepEqual(mobileLayout.kinds, ["journal", "event", "decision"]);
+  assert.deepEqual(mobileLayout.kinds, ["journal"]);
   assert.ok(mobileLayout.overflow <= 1, "mobile country detail must not overflow horizontally");
   assert.equal(mobileLayout.sectionOverflow, "visible");
   await mobile.close();

@@ -108,6 +108,8 @@ assert.match(appSource, /pop_attraction/, "population-attraction data must reach
 assert.match(appSource, /assets\/lucide\/icons\/arrow-left\.svg/, "detail return control must use the icon-library left arrow");
 assert.match(appSource, /potential_flavors/, "detail page must include flavors available after the opening setup");
 assert.match(appSource, /interestGroupCountryList/, "country tags need a reusable direct-list renderer");
+assert.match(appSource, /interestGroupPotentialFlavorTriggerHtml\(flavorOption\)/, "flavor detail must show its triggering relation");
+assert.match(appSource, /if \(view === "interest-group"\) return \["ideology", "country", "culture", "region", "law", "event"\]/, "interest-group details must preload events");
 assert.match(appSource, /interestGroup\.flavorSeparator/, "flavor names must use their own separator");
 assert.match(appSource, /interest-group-selected-information/, "selected flavor needs to contain its related information");
 assert.match(appSource, /interest-group-population-disclosure/, "population conditions need a disclosure list");
@@ -172,8 +174,8 @@ assert.match(appSource, /backToTopButton/, "back-to-top behavior needs a browser
 assert.match(styleSource, /body\[data-view="interest-group"\]/, "interest-group full-width layout is missing");
 assert.match(styleSource, /\.interest-group-flavor-link-row\s*\{[\s\S]*border-inline-start:\s*3px solid var\(--interest-group-color\)/, "flavor link rows need a visible left frame");
 assert.match(styleSource, /\.interest-group-flavor-link-row a\s*\{[\s\S]*text-decoration-line:\s*underline/, "flavor link rows must underline direct links");
-assert.match(appSource, /if \(view === "interest-group"\) return \["ideology", "country", "culture", "region", "law"\]/, "interest-group pages must preload the localized law data required by ideology hover cards");
-assert.match(appSource, /if \(view === "country"\) return \["country", "culture", "region", "ideology", "law", "content"\]/, "country pages must preload laws needed by ideology hover cards");
+assert.match(appSource, /if \(view === "interest-group"\) return \["ideology", "country", "culture", "region", "law", "event"\]/, "interest-group pages must preload events and localized law data required by detail links");
+assert.match(appSource, /if \(view === "country"\) return \["country", "culture", "region", "ideology", "law", "technology", "content"\]/, "country pages must preload laws and technology needed by detail cards");
 assert.match(appSource, /translateMessage\(`religion:\$\{key\}\.name`, key\)/, "country tooltips must localize religion keys");
 assert.match(appSource, /target\.dataset\.conceptKind === "ideology" \? 0 : CONCEPT_TOOLTIP_DELAY_MS/, "ideology tooltips must appear immediately on hover");
 assert.match(styleSource, /grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\)/, "desktop cards need four columns");

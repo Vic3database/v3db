@@ -18,6 +18,8 @@ const industrialists = groups.find((group) => group.key === "ig_industrialists")
 const pettyBourgeoisie = groups.find((group) => group.key === "ig_petty_bourgeoisie");
 assert.ok(armedForces, "VC data must include the Armed Forces");
 assert.ok(landowners, "VC data must include the Landowners");
+const japanLandowners = countries.find((country) => country.tag === "JAP")?.interest_groups?.find((group) => group.key === "ig_landowners");
+assert.deepEqual(japanLandowners?.active_traits?.map((trait) => trait.key), ["ig_trait_outspoken_tozama", "ig_trait_fudai_support", "ig_trait_kobugattai"], "VC Japan starting landowners must keep one trait per approval slot");
 assert.ok(devout, "VC data must include the Devout");
 assert.ok(industrialists, "VC data must include the Industrialists");
 const turkeyDevout = countries.find((country) => country.tag === "TUR")?.interest_groups?.find((group) => group.key === "ig_devout");
@@ -28,7 +30,7 @@ assert.deepEqual(
 );
 assert.deepEqual(
   turkeyDevout?.active_traits?.map((trait) => trait.key),
-  ["ig_trait_jihad", "ig_trait_words_remain", "ig_trait_faith_in_chains"],
+  ["ig_trait_faith_in_chains", "ig_trait_words_remain", "ig_trait_jihad"],
   "Turkey must retain its distinct Sunni Ulema trait chain",
 );
 assert.ok(
@@ -39,6 +41,13 @@ assert.ok(
   armedForces.potential_flavors?.some((flavor) => flavor.key === "ig_samurai"),
   "VC data must retain the Samurai later rename from the interest-group definition",
 );
+assert.equal(armedForces.potential_flavors?.find((flavor) => flavor.key === "ig_armed_forces")?.trigger_content_id, "joi_flavor_jap.17", "VC army transition must link The Last Samurai event");
+assert.equal(armedForces.potential_flavors?.find((flavor) => flavor.key === "ig_samurai")?.trigger_content_id, "joi_flavor_jap.19", "VC restoration must link the return-to-Samurai event");
+assert.equal(landowners.potential_flavors?.find((flavor) => flavor.key === "ig_kazoku")?.trigger_content_id, "joi_flavor_jap.20", "VC Kazoku transition must link the Kazoku Edict event");
+const shogunate = landowners.potential_flavors?.find((flavor) => flavor.key === "ig_shogunate");
+assert.equal(shogunate?.trigger_content_id, "joi_flavor_jap.21", "VC Shogunate transition must link the capital-fall event");
+assert.equal(shogunate?.trigger_interest_group_flavor_key, "ig_daimyo", "VC Shogunate transition must identify Daimyo as its source flavor");
+assert.ok(shogunate?.country_tags?.includes("JAP"), "VC Shogunate transition must be available from Japan country detail");
 assert.ok(
   landowners.potential_flavors?.some((flavor) => flavor.key === "austrian_aristocracy"),
   "VC data must retain the Austrian Aristocracy history rename",
@@ -64,7 +73,7 @@ assert.deepEqual(
 );
 assert.deepEqual(
   landowners.potential_flavors?.find((flavor) => flavor.key === "ig_kazoku")?.traits?.map((trait) => trait.key),
-  ["ig_trait_kazoku_system", "ig_trait_taisei_hokan"],
+  ["ig_trait_taisei_hokan", "ig_trait_kazoku_system"],
   "Japanese Kazoku later traits must be present",
 );
 assert.match(boardSource, /function interestGroupIsScriptedRename\(/, "VC needs a scripted-rename classifier");

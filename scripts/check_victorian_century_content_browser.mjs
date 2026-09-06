@@ -22,9 +22,11 @@ try {
   assert.doesNotMatch(acreGroup, /event-group:/, "event group navigation must not expose a localization message key");
   const dynamicTitleCard = await page.evaluate(() => document.querySelector("[data-event-id='acw_events.9']")?.textContent || "");
   assert.match(dynamicTitleCard, /星杠旗（美利坚联盟国国旗）／给我的自由/, "the Stars and Bars title must identify the Confederate flag");
-  const placeholderCard = await page.evaluate(() => document.querySelector("[data-event-id='joi_flavor_ger.25']")?.textContent || "");
-  assert.doesNotMatch(placeholderCard, /joi_flavor_ger\.25\.t|joi_flavor_ger\.25\.[ab]/, "empty VC placeholders must not expose unresolved localization keys");
-  assert.match(placeholderCard, /未命名选项/, "empty VC options must be identified without inventing option text");
+  const localizedOptionsCard = await page.evaluate(() => document.querySelector("[data-event-id='joi_flavor_ger.25']")?.textContent || "");
+  assert.doesNotMatch(localizedOptionsCard, /joi_flavor_ger\.25\.t|joi_flavor_ger\.25\.[ab]/, "localized VC options must not expose unresolved localization keys");
+  assert.match(localizedOptionsCard, /一个忠于我们的傀儡政府将统治|让我们在.*北部实施军事占领/, "latest VC option localization must be rendered");
+  const unnamedOptionCard = await page.evaluate(() => document.querySelector("[data-event-id='carlist_war.1']")?.textContent || "");
+  assert.match(unnamedOptionCard, /未命名选项/, "events without option localization must use the unnamed-option label");
   const rulerCard = await page.evaluate(() => document.querySelector("[data-event-id='1848.1']")?.textContent || "");
   assert.match(rulerCard, /审判（统治者头衔）（统治者名）/, "event cards must replace script expressions with readable labels");
   assert.doesNotMatch(rulerCard, /GetPrimaryRoleTitle/, "event cards must not expose dynamic script expressions");

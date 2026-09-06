@@ -412,3 +412,42 @@
 
   .country-interest-group-panel-actions { justify-content: flex-start; }
 }
+.country-interest-group-potential-trigger {
+  margin: 0 0 8px;
+  color: var(--ink-muted);
+}
+
+.country-interest-group-flavor-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.country-interest-group-flavor-card {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--surface) 88%, var(--accent) 12%);
+}
+
+.country-interest-group-flavor-card .mini-grid {
+  margin-top: 8px;
+}
+
+.country-interest-group-potential-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 2px 7px;
+  border: 1px solid rgba(200, 164, 91, 0.55);
+  border-radius: 5px;
+  background: rgba(200, 164, 91, 0.1);
+  color: var(--accent);
+  text-decoration: none;
+  line-height: 1.25;
+}
+
+.country-interest-group-potential-link:hover,
+.country-interest-group-potential-link:focus-visible {
+  border-color: var(--accent);
+  background: rgba(200, 164, 91, 0.18);
+}

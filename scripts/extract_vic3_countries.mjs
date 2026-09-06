@@ -268,6 +268,7 @@ function main() {
     sourceDirs: interestGroupFlavorSourceDirs(),
     loc,
     interestGroupTraits,
+    ideologies,
   });
   attachInterestGroupConditionVariants(interestGroups, {
     loc,
@@ -341,6 +342,15 @@ function main() {
     cultures,
     cultureTraits,
     existingAtStartTags,
+  });
+  attachJapaneseInterestGroupTransitions(interestGroups, {
+    countryRows,
+    cultures,
+    cultureTraits,
+    interestGroupTraits,
+    ideologies,
+    existingAtStartTags,
+    loc,
   });
   const cultureRows = buildCultureRows(cultures, cultureTraits, cultureTraitGroups, relatedCountriesByCulture, stateRegionRows, loc, economyLoc);
   const cultureTraitRows = [...cultureTraits.values()].sort((a, b) => a.key.localeCompare(b.key));
@@ -3280,23 +3290,29 @@ function interestGroupFlavorSourceDirs() {
   ];
 }
 
-function attachInterestGroupPotentialFlavors(interestGroups, { sourceDirs, loc, interestGroupTraits }) {
+function attachInterestGroupPotentialFlavors(interestGroups, { sourceDirs, loc, interestGroupTraits, ideologies }) {
   const groupsByKey = new Map((interestGroups || []).map((group) => [group.key, group]));
   const flavorsByGroup = new Map();
   for (const file of listFiles(sourceDirs)) {
     const source = readText(file);
     if (!source.includes("set_interest_group_name")) continue;
     const root = parseScript(source, file);
-    collectPotentialInterestGroupFlavors(root, {
-      groupKey: "",
-      conditions: [],
-      scopeTraitKeys: [],
-      sourceFile: normalizePath(file),
-      loc,
-      interestGroupTraits,
-      groupsByKey,
-      flavorsByGroup,
-    });
+    const isEventSource = /(?:^|[\\/])events(?:[\\/]|$)/i.test(file);
+    const roots = isEventSource
+      ? root.assignments.map((assignment) => ({ value: assignment.value, triggerEventId: scriptEntryKey(assignment.key) }))
+      : [{ value: root, triggerEventId: "" }];
+    for (const entry of roots) collectPotentialInterestGroupFlavors(entry.value, {
+        groupKey: "",
+        conditions: [],
+        scopeEffects: { traits: [], addedIdeologies: [], removedIdeologies: [] },
+        triggerEventId: entry.triggerEventId,
+        sourceFile: normalizePath(file),
+        loc,
+        interestGroupTraits,
+        ideologies,
+        groupsByKey,
+        flavorsByGroup,
+      });
   }
   for (const group of interestGroups || []) {
     group.potential_flavors = [...(flavorsByGroup.get(group.key)?.values() || [])]
@@ -3308,6 +3324,10 @@ function attachInterestGroupPotentialFlavors(interestGroups, { sourceDirs, loc, 
             .filter((key) => interestGroupTraits.has(key))
             .map((key) => interestGroupTraitRef(key, interestGroupTraits)),
         ]),
+        trigger_event_ids: [...(flavor.trigger_event_ids || [])].sort(),
+        trigger_event_title_zh: interestGroupPotentialFlavorEventTitle(group.key, flavor.key),
+        trigger_interest_group_key: interestGroupPotentialFlavorTransition(group.key, flavor.key)?.fromGroupKey || group.key,
+        trigger_interest_group_flavor_key: interestGroupPotentialFlavorTransition(group.key, flavor.key)?.fromFlavorKey || "",
         rules: [...flavor.rules.values()],
       }))
       .sort((left, right) => left.name_zh.localeCompare(right.name_zh) || left.key.localeCompare(right.key));
@@ -3328,6 +3348,7 @@ function interestGroupPotentialFlavorTraitOverrides(groupKey, flavorKey) {
     ],
     "ig_industrialists:ig_zaibatsu": [
       "ig_trait_zaibatsu_withdrawal",
+      "ig_trait_engines_of_progress",
       "ig_trait_railway_bonds",
       "ig_trait_zaibatsu_cooperation",
     ],
@@ -3461,7 +3482,7 @@ function collectPotentialInterestGroupFlavors(value, context) {
         ...context,
         groupKey: scopedGroupKey,
         conditions: localConditions,
-        scopeTraitKeys: directInterestGroupTraitKeys(scopedNode),
+        scopeEffects: directInterestGroupEffects(scopedNode),
       });
       continue;
     }
@@ -3492,11 +3513,34 @@ function interestGroupScopeKey(value) {
 }
 
 function directInterestGroupTraitKeys(node) {
-  if (!node) return [];
-  return node.assignments
-    .filter((assignment) => assignment.key === "set_ig_trait")
-    .map((assignment) => stripPrefix(scalarFromValue(assignment.value)))
-    .filter(Boolean);
+  return directInterestGroupEffects(node).traits;
+}
+
+function interestGroupPotentialFlavorTransition(groupKey, flavorKey) {
+  const transitions = {
+    "ig_industrialists:ig_zaibatsu": { fromGroupKey: "ig_industrialists", fromFlavorKey: "ig_gosho" },
+  };
+  return transitions[`${groupKey}:${flavorKey}`] || null;
+}
+
+function interestGroupPotentialFlavorEventTitle(groupKey, flavorKey) {
+  return groupKey === "ig_industrialists" && flavorKey === "ig_zaibatsu" ? "豪门" : "";
+}
+
+function directInterestGroupEffects(node) {
+  if (!node) return { traits: [], addedIdeologies: [], removedIdeologies: [] };
+  const result = { traits: [], addedIdeologies: [], removedIdeologies: [] };
+  for (const assignment of node.assignments || []) {
+    const value = stripPrefix(scalarFromValue(assignment.value));
+    if (assignment.key === "set_ig_trait" && value) result.traits.push(value);
+    if (assignment.key === "add_ideology" && value) result.addedIdeologies.push(value);
+    if (assignment.key === "remove_ideology" && value) result.removedIdeologies.push(value);
+  }
+  return {
+    traits: unique(result.traits),
+    addedIdeologies: unique(result.addedIdeologies),
+    removedIdeologies: unique(result.removedIdeologies),
+  };
 }
 
 function addPotentialInterestGroupFlavor(context, flavorKey) {
@@ -3507,8 +3551,10 @@ function addPotentialInterestGroupFlavor(context, flavorKey) {
     key: flavorKey,
     name_zh: locCleanName(context.loc, flavorKey),
     traits: [],
+    trigger_event_ids: new Set(),
     rules: new Map(),
   };
+  if (context.triggerEventId) flavor.trigger_event_ids.add(context.triggerEventId);
   const condition = combineConditionSummaries(context.conditions.map((value) => summarizeInterestGroupCondition(value, {
     locName: (key) => locCleanName(context.loc, key),
   })));
@@ -3517,9 +3563,9 @@ function addPotentialInterestGroupFlavor(context, flavorKey) {
     condition_raw: condition.raw,
     source_file: context.sourceFile,
     names: [{ key: flavorKey, name_zh: locCleanName(context.loc, flavorKey) }],
-    traits: context.scopeTraitKeys.map((key) => interestGroupTraitRef(key, context.interestGroupTraits)),
-    added_ideologies: [],
-    removed_ideologies: [],
+    traits: (context.scopeEffects?.traits || []).map((key) => interestGroupTraitRef(key, context.interestGroupTraits)),
+    added_ideologies: (context.scopeEffects?.addedIdeologies || []).map((key) => ideologyRef(key, context.ideologies)),
+    removed_ideologies: (context.scopeEffects?.removedIdeologies || []).map((key) => ideologyRef(key, context.ideologies)),
   };
   for (const trait of rule.traits) flavor.traits.push(trait);
   flavor.rules.set(interestGroupRuleSignature(rule), rule);
@@ -4072,7 +4118,13 @@ function publicInterestGroup(group) {
     _character_ideology_keys,
     ...publicData
   } = group;
-  return publicData;
+  return {
+    ...publicData,
+    potential_flavors: (group.potential_flavors || []).map((flavor) => ({
+      ...flavor,
+      trigger_event_title_zh: flavor.trigger_event_title_zh || interestGroupPotentialFlavorEventTitle(group.key, flavor.key),
+    })),
+  };
 }
 
 function countInterestGroupFlavorRules(value) {
@@ -4481,6 +4533,123 @@ function attachInterestGroupPotentialFlavorCountryTags(interestGroups, countryRo
   }
 }
 
+const japaneseInterestGroupTransitions = [
+  { groupKey: "ig_intelligentsia", fromFlavorKey: "ig_rangakusha", toFlavorKey: "ig_intelligentsia", contentKind: "event", contentId: "japan_politics.1", titleZh: "实学", titleEn: "Practical Learning", remove: ["ideology_rangaku"], add: ["ideology_constitutionalist"] },
+  { groupKey: "ig_industrialists", fromFlavorKey: "ig_gosho", toFlavorKey: "ig_zaibatsu", contentKind: "event", contentId: "japan_politics.2", titleZh: "豪门", titleEn: "The Great Houses" },
+  { groupKey: "ig_petty_bourgeoisie", fromFlavorKey: "ig_chonin", toFlavorKey: "ig_petty_bourgeoisie", contentKind: "event", contentId: "japan_politics.3", titleZh: "公民大众", titleEn: "The Citizenry", remove: ["ideology_mercantile"] },
+  { groupKey: "ig_armed_forces", fromFlavorKey: "ig_samurai", toFlavorKey: "ig_armed_forces", contentKind: "event", contentId: "meiji.3", titleZh: "武士的落幕", titleEn: "The End of the Samurai", remove: ["ideology_bakufu"] },
+  { groupKey: "ig_landowners", fromFlavorKey: "ig_daimyo", toFlavorKey: "ig_kazoku", contentKind: "journal", contentId: "je_meiji_restoration", titleZh: "御一新", titleEn: "The Restoration", remove: ["ideology_japan_hierarchic", "ideology_japan_hierarchic_2", "ideology_japan_paternalistic"], add: ["ideology_paternalistic", "ideology_hierarchic"] },
+  { groupKey: "ig_devout", fromFlavorKey: "ig_jisha", toFlavorKey: "ig_shinto_monks", contentKind: "decision", contentId: "shinto_decision", titleZh: "采用国家神道", titleEn: "Adopt State Shinto", remove: ["ideology_buddhist_moralist"], add: ["ideology_shinto_moralist"], traits: ["ig_trait_haibutsu_kishaku", "ig_trait_secular_shrine_theory", "ig_trait_heavenly_sovereign"] },
+];
+
+function attachJapaneseInterestGroupTransitions(interestGroups, context) {
+  const japanRow = context.countryRows.find((row) => row.tag === "JAP");
+  if (!japanRow) return;
+  const startingGroups = countryInterestGroupFlavors(interestGroups, {
+    tag: "JAP",
+    country_type: japanRow.country_type,
+    primaryCultureKeys: splitJoined(japanRow.primary_cultures),
+    religion: japanRow.religion,
+    cultures: context.cultures,
+    cultureTraits: context.cultureTraits,
+    interestGroupTraits: context.interestGroupTraits,
+    ideologies: context.ideologies,
+    existingAtStartTags: context.existingAtStartTags,
+    locName: (key) => locCleanName(context.loc, key),
+  });
+  const startingByKey = new Map(startingGroups.map((group) => [group.key, group]));
+  const openingFlavorOverrides = new Map([
+    ["ig_armed_forces", "ig_samurai"],
+  ]);
+  const transitions = japaneseInterestGroupTransitions.map((transition) => {
+    if (!modContentRoot) return transition;
+    if (transition.groupKey === "ig_armed_forces" && transition.toFlavorKey === "ig_armed_forces") {
+      return { ...transition, contentId: "joi_flavor_jap.17", titleZh: "最后的武士", titleEn: "The Last Samurai" };
+    }
+    if (transition.groupKey === "ig_landowners" && transition.toFlavorKey === "ig_kazoku") {
+      return { ...transition, contentKind: "event", contentId: "joi_flavor_jap.20", titleZh: "华族令", titleEn: "Kazoku Edict" };
+    }
+    return transition;
+  });
+  if (modContentRoot) {
+    transitions.push({
+      groupKey: "ig_landowners",
+      fromFlavorKey: "ig_daimyo",
+      toFlavorKey: "ig_shogunate",
+      contentKind: "event",
+      contentId: "joi_flavor_jap.21",
+      titleZh: "京都陷落",
+      titleEn: "Fall of Kyoto",
+    });
+  }
+  for (const transition of transitions) {
+    const group = interestGroups.find((item) => item.key === transition.groupKey);
+    const starting = startingByKey.get(transition.groupKey);
+    if (!group || !starting) continue;
+    const openingFlavorKey = openingFlavorOverrides.get(transition.groupKey) || starting.display_name?.key;
+    if (openingFlavorKey !== transition.fromFlavorKey) continue;
+    let flavor = group.potential_flavors.find((item) => item.key === transition.toFlavorKey);
+    if (!flavor) {
+      flavor = {
+        id: `interest_group_flavor:${transition.groupKey}:${transition.toFlavorKey}`,
+        key: transition.toFlavorKey,
+        name_zh: locCleanName(context.loc, transition.toFlavorKey),
+        traits: [],
+        rules: [],
+      };
+      group.potential_flavors.push(flavor);
+    }
+    const removed = new Set(transition.remove || []);
+    const activeIdeologyKeys = unique([
+      ...(starting.active_ideologies || []).map((item) => item.key).filter((key) => !removed.has(key)),
+      ...(transition.add || []),
+    ]);
+    const baseIdeologyKeys = new Set(group._base_ideology_keys || []);
+    const activeIdeologyKeySet = new Set(activeIdeologyKeys);
+    flavor.country_tags = ["JAP"];
+    const transitionTraitKeys = (transition.traits || []).length
+      ? transition.traits.filter((key) => context.interestGroupTraits.has(key)).map((key) => interestGroupTraitRef(key, context.interestGroupTraits))
+      : (flavor.traits || []).length ? flavor.traits : starting.active_traits || [];
+    flavor.traits = interestGroupTraitSlotKeys(
+      transitionTraitKeys.map((trait) => trait.key),
+      context.interestGroupTraits,
+    ).map((key) => interestGroupTraitRef(key, context.interestGroupTraits));
+    flavor.ideologies = activeIdeologyKeys.map((key) => ideologyRef(key, context.ideologies));
+    flavor.added_ideologies = activeIdeologyKeys.filter((key) => !baseIdeologyKeys.has(key)).map((key) => ideologyRef(key, context.ideologies));
+    flavor.removed_ideologies = [...baseIdeologyKeys].filter((key) => !activeIdeologyKeySet.has(key)).map((key) => ideologyRef(key, context.ideologies));
+    flavor.trigger_content_kind = transition.contentKind;
+    flavor.trigger_content_id = transition.contentId;
+    flavor.trigger_content_title_zh = transition.titleZh;
+    flavor.trigger_content_title_en = transition.titleEn;
+    flavor.trigger_interest_group_key = transition.groupKey;
+    flavor.trigger_interest_group_flavor_key = transition.fromFlavorKey;
+    if (transition.contentKind === "event") flavor.trigger_event_ids = [transition.contentId];
+    const triggerRule = {
+      condition_summary_zh: transition.titleZh,
+      condition_raw: "",
+      source_file: "",
+      names: [{ key: transition.toFlavorKey, name_zh: locCleanName(context.loc, transition.toFlavorKey) }],
+      traits: flavor.traits,
+      added_ideologies: flavor.added_ideologies,
+      removed_ideologies: flavor.removed_ideologies,
+    };
+    flavor.rules = [...(flavor.rules || []).filter((rule) => rule.condition_raw || rule.source_file), triggerRule];
+  }
+  if (modContentRoot) {
+    const armedForces = interestGroups.find((group) => group.key === "ig_armed_forces");
+    const samurai = armedForces?.potential_flavors?.find((flavor) => flavor.key === "ig_samurai");
+    if (samurai) {
+      samurai.trigger_content_kind = "event";
+      samurai.trigger_content_id = "joi_flavor_jap.19";
+      samurai.trigger_content_title_zh = "前景黯淡的维新";
+      samurai.trigger_content_title_en = "A Bleak Restoration";
+      samurai.trigger_interest_group_key = "ig_armed_forces";
+      samurai.trigger_interest_group_flavor_key = "ig_armed_forces";
+    }
+  }
+  for (const group of interestGroups) group.potential_flavors.sort((left, right) => left.name_zh.localeCompare(right.name_zh) || left.key.localeCompare(right.key));
+}
+
 function historyCountryTagFromSource(sourceFile) {
   const match = String(sourceFile || "").replaceAll("\\", "/").match(/\/([a-z0-9]{3})\s+-[^/]+\.txt$/i);
   return match ? match[1].toUpperCase() : "";
@@ -4694,7 +4863,10 @@ function countryInterestGroupFlavors(interestGroups, context) {
       sourceFile: group.source_file,
     };
     executeInterestGroupEffects(group._on_enable, context, runtime, []);
-    const activeTraitKeys = runtime.traitKeys.length ? unique(runtime.traitKeys) : group._base_trait_keys;
+    const activeTraitKeys = interestGroupTraitSlotKeys(
+      runtime.traitKeys.length ? runtime.traitKeys : group._base_trait_keys,
+      context.interestGroupTraits,
+    );
     const removed = new Set(runtime.removedIdeologyKeys);
     const activeIdeologyKeys = unique([
       ...group._base_ideology_keys.filter((key) => !removed.has(key)),
@@ -4942,7 +5114,21 @@ function evaluateConditionAssignment(assignment, context) {
     return assignment.op === "!=" ? invertConditionResult(result) : result;
   }
   if (key === "has_dlc_feature") return "true";
+  if (key === "has_global_variable") return "false";
   return "unknown";
+}
+
+function interestGroupTraitSlotKeys(keys, interestGroupTraits) {
+  const selected = new Map();
+  for (const key of keys || []) {
+    const trait = interestGroupTraits.get(key);
+    if (!trait) continue;
+    const slot = trait.max_approval === "unhappy" ? "unhappy"
+      : trait.min_approval === "happy" ? "happy"
+        : trait.min_approval === "loyal" ? "loyal" : "";
+    if (slot) selected.set(slot, key);
+  }
+  return ["unhappy", "happy", "loyal"].map((slot) => selected.get(slot)).filter(Boolean);
 }
 
 function evaluateCultureCondition(value, cultureKey, context) {
