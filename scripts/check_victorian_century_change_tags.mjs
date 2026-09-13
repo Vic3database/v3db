@@ -51,7 +51,20 @@ try {
     assert.deepEqual(actual[field], expected[field], `${field} change tags do not match the baseline comparison`);
   }
   assert(Object.values(actual).some((summary) => summary.added + summary.adjusted > 0), "Victorian Century should retain substantive change tags");
-  assert.deepEqual(actual.technologies, { added: 1, adjusted: 0 }, "technology change tags should retain only the added VC technology");
+  assert.deepEqual(actual.technologies, { added: 1, adjusted: 24 }, "technology change tags should include the 24 VC-adjusted technologies and one added technology");
+  const technologyByKey = new Map((victorianCentury.technologies || []).map((technology) => [technology.key, technology]));
+  for (const key of [
+    "railways", "dough_rollers", "cotton_gin",
+    "napoleonic_warfare", "general_staff", "logistics", "landing_craft", "field_works",
+    "military_statistics", "trench_works", "defense_in_depth", "concrete_fortifications",
+    "chemical_warfare", "flamethrowers",
+    "human_rights", "corporatism", "socialism", "nationalism", "civilizing_mission",
+    "mutual_funds", "organized_sports", "elevator", "paved_roads", "triage",
+  ]) {
+    assert.equal(technologyByKey.get(key)?.vc_change_kind, "adjusted", `${key} must receive the VC adjusted tag`);
+  }
+  assert.equal(technologyByKey.get("handcranked_machine_gun")?.vc_change_kind, undefined, "an identical VC injection must not receive an adjusted tag");
+  assert.equal(technologyByKey.get("united_fruit_banana_tech")?.vc_change_kind, "added", "VC-only technology must retain the added tag");
 
   const sourceFiles = {
     index: readText("site/index.html"),

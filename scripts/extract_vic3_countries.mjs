@@ -3028,12 +3028,9 @@ function loadTechnologies(dir, technologyEras, loc) {
   const eraByKey = new Map(technologyEras.map((era) => [era.key, era]));
   const technologies = [];
   let sortOrder = 0;
-  for (const file of listFiles(dir)) {
-    const root = parseScript(readText(file), file);
-    for (const assignment of root.assignments) {
-      const key = scriptEntryKey(assignment.key);
-      const node = asNode(assignment.value);
-      if (!node) continue;
+  const definitions = loadPatchedDefinitions(dir, (key, node) => Boolean(node && /^[A-Za-z0-9_-]+$/.test(key)));
+  for (const record of definitions.values()) {
+      const { key, node } = record;
       const era = stripPrefix(firstScalar(node, "era"));
       const category = stripPrefix(firstScalar(node, "category"));
       if (!eraByKey.has(era) || !Object.hasOwn(technologyCategoryZh, category)) continue;
@@ -3045,6 +3042,13 @@ function loadTechnologies(dir, technologyEras, loc) {
         .map(asNode)
         .filter(Boolean)
         .flatMap((modifierNode) => modifierNode.assignments.map((item) => modifierRef(item.key, item.value, loc)));
+      const onResearched = firstValue(node, "on_researched") ? stringifyScriptValue(firstValue(node, "on_researched")) : "";
+      const patchAiWeight = (record.patch_nodes || [])
+        .map((patchNode) => firstValue(patchNode, "ai_weight"))
+        .find(Boolean);
+      const aiWeight = patchAiWeight
+        ? stringifyScriptValue(patchAiWeight)
+        : "";
       technologies.push({
         id: `technology:${key}`,
         key,
@@ -3059,12 +3063,13 @@ function loadTechnologies(dir, technologyEras, loc) {
         prerequisites,
         unlocks: [],
         modifiers,
+        ...(onResearched ? { on_researched: onResearched } : {}),
+        ...(aiWeight ? { ai_weight: aiWeight } : {}),
         modifier_summary_zh: joinValues(modifiers.map((modifier) => modifier.summary_zh)),
         references: { laws: [], companies: [] },
-        source_file: normalizePath(file),
+        source_file: record.source_file,
         sort_order: sortOrder++,
       });
-    }
   }
   return technologies;
 }

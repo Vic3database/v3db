@@ -41,6 +41,7 @@ export function applyDefinitionAssignment(definitions, assignment, sourceFile, o
     existing.source_files = unique([...existing.source_files, sourceFile]);
     if (modStage) {
       existing.patch_directives = unique([...existing.patch_directives, directive]);
+      existing.patch_nodes = [...(existing.patch_nodes || []), cloneValue(assignment.value)];
     }
     return;
   }
@@ -57,6 +58,7 @@ export function applyDefinitionAssignment(definitions, assignment, sourceFile, o
     source_file: sourceFile,
     source_files: sourceFiles,
     patch_directives: patchDirectives,
+    patch_nodes: modStage && directive === "CREATE" ? [cloneValue(assignment.value)] : [],
   });
 }
 
