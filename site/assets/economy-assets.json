@@ -709,6 +709,524 @@
       "target": "assets/buildings/building_white_house.webp"
     },
     {
+      "category": "combat-units",
+      "key": "combat_unit_type_cannon_artillery",
+      "source_kind": "game",
+      "source": "gfx/unit_illustrations/artillery_east_asian_cannon.dds",
+      "target": "assets/combat-units/combat_unit_type_cannon_artillery.webp"
+    },
+    {
+      "category": "combat-units",
+      "key": "combat_unit_type_cuirassiers",
+      "source_kind": "game",
+      "source": "gfx/unit_illustrations/cavalry_east_asian_cuirassier.dds",
+      "target": "assets/combat-units/combat_unit_type_cuirassiers.webp"
+    },
+    {
+      "category": "combat-units",
+      "key": "combat_unit_type_dragoons",
+      "source_kind": "game",
+      "source": "gfx/unit_illustrations/cavalry_east_asian_dragoon.dds",
+      "target": "assets/combat-units/combat_unit_type_dragoons.webp"
+    },
+    {
+      "category": "combat-units",
+      "key": "combat_unit_type_heavy_tank",
+      "source_kind": "game",
+      "source": "gfx/unit_illustrations/artillery_heavy_tank.dds",
+      "target": "assets/combat-units/combat_unit_type_heavy_tank.webp"
+    },
+    {
+      "category": "combat-units",
+      "key": "combat_unit_type_high_tier_marines",
+      "source_kind": "game",
+      "source": "gfx/unit_illustrations/marines_eu_high.dds",
+      "target": "assets/combat-units/combat_unit_type_high_tier_marines.webp"
+    },
+    {
+      "category": "combat-units",
+      "key": "combat_unit_type_hussars",
+      "source_kind": "game",
+      "source": "gfx/unit_illustrations/cavalry_east_asian_hussar.dds",
+      "target": "assets/combat-units/combat_unit_type_hussars.webp"
+    },
+    {
+      "category": "combat-units",
+      "key": "combat_unit_type_irregular_infantry",
+      "source_kind": "game",
+      "source": "gfx/unit_illustrations/infantry_decentralised_americas_irregular.dds",
+      "target": "assets/combat-units/combat_unit_type_irregular_infantry.webp"
+    },
+    {
+      "category": "combat-units",
+      "key": "combat_unit_type_lancers",
+      "source_kind": "game",
+      "source": "gfx/unit_illustrations/cavalry_east_asian_lancer.dds",
+      "target": "assets/combat-units/combat_unit_type_lancers.webp"
+    },
+    {
+      "category": "combat-units",
+      "key": "combat_unit_type_light_tanks",
+      "source_kind": "game",
+      "source": "gfx/unit_illustrations/cavalry_light_tank.dds",
+      "target": "assets/combat-units/combat_unit_type_light_tanks.webp"
+    },
+    {
+      "category": "combat-units",
+      "key": "combat_unit_type_line_infantry",
+      "source_kind": "game",
+      "source": "gfx/unit_illustrations/infantry_east_asian_line.dds",
+      "target": "assets/combat-units/combat_unit_type_line_infantry.webp"
+    },
+    {
+      "category": "combat-units",
+      "key": "combat_unit_type_low_tier_marines",
+      "source_kind": "game",
+      "source": "gfx/unit_illustrations/marines_eu_low.dds",
+      "target": "assets/combat-units/combat_unit_type_low_tier_marines.webp"
+    },
+    {
+      "category": "combat-units",
+      "key": "combat_unit_type_mechanized_infantry",
+      "source_kind": "game",
+      "source": "gfx/unit_illustrations/infantry_east_asian_mechanized.dds",
+      "target": "assets/combat-units/combat_unit_type_mechanized_infantry.webp"
+    },
+    {
+      "category": "combat-units",
+      "key": "combat_unit_type_mid_tier_marines",
+      "source_kind": "game",
+      "source": "gfx/unit_illustrations/marines_eu_mid.dds",
+      "target": "assets/combat-units/combat_unit_type_mid_tier_marines.webp"
+    },
+    {
+      "category": "combat-units",
+      "key": "combat_unit_type_mobile_artillery",
+      "source_kind": "game",
+      "source": "gfx/unit_illustrations/artillery_east_asian_mobile.dds",
+      "target": "assets/combat-units/combat_unit_type_mobile_artillery.webp"
+    },
+    {
+      "category": "combat-units",
+      "key": "combat_unit_type_shrapnel_artillery",
+      "source_kind": "game",
+      "source": "gfx/unit_illustrations/artillery_east_asian_shrapnel.dds",
+      "target": "assets/combat-units/combat_unit_type_shrapnel_artillery.webp"
+    },
+    {
+      "category": "combat-units",
+      "key": "combat_unit_type_siege_artillery",
+      "source_kind": "game",
+      "source": "gfx/unit_illustrations/artillery_east_asian_siege.dds",
+      "target": "assets/combat-units/combat_unit_type_siege_artillery.webp"
+    },
+    {
+      "category": "combat-units",
+      "key": "combat_unit_type_skirmish_infantry",
+      "source_kind": "game",
+      "source": "gfx/unit_illustrations/infantry_east_asian_skirmish.dds",
+      "target": "assets/combat-units/combat_unit_type_skirmish_infantry.webp"
+    },
+    {
+      "category": "combat-units",
+      "key": "combat_unit_type_squad_infantry",
+      "source_kind": "game",
+      "source": "gfx/unit_illustrations/infantry_east_asian_squad.dds",
+      "target": "assets/combat-units/combat_unit_type_squad_infantry.webp"
+    },
+    {
+      "category": "combat-units",
+      "key": "combat_unit_type_trench_infantry",
+      "source_kind": "game",
+      "source": "gfx/unit_illustrations/infantry_east_asian_trench.dds",
+      "target": "assets/combat-units/combat_unit_type_trench_infantry.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "add_power_bloc_culture",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_action_icons/force_culture.dds",
+      "target": "assets/diplomatic-actions/add_power_bloc_culture.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "chartered_company",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/lens_toolbar_icons/diplomatic_lens_button.dds",
+      "target": "assets/diplomatic-actions/chartered_company.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "colonization_rights",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/lens_toolbar_icons/diplomatic_lens_button.dds",
+      "target": "assets/diplomatic-actions/colonization_rights.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "colony",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/lens_toolbar_icons/diplomatic_lens_button.dds",
+      "target": "assets/diplomatic-actions/colony.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "crown_land",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/lens_toolbar_icons/diplomatic_lens_button.dds",
+      "target": "assets/diplomatic-actions/crown_land.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "da_appoint_colonial_governor",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_action_icons/da_appoint_colonial_governor.dds",
+      "target": "assets/diplomatic-actions/da_appoint_colonial_governor.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "da_change_culture",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_action_icons/change_culture.dds",
+      "target": "assets/diplomatic-actions/da_change_culture.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "da_decrease_autonomy",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_action_icons/da_decrease_autonomy.dds",
+      "target": "assets/diplomatic-actions/da_decrease_autonomy.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "da_evangelize",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_action_icons/evangelize.dds",
+      "target": "assets/diplomatic-actions/da_evangelize.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "da_increase_autonomy_of_self",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_action_icons/da_increase_autonomy.dds",
+      "target": "assets/diplomatic-actions/da_increase_autonomy_of_self.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "da_increase_autonomy_of_subject",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_action_icons/da_increase_autonomy.dds",
+      "target": "assets/diplomatic-actions/da_increase_autonomy_of_subject.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "da_knowledge_sharing",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_action_icons/knowledge_sharing.dds",
+      "target": "assets/diplomatic-actions/da_knowledge_sharing.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "da_overlord_grant_investment_rights",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_action_icons/da_grant_investment_rights.dds",
+      "target": "assets/diplomatic-actions/da_overlord_grant_investment_rights.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "da_request_colonial_governor",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_action_icons/da_appoint_colonial_governor.dds",
+      "target": "assets/diplomatic-actions/da_request_colonial_governor.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "da_request_knowledge_sharing",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_action_icons/knowledge_sharing.dds",
+      "target": "assets/diplomatic-actions/da_request_knowledge_sharing.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "da_request_support_regime",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_action_icons/support_regime.dds",
+      "target": "assets/diplomatic-actions/da_request_support_regime.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "da_stake_colonial_claim",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/lens_toolbar_icons/diplomatic_lens_button.dds",
+      "target": "assets/diplomatic-actions/da_stake_colonial_claim.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "da_subject_request_investment_rights",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_action_icons/da_request_investment_rights.dds",
+      "target": "assets/diplomatic-actions/da_subject_request_investment_rights.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "da_support_regime",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_action_icons/support_regime.dds",
+      "target": "assets/diplomatic-actions/da_support_regime.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "damage_relations",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/lens_toolbar_icons/damage_relations.dds",
+      "target": "assets/diplomatic-actions/damage_relations.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "decrease_payments",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_action_icons/decrease_payments.dds",
+      "target": "assets/diplomatic-actions/decrease_payments.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "demand_state",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_action_icons/take_state.dds",
+      "target": "assets/diplomatic-actions/demand_state.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "disapproval_pact",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/lens_toolbar_icons/disapproval_pact.dds",
+      "target": "assets/diplomatic-actions/disapproval_pact.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "dominion",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/lens_toolbar_icons/diplomatic_lens_button.dds",
+      "target": "assets/diplomatic-actions/dominion.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "embargo",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/lens_toolbar_icons/embargo.dds",
+      "target": "assets/diplomatic-actions/embargo.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "enforce_military_access",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_action_icons/enforce_military_access.dds",
+      "target": "assets/diplomatic-actions/enforce_military_access.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "exempt_from_service",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_action_icons/exempt_from_service.dds",
+      "target": "assets/diplomatic-actions/exempt_from_service.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "expel_diplomats",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/lens_toolbar_icons/diplomatic_lens_button.dds",
+      "target": "assets/diplomatic-actions/expel_diplomats.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "force_become_subject",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_action_icons/force_become_subject.dds",
+      "target": "assets/diplomatic-actions/force_become_subject.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "force_regime_change",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_action_icons/force_regime_change.dds",
+      "target": "assets/diplomatic-actions/force_regime_change.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "force_state_religion",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_action_icons/force_state_religion.dds",
+      "target": "assets/diplomatic-actions/force_state_religion.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "fund_lobbies",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/lens_toolbar_icons/diplomatic_lens_button.dds",
+      "target": "assets/diplomatic-actions/fund_lobbies.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "grant_own_market",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_action_icons/grant_market_independence.dds",
+      "target": "assets/diplomatic-actions/grant_own_market.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "grant_state",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_action_icons/grant_state.dds",
+      "target": "assets/diplomatic-actions/grant_state.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "humiliation",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/lens_toolbar_icons/diplomatic_lens_button.dds",
+      "target": "assets/diplomatic-actions/humiliation.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "increase_relations",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/lens_toolbar_icons/increase_relations.dds",
+      "target": "assets/diplomatic-actions/increase_relations.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "invite_to_power_bloc",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/lens_toolbar_icons/diplomatic_lens_button.dds",
+      "target": "assets/diplomatic-actions/invite_to_power_bloc.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "invoke_doctrine_of_lapse",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_action_icons/doctrine_of_lapse.dds",
+      "target": "assets/diplomatic-actions/invoke_doctrine_of_lapse.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "join_power_bloc",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/lens_toolbar_icons/diplomatic_lens_button.dds",
+      "target": "assets/diplomatic-actions/join_power_bloc.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "orchestrate_coup",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/lens_toolbar_icons/diplomatic_lens_button.dds",
+      "target": "assets/diplomatic-actions/orchestrate_coup.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "personal_union",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/lens_toolbar_icons/diplomatic_lens_button.dds",
+      "target": "assets/diplomatic-actions/personal_union.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "protectorate",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/lens_toolbar_icons/diplomatic_lens_button.dds",
+      "target": "assets/diplomatic-actions/protectorate.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "puppet",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/lens_toolbar_icons/diplomatic_lens_button.dds",
+      "target": "assets/diplomatic-actions/puppet.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "raiding_pact",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/lens_toolbar_icons/raiding_pact.dds",
+      "target": "assets/diplomatic-actions/raiding_pact.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "raise_payments",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_action_icons/raise_payments.dds",
+      "target": "assets/diplomatic-actions/raise_payments.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "redeem_obligation",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/lens_toolbar_icons/diplomatic_lens_button.dds",
+      "target": "assets/diplomatic-actions/redeem_obligation.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "request_market_control",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_action_icons/request_market_control.dds",
+      "target": "assets/diplomatic-actions/request_market_control.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "rivalry",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/lens_toolbar_icons/rivalry.dds",
+      "target": "assets/diplomatic-actions/rivalry.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "support_separatism",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/lens_toolbar_icons/diplomatic_lens_button.dds",
+      "target": "assets/diplomatic-actions/support_separatism.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "take_state",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_action_icons/take_state.dds",
+      "target": "assets/diplomatic-actions/take_state.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "trade_states",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/lens_toolbar_icons/diplomatic_lens_button.dds",
+      "target": "assets/diplomatic-actions/trade_states.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "tributary",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/lens_toolbar_icons/diplomatic_lens_button.dds",
+      "target": "assets/diplomatic-actions/tributary.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "vassal",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/lens_toolbar_icons/diplomatic_lens_button.dds",
+      "target": "assets/diplomatic-actions/vassal.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "violate_sovereignty",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/lens_toolbar_icons/diplomatic_lens_button.dds",
+      "target": "assets/diplomatic-actions/violate_sovereignty.webp"
+    },
+    {
+      "category": "diplomatic-actions",
+      "key": "war_reparations",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/lens_toolbar_icons/diplomatic_lens_button.dds",
+      "target": "assets/diplomatic-actions/war_reparations.webp"
+    },
+    {
       "category": "goods",
       "key": "aeroplanes",
       "source_kind": "game",
@@ -1078,6 +1596,181 @@
       "source_kind": "game",
       "source": "gfx/interface/icons/goods_icons/wood.dds",
       "target": "assets/goods/wood.webp"
+    },
+    {
+      "category": "mobilization-options",
+      "key": "mobilization_option_aerial_recon",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/mobilization_options/aerial_reconaissance.dds",
+      "target": "assets/mobilization-options/mobilization_option_aerial_recon.webp"
+    },
+    {
+      "category": "mobilization-options",
+      "key": "mobilization_option_balloon_recon",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/mobilization_options/balloon_recon.dds",
+      "target": "assets/mobilization-options/mobilization_option_balloon_recon.webp"
+    },
+    {
+      "category": "mobilization-options",
+      "key": "mobilization_option_basic_supplies",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/mobilization_options/basic_supplies.dds",
+      "target": "assets/mobilization-options/mobilization_option_basic_supplies.webp"
+    },
+    {
+      "category": "mobilization-options",
+      "key": "mobilization_option_chemical_weapons",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/mobilization_options/chemical_weapons.dds",
+      "target": "assets/mobilization-options/mobilization_option_chemical_weapons.webp"
+    },
+    {
+      "category": "mobilization-options",
+      "key": "mobilization_option_chocolate",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/mobilization_options/chocolate.dds",
+      "target": "assets/mobilization-options/mobilization_option_chocolate.webp"
+    },
+    {
+      "category": "mobilization-options",
+      "key": "mobilization_option_extra_supplies",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/mobilization_options/extra_supplies.dds",
+      "target": "assets/mobilization-options/mobilization_option_extra_supplies.webp"
+    },
+    {
+      "category": "mobilization-options",
+      "key": "mobilization_option_field_hospitals",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/mobilization_options/field_hospitals.dds",
+      "target": "assets/mobilization-options/mobilization_option_field_hospitals.webp"
+    },
+    {
+      "category": "mobilization-options",
+      "key": "mobilization_option_first_aid",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/mobilization_options/basic_medical_aid.dds",
+      "target": "assets/mobilization-options/mobilization_option_first_aid.webp"
+    },
+    {
+      "category": "mobilization-options",
+      "key": "mobilization_option_flamethrowers",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/mobilization_options/flamethrowers.dds",
+      "target": "assets/mobilization-options/mobilization_option_flamethrowers.webp"
+    },
+    {
+      "category": "mobilization-options",
+      "key": "mobilization_option_forced_march",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/mobilization_options/forced_march.dds",
+      "target": "assets/mobilization-options/mobilization_option_forced_march.webp"
+    },
+    {
+      "category": "mobilization-options",
+      "key": "mobilization_option_liquor",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/mobilization_options/liquor.dds",
+      "target": "assets/mobilization-options/mobilization_option_liquor.webp"
+    },
+    {
+      "category": "mobilization-options",
+      "key": "mobilization_option_luxurious_supplies",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/mobilization_options/luxurious_supplies.dds",
+      "target": "assets/mobilization-options/mobilization_option_luxurious_supplies.webp"
+    },
+    {
+      "category": "mobilization-options",
+      "key": "mobilization_option_machinegunners",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/mobilization_options/machinegunners.dds",
+      "target": "assets/mobilization-options/mobilization_option_machinegunners.webp"
+    },
+    {
+      "category": "mobilization-options",
+      "key": "mobilization_option_motorized_recon",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/mobilization_options/motorized_reconaissance.dds",
+      "target": "assets/mobilization-options/mobilization_option_motorized_recon.webp"
+    },
+    {
+      "category": "mobilization-options",
+      "key": "mobilization_option_opium",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/mobilization_options/opium.dds",
+      "target": "assets/mobilization-options/mobilization_option_opium.webp"
+    },
+    {
+      "category": "mobilization-options",
+      "key": "mobilization_option_rail_transport",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/mobilization_options/rail_transport.dds",
+      "target": "assets/mobilization-options/mobilization_option_rail_transport.webp"
+    },
+    {
+      "category": "mobilization-options",
+      "key": "mobilization_option_tobacco",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/mobilization_options/tobacco.dds",
+      "target": "assets/mobilization-options/mobilization_option_tobacco.webp"
+    },
+    {
+      "category": "mobilization-options",
+      "key": "mobilization_option_truck_transport",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/mobilization_options/truck_transport.dds",
+      "target": "assets/mobilization-options/mobilization_option_truck_transport.webp"
+    },
+    {
+      "category": "political-parties",
+      "key": "anarchist_party",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/political_parties/anarchist.dds",
+      "target": "assets/political-parties/anarchist_party.webp"
+    },
+    {
+      "category": "political-parties",
+      "key": "communist_party",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/political_parties/communists.dds",
+      "target": "assets/political-parties/communist_party.webp"
+    },
+    {
+      "category": "political-parties",
+      "key": "fascist_party",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/political_parties/fascists.dds",
+      "target": "assets/political-parties/fascist_party.webp"
+    },
+    {
+      "category": "political-parties",
+      "key": "free_trade_party",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/political_parties/free_trade.dds",
+      "target": "assets/political-parties/free_trade_party.webp"
+    },
+    {
+      "category": "political-parties",
+      "key": "liberal_party",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/political_parties/liberal.dds",
+      "target": "assets/political-parties/liberal_party.webp"
+    },
+    {
+      "category": "political-parties",
+      "key": "radical_party",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/political_parties/radical.dds",
+      "target": "assets/political-parties/radical_party.webp"
+    },
+    {
+      "category": "political-parties",
+      "key": "social_democrat_party",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/political_parties/social_democrats.dds",
+      "target": "assets/political-parties/social_democrat_party.webp"
     },
     {
       "category": "pops",
@@ -6097,6 +6790,391 @@
       "source_kind": "game",
       "source": "gfx/interface/icons/production_method_icons/exploitative_practices.dds",
       "target": "assets/production-methods/worker_exploitation_tobacco.webp"
+    },
+    {
+      "category": "ship-types",
+      "key": "ship_type_aircraft_carrier",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/ships/ship_types/silhouette_aircraft_carrier.dds",
+      "target": "assets/ship-types/ship_type_aircraft_carrier.webp"
+    },
+    {
+      "category": "ship-types",
+      "key": "ship_type_armored_cruiser",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/ships/ship_types/silhouette_armored_cruiser.dds",
+      "target": "assets/ship-types/ship_type_armored_cruiser.webp"
+    },
+    {
+      "category": "ship-types",
+      "key": "ship_type_coastal_defense_ship",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/ships/ship_types/silhouette_coastal_defense_ship.dds",
+      "target": "assets/ship-types/ship_type_coastal_defense_ship.webp"
+    },
+    {
+      "category": "ship-types",
+      "key": "ship_type_destroyer",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/ships/ship_types/silhouette_destroyer.dds",
+      "target": "assets/ship-types/ship_type_destroyer.webp"
+    },
+    {
+      "category": "ship-types",
+      "key": "ship_type_dreadnought",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/ships/ship_types/silhouette_dreadnought.dds",
+      "target": "assets/ship-types/ship_type_dreadnought.webp"
+    },
+    {
+      "category": "ship-types",
+      "key": "ship_type_early_ironclad",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/ships/ship_types/silhouette_early_ironclad.dds",
+      "target": "assets/ship-types/ship_type_early_ironclad.webp"
+    },
+    {
+      "category": "ship-types",
+      "key": "ship_type_frigate",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/ships/ship_types/silhouette_frigate.dds",
+      "target": "assets/ship-types/ship_type_frigate.webp"
+    },
+    {
+      "category": "ship-types",
+      "key": "ship_type_iron_frigate",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/ships/ship_types/silhouette_iron_frigate.dds",
+      "target": "assets/ship-types/ship_type_iron_frigate.webp"
+    },
+    {
+      "category": "ship-types",
+      "key": "ship_type_light_cruiser",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/ships/ship_types/silhouette_light_cruiser.dds",
+      "target": "assets/ship-types/ship_type_light_cruiser.webp"
+    },
+    {
+      "category": "ship-types",
+      "key": "ship_type_modern_ironclad",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/ships/ship_types/silhouette_modern_ironclad.dds",
+      "target": "assets/ship-types/ship_type_modern_ironclad.webp"
+    },
+    {
+      "category": "ship-types",
+      "key": "ship_type_monitor",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/ships/ship_types/silhouette_monitor.dds",
+      "target": "assets/ship-types/ship_type_monitor.webp"
+    },
+    {
+      "category": "ship-types",
+      "key": "ship_type_pre_dreadnought",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/ships/ship_types/silhouette_pre_dreadnought.dds",
+      "target": "assets/ship-types/ship_type_pre_dreadnought.webp"
+    },
+    {
+      "category": "ship-types",
+      "key": "ship_type_protected_cruiser",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/ships/ship_types/silhouette_protected_cruiser.dds",
+      "target": "assets/ship-types/ship_type_protected_cruiser.webp"
+    },
+    {
+      "category": "ship-types",
+      "key": "ship_type_seaplane_tender",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/ships/ship_types/silhouette_seaplane_tender.dds",
+      "target": "assets/ship-types/ship_type_seaplane_tender.webp"
+    },
+    {
+      "category": "ship-types",
+      "key": "ship_type_ship_of_the_line",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/ships/ship_types/silhouette_ship_of_the_line.dds",
+      "target": "assets/ship-types/ship_type_ship_of_the_line.webp"
+    },
+    {
+      "category": "ship-types",
+      "key": "ship_type_submarine",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/ships/ship_types/silhouette_submarine.dds",
+      "target": "assets/ship-types/ship_type_submarine.webp"
+    },
+    {
+      "category": "ship-types",
+      "key": "ship_type_super_dreadnought",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/ships/ship_types/silhouette_super_dreadnought.dds",
+      "target": "assets/ship-types/ship_type_super_dreadnought.webp"
+    },
+    {
+      "category": "ship-types",
+      "key": "ship_type_supply_ship",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/ships/ship_types/silhouette_supply_ship.dds",
+      "target": "assets/ship-types/ship_type_supply_ship.webp"
+    },
+    {
+      "category": "ship-types",
+      "key": "ship_type_torpedo_boat",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/ships/ship_types/silhouette_torpedo_boat.dds",
+      "target": "assets/ship-types/ship_type_torpedo_boat.webp"
+    },
+    {
+      "category": "ship-types",
+      "key": "ship_type_torpedo_boat_destroyer",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/ships/ship_types/silhouette_torpedo_boat_destroyer.dds",
+      "target": "assets/ship-types/ship_type_torpedo_boat_destroyer.webp"
+    },
+    {
+      "category": "ship-types",
+      "key": "ship_type_troop_ship",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/ships/ship_types/silhouette_troop_ship.dds",
+      "target": "assets/ship-types/ship_type_troop_ship.webp"
+    },
+    {
+      "category": "treaty-articles",
+      "key": "abandon_piracy",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_treaties_articles_icons/abandon_piracy.dds",
+      "target": "assets/treaty-articles/abandon_piracy.webp"
+    },
+    {
+      "category": "treaty-articles",
+      "key": "acquire_monopoly_for_company",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_treaties_articles_icons/acquire_monopoly_for_company_treaties.dds",
+      "target": "assets/treaty-articles/acquire_monopoly_for_company.webp"
+    },
+    {
+      "category": "treaty-articles",
+      "key": "alliance",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_treaties_articles_icons/alliance_treaties.dds",
+      "target": "assets/treaty-articles/alliance.webp"
+    },
+    {
+      "category": "treaty-articles",
+      "key": "amend_succession",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_treaties_articles_icons/law_commitment_treaties.dds",
+      "target": "assets/treaty-articles/amend_succession.webp"
+    },
+    {
+      "category": "treaty-articles",
+      "key": "defensive_pact",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_treaties_articles_icons/defensive_pact_treaties.dds",
+      "target": "assets/treaty-articles/defensive_pact.webp"
+    },
+    {
+      "category": "treaty-articles",
+      "key": "foreign_investment_rights",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_treaties_articles_icons/foreign_investment_agreement_treaties.dds",
+      "target": "assets/treaty-articles/foreign_investment_rights.webp"
+    },
+    {
+      "category": "treaty-articles",
+      "key": "free_text",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/generic_icons/diplomatic_treaties.dds",
+      "target": "assets/treaty-articles/free_text.webp"
+    },
+    {
+      "category": "treaty-articles",
+      "key": "goods_transfer",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_treaties_articles_icons/goods_transfer_treaties.dds",
+      "target": "assets/treaty-articles/goods_transfer.webp"
+    },
+    {
+      "category": "treaty-articles",
+      "key": "guarantee_independence",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_treaties_articles_icons/guarantee_independence_treaties.dds",
+      "target": "assets/treaty-articles/guarantee_independence.webp"
+    },
+    {
+      "category": "treaty-articles",
+      "key": "host_power_bloc_embassy",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_treaties_articles_icons/power_bloc_embassy_treaties.dds",
+      "target": "assets/treaty-articles/host_power_bloc_embassy.webp"
+    },
+    {
+      "category": "treaty-articles",
+      "key": "join_power_bloc",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_treaties_articles_icons/invite_to_power_bloc_treaties.dds",
+      "target": "assets/treaty-articles/join_power_bloc.webp"
+    },
+    {
+      "category": "treaty-articles",
+      "key": "law_commitment",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_treaties_articles_icons/law_commitment_treaties.dds",
+      "target": "assets/treaty-articles/law_commitment.webp"
+    },
+    {
+      "category": "treaty-articles",
+      "key": "military_access",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_treaties_articles_icons/military_access_treaties.dds",
+      "target": "assets/treaty-articles/military_access.webp"
+    },
+    {
+      "category": "treaty-articles",
+      "key": "military_assistance",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_treaties_articles_icons/military_assistance_treaties.dds",
+      "target": "assets/treaty-articles/military_assistance.webp"
+    },
+    {
+      "category": "treaty-articles",
+      "key": "money_transfer",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_treaties_articles_icons/bankroll_treaties.dds",
+      "target": "assets/treaty-articles/money_transfer.webp"
+    },
+    {
+      "category": "treaty-articles",
+      "key": "no_strait_closure",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_treaties_articles_icons/no_strait_closure_treaties.dds",
+      "target": "assets/treaty-articles/no_strait_closure.webp"
+    },
+    {
+      "category": "treaty-articles",
+      "key": "no_subventions",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_treaties_articles_icons/no_subventions_treaties.dds",
+      "target": "assets/treaty-articles/no_subventions.webp"
+    },
+    {
+      "category": "treaty-articles",
+      "key": "no_tariffs",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_treaties_articles_icons/no_trade_tariffs_treaties.dds",
+      "target": "assets/treaty-articles/no_tariffs.webp"
+    },
+    {
+      "category": "treaty-articles",
+      "key": "no_tolls",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_treaties_articles_icons/no_tolls_treaties.dds",
+      "target": "assets/treaty-articles/no_tolls.webp"
+    },
+    {
+      "category": "treaty-articles",
+      "key": "non_colonization_agreement",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_treaties_articles_icons/non_colonization_agreement_treaties.dds",
+      "target": "assets/treaty-articles/non_colonization_agreement.webp"
+    },
+    {
+      "category": "treaty-articles",
+      "key": "non_piracy_agreement",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_treaties_articles_icons/non_piracy_agreement.dds",
+      "target": "assets/treaty-articles/non_piracy_agreement.webp"
+    },
+    {
+      "category": "treaty-articles",
+      "key": "offer_embassy",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_treaties_articles_icons/offer_embassy.dds",
+      "target": "assets/treaty-articles/offer_embassy.webp"
+    },
+    {
+      "category": "treaty-articles",
+      "key": "prohibit_trade_with_global_market",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_treaties_articles_icons/prohibit_trade_global_market_treaties.dds",
+      "target": "assets/treaty-articles/prohibit_trade_with_global_market.webp"
+    },
+    {
+      "category": "treaty-articles",
+      "key": "recognize_independence",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_treaties_articles_icons/offer_embassy.dds",
+      "target": "assets/treaty-articles/recognize_independence.webp"
+    },
+    {
+      "category": "treaty-articles",
+      "key": "ship_transfer",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_treaties_articles_icons/ship_transfer_treaties.dds",
+      "target": "assets/treaty-articles/ship_transfer.webp"
+    },
+    {
+      "category": "treaty-articles",
+      "key": "state_transfer",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_treaties_articles_icons/transfer_state.dds",
+      "target": "assets/treaty-articles/state_transfer.webp"
+    },
+    {
+      "category": "treaty-articles",
+      "key": "strait_access",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_treaties_articles_icons/strait_access_treaties.dds",
+      "target": "assets/treaty-articles/strait_access.webp"
+    },
+    {
+      "category": "treaty-articles",
+      "key": "support_independence",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_treaties_articles_icons/support_independence_treaties.dds",
+      "target": "assets/treaty-articles/support_independence.webp"
+    },
+    {
+      "category": "treaty-articles",
+      "key": "take_on_debt",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_treaties_articles_icons/take_on_debt_treaties.dds",
+      "target": "assets/treaty-articles/take_on_debt.webp"
+    },
+    {
+      "category": "treaty-articles",
+      "key": "toll_exemption",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_treaties_articles_icons/toll_exemption_treaties.dds",
+      "target": "assets/treaty-articles/toll_exemption.webp"
+    },
+    {
+      "category": "treaty-articles",
+      "key": "trade_privilege",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_treaties_articles_icons/trade_agreement_treaties.dds",
+      "target": "assets/treaty-articles/trade_privilege.webp"
+    },
+    {
+      "category": "treaty-articles",
+      "key": "transfer_subject",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_treaties_articles_icons/transfer_subject_treaties.dds",
+      "target": "assets/treaty-articles/transfer_subject.webp"
+    },
+    {
+      "category": "treaty-articles",
+      "key": "transit_rights",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_treaties_articles_icons/transit_rights_treaties.dds",
+      "target": "assets/treaty-articles/transit_rights.webp"
+    },
+    {
+      "category": "treaty-articles",
+      "key": "treaty_port",
+      "source_kind": "game",
+      "source": "gfx/interface/icons/diplomatic_treaties_articles_icons/treaty_port_treaties.dds",
+      "target": "assets/treaty-articles/treaty_port.webp"
     }
   ]
 }
