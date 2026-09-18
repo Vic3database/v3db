@@ -1947,6 +1947,135 @@ label.culture-incorporation-effect > span,
   overflow-wrap: anywhere;
 }
 
+.state-statistics-calculator-list {
+  display: block;
+}
+
+.state-statistics-calculator {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+}
+
+.state-statistics-calculator-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  padding: 12px 0;
+}
+
+.state-statistics-description,
+.state-statistics-guide,
+.state-statistics-dirty {
+  margin: 0;
+  color: var(--ink-muted);
+}
+
+.state-statistics-dirty {
+  color: var(--accent);
+}
+
+.state-statistics-section {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-raised);
+}
+
+.state-statistics-section h3,
+.state-statistics-section h4 {
+  margin: 0;
+}
+
+.state-statistics-selected,
+.state-statistics-region-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+.state-statistics-region-list {
+  max-height: 360px;
+  overflow: auto;
+}
+
+.state-statistics-selected-tag,
+.state-statistics-region-row {
+  min-height: 30px;
+  padding: 5px 9px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--text-sm);
+}
+
+.state-statistics-region-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+}
+
+.state-statistics-region-row small,
+.state-statistics-discoverable-row small {
+  display: block;
+  color: var(--ink-muted);
+}
+
+.state-statistics-region-row[aria-pressed="true"],
+.state-statistics-selected-tag {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 15%, var(--surface));
+}
+
+.state-statistics-overview,
+.state-statistics-resource-list {
+  display: grid;
+  gap: 6px;
+}
+
+.state-statistics-overview {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.state-statistics-overview > div,
+.state-statistics-resource-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+  padding: 7px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 60%, transparent);
+}
+
+.state-statistics-overview span,
+.state-statistics-resource-row span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.state-statistics-resource-row strong {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 560px) {
+  .state-statistics-calculator {
+    padding: 10px;
+  }
+  .state-statistics-overview {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 560px) {
   .culture-incorporation-calculator {
     padding: 10px;

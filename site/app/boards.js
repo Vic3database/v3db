@@ -141,6 +141,7 @@ function renderHomeBoard() {
   const availableEntries = entries;
   const tools = [
     { key: "cultureIncorporation", label: "nav.cultureIncorporationEntry", description: "board.culture.incorporation.description", route: "/culture/incorporation", icon: "assets/lucide/icons/calculator.svg", available: true },
+    { key: "stateStatistics", label: "nav.stateStatisticsCalculator", description: "board.stateStatistics.description", route: "/region/statistics", icon: "assets/lucide/icons/bar-chart-3.svg", available: true },
     { key: "companySolver", label: "board.company.solverEntry", description: "board.company.solverDescription", route: "/company/solver", icon: "assets/lucide/icons/workflow.svg", available: companyToolsAvailable },
     { key: "companyComposer", label: "board.company.composer.entry", description: "board.company.composer.description", route: "/company/composer", icon: "assets/lucide/icons/combine.svg", available: companyToolsAvailable },
   ].filter((tool) => tool.available);
@@ -1938,6 +1939,11 @@ function renderCultureBoard() {
 }
 
 function renderRegionBoard() {
+  if (state.detailKind === "stateStatistics") {
+    els.countryList.innerHTML = "";
+    renderMap(stateRegions);
+    return;
+  }
   const {
     filteredStrategicRegions,
     filteredSeaRegions,

@@ -1,0 +1,30 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+
+const root = process.cwd();
+const read = (relative) => fs.readFileSync(path.join(root, relative), "utf8").replace(/^\uFEFF/, "");
+const calculatorPath = path.join(root, "site/app/state-statistics.js");
+assert.ok(fs.existsSync(calculatorPath), "state statistics calculator module should exist");
+
+const calculator = read("site/app/state-statistics.js");
+const indexHtml = read("site/index.html");
+const runtime = read("site/app/runtime.js");
+const map = read("site/app/map.js");
+const data = read("site/app/data.js");
+
+assert.match(calculator, /function summarizeStateRegions\(stateRegionRows\)/);
+assert.match(calculator, /starting_population/);
+assert.match(calculator, /arable_land/);
+assert.match(calculator, /capped_resources/);
+assert.match(calculator, /discoverable_resources/);
+assert.match(calculator, /stateStatisticsCalculatorSelected/);
+assert.match(calculator, /data-state-statistics-start/);
+assert.match(calculator, /data-state-statistics-search/);
+assert.match(calculator, /data-state-statistics-result/);
+assert.match(runtime, /stateStatisticsCalculatorSelected: new Set\(\)/);
+assert.match(runtime, /stateStatisticsCalculatorApplied: new Set\(\)/);
+assert.match(indexHtml, /app\/state-statistics\.js/);
+assert.match(indexHtml, /data-i18n="nav\.stateStatisticsCalculator"/);
+assert.match(map, /stateStatistics/);
+assert.match(data, /parts\[0\] === "region" && parts\[1\] === "statistics"/);

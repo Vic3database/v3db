@@ -285,6 +285,11 @@ function bindEvents() {
     await applyHash();
     render();
   });
+  els.stateStatisticsEntry?.addEventListener("click", async () => {
+    replaceHash("/region/statistics");
+    await applyHash();
+    render();
+  });
   els.regionViewButton?.addEventListener("click", async () => {
     await setView("region");
     render();
@@ -1459,6 +1464,12 @@ async function applyHash() {
     clearCultureIncorporationCalculatorState();
     return;
   }
+  if (parts[0] === "region" && parts[1] === "statistics") {
+    changeBoard("region", "stateStatistics");
+    state.regionMapView = "default";
+    clearStateStatisticsCalculatorState();
+    return;
+  }
   if (parts[0] === "culture" && parts[1] && byCulture.has(decodeURIComponent(parts[1]))) {
     changeBoard("culture", "culture");
     state.selectedCulture = decodeURIComponent(parts[1]);
@@ -1701,6 +1712,7 @@ function changeBoard(view, detailKind) {
     state.mapFullscreenSnapshot = null;
   }
   if (view !== "region") state.regionMapView = "default";
+  if (view !== "region" || detailKind !== "stateStatistics") clearStateStatisticsCalculatorState();
   state.view = view;
   state.detailKind = detailKind;
 }
@@ -1789,6 +1801,7 @@ function updatePanelToggleState() {
 
 function toolPanelTitle() {
   if (state.view === "culture" && state.detailKind === "cultureIncorporation") return t("board.culture.incorporation.title", "整合时长计算器");
+  if (state.view === "region" && state.detailKind === "stateStatistics") return t("board.stateStatistics.title", "地域资源与人口统计");
   if (state.view === "company" && state.detailKind === "companySolver") return t("board.company.solverTitle", "公司产业求解器");
   if (state.view === "company" && state.detailKind === "companyComposer") return t("board.company.composer.entry", "公司建筑组合器");
   return t("ui.filters", "筛选");
@@ -1802,6 +1815,13 @@ function syncBoardOwnedToolPanels() {
     els.cultureIncorporationPanel.hidden = !cultureCalculator;
     els.cultureIncorporationPanel.style.display = cultureCalculator ? "" : "none";
     if (!cultureCalculator) els.cultureIncorporationPanel.replaceChildren();
+  }
+  const stateStatistics = state.view === "region" && state.detailKind === "stateStatistics";
+  if (els.stateStatisticsEntry) els.stateStatisticsEntry.hidden = state.view !== "region" || stateStatistics;
+  if (els.stateStatisticsPanel) {
+    els.stateStatisticsPanel.hidden = !stateStatistics;
+    els.stateStatisticsPanel.style.display = stateStatistics ? "" : "none";
+    if (!stateStatistics) els.stateStatisticsPanel.replaceChildren();
   }
 
   const companyBoard = state.view === "company";
@@ -1834,6 +1854,7 @@ function render() {
   document.body.dataset.cultureMobileFilters = String(state.cultureMobileFiltersOpen);
   document.body.dataset.cultureMobileDetail = String(state.view === "culture" && isDetailPageRoute() && state.detailKind !== "cultureIncorporation" ? "open" : "closed");
   document.body.dataset.cultureIncorporation = String(state.view === "culture" && state.detailKind === "cultureIncorporation");
+  document.body.dataset.stateStatistics = String(state.view === "region" && state.detailKind === "stateStatistics");
   if (els.homeWelcome) els.homeWelcome.hidden = state.view !== "home";
   if (els.homeLinks) els.homeLinks.hidden = state.view !== "home";
   document.body.classList.toggle("detail-page", isDetailPageRoute() && state.detailKind !== "cultureIncorporation");
@@ -1922,6 +1943,7 @@ function render() {
     renderCountryBoard();
   }
   syncBoardOwnedToolPanels();
+  if (state.view === "region" && state.detailKind === "stateStatistics") renderStateStatisticsCalculator();
   const boardManagesDetail = state.view === "home" || state.view === "interest-group" || state.view === "religion" || state.view === "technology" || state.view === "achievement" || state.view === "event" || state.view === "journal" || state.view === "decision" || state.view === "building" || state.view === "goods" || state.view === "news";
   if (!boardManagesDetail && state.view !== "changelog" && isDetailPageRoute()) {
     renderDetailForState();

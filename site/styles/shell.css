@@ -365,6 +365,21 @@ body[data-view="culture"][data-culture-incorporation="true"] .map-panel {
   display: block;
 }
 
+body[data-view="region"][data-state-statistics="true"] .results,
+body[data-view="region"][data-state-statistics="true"] .detail {
+  display: none;
+}
+
+body[data-view="region"][data-state-statistics="true"] .map-panel {
+  grid-column: 1 / -1;
+}
+
+body[data-view="region"][data-state-statistics="true"] .filters > .filter-section,
+body[data-view="region"][data-state-statistics="true"] .filters > label.search,
+body[data-view="region"][data-state-statistics="true"] .filters > .view-switch {
+  display: none;
+}
+
 body[data-view="culture"][data-culture-incorporation="true"] .filters .culture-filter,
 body[data-view="culture"][data-culture-incorporation="true"] .filters #strategicRegionFilterSection,
 body[data-view="culture"][data-culture-incorporation="true"] .filters > label.search,
