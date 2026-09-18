@@ -265,6 +265,14 @@ function bindEvents() {
       render();
       return;
     }
+    const stateStatisticsCountryLink = event.target.closest("[data-state-statistics-country]");
+    if (stateStatisticsCountryLink) {
+      event.preventDefault();
+      replaceHash(`/region/statistics?country=${encodeURIComponent(stateStatisticsCountryLink.dataset.stateStatisticsCountry)}`);
+      await applyHash();
+      render();
+      return;
+    }
     const button = event.target.closest("[data-detail-back]");
     if (!button) return;
     if (button.matches("[data-country-mobile-detail-back]") && window.matchMedia("(max-aspect-ratio: 3 / 2)").matches) state.countryMobileRestoreScrollPending = true;
@@ -1467,7 +1475,9 @@ async function applyHash() {
   if (parts[0] === "region" && parts[1] === "statistics") {
     changeBoard("region", "stateStatistics");
     state.regionMapView = "default";
+    const countryTag = query.get("country") || "";
     clearStateStatisticsCalculatorState();
+    if (countryTag) stateStatisticsCalculatorInitializeFromCountry(countryTag);
     return;
   }
   if (parts[0] === "culture" && parts[1] && byCulture.has(decodeURIComponent(parts[1]))) {

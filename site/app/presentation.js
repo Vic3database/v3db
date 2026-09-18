@@ -1379,7 +1379,7 @@ function countryDetailSocietyContent(country) {
 }
 
 function countryDetailRegionsContent(country) {
-  return `<h3>${t("board.country.section.regions", "地区")}</h3><div class="country-region-calculator-entry"><button type="button" class="country-incorporation-calculator-button" data-incorporation-country="${escapeHtml(country.tag)}">${escapeHtml(t("board.country.openIncorporationCalculator", "整合时长计算器"))}</button></div><dl class="field-grid">
+  return `<h3>${t("board.country.section.regions", "地区")}</h3><div class="country-region-calculator-entry"><button type="button" class="country-incorporation-calculator-button" data-incorporation-country="${escapeHtml(country.tag)}">${escapeHtml(t("board.country.openIncorporationCalculator", "整合时长计算器"))}</button><button type="button" class="country-incorporation-calculator-button" data-state-statistics-country="${escapeHtml(country.tag)}">${escapeHtml(t("board.country.openStateStatistics", "统计开局所属地域"))}</button></div><dl class="field-grid">
     ${field(t("board.country.capital", "首都"), stateRegionLinks(country.capital ? [byStateRegion.get(country.capital) || { key: country.capital, id: `state_region:${country.capital}` }] : []))}
     ${field(t("board.country.locationStrategicRegions", "所在战略区域"), strategicRegionLinks(country.locationStrategicRegions))}
     ${field(t("board.country.locationStateRegions", "所在地域"), stateRegionLinks(country.locationStateRegions))}

@@ -2067,6 +2067,26 @@ label.culture-incorporation-effect > span,
   flex: 0 0 auto;
 }
 
+.state-statistics-owner-groups {
+  display: grid;
+  gap: 8px;
+}
+
+.state-statistics-owner-group {
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.state-statistics-owner-group summary {
+  cursor: pointer;
+}
+
+.state-statistics-owner-group summary small,
+.state-statistics-owner-regions {
+  color: var(--ink-muted);
+}
+
 @media (max-width: 560px) {
   .state-statistics-calculator {
     padding: 10px;

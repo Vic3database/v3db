@@ -10,6 +10,22 @@ try {
 await waitForDebugger();
 const page = await openPage({ width: 1440, height: 1000 });
 try {
+  await page.goto(`${baseUrl}?lang=zh-Hans#/country/GBR`);
+  await page.waitFor(() => Boolean(document.querySelector("[data-country-detail-tab='regions']")), "country regions tab");
+  await page.click("[data-country-detail-tab='regions']");
+  await page.waitFor(() => Boolean(document.querySelector("[data-state-statistics-country='GBR']")), "country statistics entry");
+  await page.click("[data-state-statistics-country='GBR']");
+  await page.waitFor(() => location.hash.startsWith("#/region/statistics"), "country statistics route");
+  await page.waitFor(() => state.stateStatisticsCalculatorSelected.size > 0, "country starting states preload");
+  const countryPreload = await page.evaluate(() => ({
+    selected: [...state.stateStatisticsCalculatorSelected],
+    applied: [...state.stateStatisticsCalculatorApplied],
+    dirty: state.stateStatisticsCalculatorDirty,
+  }));
+  assert.ok(countryPreload.selected.length > 0);
+  assert.deepEqual(countryPreload.applied, []);
+  assert.equal(countryPreload.dirty, true);
+
   await page.goto(`${baseUrl}?lang=zh-Hans#/region/statistics`);
   await page.waitFor(() => Boolean(document.querySelector("[data-state-statistics-calculator]")), "calculator page");
   assert.equal(await page.evaluate(() => document.body.dataset.stateStatistics), "true");
@@ -53,6 +69,7 @@ try {
   await page.click("[data-state-statistics-start]");
   await page.waitFor((key) => state.stateStatisticsCalculatorApplied.has(key), "second statistics start", secondRegionKey);
   assert.deepEqual(await page.evaluate(() => [...state.stateStatisticsCalculatorApplied].sort()), [firstRegionKey, secondRegionKey].sort());
+  assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-state-statistics-owner-group]"))), true);
 
   const search = await page.evaluate((query) => {
     const input = document.querySelector("[data-state-statistics-search]");

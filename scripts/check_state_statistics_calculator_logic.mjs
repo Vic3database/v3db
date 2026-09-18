@@ -14,6 +14,7 @@ const summary = context.summarizeStateRegions([
     capped_resources: [{ key: "building_iron_mine", amount: 8 }],
     discoverable_resources: [{ key: "building_oil_rig", undiscovered_amount: 20 }],
     arable_resources: [{ key: "building_wheat_farm" }],
+    starting_owners: [{ tag: "AAA" }],
   },
   {
     key: "STATE_B",
@@ -22,6 +23,7 @@ const summary = context.summarizeStateRegions([
     capped_resources: [{ key: "building_iron_mine", amount: 4 }],
     discoverable_resources: [{ key: "building_oil_rig", undiscovered_amount: 60 }],
     arable_resources: [{ key: "building_wheat_farm" }, { key: "building_rye_farm" }],
+    starting_owners: [{ tag: "AAA" }, { tag: "BBB" }],
   },
 ]);
 
@@ -33,5 +35,9 @@ assert.equal(summary.discoverableResources.get("building_oil_rig").undiscovered_
 assert.equal(JSON.stringify(summary.discoverableResources.get("building_oil_rig").regions), JSON.stringify(["STATE_A", "STATE_B"]));
 assert.equal(summary.arableResources.get("building_wheat_farm").regions.length, 2);
 assert.equal(summary.arableResources.get("building_rye_farm").regions.length, 1);
+assert.equal(summary.startingOwners.get("AAA").population, 350);
+assert.equal(summary.startingOwners.get("AAA").regions.length, 2);
+assert.equal(summary.startingOwners.get("AAA").cappedResources.get("building_iron_mine").amount, 12);
+assert.equal(summary.startingOwners.get("BBB").population, 250);
 
 console.log("state statistics logic: passed");

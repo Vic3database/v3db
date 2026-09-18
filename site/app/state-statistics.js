@@ -16,6 +16,7 @@ function summarizeStateRegions(stateRegionRows) {
     cappedResources: new Map(),
     discoverableResources: new Map(),
     arableResources: new Map(),
+    startingOwners: new Map(),
   };
   for (const stateRegion of stateRegionRows || []) {
     if (!stateRegion?.key) continue;
@@ -42,6 +43,33 @@ function summarizeStateRegions(stateRegionRows) {
       current.regions.push(stateRegion.key);
       summary.arableResources.set(item.key, current);
     }
+    for (const owner of stateRegion.starting_owners || []) {
+      if (!owner?.tag) continue;
+      const ownerSummary = summary.startingOwners.get(owner.tag) || {
+        tag: owner.tag,
+        population: 0,
+        arableLand: 0,
+        regions: [],
+        cappedResources: new Map(),
+        discoverableResources: new Map(),
+      };
+      ownerSummary.population += Number(stateRegion.starting_population) || 0;
+      ownerSummary.arableLand += Number(stateRegion.arable_land) || 0;
+      ownerSummary.regions.push(stateRegion.key);
+      for (const item of stateRegion.capped_resources || []) {
+        if (!item?.key) continue;
+        const resource = ownerSummary.cappedResources.get(item.key) || { ...item, amount: 0 };
+        resource.amount += stateStatisticsResourceAmount(item);
+        ownerSummary.cappedResources.set(item.key, resource);
+      }
+      for (const item of stateRegion.discoverable_resources || []) {
+        if (!item?.key) continue;
+        const resource = ownerSummary.discoverableResources.get(item.key) || { ...item, undiscovered_amount: 0 };
+        resource.undiscovered_amount += stateStatisticsResourceAmount(item, "undiscovered_amount");
+        ownerSummary.discoverableResources.set(item.key, resource);
+      }
+      summary.startingOwners.set(owner.tag, ownerSummary);
+    }
   }
   return summary;
 }
@@ -49,6 +77,15 @@ function summarizeStateRegions(stateRegionRows) {
 function stateStatisticsCalculatorSearchText(stateRegion) {
   const label = entityText(stateRegion) || stateRegion.key;
   return `${label} ${stateRegion.key}`.toLocaleLowerCase();
+}
+
+function stateStatisticsCalculatorInitializeFromCountry(tag) {
+  const country = byTag.get(tag);
+  if (!country) return;
+  state.stateStatisticsCalculatorSelected = new Set(country.startingStates || []);
+  state.stateStatisticsCalculatorApplied = new Set();
+  state.stateStatisticsCalculatorDirty = true;
+  state.stateStatisticsCalculatorSearch = "";
 }
 
 function stateStatisticsCalculatorToggle(key) {
@@ -118,6 +155,10 @@ function renderStateStatisticsCalculator() {
   const resourceRows = stateStatisticsResourceRows(summary.cappedResources, "amount", "amount");
   const discoverableRows = [...summary.discoverableResources.values()].sort((left, right) => localizedCompare(stateStatisticsResourceLabel(left), stateStatisticsResourceLabel(right))).map((item) => `<div class="state-statistics-resource-row state-statistics-discoverable-row"><span>${escapeHtml(stateStatisticsResourceLabel(item))}<small>${escapeHtml(stateStatisticsRegionNames(item.regions))}</small></span><strong>${localizedNumber(item.undiscovered_amount)}</strong></div>`).join("") || `<span class="empty">${escapeHtml(t("ui.none", "无"))}</span>`;
   const arableRows = [...summary.arableResources.values()].sort((left, right) => localizedCompare(stateStatisticsResourceLabel(left), stateStatisticsResourceLabel(right))).map((item) => `<div class="state-statistics-resource-row"><span>${escapeHtml(stateStatisticsResourceLabel(item))}</span><strong>${localizedNumber(item.regions.length)}</strong></div>`).join("") || `<span class="empty">${escapeHtml(t("ui.none", "无"))}</span>`;
+  const ownerGroups = [...summary.startingOwners.values()]
+    .sort((left, right) => localizedCompare(entityText(byTag.get(left.tag) || { tag: left.tag }) || left.tag, entityText(byTag.get(right.tag) || { tag: right.tag }) || right.tag))
+    .map((owner) => `<details class="state-statistics-owner-group" data-state-statistics-owner-group><summary>${escapeHtml(entityText(byTag.get(owner.tag) || { tag: owner.tag }) || owner.tag)} <small>${escapeHtml(t("board.stateStatistics.ownerRegionCount", { count: owner.regions.length }))}</small></summary><div class="state-statistics-overview"><div><span>${escapeHtml(t("board.stateStatistics.population", "开局人口"))}</span><strong>${localizedNumber(owner.population)}</strong></div><div><span>${escapeHtml(t("board.stateStatistics.arableLand", "可耕地"))}</span><strong>${localizedNumber(owner.arableLand)}</strong></div></div><p class="state-statistics-owner-regions">${escapeHtml(stateStatisticsRegionNames(owner.regions))}</p><div class="state-statistics-resource-list">${stateStatisticsResourceRows(owner.cappedResources, "amount", "amount")}</div></details>`)
+    .join("") || `<span class="empty">${escapeHtml(t("ui.none", "无"))}</span>`;
   const root = els.stateStatisticsPanel || els.countryList;
   if (!root) return;
   root.className = "state-statistics-calculator-list";
@@ -129,7 +170,7 @@ function renderStateStatisticsCalculator() {
     ${state.stateStatisticsCalculatorDirty ? `<p class="state-statistics-dirty">${escapeHtml(t("board.stateStatistics.dirty", "选择已改变，请重新统计。"))}</p>` : ""}
     <section class="state-statistics-section"><h3>${escapeHtml(t("board.stateStatistics.selected", "已选地域"))}</h3><div class="state-statistics-selected">${selectedHtml}</div><button type="button" class="culture-incorporation-clear" data-state-statistics-clear>${escapeHtml(t("board.stateStatistics.clear", "清空地域"))}</button></section>
     <section class="state-statistics-section"><h3>${escapeHtml(t("board.stateStatistics.search", "搜索地域"))}</h3><input class="culture-incorporation-search" data-state-statistics-search type="search" value="${escapeHtml(state.stateStatisticsCalculatorSearch)}" placeholder="${escapeHtml(t("board.stateStatistics.searchPlaceholder", "名称或地域 ID"))}"><div class="state-statistics-region-list">${rowHtml || `<span class="empty">${escapeHtml(t("board.stateStatistics.noResults", "没有匹配地域"))}</span>`}</div></section>
-    <section class="state-statistics-section" data-state-statistics-result><h3>${escapeHtml(t("board.stateStatistics.result", "统计结果"))}</h3><div class="state-statistics-overview"><div><span>${escapeHtml(t("board.stateStatistics.stateCount", "地域数量"))}</span><strong>${localizedNumber(summary.stateCount)}</strong></div><div><span>${escapeHtml(t("board.stateStatistics.population", "开局人口"))}</span><strong>${localizedNumber(summary.population)}</strong></div><div><span>${escapeHtml(t("board.stateStatistics.arableLand", "可耕地"))}</span><strong>${localizedNumber(summary.arableLand)}</strong></div></div><h4>${escapeHtml(t("board.stateStatistics.cappedResources", "资源上限"))}</h4><div class="state-statistics-resource-list">${resourceRows}</div><h4>${escapeHtml(t("board.stateStatistics.arableResources", "农业资源类型"))}</h4><div class="state-statistics-resource-list">${arableRows}</div><h4>${escapeHtml(t("board.stateStatistics.discoverableResources", "可发现资源"))}</h4><div class="state-statistics-resource-list">${discoverableRows}</div></section>
+    <section class="state-statistics-section" data-state-statistics-result><h3>${escapeHtml(t("board.stateStatistics.result", "统计结果"))}</h3><div class="state-statistics-overview"><div><span>${escapeHtml(t("board.stateStatistics.stateCount", "地域数量"))}</span><strong>${localizedNumber(summary.stateCount)}</strong></div><div><span>${escapeHtml(t("board.stateStatistics.population", "开局人口"))}</span><strong>${localizedNumber(summary.population)}</strong></div><div><span>${escapeHtml(t("board.stateStatistics.arableLand", "可耕地"))}</span><strong>${localizedNumber(summary.arableLand)}</strong></div></div><h4>${escapeHtml(t("board.stateStatistics.cappedResources", "资源上限"))}</h4><div class="state-statistics-resource-list">${resourceRows}</div><h4>${escapeHtml(t("board.stateStatistics.arableResources", "农业资源类型"))}</h4><div class="state-statistics-resource-list">${arableRows}</div><h4>${escapeHtml(t("board.stateStatistics.discoverableResources", "可发现资源"))}</h4><div class="state-statistics-resource-list">${discoverableRows}</div><h4>${escapeHtml(t("board.stateStatistics.startingOwners", "开局归属国家"))}</h4><div class="state-statistics-owner-groups">${ownerGroups}</div></section>
   </section>`;
   root.querySelectorAll("[data-state-statistics-region]").forEach((button) => button.addEventListener("click", () => stateStatisticsCalculatorToggle(button.dataset.stateStatisticsRegion)));
   root.querySelectorAll("[data-state-statistics-selected]").forEach((button) => button.addEventListener("click", () => stateStatisticsCalculatorToggle(button.dataset.stateStatisticsSelected)));
