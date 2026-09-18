@@ -180,6 +180,7 @@ function main() {
   const buyPackages = loadBuyPackages(contentPath("common", "buy_packages"));
   const definitions = loadCountryDefinitions(contentPath("common", "country_definitions"));
   const stateHistory = loadStateHistory(contentPath("common", "history", "states", "00_states.txt"));
+  const startingPopulation = loadStartingPopulation(contentPath("common", "history", "pops"), cultures);
   const startingOwners = stateHistory.startingOwnersByCountry;
   const startingSubjectsByTag = loadStartingSubjectRelationships(
     contentPath("common", "history", "diplomacy", "00_subject_relationships.txt"),
@@ -200,6 +201,7 @@ function main() {
     stateRegionDefinitions,
     strategicRegions,
     stateHistory,
+    startingPopulation,
     dynamicStateNameVariantsByState,
     loc,
   );
@@ -345,6 +347,7 @@ function main() {
       cultures,
       religions,
       startingOwners,
+      startingPopulation,
       startingSubjectsByTag,
       startingCountryData,
       startingDiplomacy,
@@ -374,7 +377,7 @@ function main() {
     existingAtStartTags,
     loc,
   });
-  const cultureRows = buildCultureRows(cultures, cultureTraits, cultureTraitGroups, relatedCountriesByCulture, stateRegionRows, loc, economyLoc);
+  const cultureRows = buildCultureRows(cultures, cultureTraits, cultureTraitGroups, relatedCountriesByCulture, stateRegionRows, loc, economyLoc, startingPopulation);
   const cultureTraitRows = [...cultureTraits.values()].sort((a, b) => a.key.localeCompare(b.key));
   const cultureTraitGroupRows = [...cultureTraitGroups.values()].sort((a, b) => a.key.localeCompare(b.key));
 
@@ -395,6 +398,7 @@ function main() {
     "exists_at_start",
     "starting_state_count",
     "starting_states",
+    "starting_population",
     "starting_overlord_tag",
     "starting_subject_type",
     "starting_subject_uses_overlord_color",
@@ -515,6 +519,7 @@ function main() {
     modContentRoot,
     loc,
     countryRows,
+    startingPopulation,
     cultures,
     cultureTraits,
     cultureTraitGroups,
@@ -995,7 +1000,7 @@ function loadReligions(dir, loc) {
   return religions;
 }
 
-function buildReligionRows(religions, countries, interestGroups, interestGroupTraits, cultureTraits, loc) {
+function buildReligionRows(religions, countries, interestGroups, interestGroupTraits, cultureTraits, loc, startingPopulation = { byReligion: new Map() }) {
   const countryRowsByReligion = new Map();
   for (const country of countries || []) {
     const key = country.religion?.key || country.religion || "";
@@ -1107,6 +1112,7 @@ function buildReligionRows(religions, countries, interestGroups, interestGroupTr
         ? locCleanName(loc, cultureTraits.get(religion.heritage_key).group_key)
         : "",
       taboos: religion.taboos || [],
+      starting_population: startingPopulation.byReligion.get(religion.key) || 0,
       country_tags: countriesForReligion.map((country) => country.tag).sort(),
       country_count: countriesForReligion.length,
       devout_flavors: flavors,
@@ -1473,7 +1479,7 @@ function loadStateRegionDefinitions(dir, loc, stateTraits = new Map()) {
   return regions;
 }
 
-function buildStateRegionRows(stateDefinitions, strategicRegions, stateHistory, dynamicStateNameVariantsByState, loc) {
+function buildStateRegionRows(stateDefinitions, strategicRegions, stateHistory, startingPopulation, dynamicStateNameVariantsByState, loc) {
   const strategicRegionKeysByState = new Map();
   for (const strategicRegion of strategicRegions.values()) {
     for (const stateKey of strategicRegion.states || []) {
@@ -1500,6 +1506,7 @@ function buildStateRegionRows(stateDefinitions, strategicRegions, stateHistory, 
         homeland_cultures: homelandKeys.map((key) => cultureKeyRef(key, loc)),
         starting_owners: ownerTags.map((tag) => countryKeyRef(tag, loc)),
         starting_province_owners: provinceOwners,
+        starting_population: startingPopulation.byState.get(stateRegion.key) ?? null,
         dynamic_name_variants: dynamicStateNameVariantsByState.get(stateRegion.key) || [],
       };
     });
@@ -1520,6 +1527,7 @@ function buildStrategicRegionRows(strategicRegions, stateRegionRows, loc) {
         states: states.map((stateRegion) => stateRegionRef(stateRegion.key, stateByKey, loc)),
         homeland_cultures: homelandCultureKeys.map((key) => cultureKeyRef(key, loc)),
         starting_owners: ownerTags.map((tag) => countryKeyRef(tag, loc)),
+        starting_population: sumStartingPopulation(states),
       };
     });
 }
@@ -1658,6 +1666,49 @@ function startingPoliticsContext(tag, definitions, cultures) {
     isIslamic: ["sunni", "shiite", "ibadi"].includes(religion),
     isDecentralized: definition?.country_type === "decentralized",
   };
+}
+
+function loadStartingPopulation(dirs, cultures = new Map()) {
+  const byState = new Map();
+  const byCountry = new Map();
+  const byCulture = new Map();
+  const byReligion = new Map();
+  for (const file of listEffectiveFiles(dirs)) {
+    const root = parseScript(readText(file), file);
+    const populationsNode = asNode(firstValue(root, "POPULATION")) || asNode(firstValue(root, "POPS"));
+    if (!populationsNode) continue;
+    for (const stateAssignment of populationsNode.assignments) {
+      const stateKey = stripPrefix(stateAssignment.key);
+      const stateNode = asNode(stateAssignment.value);
+      if (!stateKey || !stateNode) continue;
+      for (const ownerAssignment of stateNode.assignments) {
+        const ownerTag = ownerAssignment.key.match(/^region_state:([A-Z0-9]{3})$/)?.[1] || "";
+        const ownerNode = asNode(ownerAssignment.value);
+        if (!ownerTag || !ownerNode) continue;
+        const populations = ownerNode.assignments
+          .filter((assignment) => assignment.key === "create_pop")
+          .map((assignment) => {
+            const popNode = asNode(assignment.value);
+            return {
+              culture: stripPrefix(firstScalar(popNode, "culture")),
+              religion: stripPrefix(firstScalar(popNode, "religion")),
+              size: toNumberOrNull(firstScalar(popNode, "size")),
+            };
+          })
+          .filter((pop) => pop.culture && pop.size != null);
+        const population = populations.reduce((sum, pop) => sum + pop.size, 0);
+        if (!population) continue;
+        byState.set(stateKey, (byState.get(stateKey) || 0) + population);
+        byCountry.set(ownerTag, (byCountry.get(ownerTag) || 0) + population);
+        for (const pop of populations) {
+          byCulture.set(pop.culture, (byCulture.get(pop.culture) || 0) + pop.size);
+          const religion = pop.religion || cultures.get(pop.culture)?.religion || "";
+          if (religion) byReligion.set(religion, (byReligion.get(religion) || 0) + pop.size);
+        }
+      }
+    }
+  }
+  return { byState, byCountry, byCulture, byReligion };
 }
 
 function collectStartingPoliticsLaws(node, context) {
@@ -4321,6 +4372,7 @@ function buildCountryRow(context) {
     loc,
     cultures,
     startingOwners,
+    startingPopulation,
     startingSubjectsByTag,
     startingCountryData,
     startingDiplomacy,
@@ -4361,6 +4413,7 @@ function buildCountryRow(context) {
     exists_at_start: startingStates.length > 0 ? "是" : "否",
     starting_state_count: String(startingStates.length),
     starting_states: joinValues(startingStates),
+    starting_population: startingPopulation.byCountry.get(tag) ?? null,
     starting_overlord_tag: startingSubject?.overlord_tag || "",
     starting_subject_type: startingSubject?.type || "",
     starting_subject_uses_overlord_color: startingSubject?.uses_overlord_color ? "是" : "否",
@@ -4495,7 +4548,7 @@ function buildRelatedCountriesByCulture(definitions, loc) {
   return result;
 }
 
-function buildCultureRows(cultures, cultureTraits, cultureTraitGroups, relatedCountriesByCulture, stateRegionRows, loc, goodsLoc = loc) {
+function buildCultureRows(cultures, cultureTraits, cultureTraitGroups, relatedCountriesByCulture, stateRegionRows, loc, goodsLoc = loc, startingPopulation = { byCulture: new Map() }) {
   const cultureKeysByTrait = new Map();
   const cultureKeysByTraitGroup = new Map();
   const stateRegionByKey = new Map(stateRegionRows.map((stateRegion) => [stateRegion.key, stateRegion]));
@@ -4526,6 +4579,7 @@ function buildCultureRows(cultures, cultureTraits, cultureTraitGroups, relatedCo
         id: `culture:${culture.key}`,
         key: culture.key,
         name_zh: locName(loc, culture.key),
+        starting_population: startingPopulation.byCulture.get(culture.key) || 0,
         color: {
           rgb: culture.color?.rgb || null,
           hex: culture.color?.hex || "",
@@ -5834,9 +5888,15 @@ function buildGeographicRegionRows(geographicRegions, stateRegionByKey, strategi
         state_regions: stateKeys.map((key) => stateRegionRef(key, stateRegionByKey)),
         strategic_regions: strategicKeys.map((key) => strategicRegionRef(key, strategicRegionByKey)),
         state_region_count: stateKeys.length,
+        starting_population: sumStartingPopulation(stateKeys.map((key) => stateRegionByKey.get(key)).filter(Boolean)),
         source_file: region.source_file || "",
       };
     });
+}
+
+function sumStartingPopulation(stateRegions) {
+  const values = (stateRegions || []).map((stateRegion) => stateRegion?.starting_population).filter((value) => Number.isFinite(value));
+  return values.length ? values.reduce((sum, value) => sum + value, 0) : null;
 }
 
 function writeDatabase(dir, data) {
@@ -5849,6 +5909,7 @@ function writeDatabase(dir, data) {
     modContentRoot,
     loc,
     countryRows,
+    startingPopulation,
     definitions,
     cultures,
     cultureTraits,
@@ -5985,6 +6046,7 @@ function writeDatabase(dir, data) {
         id: `state_region:${state}`,
         key: state,
       })),
+      starting_population: toNumberOrNull(row.starting_population),
       starting_subject: {
         overlord_tag: row.starting_overlord_tag,
         overlord_name_zh: row.starting_overlord_tag ? locName(loc, row.starting_overlord_tag) : "",
@@ -6048,7 +6110,7 @@ function writeDatabase(dir, data) {
       },
     };
   });
-  const religionRows = buildReligionRows(religions, countries, interestGroups, interestGroupTraits, cultureTraits, loc);
+  const religionRows = buildReligionRows(religions, countries, interestGroups, interestGroupTraits, cultureTraits, loc, startingPopulation);
 
   const economyData = economy || {
     buildings: [],

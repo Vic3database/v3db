@@ -1005,10 +1005,15 @@ function countryDetailOverview(country, primaryCultureNames = []) {
     ${countryOverviewCard(t("board.country.type", "国家类型"), tagPill(countryTypeTagLabel(country), "tag-type"))}
     ${countryOverviewCard(t("board.country.tier", "国家位阶"), tagPill(countryTierLabel(country.tier), "tag-tier"))}
     ${countryOverviewCard(t("board.country.capital", "首都"), stateRegionLinks(capital ? [capital] : []))}
+    ${countryOverviewCard(t("board.country.startingPopulation", "开局人口"), startingPopulationValue(country.startingPopulation))}
     ${countryOverviewCard(t("board.country.primaryCulture", "主流文化"), linkedTerms(country.primaryCultures, primaryCultureNames, "culture"))}
     ${countryOverviewCard(t("board.country.religion", "宗教"), linkedTerms(religion ? [religion.key] : [], religion ? [entityText(religion)] : [], "religion"))}
     ${countryOverviewCard(t("board.country.standardColor", "标准色"), colorValue(country.colorHex, country.colorRgb))}
   </section>`;
+}
+
+function startingPopulationValue(value) {
+  return Number.isFinite(Number(value)) ? escapeHtml(localizedNumber(value)) : "";
 }
 
 function lawAmendmentByKey(key) {
@@ -1350,7 +1355,14 @@ function interestGroupPotentialFlavorTriggerHtml(flavor) {
     journal: translateMessage("board.country.potentialFlavorTrigger.journal", "完成{content}日志后，{source}会转变为该风味。"),
     decision: translateMessage("board.country.potentialFlavorTrigger.decision", "执行{content}决议后，{source}会转变为该风味。"),
   };
-  return `<p class="country-interest-group-potential-trigger">${(templates[contentKind] || templates.event).replace("{content}", contentLink).replace("{source}", sourceLink)}</p>`;
+  const sources = (flavor?.trigger_content_sources || []).filter((source) => source?.content_id && source.content_id !== contentId);
+  const additional = sources.map((source) => {
+    const sourceContent = source.content_kind === "event" ? eventByKey.get(source.content_id) : null;
+    const label = source.content_title || source.content_title_zh || source.content_title_alt || source.content_title_en || sourceContent?.locales?.zhHans?.title || sourceContent?.locales?.en?.title || source.content_id;
+    const link = `<a class="country-interest-group-potential-link" href="#/${encodeURIComponent(source.content_kind || "event")}/${encodeURIComponent(source.content_id)}">${escapeHtml(label)}</a>`;
+    return source.role === "traits" ? `特质由${link}事件设置` : `名称由${link}事件设置`;
+  });
+  return `<p class="country-interest-group-potential-trigger">${(templates[contentKind] || templates.event).replace("{content}", contentLink).replace("{source}", sourceLink)}${additional.length ? ` ${additional.join("；")}。` : ""}</p>`;
 }
 
 function countryDetailSocietyContent(country) {
@@ -1623,6 +1635,7 @@ function renderCultureDetail(culture) {
     <dl class="field-grid">
       ${field(t("board.culture.color", "颜色"), colorValue(culture.color?.hex, culture.color?.rgb))}
       ${field(t("board.culture.defaultReligion", "默认宗教"), linkedTerms([culture.religion?.key], [entityText(culture.religion)], "religion"))}
+      ${field(t("board.culture.startingPopulation", "开局人口"), startingPopulationValue(culture.starting_population))}
       ${field(t("board.culture.heritage", "传承"), `<span class="grouped-trait-pills">${groupedTraitPills(compactRefs([culture.heritage_group]), compactRefs([culture.heritage]), "tag-heritage-group", "tag-heritage")}</span>`)}
       ${field(t("board.culture.language", "语言"), `<span class="grouped-trait-pills">${groupedTraitPills(compactRefs([culture.language_group]), compactRefs([culture.language]), "tag-language-group", "tag-language")}</span>`)}
       ${field(t("board.culture.tradition", "传统"), traitList(culture.traditions))}
@@ -1682,6 +1695,7 @@ function renderStateRegionDetail(stateRegion) {
     </div>
     <h3>${t("board.region.base", "基础")}</h3>
     <dl class="field-grid">
+      ${field(t("board.region.startingPopulation", "开局人口"), startingPopulationValue(stateRegion.starting_population))}
       ${field(t("board.region.strategicRegion", "战略区域"), strategicRegionLinks(stateRegion.strategic_regions))}
       ${field(t("board.region.startingOwners", "开局归属"), countryLinks((stateRegion.starting_owners || []).map((country) => country.tag), (stateRegion.starting_owners || []).map((country) => entityText(country))))}
       ${field(t("board.region.homelandCultures", "本土文化"), cultureLinks(stateRegion.homeland_cultures))}
@@ -1718,6 +1732,7 @@ function renderStrategicRegionDetail(region) {
     <h3>${t("board.region.base", "基础")}</h3>
     <dl class="field-grid">
       ${field(t("board.region.type", "类型"), tagPill(regionKind, isSeaStrategicRegion(region) ? "tag-sea" : "tag-region"))}
+      ${field(t("board.region.startingPopulation", "开局人口"), startingPopulationValue(region.starting_population))}
       ${field(t("board.region.color", "颜色"), colorValue(region.map_color?.hex, region.map_color?.rgb))}
       ${field(t("board.region.stateRegion", "地域"), stateRegionLinks(region.states))}
       ${field(t("board.region.homelandCultures", "本土文化"), cultureLinks(region.homeland_cultures))}
@@ -1743,6 +1758,7 @@ function renderGeographicRegionDetail(region) {
     <h3>${t("board.region.base", "基础")}</h3>
     <dl class="field-grid">
       ${field(t("board.region.type", "类型"), tagPill(t("board.region.geographicRegion", "地理区域"), "tag-region"))}
+      ${field(t("board.region.startingPopulation", "开局人口"), startingPopulationValue(region.starting_population))}
       ${field(t("board.region.group", "分组"), tagPill(t(`enum.geographicRegionGroup.${region.geographic_region_group}`) || region.geographic_region_group, "tag-muted"))}
       ${field(t("board.region.strategicRegion", "战略区域"), strategicRegionLinks(strategicRefs))}
       ${field(t("board.region.stateRegion", "地域"), stateRegionLinks(stateRefs))}

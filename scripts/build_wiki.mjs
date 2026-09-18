@@ -622,6 +622,7 @@ function deriveCultureRecords(cultures) {
 
   return cultures.map((culture) => ({
     ...culture,
+    starting_population: Number(culture.starting_population || 0),
     heritage_group: traitToGroupRef(culture.heritage),
     language_group: traitToGroupRef(culture.language),
     same_heritage_group_cultures: relatedCulturesByKeys(
@@ -667,6 +668,7 @@ function flattenDatabaseCountry(country, nameById, colorById, primaryCultureExpa
     existsAtStart: boolText(country.status?.exists_at_start),
     startingStateCount: (country.starting_states || []).length,
     startingStates: (country.starting_states || []).map((state) => state.key),
+    startingPopulation: country.starting_population == null ? null : Number(country.starting_population),
     startingOverlordTag: country.starting_subject?.overlord_tag || "",
     startingSubjectType: country.starting_subject?.type || "",
     startingSubjectUsesOverlordColor: Boolean(country.starting_subject?.uses_overlord_color),

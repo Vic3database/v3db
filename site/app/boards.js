@@ -1508,6 +1508,7 @@ function renderReligionBoard() {
         </header>
         <div class="religion-board-detail-grid">
           <section class="religion-board-detail-section"><h3>${escapeHtml(t("religion.heritage"))}</h3><p>${escapeHtml(religionHeritageName(selected.heritage_key, selected))}</p><small>${escapeHtml(t("religion.parentGroup"))}：${escapeHtml(translateMessage(selected.loc?.heritageGroupName, selected.heritage_group_key || ""))}</small></section>
+          <section class="religion-board-detail-section"><h3>${escapeHtml(t("religion.startingPopulation"))}</h3><p>${escapeHtml(localizedNumber(selected.starting_population || 0))}</p></section>
           <section class="religion-board-detail-section"><h3>${escapeHtml(t("religion.taboos"))}</h3><p>${escapeHtml((selected.taboos || []).map((key) => { const good = goodByKey.get(key); return good ? economyDisplayName(good) : key; }).join("、") || t("religion.none"))}</p></section>
           <section class="religion-board-detail-section"><h3>${escapeHtml(t("religion.countries"))}</h3><p>${escapeHtml(String(selected.country_count || 0))}</p><div>${countryLinks(selected.country_tags || [])}</div></section>
           <section class="religion-board-detail-section religion-board-detail-flavor-section"><h3>${escapeHtml(t("religion.devoutFlavors"))}</h3><div>${religionDetailFlavorRowsHtml(selected)}</div></section>
