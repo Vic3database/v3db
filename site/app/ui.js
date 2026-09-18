@@ -1579,13 +1579,26 @@ async function applyHash() {
   }
   if (parts[0] === "technology" && !parts[1]) {
     changeBoard("technology", "technology");
+    state.technologyMode = "home";
     state.selectedTechnology = "";
+    return;
+  }
+  if (parts[0] === "technology" && ["list", "tree"].includes(parts[1]) && ["production", "military", "society"].includes(parts[2])) {
+    changeBoard("technology", "technology");
+    state.technologyMode = parts[1];
+    state.technologyCategory = parts[2];
+    state.selectedTechnology = "";
+    state.technologySearch = "";
+    state.technologyEraFilter = "";
+    state.technologyListChangeKinds.clear();
+    state.technologyViewport = { x: 0, y: 0, scale: 1 };
     return;
   }
   if (parts[0] === "technology" && parts[1] && technologyByKey.has(decodeURIComponent(parts[1]))) {
     changeBoard("technology", "technology");
     state.selectedTechnology = decodeURIComponent(parts[1]);
     state.technologyCategory = technologyByKey.get(state.selectedTechnology).category;
+    state.technologyMode = query.get("from") === "list" ? "list" : "tree";
     return;
   }
   if (parts[0] === "achievement" && achievementBoardAvailable() && !parts[1]) {
@@ -1890,7 +1903,9 @@ function render() {
   } else if (state.view === "law") {
     renderLawBoard();
   } else if (state.view === "technology") {
-    renderTechnologyBoard();
+    if (state.technologyMode === "home") renderTechnologyHome();
+    else if (state.technologyMode === "list") renderTechnologyList(state.technologyCategory);
+    else renderTechnologyBoard(state.technologyCategory);
   } else if (state.view === "achievement") {
     renderAchievementBoard();
   } else if (state.view === "event") {
@@ -1920,11 +1935,13 @@ function isDetailPageRoute() {
 }
 
 function detailRouteKey() {
-  const [route, key] = location.hash.replace(/^#\/?/, "").split("/").filter(Boolean);
+  const { parts } = routeHashParts();
+  const [route, key] = parts;
   if (!route || !key) return "";
   if (route === "goods" && key === "needs") return "";
   if (route === "company" && ["solver", "composer"].includes(key)) return "";
-  return ["country", "culture", "state-region", "strategic-region", "geographic-region", "company", "ideology", "religion", "law", "technology", "achievement", "event", "journal", "decision", "building", "goods"].includes(route) ? key : "";
+  if (route === "technology") return technologyByKey.has(decodeURIComponent(key)) ? decodeURIComponent(key) : "";
+  return ["country", "culture", "state-region", "strategic-region", "geographic-region", "company", "ideology", "religion", "law", "achievement", "event", "journal", "decision", "building", "goods"].includes(route) ? key : "";
 }
 
 function syncFilterSectionOpenStates() {

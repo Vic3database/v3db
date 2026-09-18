@@ -2313,10 +2313,222 @@ function technologyEdgePath(from, to) {
 function technologyNodeHtml(node) {
   const selected = node.technology.key === state.selectedTechnology;
   const iconFile = node.technology.icon.split("/").pop().replace(/\.dds$/i, ".webp");
-  return `<button class="technology-node" type="button" data-technology-key="${escapeHtml(node.technology.key)}" aria-pressed="${selected}" style="left:${node.x}px;top:${node.y}px"><img src="assets/technologies/${escapeHtml(iconFile)}" alt="" aria-hidden="true"><span>${escapeHtml(entityText(node.technology))}</span>${victorianCenturyBadge(node.technology)}</button>`;
+  const changeClass = node.technology.vc_change_kind === "added" ? " technology-vc-added" : node.technology.vc_change_kind === "adjusted" ? " technology-vc-adjusted" : "";
+  return `<button class="technology-node${changeClass}" type="button" data-technology-key="${escapeHtml(node.technology.key)}" aria-pressed="${selected}" style="left:${node.x}px;top:${node.y}px"><img src="assets/technologies/${escapeHtml(iconFile)}" alt="" aria-hidden="true"><span>${escapeHtml(entityText(node.technology))}</span>${victorianCenturyBadge(node.technology)}</button>`;
 }
 
-function renderTechnologyBoard() {
+const technologyCategories = ["production", "military", "society"];
+
+function technologyCategoryLabel(category) {
+  return t(`enum.technology.${category}`, category);
+}
+
+function technologyReferenceEntity(item, kind) {
+  if (!item?.key) return item || {};
+  if (kind === "production-method") return productionMethodByKey.get(item.key) || item;
+  if (kind === "building") return buildingRecordByKey.get(item.key) || item;
+  if (kind === "law") return lawByKey.get(item.key) || item;
+  if (kind === "company") return byCompany.get(item.key) || item;
+  return item;
+}
+
+function technologyReferenceLabel(item, kind) {
+  const entity = technologyReferenceEntity(item, kind);
+  const militaryKinds = ["combat-unit", "ship-type", "mobilization-option"];
+  const itemName = militaryKinds.includes(kind) && item?.key
+    ? translateMessage(`item:0:${item.key}.name`, "")
+    : "";
+  return itemName || entityText(entity) || entityText(item) || renderTextSpec({ message: entity?.loc?.name || item?.loc?.name, fallback: item?.key || "" }) || item?.key || "";
+}
+
+function technologyReferenceIcon(item, kind) {
+  const entity = technologyReferenceEntity(item, kind);
+  if (kind === "building") return economyEntityIconHtml(entity, "buildings", "technology-content-icon");
+  if (kind === "production-method") return economyEntityIconHtml(entity, "production-methods", "technology-content-icon");
+  if (kind === "combat-unit") return entity?.icon_path ? `<img class="technology-unit-icon" src="${escapeHtml(entity.icon_path)}" alt="" aria-hidden="true" onerror="this.hidden=true">` : "";
+  if (kind === "ship-type") return entity?.icon_path ? `<img class="technology-unit-icon" src="${escapeHtml(entity.icon_path)}" alt="" aria-hidden="true" onerror="this.hidden=true">` : "";
+  if (kind === "mobilization-option") return entity?.icon_path ? `<img class="technology-unit-icon" src="${escapeHtml(entity.icon_path)}" alt="" aria-hidden="true" onerror="this.hidden=true">` : "";
+  if (kind === "diplomatic-action" || kind === "treaty-article") return entity?.icon_path ? `<img class="technology-content-icon" src="${escapeHtml(entity.icon_path)}" alt="" aria-hidden="true" onerror="this.hidden=true">` : "";
+  if (kind === "party") return entity?.icon_path ? `<img class="technology-content-icon" src="${escapeHtml(entity.icon_path)}" alt="" aria-hidden="true" onerror="this.hidden=true">` : "";
+  if (kind === "law") return lawIconHtml(entity, "technology-content-icon");
+  if (kind === "company") {
+    const path = companyIconPath(entity?.icon);
+    return path ? `<img class="technology-content-icon" src="${escapeHtml(path)}" alt="" aria-hidden="true" onerror="this.hidden=true">` : "";
+  }
+  return "";
+}
+
+function technologyReferenceHref(item, kind) {
+  if (!item?.key) return "";
+  if (kind === "production-method") {
+    const owner = buildings.find((building) => (building.production_method_group_keys || []).some((groupKey) => productionMethodGroupByKey.get(groupKey)?.production_method_keys?.includes(item.key)));
+    return owner ? `#/building/${encodeURIComponent(owner.key)}` : "";
+  }
+  return `#/${kind}/${encodeURIComponent(item.key)}`;
+}
+
+function dedupeTechnologyReferences(items, kind) {
+  if (kind !== "production-method") return items || [];
+  const seen = new Set();
+  return (items || []).filter((item) => {
+    const label = technologyReferenceLabel(item, kind) || item?.key || "";
+    if (seen.has(label)) return false;
+    seen.add(label);
+    return true;
+  });
+}
+
+function technologyContentChip(item, kind, messageKey = "") {
+  const name = technologyReferenceLabel(item, kind);
+  const label = messageKey ? `<span>${escapeHtml(t(messageKey, { name }))}</span>` : "";
+  return `<span class="technology-effect-chip technology-content-chip" title="${escapeHtml(name)}">${technologyReferenceIcon(item, kind)}${label}</span>`;
+}
+
+function technologySearchText(technology) {
+  return [
+    technology.key,
+    String(technology.key || "").replaceAll("_", " "),
+    ...searchNames(technology.id || technology.key),
+    entityText(technology),
+    ...(technology.modifiers || []).flatMap((item) => [item.key, renderTextSpec({ message: item.loc?.name, fallback: item.key }), renderTextSpec({ message: item.loc?.summary, fallback: "" })]),
+  ].filter(Boolean).join(" ").toLocaleLowerCase();
+}
+
+function technologyMatchesQuery(technology, query) {
+  const needle = String(query || "").trim().toLocaleLowerCase();
+  return !needle || technologySearchText(technology).includes(needle);
+}
+
+function technologyRoute(mode, category) {
+  return `/technology/${mode}/${encodeURIComponent(category)}`;
+}
+
+function technologyHomeEntry(category, mode, count) {
+  const label = mode === "list" ? t("board.technology.openList", "列表视图") : t("board.technology.openTree", "科技树视图");
+  return `<a class="technology-home-entry" href="#${technologyRoute(mode, category)}" data-technology-mode="${mode}"><span>${escapeHtml(label)}</span><small>${escapeHtml(mode === "list" ? t("board.technology.listHint", "按效果和时代查找") : t("board.technology.treeHint", "查看前置与后续关系"))}</small></a>`;
+}
+
+function technologyCategorySwitcher(category, mode) {
+  return `<div class="technology-category-switcher" role="tablist" aria-label="${escapeHtml(t("board.technology.category", "科技类别"))}">${technologyCategories.map((key) => `<a class="technology-category-tab${key === category ? " is-active" : ""}" role="tab" aria-selected="${String(key === category)}" data-technology-category="${escapeHtml(key)}" href="#${technologyRoute(mode, key)}">${escapeHtml(technologyCategoryLabel(key))}</a>`).join("")}</div>`;
+}
+
+function technologyIconButton(icon, label, href = "", extra = "", className = "") {
+  const tag = href ? "a" : "button";
+  const target = href ? `href="${escapeHtml(href)}"` : `type="button" ${extra}`;
+  return `<${tag} class="technology-icon-button${className ? ` ${className}` : ""}" ${target} aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}"><img class="technology-control-icon" src="assets/lucide/icons/${escapeHtml(icon)}" alt="" aria-hidden="true"></${tag}>`;
+}
+
+function technologyFloatingControls(category, mode) {
+  const backLabel = t("board.technology.home", "返回科技主页");
+  const resetLabel = t("board.technology.resetView", "重置视图");
+  const listLabel = t("board.technology.openList", "查看列表");
+  const treeLabel = t("board.technology.openTree", "打开科技树");
+  const viewHref = mode === "tree" ? technologyRoute("list", category) : technologyRoute("tree", category);
+  const viewIcon = mode === "tree" ? "layout-list.svg" : "list-tree.svg";
+  const viewLabel = mode === "tree" ? listLabel : treeLabel;
+  return `<div class="technology-floating-controls"><div class="technology-floating-actions">${technologyIconButton("arrow-left.svg", backLabel, "/technology", "", "technology-board-back")}${mode === "tree" ? `<button class="technology-icon-button" type="button" data-technology-reset aria-label="${escapeHtml(resetLabel)}" title="${escapeHtml(resetLabel)}"><img class="technology-control-icon" src="assets/lucide/icons/refresh-ccw.svg" alt="" aria-hidden="true"></button>` : ""}${technologyIconButton(viewIcon, viewLabel, `#${viewHref}`, "", "technology-board-switch")}</div>${technologyCategorySwitcher(category, mode)}</div>`;
+}
+
+function renderTechnologyHome() {
+  els.countryList.className = "country-list technology-home-board";
+  els.resultCount.textContent = "";
+  els.activeHint.textContent = "";
+  els.countryList.innerHTML = `<section class="technology-home" aria-labelledby="technology-home-title"><header class="technology-home-heading"><div><h2 id="technology-home-title">${escapeHtml(t("board.technology.homeTitle", "科技"))}</h2><p>${escapeHtml(t("board.technology.homeDescription", "选择查看方式。列表适合查找效果，科技树适合查看研究关系。"))}</p></div></header><div class="technology-home-grid">${technologyCategories.map((category) => { const count = technologies.filter((technology) => technology.category === category).length; const icon = category === "production" ? "manufacturies.png" : category === "military" ? "line_infantry.png" : "academia.png"; return `<article class="technology-home-card" data-technology-category="${category}"><div class="technology-home-card-heading"><span class="technology-home-card-icon"><img src="assets/home/${icon}" alt="" aria-hidden="true"></span><h3>${escapeHtml(technologyCategoryLabel(category))}</h3><span class="technology-home-card-count">${escapeHtml(t("board.technology.count", { count: localizedNumber(count) }))}</span></div><p class="technology-home-card-description">${escapeHtml(t(`board.technology.${category}Description`, category === "production" ? "建筑、生产方式和资源开发相关科技。" : category === "military" ? "陆军、海军和战争方式相关科技。" : "政治、社会制度和国家治理相关科技。"))}</p><div class="technology-home-actions">${technologyHomeEntry(category, "list", count)}${technologyHomeEntry(category, "tree", count)}</div></article>`; }).join("")}</div></section>`;
+  els.detail.innerHTML = "";
+  renderMap([]);
+}
+
+function technologyListCard(technology) {
+  const selected = technology.key === state.selectedTechnology;
+  const effects = (technology.modifiers || []).map((item) => `<span class="technology-effect-chip technology-effect-text${item.vc_change_kind ? " technology-vc-effect" : ""}">${escapeHtml(cleanGameLocalizationText(renderTextSpec({ message: item.loc?.summary, fallback: item.key })))}</span>`).join("");
+  const references = technology.references || {};
+  const productionMethods = dedupeTechnologyReferences(references.production_methods, "production-method");
+  const iconContent = [
+    ...productionMethods.map((item) => technologyContentChip(item, "production-method")),
+    ...(references.buildings || []).map((item) => technologyContentChip(item, "building")),
+    ...(references.laws || []).map((item) => technologyContentChip(item, "law")),
+    ...(references.companies || []).map((item) => technologyContentChip(item, "company")),
+    ...(references.combat_units || []).map((item) => technologyContentChip(item, "combat-unit")),
+    ...(references.ship_types || []).map((item) => technologyContentChip(item, "ship-type")),
+    ...(references.mobilization_options || []).map((item) => technologyContentChip(item, "mobilization-option")),
+    ...(references.diplomatic_actions || []).map((item) => technologyContentChip(item, "diplomatic-action")),
+    ...(references.treaty_articles || []).map((item) => technologyContentChip(item, "treaty-article")),
+    ...(references.parties || []).map((item) => `<span class="technology-effect-chip technology-content-chip technology-party-icon" title="${escapeHtml(technologyReferenceLabel(item, "party"))}">${technologyReferenceIcon(item, "party")}</span>`),
+  ].join("");
+  const researchKinds = [...new Set((technology.research_results || []).map((result) => result.kind === "ideology" ? "ideology" : result.kind === "political-movement" ? "political-movement" : "" ).filter(Boolean))];
+  const textContent = researchKinds.map((kind) => `<span class="technology-effect-chip technology-effect-text technology-research-kind">${escapeHtml(t(kind === "ideology" ? "board.technology.ideologyChanges" : "board.technology.politicalMovement", kind === "ideology" ? "意识形态改变" : "发起政治运动"))}</span>`).join("");
+  const icons = iconContent ? `<span class="technology-effect-icons">${iconContent}</span>` : "";
+  const changeClass = technology.vc_change_kind === "added" ? " technology-vc-added" : technology.vc_change_kind === "adjusted" ? " technology-vc-adjusted" : "";
+  const textGroup = effects || textContent ? `<span class="technology-effect-text-group">${effects}${textContent}</span>` : "";
+  return `<button class="technology-list-card${selected ? " is-selected" : ""}${changeClass}" type="button" data-technology-key="${escapeHtml(technology.key)}" aria-pressed="${String(selected)}"><span class="technology-list-icon"><img src="assets/technologies/${escapeHtml(technology.icon.split("/").pop().replace(/\.dds$/i, ".webp"))}" alt="" aria-hidden="true"></span><span class="technology-list-copy"><strong>${escapeHtml(entityText(technology))}</strong><small>${escapeHtml(t("board.technology.listMeta", { era: entityText(technology, "eraLabel", technology.era), cost: localizedNumber(technology.era_cost) }))}</small></span><span class="technology-list-effects">${textGroup}${icons}${victorianCenturyBadge(technology)}</span></button>`;
+}
+
+function technologyListItems(category) {
+  const query = state.technologySearch.trim();
+  return technologies.filter((technology) => technology.category === category && (!state.technologyEraFilter || technology.era === state.technologyEraFilter) && (!state.technologyListChangeKinds.size || state.technologyListChangeKinds.has(technology.vc_change_kind)) && (!query || technologyMatchesQuery(technology, query))).sort(technologyListOrder(category));
+}
+
+function technologyListOrder(category) {
+  const layout = technologyGraphLayoutForCategory(category);
+  return (left, right) => {
+    const leftNode = layout.nodes.get(left.key);
+    const rightNode = layout.nodes.get(right.key);
+    return (leftNode?.y || 0) - (rightNode?.y || 0) || (leftNode?.x || 0) - (rightNode?.x || 0) || String(left.key).localeCompare(String(right.key));
+  };
+}
+
+function technologyGraphLayoutForCategory(category) {
+  const previous = state.technologyCategory;
+  state.technologyCategory = category;
+  const layout = technologyGraphLayout();
+  state.technologyCategory = previous;
+  return layout;
+}
+
+function renderTechnologyListResults(category) {
+  const items = technologyListItems(category);
+  const summary = els.countryList.querySelector(".technology-list-summary");
+  const groups = els.countryList.querySelector(".technology-list-groups");
+  if (summary) summary.innerHTML = `<h2>${escapeHtml(technologyCategoryLabel(category))}</h2><span>${escapeHtml(t("board.technology.resultCount", { count: localizedNumber(items.length) }))}</span>`;
+  if (groups) groups.innerHTML = technologyEras.map((era) => { const eraItems = items.filter((technology) => technology.era === era.key); return eraItems.length ? `<section class="technology-list-era"><h3>${escapeHtml(entityText(era, "label", era.key))}<span>${escapeHtml(localizedNumber(eraItems.length))}</span></h3>${eraItems.map(technologyListCard).join("")}</section>` : ""; }).join("") || `<p class="empty">${escapeHtml(t("board.technology.empty", "没有匹配的科技。"))}</p>`;
+  bindTechnologyCardEvents();
+}
+
+function preserveSearchFocus(input, renderTarget) {
+  const selectionStart = input.selectionStart;
+  const selectionEnd = input.selectionEnd;
+  renderTarget();
+  const nextInput = els.countryList.querySelector("[data-technology-search]");
+  if (!nextInput) return;
+  nextInput.focus();
+  const nextLength = nextInput.value.length;
+  nextInput.setSelectionRange(Math.min(selectionStart ?? nextLength, nextLength), Math.min(selectionEnd ?? nextLength, nextLength));
+}
+
+function renderTechnologyList(category) {
+  state.technologyCategory = category;
+  const selected = technologyByKey.get(state.selectedTechnology) || null;
+  const eraOptions = technologyEras.map((era) => `<option value="${escapeHtml(era.key)}"${state.technologyEraFilter === era.key ? " selected" : ""}>${escapeHtml(entityText(era, "label", era.key))}</option>`).join("");
+  const vcControls = standaloneSiteConfig ? `<button type="button" class="technology-filter-token${state.technologyListChangeKinds.has("adjusted") ? " is-active" : ""}" data-technology-change="adjusted">${escapeHtml(t("vc.badge.adjusted", "VC调整"))}</button><button type="button" class="technology-filter-token${state.technologyListChangeKinds.has("added") ? " is-active" : ""}" data-technology-change="added">${escapeHtml(t("vc.badge.added", "VC新增"))}</button>` : "";
+  els.countryList.className = "country-list technology-list-board";
+  els.resultCount.textContent = "";
+  els.activeHint.textContent = "";
+  els.countryList.innerHTML = `<section class="technology-list-shell">${technologyFloatingControls(category, "list")}<div class="technology-list-toolbar"><div class="technology-list-toolbar-group technology-list-toolbar-view"><select data-technology-era-filter aria-label="${escapeHtml(t("board.technology.eraFilter", "时代"))}"><option value="">${escapeHtml(t("board.technology.allEras", "所有时代"))}</option>${eraOptions}</select>${vcControls}</div><div class="technology-list-toolbar-group technology-list-toolbar-search"><input type="search" data-technology-search aria-label="${escapeHtml(t("board.technology.search", "搜索科技"))}" placeholder="${escapeHtml(t("board.technology.searchEffects", "搜索科技名称或效果"))}" value="${escapeHtml(state.technologySearch)}"></div></div><div class="technology-list-summary"></div><div class="technology-list-groups" data-technology-list-results></div></section>`;
+  renderTechnologyListResults(category);
+  els.detail.innerHTML = renderTechnologyDetail(selected);
+  els.countryList.querySelector("[data-technology-search]")?.addEventListener("input", (event) => { state.technologySearch = event.target.value; renderTechnologyListResults(category); });
+  els.countryList.querySelector("[data-technology-era-filter]")?.addEventListener("change", (event) => { state.technologyEraFilter = event.target.value; renderTechnologyList(category); });
+  els.countryList.querySelectorAll("[data-technology-change]").forEach((button) => button.addEventListener("click", () => { const kind = button.dataset.technologyChange; if (state.technologyListChangeKinds.has(kind)) state.technologyListChangeKinds.delete(kind); else state.technologyListChangeKinds.add(kind); renderTechnologyList(category); }));
+}
+
+function bindTechnologyCardEvents() {
+  els.countryList.querySelectorAll("[data-technology-key]").forEach((button) => {
+    button.addEventListener("click", () => { location.hash = `/technology/${encodeURIComponent(button.dataset.technologyKey)}?from=${state.technologyMode}`; });
+  });
+}
+
+function renderTechnologyBoard(category = state.technologyCategory) {
+  state.technologyCategory = category;
   const layout = technologyGraphLayout();
   const selected = technologyByKey.get(state.selectedTechnology) || null;
   const normalizedSearch = state.technologySearch.trim();
@@ -2327,36 +2539,109 @@ function renderTechnologyBoard() {
   els.resultCount.textContent = "";
   els.activeHint.textContent = "";
   const categoryLabels = Object.fromEntries(["production", "military", "society"].map((key) => [key, t(`enum.technology.${key}`, key)]));
-  els.countryList.innerHTML = `<section class="technology-shell"><div class="technology-controls"><select data-technology-category-select aria-label="${escapeHtml(t("board.technology.category", "科技类别"))}">${Object.entries(categoryLabels).map(([key,label]) => `<option value="${key}" ${layout.technologyGraphCategory === key ? "selected" : ""}>${escapeHtml(label)}</option>`).join("")}</select><input type="search" data-technology-search aria-label="${escapeHtml(t("board.technology.search", "搜索科技"))}" placeholder="${escapeHtml(t("board.technology.search", "搜索科技"))}" value="${escapeHtml(state.technologySearch)}"><button class="map-tool-button" type="button" data-technology-reset aria-label="${escapeHtml(t("board.technology.resetView", "重置视图"))}" title="${escapeHtml(t("board.technology.resetView", "重置视图"))}"><img class="lucide-icon" src="assets/lucide/icons/refresh-ccw.svg" alt="" aria-hidden="true"></button></div><div class="technology-graph-viewport"><div class="technology-graph-canvas technology-grid-${layout.technologyGridColumns}x${layout.technologyGridRows}" style="width:${layout.width}px;height:${layout.height}px;transform:translate(${state.technologyViewport.x}px,${state.technologyViewport.y}px) scale(${state.technologyViewport.scale})"><svg class="technology-graph-edges" width="${layout.width}" height="${layout.height}" aria-hidden="true">${edges.map(({ from, to }) => { const highlighted = selected && (from.technology.key === selected.key || to.technology.key === selected.key); const stroke = highlighted ? "#c8a45b" : "#b7a883"; const strokeWidth = highlighted ? 5 : 3; const path = technologyEdgePath(from, to); return `<path d="${path}" fill="none" class="${highlighted ? "is-highlighted" : ""}" style="fill:none !important;stroke:${stroke} !important;stroke-width:${strokeWidth} !important"/>`; }).join("")}</svg>${visibleNodes.map(technologyNodeHtml).join("")}</div></div><div class="technology-mobile-list">${technologyEras.map((era) => `<details open><summary>${escapeHtml(entityText(era, "label", t(`enum.technologyEra.${era.key}`, era.key)))}</summary>${visibleNodes.filter((node) => node.technology.era === era.key).map(technologyNodeHtml).join("")}</details>`).join("")}</div><div class="technology-local-graph">${selected ? t("board.technology.localRelation", { name: entityText(selected), prerequisites: localizedNumber(selected.prerequisites.length), unlocks: localizedNumber(selected.unlocks.length) }) : t("board.technology.selectForRelations", "选择科技查看局部关系")}</div></section>`;
+  els.countryList.innerHTML = `<section class="technology-shell">${technologyFloatingControls(category, "tree")}<div class="technology-graph-viewport"><div class="technology-graph-canvas technology-grid-${layout.technologyGridColumns}x${layout.technologyGridRows}" style="width:${layout.width}px;height:${layout.height}px;transform:translate(${state.technologyViewport.x}px,${state.technologyViewport.y}px) scale(${state.technologyViewport.scale})"><svg class="technology-graph-edges" width="${layout.width}" height="${layout.height}" aria-hidden="true">${edges.map(({ from, to }) => { const highlighted = selected && (from.technology.key === selected.key || to.technology.key === selected.key); const stroke = highlighted ? "#c8a45b" : "#b7a883"; const strokeWidth = highlighted ? 5 : 3; const path = technologyEdgePath(from, to); return `<path d="${path}" fill="none" class="${highlighted ? "is-highlighted" : ""}" style="fill:none !important;stroke:${stroke} !important;stroke-width:${strokeWidth} !important"/>`; }).join("")}</svg>${visibleNodes.map(technologyNodeHtml).join("")}</div></div><div class="technology-mobile-list">${technologyEras.map((era) => `<details open><summary>${escapeHtml(entityText(era, "label", t(`enum.technologyEra.${era.key}`, era.key)))}</summary>${visibleNodes.filter((node) => node.technology.era === era.key).map(technologyNodeHtml).join("")}</details>`).join("")}</div><div class="technology-local-graph">${selected ? t("board.technology.localRelation", { name: entityText(selected), prerequisites: localizedNumber(selected.prerequisites.length), unlocks: localizedNumber(selected.unlocks.length) }) : t("board.technology.selectForRelations", "选择科技查看局部关系")}</div></section>`;
   els.detail.innerHTML = renderTechnologyDetail(selected);
   els.countryList.querySelectorAll("[data-technology-key]").forEach((button) => {
     button.addEventListener("pointerdown", (event) => event.stopPropagation());
-    button.addEventListener("click", () => { location.hash = `/technology/${encodeURIComponent(button.dataset.technologyKey)}`; });
+    button.addEventListener("click", () => { location.hash = `/technology/${encodeURIComponent(button.dataset.technologyKey)}?from=tree`; });
   });
   els.countryList.querySelector("[data-technology-category-select]")?.addEventListener("change", (event) => { state.technologyCategory = event.target.value; state.technologySearch = ""; state.selectedTechnology = ""; state.technologyViewport = { x: 0, y: 0, scale: 1 }; render(); });
-  els.countryList.querySelector("[data-technology-search]")?.addEventListener("input", (event) => { state.technologySearch = event.target.value; renderTechnologyBoard(); });
+  els.countryList.querySelector("[data-technology-search]")?.addEventListener("input", (event) => { state.technologySearch = event.target.value; preserveSearchFocus(event.target, () => renderTechnologyBoard(category)); });
   els.countryList.querySelector("[data-technology-reset]")?.addEventListener("click", () => { state.technologyViewport = { x: 0, y: 0, scale: 1 }; render(); });
   const viewport = els.countryList.querySelector(".technology-graph-viewport");
   let drag = null;
-  viewport?.addEventListener("pointerdown", (event) => { if (event.target.closest(".technology-node")) return; drag = { x: event.clientX, y: event.clientY, startX: state.technologyViewport.x, startY: state.technologyViewport.y }; viewport.setPointerCapture(event.pointerId); });
-  viewport?.addEventListener("pointermove", (event) => { if (!drag) return; state.technologyViewport.x = drag.startX + event.clientX - drag.x; state.technologyViewport.y = drag.startY + event.clientY - drag.y; const canvas = viewport.querySelector(".technology-graph-canvas"); if (canvas) canvas.style.transform = `translate(${state.technologyViewport.x}px,${state.technologyViewport.y}px) scale(${state.technologyViewport.scale})`; });
-  viewport?.addEventListener("pointerup", () => { drag = null; });
+  viewport?.addEventListener("pointerdown", (event) => { if (event.target.closest(".technology-node")) return; event.preventDefault(); viewport.classList.add("is-dragging"); drag = { x: event.clientX, y: event.clientY, startX: state.technologyViewport.x, startY: state.technologyViewport.y }; viewport.setPointerCapture(event.pointerId); });
+  viewport?.addEventListener("pointermove", (event) => { if (!drag) return; event.preventDefault(); state.technologyViewport.x = drag.startX + event.clientX - drag.x; state.technologyViewport.y = drag.startY + event.clientY - drag.y; const canvas = viewport.querySelector(".technology-graph-canvas"); if (canvas) canvas.style.transform = `translate(${state.technologyViewport.x}px,${state.technologyViewport.y}px) scale(${state.technologyViewport.scale})`; });
+  const stopTechnologyGraphDrag = () => { drag = null; viewport?.classList.remove("is-dragging"); };
+  viewport?.addEventListener("pointerup", stopTechnologyGraphDrag);
+  viewport?.addEventListener("pointercancel", stopTechnologyGraphDrag);
   viewport?.addEventListener("wheel", (event) => { event.preventDefault(); state.technologyViewport.scale = Math.max(.7, Math.min(1.8, state.technologyViewport.scale * (event.deltaY < 0 ? 1.1 : .9))); const canvas = viewport.querySelector(".technology-graph-canvas"); if (canvas) canvas.style.transform = `translate(${state.technologyViewport.x}px,${state.technologyViewport.y}px) scale(${state.technologyViewport.scale})`; }, { passive: false });
+}
+
+function technologyEffectSection(technology) {
+  const modifiers = technology.modifiers || [];
+  if (!modifiers.length) return "";
+  return `<section class="technology-detail-section technology-effects-section" data-technology-effects><h3>${escapeHtml(t("board.technology.effects", "持续效果"))}</h3><div class="technology-effect-list">${modifiers.map((item) => `<div class="technology-effect-row${item.vc_change_kind ? " technology-vc-effect" : ""}"><span>${escapeHtml(cleanGameLocalizationText(renderTextSpec({ message: item.loc?.name, fallback: item.key })))}</span><strong>${escapeHtml(cleanGameLocalizationText(renderTextSpec({ message: item.loc?.value, fallback: item.value_zh || item.value_raw || "" })))}</strong></div>`).join("")}</div></section>`;
+}
+
+function technologyResearchEffectSection(technology) {
+  const results = technology.research_results || [];
+  if (!results.length) return "";
+  const rows = results.map(technologyResearchResultHtml).filter(Boolean).join("");
+  if (!rows) return "";
+  return `<section class="technology-detail-section technology-research-section" data-technology-research-effect><h3>${escapeHtml(t("board.technology.researchResults", "研究后效果"))}</h3><div class="technology-research-result-list">${rows}</div></section>`;
+}
+
+function technologyResearchResultHtml(result) {
+  if (result.kind === "ideology") {
+    const from = result.from ? technologyResearchEntityLink("ideology", result.from) : "";
+    const to = result.to ? technologyResearchEntityLink("ideology", result.to) : "";
+    if (!to) return "";
+    return `<div class="technology-research-result" data-research-result-kind="ideology"><span class="technology-research-result-kind">${escapeHtml(t("board.technology.ideologyChanges", "意识形态改变"))}</span><span class="technology-research-result-value">${from ? `${from}<span class="technology-research-arrow" aria-hidden="true">→</span>` : ""}${to}</span></div>`;
+  }
+  if (result.kind === "journal" || result.kind === "event") {
+    const name = entityText(result);
+    if (!name || name === result.key) return "";
+    const label = result.kind === "journal" ? t("nav.journal", "日志") : t("nav.event", "事件");
+    return `<div class="technology-research-result" data-research-result-kind="${escapeHtml(result.kind)}"><span class="technology-research-result-kind">${escapeHtml(label)}</span><a class="technology-research-result-link" href="#/${escapeHtml(result.kind)}/${encodeURIComponent(result.key)}">${escapeHtml(name)}</a></div>`;
+  }
+  return "";
+}
+
+function technologyResearchEntityLink(kind, item) {
+  const name = entityText(item);
+  if (!name || name === item.key) return "";
+  return `<a class="technology-research-result-link" href="${escapeHtml(conceptHref(kind, item.key))}">${escapeHtml(name)}</a>`;
+}
+
+function technologyRelationSection(items, label) {
+  if (!items.length) return "";
+  return `<section class="technology-detail-section technology-relation-section"><h3>${escapeHtml(label)}</h3><div class="technology-relation-tags">${items.map((item) => { const technology = technologyByKey.get(item?.key || item) || item; return `<button class="technology-relation-link" type="button" data-technology-target="${escapeHtml(technology.key)}">${technologyIconHtml(technology, "technology-relation-icon")}<span>${escapeHtml(entityText(technology))}</span></button>`; }).join("")}</div></section>`;
+}
+
+function technologyDetailOverviewCard(label, value) {
+  return `<div class="technology-detail-overview-card"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`;
+}
+
+function technologyDetailRelatedGroup(label, items, kind, link = true) {
+  if (!items.length) return "";
+  const content = items.map((item) => {
+    const icon = technologyReferenceIcon(item, kind);
+    const name = technologyReferenceLabel(item, kind);
+    if (!link) return `<span class="technology-related-item">${icon}<span>${escapeHtml(name)}</span></span>`;
+    return `<a class="technology-related-item" href="${escapeHtml(technologyReferenceHref(item, kind))}">${icon}<span>${escapeHtml(name)}</span></a>`;
+  }).join("");
+  return `<div class="technology-related-group"><h4>${escapeHtml(label)}</h4><div class="technology-related-items">${content}</div></div>`;
 }
 
 function renderTechnologyDetail(technology) {
   if (!technology) return "";
-  const relation = (items, label) => `<section><h3>${escapeHtml(label)}</h3><div class="technology-relation-tags">${items.length ? items.map((item) => `<button class="pill tag-technology" type="button" data-technology-target="${escapeHtml(item.key)}">${escapeHtml(entityText(item))}</button>`).join("") : t("ui.none", "无")}</div></section>`;
-  const refs = technology.references || { laws: [], companies: [] };
-  const linkItems = (items, route) => items.length ? items.map((item) => `<a class="pill" href="#/${route}/${encodeURIComponent(item.key)}">${escapeHtml(entityText(item))}</a>`).join("") : t("ui.none", "无");
+  const refs = technology.references || { laws: [], companies: [], production_methods: [], buildings: [] };
+  const linkItems = (items, kind) => items.length ? items.map((item) => `<a class="pill technology-content-link" href="${escapeHtml(technologyReferenceHref(item, kind))}">${technologyReferenceIcon(item, kind)}<span>${escapeHtml(technologyReferenceLabel(item, kind))}</span></a>`).join("") : t("ui.none", "无");
   queueMicrotask(() => {
-    document.querySelectorAll("[data-technology-target]").forEach((button) => button.addEventListener("click", () => { location.hash = `/technology/${encodeURIComponent(button.dataset.technologyTarget)}`; }));
-    document.querySelector("[data-technology-back]")?.addEventListener("click", () => { location.hash = "/technology"; });
+    document.querySelectorAll("[data-technology-target]").forEach((button) => button.addEventListener("click", () => { location.hash = `/technology/${encodeURIComponent(button.dataset.technologyTarget)}?from=${state.technologyMode}`; }));
+    document.querySelector("[data-technology-back]")?.addEventListener("click", (event) => { location.hash = event.currentTarget.dataset.technologyBackRoute || "/technology"; });
   });
   const eraLabel = t(`enum.technologyEra.${technology.era}`, technology.era);
   const meta = t("board.technology.meta", { category: t(`enum.technology.${technology.category}`, technology.category), era: eraLabel, cost: localizedNumber(technology.era_cost) });
   const description = entityText(technology, "description", t("ui.noDescription", "无说明"));
-  return `<section class="technology-detail"><div class="detail-title"><button class="detail-back-button" type="button" data-technology-back aria-label="${escapeHtml(t("board.technology.back", "返回科技树"))}" title="${escapeHtml(t("board.technology.back", "返回科技树"))}"><img class="lucide-icon" src="assets/lucide/icons/arrow-left.svg" alt="" aria-hidden="true"></button><div class="detail-title-main"><h2>${escapeHtml(entityText(technology))}</h2></div>${victorianCenturyBadge(technology)}</div><p>${escapeHtml(meta)}</p><p>${escapeHtml(description)}</p>${relation(technology.prerequisites.map((key) => technologyByKey.get(key)).filter(Boolean), t("board.technology.prerequisites", "前置科技"))}${relation(technology.unlocks, t("board.technology.unlocks", "后续科技"))}<section><h3>${t("board.technology.modifiers", "修正效果")}</h3>${technology.modifiers.length ? technology.modifiers.map((item) => `<p>${escapeHtml(renderTextSpec({ message: item.loc?.summary, fallback: item.key }))}</p>`).join("") : t("ui.none", "无")}</section><section><h3>${t("board.technology.relatedLaws", "关联法律")}</h3>${linkItems(refs.laws, "law")}</section><section><h3>${t("board.technology.relatedCompanies", "关联公司")}</h3>${linkItems(refs.companies, "company")}</section></section>`;
+  const backRoute = state.technologyMode === "list" || state.technologyMode === "tree" ? technologyRoute(state.technologyMode, technology.category) : "/technology";
+  const technologyIcon = technology.icon ? `assets/technologies/${technology.icon.split("/").pop().replace(/\.dds$/i, ".webp")}` : "";
+  const prerequisites = technology.prerequisites.map((key) => technologyByKey.get(key)).filter(Boolean);
+  const unlocks = technology.unlocks.map((item) => technologyByKey.get(item?.key || item) || item).filter(Boolean);
+  const relatedGroups = [
+    technologyDetailRelatedGroup(t("board.technology.relatedProductionMethods", "解锁生产方式"), dedupeTechnologyReferences(refs.production_methods || [], "production-method"), "production-method"),
+    technologyDetailRelatedGroup(t("board.technology.relatedBuildings", "解锁建筑内容"), refs.buildings || [], "building"),
+    technologyDetailRelatedGroup(t("board.technology.relatedCombatUnits", "解锁陆军兵种"), refs.combat_units || [], "combat-unit"),
+    technologyDetailRelatedGroup(t("board.technology.relatedShipTypes", "解锁海军舰型"), refs.ship_types || [], "ship-type"),
+    technologyDetailRelatedGroup(t("board.technology.relatedMobilizationOptions", "军队动员选项"), refs.mobilization_options || [], "mobilization-option"),
+    technologyDetailRelatedGroup(t("board.technology.relatedDiplomaticActions", "外交行动"), refs.diplomatic_actions || [], "diplomatic-action"),
+    technologyDetailRelatedGroup(t("board.technology.relatedTreatyArticles", "条约条款"), refs.treaty_articles || [], "treaty-article"),
+    technologyDetailRelatedGroup(t("board.technology.relatedParties", "解锁政党"), refs.parties || [], "party", false),
+    technologyDetailRelatedGroup(t("board.technology.relatedLaws", "关联法律"), refs.laws || [], "law"),
+    technologyDetailRelatedGroup(t("board.technology.relatedCompanies", "关联公司"), refs.companies || [], "company"),
+  ].filter(Boolean).join("");
+  return `<section class="technology-detail"><header class="technology-detail-header"><div class="technology-detail-heading"><button class="detail-back-button" type="button" data-technology-back data-technology-back-route="${escapeHtml(backRoute)}" aria-label="${escapeHtml(t("board.technology.back", "返回科技主页"))}" title="${escapeHtml(t("board.technology.back", "返回科技主页"))}"><img class="lucide-icon" src="assets/lucide/icons/arrow-left.svg" alt="" aria-hidden="true"></button>${technologyIcon ? `<img class="technology-detail-icon" src="${escapeHtml(technologyIcon)}" alt="" aria-hidden="true">` : ""}<div class="technology-detail-title-main"><h2>${escapeHtml(entityText(technology))}</h2><p class="technology-detail-key">${escapeHtml(technology.key)}</p></div>${victorianCenturyBadge(technology)}</div><p class="technology-detail-description">${escapeHtml(description)}</p></header>${technologyRelationSection(prerequisites, t("board.technology.prerequisites", "前置科技"))}<p class="technology-detail-meta">${escapeHtml(meta)}</p>${technologyEffectSection(technology)}${technologyResearchEffectSection(technology)}${relatedGroups ? `<section class="technology-detail-section technology-related-section"><h3>${escapeHtml(t("board.technology.relatedContent", "关联内容"))}</h3><div class="technology-related-groups">${relatedGroups}</div></section>` : ""}${technologyRelationSection(unlocks, t("board.technology.unlocks", "后续科技"))}</section>`;
 }
 
 function renderDetailForState() {

@@ -84,18 +84,18 @@ async function loadVersion(version, options = {}) {
 function dataChunksForView(view) {
   if (view === "country") return ["country", "culture", "region", "ideology", "law", "technology", "content"];
   if (view === "culture") return ["culture", "region", "country"];
-  if (view === "region") return ["region", "country", "culture", "company"];
-  if (view === "company") return ["company", "region", "country"];
-  if (view === "ideology") return ["ideology", "law", "country"];
-  if (view === "religion") return ["religion", "country", "ideology", "culture"];
-  if (view === "interest-group") return ["ideology", "country", "culture", "region", "law", "event"];
-  if (view === "law") return ["law", "ideology", "country"];
-  if (view === "technology") return ["technology"];
+  if (view === "region") return ["region", "country", "culture", "company", "technology"];
+  if (view === "company") return ["company", "region", "country", "technology"];
+  if (view === "ideology") return ["ideology", "law", "country", "technology"];
+  if (view === "religion") return ["religion", "country", "ideology", "culture", "technology"];
+  if (view === "interest-group") return ["ideology", "country", "culture", "region", "law", "event", "technology"];
+  if (view === "law") return ["law", "ideology", "country", "technology"];
+  if (view === "technology") return ["technology", "military", "building", "law", "company", "party"];
   if (view === "achievement") return ["achievement"];
   if (view === "event") return standaloneSiteConfig ? ["content", "country"] : ["event", "country"];
   if (view === "journal" || view === "decision") return ["content", "country"];
   if (view === "content") return ["content"]; // Compatibility routes load the shared data before redirecting.
-  if (view === "building") return ["building", "goods"];
+  if (view === "building") return ["building", "goods", "technology"];
   if (view === "goods") return ["goods"];
   if (view === "character") return ["character", "culture", "ideology"];
   if (view === "name-pool") return ["name-pool", "culture"];
@@ -258,6 +258,7 @@ function applyLoadedDataset(nextData, nextMapData, options = {}) {
   productionMethods = data.productionMethods || [];
   goods = data.goods || [];
   prestigeGoods = data.prestigeGoods || [];
+  parties = data.parties || [];
   needsData = data.needsData || null;
   historicalCharacters = data.historicalCharacters || [];
   historicalCharacterStats = data.historicalCharacterStats || {};

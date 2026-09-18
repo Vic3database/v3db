@@ -10,7 +10,7 @@ const styles = readSiteStyleSource(root);
 const ui = fs.readFileSync(path.join(root, "site", "app", "ui.js"), "utf8");
 const technologyChunk = readGlobal(path.join(root, "site", "versions", "1.13.9", "data-technologies.js"));
 const searchIndex = readGlobal(path.join(root, "site", "versions", "1.13.9", "search-index.js"), "VIC3_SEARCH_INDEX");
-const technologyRenderer = app.match(/function renderTechnologyBoard\(\) \{[\s\S]*?\r?\n}\r?\n\s*function renderTechnologyDetail/)[0];
+const technologyRenderer = app.match(/function renderTechnologyBoard\(category(?:\s*=\s*state\.technologyCategory)?\) \{[\s\S]*?\r?\n}\r?\n\s*function renderTechnologyDetail/)[0];
 
 assert.match(app, /function renderTechnologyBoard\(/, "technology board renderer must exist");
 assert.match(app, /function renderTechnologyDetail\(/, "technology detail renderer must exist");
@@ -55,12 +55,12 @@ assert.match(index, /data-nav-view="technology"[^>]*>[\s\S]*?<span data-i18n="na
 const technologyNavigation = index.match(/<button class="topbar-nav-item"[^>]*data-nav-view="technology"[^>]*>[\s\S]*?<\/button>/)?.[0] || "";
 assert.doesNotMatch(technologyNavigation, /<img\b/, "top navigation board entries must remain text-only");
 assert.match(app, /view: "technology", icon: "assets\/home\/academia\.png"/, "the homepage technology entry must retain its game icon");
-assert.match(technologyRenderer, /data-technology-reset[^>]*aria-label="\$\{escapeHtml\(t\("board\.technology\.resetView"[^>]*>[\s\S]*?refresh-ccw\.svg/, "technology reset control must use the localized shared reset icon");
-assert.match(app, /location\.hash = "\/technology"/, "technology detail return button must clear the selected technology route");
+assert.match(app, /data-technology-reset[\s\S]*?refresh-ccw\.svg/, "technology reset control must use the localized shared reset icon");
+assert.match(app, /data-technology-back-route/, "technology detail return button must expose its source route");
 assert.match(app, /if \(!technology\) return ""/, "technology detail renderer must render no right-panel content when no technology is selected");
 assert.match(technologyRenderer, /button\.addEventListener\("pointerdown", \(event\) => event\.stopPropagation\(\)\)/, "technology card presses must not begin canvas dragging");
 assert.match(technologyRenderer, /if \(event\.target\.closest\("\.technology-node"\)\) return/, "canvas dragging must ignore technology cards");
-assert.match(ui, /changeBoard\("technology", "technology"\);\s*state\.selectedTechnology = "";/, "opening the unselected technology route must clear the previous selected technology");
+assert.match(ui, /state\.technologyMode = "home";\s*state\.selectedTechnology = "";/, "opening the unselected technology route must clear the previous selected technology");
 assert.match(app, /function technologyEdgePath\(from, to\)/, "technology relationships must calculate paths from both endpoint positions");
 assert.doesNotMatch(app, /const vertical = Math\.abs\(toCenterY - fromCenterY\)/, "technology relationships must not use left or right card ports");
 assert.match(app, /const startY = downward \? from\.y \+ cardHeight : from\.y/, "technology relationships must leave only the top or bottom card edge");

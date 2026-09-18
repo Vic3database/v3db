@@ -976,9 +976,14 @@ function cleanDescriptionText(value) {
 }
 
 function cleanGameLocalizationText(value) {
+  const harvestConditionNames = {
+    drought: ["干旱", "Drought"], flood: ["洪水", "Flood"], frost: ["霜冻", "Frost"], wildfire: ["野火", "Wildfire"], hailstorm: ["雹暴", "Hailstorm"], locust_swarm: ["蝗群", "Locust Swarm"], heatwave: ["热浪", "Heatwave"], disease_outbreak: ["疫病爆发", "Disease Outbreak"], extreme_winds: ["强风", "Extreme Winds"], torrential_rains: ["暴雨", "Torrential Rains"], pollinator_surge: ["授粉昆虫激增", "Pollinator Surge"], optimal_sunlight: ["阳光极佳", "Optimal Sunlight"], moderate_rainfall: ["降雨适中", "Moderate Rainfall"], tsunami: ["海啸", "Tsunami"], earthquake: ["地震", "Earthquake"],
+  };
+  const harvestConditionText = (key) => harvestConditionNames[key]?.[(typeof localeRuntime !== "undefined" && localeRuntime.current === "en") ? 1 : 0] || humanizeGameLocalizationKey(key, true);
   return String(value || "")
     .replace(/\\_/g, "_")
     .replace(/\[GetDefine\(\s*['"]NPops['"]\s*,\s*['"]INDIVIDUALS_PER_POP_INFRASTRUCTURE['"]\s*\)\|vK\]/g, "100K")
+    .replace(/\[GetHarvestConditionType\(\s*['"]([A-Za-z0-9_]+)['"]\s*\)\.GetName\]/g, (_, key) => harvestConditionText(key))
     .replace(/\[Concept\(\s*'([^']+)'\s*,\s*'([^']+)'\s*\)\]/gi, (_, conceptKey, displayKey) => (
       gameLocalizationReferenceLabel(displayKey.replace(/^\$|\$$/g, "") || conceptKey)
     ))
@@ -995,6 +1000,7 @@ function cleanGameLocalizationText(value) {
     .replace(/\s+/g, " ")
     .trim();
 }
+
 
 function gameLocalizationReferenceLabel(key) {
   const normalizedKey = String(key || "").replace(/^\$|\$$/g, "");
@@ -1363,6 +1369,7 @@ function technologyPill(item, className = "tag-technology") {
     search: label,
     category: metadata.category,
     description: metadata.description,
+    html: `${technologyIconHtml(technology, "technology-reference-icon")}<span>${escapeHtml(label)}</span>`,
   });
 }
 
@@ -2005,7 +2012,7 @@ function achievementIconHtml(achievement, className = "achievement-icon") {
 
 function economyEntityIconHtml(entity, category, className = "economy-icon") {
   const key = entity?.key || "";
-  const iconPath = entity?.icon?.site_path || "";
+  const iconPath = entity?.icon?.site_path || entity?.icon_path || "";
   if (!iconPath) return "";
   const fileName = fileBaseName(iconPath || entity?.icon?.source || "");
   const path = iconPath;

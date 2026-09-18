@@ -39,6 +39,7 @@ let productionMethodGroups = [];
 let productionMethods = [];
 let goods = [];
 let prestigeGoods = [];
+let parties = [];
 let needsData = null;
 let mapData = null;
 let siteTitle = "Vicdata";
@@ -261,8 +262,11 @@ const state = {
   openProductionMethodGroup: "",
   achievementSearch: "",
   achievementWallScrollTop: 0,
+  technologyMode: "home",
   technologyCategory: "production",
   technologySearch: "",
+  technologyEraFilter: "",
+  technologyListChangeKinds: new Set(),
   technologyViewport: { x: 0, y: 0, scale: 1 },
   selectedGlobalResult: "",
   globalSearchColorRestoreTag: "",

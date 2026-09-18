@@ -175,7 +175,7 @@ function renderBuildingDetail(building) {
     ${economyDetailHead(building, "buildings", "building")}
     ${economyVictorianCenturyChangeHtml(building)}
     <section><h3>${escapeHtml(economyDisplayName(building.building_group) || t("nav.building"))}</h3><p>${building.resource_map_available ? escapeHtml(t("board.economy.resourceDescription")) : ""}</p></section>
-    ${building.unlocking_technologies?.length ? `<section><h3>${escapeHtml(t("board.economy.unlockingTechnologies"))}</h3><p>${referenceNames(building.unlocking_technologies)}</p></section>` : ""}
+    ${building.unlocking_technologies?.length ? `<section><h3>${escapeHtml(t("board.economy.unlockingTechnologies"))}</h3>${technologyPills(building.unlocking_technologies)}</section>` : ""}
     ${building.resource_map_available ? `<button class="economy-resource-map" type="button" data-resource-map-building="${escapeHtml(building.key)}">${escapeHtml(t("board.economy.openResourceMap"))}</button>` : ""}
     <section class="production-method-section">
       <h3>${escapeHtml(t("board.economy.productionMethods"))}</h3>
@@ -337,13 +337,7 @@ function productionMethodConditionText(conditions, kind) {
 }
 
 function productionMethodTechnologyHtml(references) {
-  return references.map((reference) => {
-    const key = reference?.key || reference;
-    const technology = technologyByKey.get(key);
-    const name = entityText(technology || reference, "name", key);
-    const icon = technology?.icon?.split("/").pop()?.replace(/\.dds$/i, ".webp") || "";
-    return `<span class="production-method-technology" title="${escapeHtml(name)}">${icon ? `<img src="assets/technologies/${encodeURIComponent(icon)}" alt="" aria-hidden="true">` : ""}<span>${escapeHtml(name)}</span></span>`;
-  }).join(t("board.economy.listSeparator"));
+  return technologyPills(references, "tag-technology production-method-technology");
 }
 
 function productionMethodExtraItemHtml(label, value) {

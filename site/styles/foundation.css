@@ -137,7 +137,7 @@ body {
 }
 
 .topbar-left {
-  gap: 14px;
+  gap: 16px;
 }
 
 .topbar-actions {
@@ -179,7 +179,7 @@ body {
 }
 
 .topbar-nav {
-  gap: 4px;
+  gap: 6px;
 }
 
 .topbar-nav-group {
@@ -188,7 +188,7 @@ body {
 
 .topbar-nav-summary {
   min-height: var(--control-height);
-  padding: 0 10px;
+  padding: 0 12px;
   border: 1px solid transparent;
   border-radius: 7px;
   color: var(--ink);

@@ -23,6 +23,12 @@ const collections = [
   ["prestige_goods", "prestige-goods"],
   ["production_method_groups", "production-methods"],
   ["production_methods", "production-methods"],
+  ["combat_unit_types", "combat-units"],
+  ["ship_types", "ship-types"],
+  ["mobilization_options", "mobilization-options"],
+  ["diplomatic_actions", "diplomatic-actions"],
+  ["treaty_articles", "treaty-articles"],
+  ["parties", "political-parties"],
 ];
 const entries = [];
 for (const [fileKey, category] of collections) {

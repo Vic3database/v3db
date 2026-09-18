@@ -257,7 +257,29 @@ function main() {
     loc,
     locEn,
   );
-  attachTechnologyReferences(technologies, { laws, companies });
+  const militaryUnits = loadMilitaryUnitData(
+    contentPath("common", "combat_unit_types"),
+    contentPath("common", "ship_types"),
+    contentPath("common", "mobilization_options"),
+    loc,
+    locEn,
+  );
+  const parties = loadPartyReferences(contentPath("common", "parties"), contentPath("gfx", "interface", "icons", "political_parties"), loc, locEn);
+  const diplomaticActions = loadDiplomaticReferences(contentPath("common", "diplomatic_actions"), loc, "unlocking_technologies", "diplomatic-actions");
+  const treatyArticles = loadDiplomaticReferences(contentPath("common", "treaty_articles"), loc, "unlocked_by_technologies", "treaty-articles");
+  attachTechnologyReferences(technologies, {
+    laws,
+    companies,
+    productionMethods: economy.productionMethods,
+    buildings: economy.buildings,
+    combatUnits: militaryUnits.combatUnits,
+    shipTypes: militaryUnits.shipTypes,
+    mobilizationOptions: militaryUnits.mobilizationOptions,
+    diplomaticActions,
+    treatyArticles,
+    parties,
+    mobilizationOptions: militaryUnits.mobilizationOptions,
+  });
   const interestGroups = loadInterestGroups(
     contentPath("common", "interest_groups"),
     loc,
@@ -484,7 +506,7 @@ function main() {
     dynamic_country_map_color_rules: dynamicMapColorRules,
   });
 
-  writeDatabase(databaseDir, {
+    writeDatabase(databaseDir, {
     version,
     datasetName,
     gamePath,
@@ -507,6 +529,10 @@ function main() {
     lawGroups,
     laws,
     technologies,
+    militaryUnits,
+    parties,
+    diplomaticActions,
+    treatyArticles,
     technologyEras,
     achievements,
     geographicRegions,
@@ -3074,7 +3100,68 @@ function loadTechnologies(dir, technologyEras, loc) {
   return technologies;
 }
 
-function attachTechnologyReferences(technologies, { laws, companies }) {
+function loadMilitaryUnitData(combatUnitDirs, shipTypeDirs, mobilizationOptionDirs, loc, locEn) {
+  const combatUnits = [...loadPatchedDefinitions(combatUnitDirs, (key, node) => Boolean(node && key.startsWith("combat_unit_type_"))).values()]
+    .map((record) => {
+      const { key, node } = record;
+      const image = allValues(node, "combat_unit_image").map(asNode).filter(Boolean).map((item) => firstScalar(item, "texture")).find(Boolean);
+      return {
+        key,
+        kind: "land",
+        name_zh: locCleanName(loc, key),
+        name_en: locCleanName(locEn, key),
+        loc: { name: `item:0:${key}.name`, description: `item:0:${key}.description` },
+        icon: image ? economyIcon(image, "combat-units", key, "combat unit") : null,
+        unlocking_technologies: referenceList(asNode(firstValue(node, "unlocking_technologies")), loc, "technology"),
+        source_file: record.source_file,
+      };
+    });
+  const shipTypes = [...loadPatchedDefinitions(shipTypeDirs, (key, node) => Boolean(node && key.startsWith("ship_type_"))).values()]
+    .map((record) => {
+      const { key, node } = record;
+      const profile = firstScalar(node, "profile_texture") || firstScalar(node, "icon");
+      return {
+        key,
+        kind: "naval",
+        name_zh: locCleanName(loc, key),
+        name_en: locCleanName(locEn, key),
+        loc: { name: `item:0:${key}.name`, description: `item:0:${key}.description` },
+        icon: profile ? economyIcon(profile, "ship-types", key, "ship type") : null,
+        unlocking_technologies: referenceList(asNode(firstValue(node, "unlocking_technologies")), loc, "technology"),
+        source_file: record.source_file,
+      };
+    });
+  const mobilizationOptions = [...loadPatchedDefinitions(mobilizationOptionDirs, (key, node) => Boolean(node && key.startsWith("mobilization_option_"))).values()]
+    .map((record) => {
+      const { key, node } = record;
+      const texture = firstScalar(node, "texture");
+      return {
+        key,
+        kind: "mobilization",
+        name_zh: locCleanName(loc, key),
+        name_en: locCleanName(locEn, key),
+        loc: { name: key, description: `${key}_desc` },
+        icon: texture ? economyIcon(texture, "mobilization-options", key, "mobilization option") : null,
+        unlocking_technologies: referenceList(asNode(firstValue(node, "unlocking_technologies")), loc, "technology"),
+        source_file: record.source_file,
+      };
+    });
+  return { combatUnits, shipTypes, mobilizationOptions };
+}
+
+function loadDiplomaticReferences(dirs, loc, technologyField, assetCategory) {
+  return [...loadPatchedDefinitions(dirs, (key, node) => Boolean(node && /^[A-Za-z0-9_-]+$/.test(key))).values()]
+    .map((record) => ({
+      key: record.key,
+      loc: { name: `item:0:${record.key}.name`, description: `item:0:${record.key}.description` },
+      name_zh: locCleanName(loc, record.key),
+      icon: (() => { const source = firstScalar(record.node, "icon") || firstScalar(record.node, "texture"); const fallback = { increase_relations: "gfx/interface/icons/lens_toolbar_icons/increase_relations.dds", damage_relations: "gfx/interface/icons/lens_toolbar_icons/damage_relations.dds", rivalry: "gfx/interface/icons/lens_toolbar_icons/rivalry.dds", embargo: "gfx/interface/icons/lens_toolbar_icons/embargo.dds", disapproval_pact: "gfx/interface/icons/lens_toolbar_icons/disapproval_pact.dds", raiding_pact: "gfx/interface/icons/lens_toolbar_icons/raiding_pact.dds", alliance: "gfx/interface/icons/lens_toolbar_icons/alliance.dds", defensive_pact: "gfx/interface/icons/lens_toolbar_icons/defensive_pact.dds" }[record.key] || "gfx/interface/icons/lens_toolbar_icons/diplomatic_lens_button.dds"; return economyIcon(source || fallback, assetCategory, record.key, assetCategory === "treaty-articles" ? "treaty article" : "diplomatic action"); })(),
+      unlocking_technologies: referenceList(asNode(firstValue(record.node, technologyField)), loc, "technology"),
+      source_file: record.source_file,
+    }));
+}
+
+function attachTechnologyReferences(technologies, { laws, companies, productionMethods = [], buildings = [], combatUnits = [], shipTypes = [], mobilizationOptions = [], diplomaticActions = [], treatyArticles = [], parties = [] }) {
   const byKey = new Map(technologies.map((technology) => [technology.key, technology]));
   for (const technology of technologies) {
     for (const key of technology.prerequisites) {
@@ -3085,17 +3172,71 @@ function attachTechnologyReferences(technologies, { laws, companies }) {
     technology.references = {
       laws: [...laws.values()]
         .filter((law) => law.unlocking_technologies.some((item) => item.key === technology.key))
-        .map((law) => ({ key: law.key, name_zh: law.name_zh })),
+        .map((law) => ({ key: law.key, loc: law.loc || { name: `law:${law.key}.name` }, icon: law.icon || null })),
       companies: companies
         .filter((company) => company.required_technologies.some((item) => item.key === technology.key))
-        .map((company) => ({ key: company.key, name_zh: company.name_zh })),
+        .map((company) => ({ key: company.key, loc: company.loc || { name: `company:${company.key}.name` }, icon: company.icon || null })),
+      production_methods: productionMethods
+        .filter((method) => method.unlocking_technologies.some((item) => item.key === technology.key))
+        .map((method) => ({ key: method.key, loc: method.loc || { name: `item:0:${method.key}.name` }, icon_path: method.icon?.site_path || "" })),
+      buildings: buildings
+        .filter((building) => building.unlocking_technologies.some((item) => item.key === technology.key))
+        .map((building) => ({ key: building.key, loc: building.loc || { name: `item:0:${building.key}.name` }, icon_path: building.icon?.site_path || "" })),
+      combat_units: combatUnits
+        .filter((unit) => unit.unlocking_technologies.some((item) => item.key === technology.key))
+        .map((unit) => ({ key: unit.key, loc: unit.loc, icon_path: unit.icon?.site_path || "" })),
+      ship_types: shipTypes
+        .filter((ship) => ship.unlocking_technologies.some((item) => item.key === technology.key))
+        .map((ship) => ({ key: ship.key, loc: ship.loc, icon_path: ship.icon?.site_path || "" })),
+      mobilization_options: mobilizationOptions
+        .filter((option) => option.unlocking_technologies.some((item) => item.key === technology.key))
+        .map((option) => ({ key: option.key, loc: option.loc, icon_path: option.icon?.site_path || "" })),
+      diplomatic_actions: diplomaticActions
+        .filter((action) => action.unlocking_technologies.some((item) => item.key === technology.key))
+        .map((action) => ({ key: action.key, loc: { name: `technology:${technology.key}:0:${action.key}.name` }, name_zh: action.name_zh, icon_path: action.icon?.site_path || "" })),
+      treaty_articles: treatyArticles
+        .filter((article) => article.unlocking_technologies.some((item) => item.key === technology.key))
+        .map((article) => ({ key: article.key, loc: { name: `technology:${technology.key}:0:${article.key}.name` }, name_zh: article.name_zh, icon_path: article.icon?.site_path || "" })),
+      parties: parties
+        .filter((party) => party.unlocking_technologies.some((item) => item.key === technology.key))
+        .map((party) => ({ key: party.key, loc: { name: party.loc.name }, name_zh: party.name_zh, icon_path: party.icon?.site_path || "" })),
     };
   }
   for (const technology of technologies) {
     technology.unlocks.sort((left, right) => left.name_zh.localeCompare(right.name_zh, "zh-Hans-CN"));
-    technology.references.laws.sort((left, right) => left.name_zh.localeCompare(right.name_zh, "zh-Hans-CN"));
-    technology.references.companies.sort((left, right) => left.name_zh.localeCompare(right.name_zh, "zh-Hans-CN"));
+    technology.references.laws.sort((left, right) => left.key.localeCompare(right.key, "en"));
+    technology.references.companies.sort((left, right) => left.key.localeCompare(right.key, "en"));
+    technology.references.production_methods.sort((left, right) => left.key.localeCompare(right.key, "en"));
+    technology.references.buildings.sort((left, right) => left.key.localeCompare(right.key, "en"));
+    technology.references.combat_units.sort((left, right) => left.key.localeCompare(right.key, "en"));
+    technology.references.ship_types.sort((left, right) => left.key.localeCompare(right.key, "en"));
+    technology.references.mobilization_options.sort((left, right) => left.key.localeCompare(right.key, "en"));
+    technology.references.diplomatic_actions.sort((left, right) => left.key.localeCompare(right.key, "en"));
+    technology.references.treaty_articles.sort((left, right) => left.key.localeCompare(right.key, "en"));
+    technology.references.parties.sort((left, right) => left.key.localeCompare(right.key, "en"));
   }
+}
+
+function loadPartyReferences(dirs, iconDirs, loc, locEn) {
+  return [...loadPatchedDefinitions(dirs, (key, node) => Boolean(node && firstValue(node, "unlocking_technologies"))).values()]
+    .map((record) => {
+      const key = record.key;
+      const node = record.node;
+      const iconSource = asNode(firstValue(node, "icon")) ? firstScalar(asNode(firstValue(node, "icon")), "default") : firstScalar(firstValue(node, "icon"));
+      const normalizedIcon = normalizePath(String(iconSource || "").replace(/^\//, ""));
+      const triggeredDescription = asNode(firstValue(node, "triggered_desc"));
+      const partyBase = key.replace(/_party$/, "");
+      const nameKey = [`party_${partyBase}`, `party_${partyBase}s`].find((candidate) => loc.has(candidate) && loc.get(candidate) !== candidate) || `item:0:${key}.name`;
+      return {
+        key,
+        loc: { name: nameKey },
+        name_zh: locCleanName(loc, nameKey),
+        name_en: locCleanName(locEn, nameKey),
+        icon: normalizedIcon ? economyIcon(normalizedIcon, "political-parties", key, "political party") : null,
+        unlocking_technologies: referenceList(asNode(firstValue(node, "unlocking_technologies")), loc, "technology"),
+        source_file: record.source_file,
+      };
+    });
 }
 
 function lawEnactmentEffects(node, loc) {
@@ -4127,6 +4268,16 @@ function publicInterestGroup(group) {
     ...publicData,
     potential_flavors: (group.potential_flavors || []).map((flavor) => ({
       ...flavor,
+      trigger_content_sources: (flavor.trigger_content_sources || []).map((source) => ({
+        ...source,
+        content_title_zh: source.content_title_zh || (source.content_id === "japan_politics.3" ? "公民大众" : source.content_id === "joi_flavor_jap.18" ? "宪法" : source.content_id === "joi_flavor_jap.17" ? "最后的武士" : source.content_id),
+        content_title_en: source.content_title_en || source.content_id,
+        content_title: source.content_title_zh || (source.content_id === "japan_politics.3" ? "公民大众" : source.content_id === "joi_flavor_jap.18" ? "宪法" : source.content_id === "joi_flavor_jap.17" ? "最后的武士" : source.content_id),
+        content_title_alt: source.content_title_en || source.content_id,
+        loc: {
+          contentTitle: `interest_group_flavor:${group.key}:${flavor.key}:${source.role === "traits" ? 1 : 0}.contentTitle`,
+        },
+      })),
       trigger_event_title_zh: flavor.trigger_event_title_zh || interestGroupPotentialFlavorEventTitle(group.key, flavor.key),
     })),
   };
@@ -4569,10 +4720,26 @@ function attachJapaneseInterestGroupTransitions(interestGroups, context) {
   const transitions = japaneseInterestGroupTransitions.map((transition) => {
     if (!modContentRoot) return transition;
     if (transition.groupKey === "ig_armed_forces" && transition.toFlavorKey === "ig_armed_forces") {
-      return { ...transition, contentId: "joi_flavor_jap.17", titleZh: "最后的武士", titleEn: "The Last Samurai" };
+      return {
+        ...transition,
+        contentId: "joi_flavor_jap.17",
+        titleZh: "最后的武士",
+        titleEn: "The Last Samurai",
+        traits: ["ig_trait_divided_troops", "ig_trait_bushido", "ig_trait_gyokusai_charge"],
+      };
     }
     if (transition.groupKey === "ig_landowners" && transition.toFlavorKey === "ig_kazoku") {
-      return { ...transition, contentKind: "event", contentId: "joi_flavor_jap.20", titleZh: "华族令", titleEn: "Kazoku Edict" };
+      return { ...transition, contentKind: "event", contentId: "joi_flavor_jap.20", titleZh: "华族令（选项甲）", titleEn: "Kazoku Edict (Option A)", traits: ["ig_trait_kazoku_system"] };
+    }
+    if (transition.groupKey === "ig_petty_bourgeoisie" && transition.toFlavorKey === "ig_petty_bourgeoisie") {
+      return {
+        ...transition,
+        traitContentKind: "event",
+        traitContentId: "joi_flavor_jap.18",
+        traitContentTitleZh: "宪法",
+        traitContentTitleEn: "The Constitution",
+        traits: ["ig_trait_craftsmans_sprit", "ig_trait_datsu_aron", "ig_trait_japan_militarism"],
+      };
     }
     return transition;
   });
@@ -4628,6 +4795,20 @@ function attachJapaneseInterestGroupTransitions(interestGroups, context) {
     flavor.trigger_content_title_en = transition.titleEn;
     flavor.trigger_interest_group_key = transition.groupKey;
     flavor.trigger_interest_group_flavor_key = transition.fromFlavorKey;
+    flavor.trigger_content_sources = [{
+      role: "name",
+      content_kind: transition.contentKind,
+      content_id: transition.contentId,
+      content_title_zh: transition.titleZh,
+      content_title_en: transition.titleEn,
+    }];
+    if (transition.traitContentId) flavor.trigger_content_sources.push({
+      role: "traits",
+      content_kind: transition.traitContentKind,
+      content_id: transition.traitContentId,
+      content_title_zh: transition.traitContentTitleZh,
+      content_title_en: transition.traitContentTitleEn,
+    });
     if (transition.contentKind === "event") flavor.trigger_event_ids = [transition.contentId];
     const triggerRule = {
       condition_summary_zh: transition.titleZh,
@@ -4639,6 +4820,43 @@ function attachJapaneseInterestGroupTransitions(interestGroups, context) {
       removed_ideologies: flavor.removed_ideologies,
     };
     flavor.rules = [...(flavor.rules || []).filter((rule) => rule.condition_raw || rule.source_file), triggerRule];
+  }
+  if (modContentRoot) {
+    const landowners = interestGroups.find((group) => group.key === "ig_landowners");
+    const kazoku = landowners?.potential_flavors?.find((flavor) => flavor.key === "ig_kazoku");
+    if (kazoku) {
+      const optionB = {
+        ...kazoku,
+        id: "interest_group_flavor:ig_landowners:ig_kazoku_taisei_hokan",
+        key: "ig_kazoku_taisei_hokan",
+        name_zh: "华族（大政奉还）",
+        name_en: "Kazoku (Taisei Hokan)",
+        traits: [
+          interestGroupTraitRef("ig_trait_taisei_hokan", context.interestGroupTraits),
+          interestGroupTraitRef("ig_trait_kazoku_system", context.interestGroupTraits),
+        ],
+        trigger_content_title_zh: "华族令（选项乙）",
+        trigger_content_title_en: "Kazoku Edict (Option B)",
+        trigger_content_sources: [{
+          role: "traits",
+          content_kind: "event",
+          content_id: "joi_flavor_jap.20",
+          content_title_zh: "华族令（选项乙）",
+          content_title_en: "Kazoku Edict (Option B)",
+        }],
+      };
+      kazoku.name_zh = "华族（文明先导）";
+      kazoku.name_en = "Kazoku (Civilization Vanguard)";
+      kazoku.traits = [interestGroupTraitRef("ig_trait_kazoku_system", context.interestGroupTraits)];
+      kazoku.trigger_content_sources = [{
+        role: "traits",
+        content_kind: "event",
+        content_id: "joi_flavor_jap.20",
+        content_title_zh: "华族令（选项甲）",
+        content_title_en: "Kazoku Edict (Option A)",
+      }];
+      landowners.potential_flavors.push(optionB);
+    }
   }
   if (modContentRoot) {
     const armedForces = interestGroups.find((group) => group.key === "ig_armed_forces");
@@ -5646,6 +5864,10 @@ function writeDatabase(dir, data) {
     lawGroups,
     laws,
     technologies,
+    militaryUnits,
+    parties,
+    diplomaticActions,
+    treatyArticles,
     technologyEras,
     achievements,
     geographicRegions,
@@ -5883,6 +6105,12 @@ function writeDatabase(dir, data) {
     technologies: technologies,
     technology_eras: technologyEras,
     achievements: achievements,
+    combat_unit_types: militaryUnits.combatUnits,
+    ship_types: militaryUnits.shipTypes,
+    mobilization_options: militaryUnits.mobilizationOptions,
+    parties,
+    diplomatic_actions: diplomaticActions,
+    treaty_articles: treatyArticles,
     dynamic_country_name_variants: dynamicNameVariants,
     dynamic_country_map_color_rules: dynamicMapColorRules,
     formable_countries: formables,
@@ -5934,6 +6162,12 @@ function writeDatabase(dir, data) {
       technologies: "technologies.json",
       technology_eras: "technology_eras.json",
       achievements: "achievements.json",
+      combat_unit_types: "combat_unit_types.json",
+      ship_types: "ship_types.json",
+      mobilization_options: "mobilization_options.json",
+      diplomatic_actions: "diplomatic_actions.json",
+      treaty_articles: "treaty_articles.json",
+      parties: "parties.json",
       dynamic_country_name_variants: "dynamic_country_name_variants.json",
       dynamic_country_map_color_rules: "dynamic_country_map_color_rules.json",
       formable_countries: "formable_countries.json",
@@ -5972,6 +6206,12 @@ function writeDatabase(dir, data) {
       technologies: technologies.length,
       technology_eras: technologyEras.length,
       achievements: achievements.length,
+      combat_unit_types: militaryUnits.combatUnits.length,
+      ship_types: militaryUnits.shipTypes.length,
+      mobilization_options: militaryUnits.mobilizationOptions.length,
+      diplomatic_actions: diplomaticActions.length,
+      treaty_articles: treatyArticles.length,
+      parties: parties.length,
       dynamic_country_name_variants: dynamicNameVariants.length,
       dynamic_country_map_color_rules: dynamicMapColorRules.length,
       formable_countries: formables.length,

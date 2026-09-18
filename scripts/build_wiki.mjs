@@ -73,7 +73,8 @@ const previousDataIndex = fs.existsSync(previousDataIndexFile) ? readGlobal(prev
 registerSiteCountryDisplayNames(siteData);
 const baselineData = baselineSource ? loadSiteData(baselineSource) : null;
 if (baselineData) registerSiteCountryDisplayNames(baselineData);
-const data = stripLegacyLocalizedFields(deriveSiteData(baselineData ? applyVictorianCenturyChangeTags(siteData, baselineData) : siteData));
+const taggedData = baselineData ? applyVictorianCenturyChangeTags(siteData, baselineData) : siteData;
+const data = stripLegacyLocalizedFields(deriveSiteData(attachTechnologyResearchResults(taggedData, databaseDir)));
 
 const wikiData = {
   meta: data.meta,
@@ -95,6 +96,12 @@ const wikiData = {
   technologies: data.technologies,
   technologyEras: data.technologyEras,
   achievements: data.achievements,
+  combatUnitTypes: data.combatUnitTypes,
+  shipTypes: data.shipTypes,
+  mobilizationOptions: data.mobilizationOptions,
+  diplomaticActions: data.diplomaticActions,
+  treatyArticles: data.treatyArticles,
+  parties: data.parties,
   buildings: data.buildings,
   buildingGroups: data.buildingGroups,
   productionMethodGroups: data.productionMethodGroups,
@@ -121,6 +128,8 @@ const dataChunks = {
   law: ["laws", "lawGroups"],
   technology: ["technologies", "technologyEras"],
   achievement: ["achievements"],
+  military: ["combatUnitTypes", "shipTypes", "mobilizationOptions", "diplomaticActions", "treatyArticles"],
+  party: ["parties"],
   building: ["buildings", "buildingGroups", "productionMethodGroups", "productionMethods"],
   goods: ["goods", "prestigeGoods"],
   religion: ["religions"],
@@ -137,6 +146,8 @@ const dataChunkFileNames = {
   law: "data-laws.js",
   technology: "data-technologies.js",
   achievement: "data-achievements.js",
+  military: "data-military.js",
+  party: "data-parties.js",
   building: "data-buildings.js",
   goods: "data-goods.js",
   needs: "data-needs.js",
@@ -149,13 +160,13 @@ function writeLocaleChunk(board, structureFile, structureChunk) {
   for (const locale of Object.keys(localeChunkDescriptors)) {
     const messages = Object.fromEntries([...refs].sort().map((key) => [
       key,
-      siteData.databaseMessagesByLocale?.[locale]?.[key] || generatedLocalizationValue(structureChunk, key, locale),
+      data.databaseMessagesByLocale?.[locale]?.[key] || generatedLocalizationValue(structureChunk, key, locale),
     ]));
     const base = structureFile.replace(/^data-/, "locale-").replace(/\.js$/, "");
     const file = `${base}.${locale}.js`;
     const id = `${locale}:${board}:${base}`;
     const source = `window.VIC3_LOCALE_CHUNKS = window.VIC3_LOCALE_CHUNKS || {};\nwindow.VIC3_LOCALE_CHUNKS[${JSON.stringify(id)}] = ${JSON.stringify({ locale, messages })};\n`;
-    fs.writeFileSync(path.join(outDir, file), source, "utf8");
+    writeTextAtomically(path.join(outDir, file), source);
     const entry = { id, path: file, sha256: sha256Text(source), missing: Object.values(messages).filter((value) => !value).length };
     const descriptor = localeChunkDescriptors[locale][board] || { files: [], missing: 0 };
     descriptor.files.push(entry);
@@ -177,11 +188,7 @@ function generatedLocalizationValue(value, key, locale) {
 for (const [key, keys] of Object.entries(dataChunks)) {
   if (key === "country") continue;
   const chunk = Object.fromEntries(keys.map((field) => [field, wikiData[field] || []]));
-  fs.writeFileSync(
-    path.join(outDir, dataChunkFileNames[key]),
-    `window.VIC3_DATA_CHUNK = ${JSON.stringify(chunk)};\n`,
-    "utf8",
-  );
+  writeTextAtomically(path.join(outDir, dataChunkFileNames[key]), `window.VIC3_DATA_CHUNK = ${JSON.stringify(chunk)};\n`);
   writeLocaleChunk(key, dataChunkFileNames[key], chunk);
 }
 
@@ -192,25 +199,17 @@ for (let index = 0; index < countryShardCount; index += 1) {
   const file = `data-countries-${index + 1}.js`;
   countryShardFiles.push(file);
   const chunk = { countries: wikiData.countries.slice(index * countryShardSize, (index + 1) * countryShardSize) };
-  fs.writeFileSync(
-    path.join(outDir, file),
-    `window.VIC3_DATA_CHUNK = ${JSON.stringify(chunk)};\n`,
-    "utf8",
-  );
+  writeTextAtomically(path.join(outDir, file), `window.VIC3_DATA_CHUNK = ${JSON.stringify(chunk)};\n`);
   writeLocaleChunk("country", file, chunk);
 }
 const countryMetaFile = "data-country-meta.js";
 countryShardFiles.push(countryMetaFile);
 const countryMetaChunk = Object.fromEntries(dataChunks.country.slice(1).map((field) => [field, wikiData[field] || []]));
-fs.writeFileSync(
-  path.join(outDir, countryMetaFile),
-  `window.VIC3_DATA_CHUNK = ${JSON.stringify(countryMetaChunk)};\n`,
-  "utf8",
-);
+writeTextAtomically(path.join(outDir, countryMetaFile), `window.VIC3_DATA_CHUNK = ${JSON.stringify(countryMetaChunk)};\n`);
 writeLocaleChunk("country", countryMetaFile, countryMetaChunk);
 
-const searchSource = `window.VIC3_SEARCH_INDEX = ${JSON.stringify({ locales: ["zh-Hans", "en"], entries: createSearchEntries(wikiData, siteData.databaseMessagesByLocale || {}) })};\n`;
-fs.writeFileSync(path.join(outDir, "search-index.js"), searchSource, "utf8");
+const searchSource = `window.VIC3_SEARCH_INDEX = ${JSON.stringify({ locales: ["zh-Hans", "en"], entries: createSearchEntries(wikiData, data.databaseMessagesByLocale || {}) })};\n`;
+writeTextAtomically(path.join(outDir, "search-index.js"), searchSource);
 
 const dataIndex = {
   meta: wikiData.meta,
@@ -297,6 +296,12 @@ function loadSiteData(sourceFile) {
     const technologies = sourceData.files.technologies ? readJson(path.join(baseDir, sourceData.files.technologies)) : [];
     const technologyEras = sourceData.files.technology_eras ? readJson(path.join(baseDir, sourceData.files.technology_eras)) : [];
     const achievements = sourceData.files.achievements ? readJson(path.join(baseDir, sourceData.files.achievements)) : [];
+    const combatUnitTypes = sourceData.files.combat_unit_types ? readJson(path.join(baseDir, sourceData.files.combat_unit_types)) : [];
+    const shipTypes = sourceData.files.ship_types ? readJson(path.join(baseDir, sourceData.files.ship_types)) : [];
+    const mobilizationOptions = sourceData.files.mobilization_options ? readJson(path.join(baseDir, sourceData.files.mobilization_options)) : [];
+    const diplomaticActions = sourceData.files.diplomatic_actions ? readJson(path.join(baseDir, sourceData.files.diplomatic_actions)) : [];
+    const treatyArticles = sourceData.files.treaty_articles ? readJson(path.join(baseDir, sourceData.files.treaty_articles)) : [];
+    const parties = sourceData.files.parties ? readJson(path.join(baseDir, sourceData.files.parties)) : [];
     const buildings = sourceData.files.buildings ? readJson(path.join(baseDir, sourceData.files.buildings)) : [];
     const buildingGroups = sourceData.files.building_groups ? readJson(path.join(baseDir, sourceData.files.building_groups)) : [];
     const productionMethodGroups = sourceData.files.production_method_groups ? readJson(path.join(baseDir, sourceData.files.production_method_groups)) : [];
@@ -349,6 +354,12 @@ function loadSiteData(sourceFile) {
       technologies,
       technologyEras,
       achievements,
+      combatUnitTypes,
+      shipTypes,
+      mobilizationOptions,
+      diplomaticActions,
+      treatyArticles,
+      parties,
       buildings,
       buildingGroups,
       productionMethodGroups,
@@ -396,6 +407,11 @@ function deriveSiteData(siteData) {
     technologies: siteData.technologies || [],
     technologyEras: siteData.technologyEras || [],
     achievements: siteData.achievements || [],
+    combatUnitTypes: siteData.combatUnitTypes || [],
+    shipTypes: siteData.shipTypes || [],
+    mobilizationOptions: siteData.mobilizationOptions || [],
+    diplomaticActions: siteData.diplomaticActions || [],
+    treatyArticles: siteData.treatyArticles || [],
     buildings: siteData.buildings || [],
     buildingGroups: siteData.buildingGroups || [],
     productionMethodGroups: siteData.productionMethodGroups || [],
@@ -419,6 +435,7 @@ function applyVictorianCenturyChangeTags(siteData, baselineData) {
   for (const [field, keyField] of victorianCenturyChangeCollections) {
     tagged[field] = markVictorianCenturyChanges(siteData[field], baselineData[field], keyField, field === "technologies");
   }
+  tagged.technologies = markTechnologyModifierChanges(tagged.technologies, baselineData.technologies);
   tagged.stateRegions = markVictorianCenturyStateTraitChanges(tagged.stateRegions, baselineData.stateRegions);
   tagged.buildings = markBuildingsWithChangedProductionMethods(tagged.buildings, tagged.productionMethodGroups, tagged.productionMethods);
   tagged.cultures = markVictorianCenturyCultureTraitReferences(tagged.cultures, tagged.cultureTraits, tagged.cultureTraitGroups);
@@ -717,6 +734,96 @@ function flattenDatabaseCountry(country, nameById, colorById, primaryCultureExpa
 function readJson(file) {
   const raw = fs.readFileSync(file, "utf8").replace(/^\uFEFF/, "");
   return JSON.parse(raw);
+}
+
+function attachTechnologyResearchResults(siteData, databaseRoot) {
+  const ideologiesByKey = new Map((siteData.ideologies || []).map((ideology) => [ideology.key, ideology]));
+  const contentIndexFile = path.join(databaseRoot, "content-index.json");
+  const contentIndex = fs.statSync(contentIndexFile, { throwIfNoEntry: false })?.isFile() ? readJson(contentIndexFile) : { files: {} };
+  const readContent = (key) => contentIndex.files?.[key] ? readJson(path.join(databaseRoot, contentIndex.files[key])) : [];
+  const journalsByKey = new Map(readContent("journal_entries").flatMap((row) => [[row.id, row], [row.script_key, row]].filter(([key]) => key)));
+  const eventsByKey = new Map(readContent("events").flatMap((row) => [[row.id, row], [row.script_key, row]].filter(([key]) => key)));
+  const messagesByLocale = siteData.databaseMessagesByLocale || {};
+  const localizedContentName = (row, kind, locale) => {
+    const localeKey = locale === "zh-Hans" ? "zhHans" : locale;
+    const field = kind === "journal" ? "name" : "title";
+    return row?.locales?.[localeKey]?.[field] || row?.locales?.en?.[field] || "";
+  };
+  const addLocalizedResult = (technologyKey, result, index, row) => {
+    const message = `technology:${technologyKey}:researchResult:${index}.name`;
+    for (const locale of ["zh-Hans", "en"]) {
+      messagesByLocale[locale] = messagesByLocale[locale] || {};
+      messagesByLocale[locale][message] = localizedContentName(row, result.kind, locale);
+    }
+    return { ...result, loc: { name: message } };
+  };
+  const technologies = (siteData.technologies || []).map((technology) => {
+    const raw = String(technology.on_researched || "");
+    const results = collectTechnologyResearchResults(raw, ideologiesByKey);
+    if (/\bcreate_political_movement\s*=/.test(raw)) results.push({ kind: "political-movement" });
+    for (const journalKey of raw.includes("add_involved_country") ? [...raw.matchAll(/\bje:([A-Za-z0-9_.-]+)/g)].map((match) => match[1]) : []) {
+      const journal = journalsByKey.get(journalKey);
+      if (journal) results.push({ kind: "journal", key: journalKey, row: journal });
+    }
+    for (const match of raw.matchAll(/\btrigger_event\s*=\s*\{[\s\S]*?\bid\s*=\s*([A-Za-z0-9_.-]+)/g)) {
+      const event = eventsByKey.get(match[1]);
+      if (event) results.push({ kind: "event", key: match[1], row: event });
+    }
+    const seen = new Set();
+    const researchResults = results.filter((result) => {
+      const identity = [result.kind, result.key || "", result.from?.key || "", result.to?.key || ""].join(":");
+      if (seen.has(identity)) return false;
+      seen.add(identity);
+      return true;
+    }).map((result, index) => result.row
+      ? addLocalizedResult(technology.key, { kind: result.kind, key: result.key }, index, result.row)
+      : result);
+    return researchResults.length ? { ...technology, research_results: researchResults } : technology;
+  });
+  return { ...siteData, technologies, databaseMessagesByLocale: messagesByLocale };
+}
+
+function collectTechnologyResearchResults(raw, ideologiesByKey) {
+  const results = [];
+  let pendingRemoval = null;
+  for (const match of String(raw || "").matchAll(/\b(remove_ideology|add_ideology|set_ideology|set_core_ideology)\s*=\s*(?:ideology:)?([A-Za-z0-9_]+)/g)) {
+    const action = match[1];
+    const ideology = ideologiesByKey.get(match[2]);
+    if (!ideology) continue;
+    if (action === "remove_ideology") {
+      pendingRemoval = ideology;
+      continue;
+    }
+    if (action === "add_ideology" && pendingRemoval) {
+      results.push({ kind: "ideology", from: technologyResearchIdeologyRef(pendingRemoval), to: technologyResearchIdeologyRef(ideology) });
+      pendingRemoval = null;
+      continue;
+    }
+    results.push({ kind: "ideology", to: technologyResearchIdeologyRef(ideology) });
+    pendingRemoval = null;
+  }
+  return results;
+}
+
+function technologyResearchIdeologyRef(ideology) {
+  return { key: ideology.key, loc: { name: ideology.loc?.name || `ideology:${ideology.key}.name` } };
+}
+
+function markTechnologyModifierChanges(technologies, baselineTechnologies) {
+  const baselineByKey = new Map((baselineTechnologies || []).map((technology) => [technology.key, technology]));
+  return (technologies || []).map((technology) => {
+    const baseline = baselineByKey.get(technology.key);
+    if (!baseline) return { ...technology, modifiers: (technology.modifiers || []).map((modifier) => ({ ...modifier, vc_change_kind: "added" })) };
+    const baselineModifiers = new Map((baseline.modifiers || []).map((modifier) => [modifier.key, modifier]));
+    const modifiers = (technology.modifiers || []).map((modifier) => {
+      const before = baselineModifiers.get(modifier.key);
+      if (!before) return { ...modifier, vc_change_kind: "added" };
+      return stableJson(victorianCenturyComparableValue(modifier)) !== stableJson(victorianCenturyComparableValue(before))
+        ? { ...modifier, vc_change_kind: "adjusted" }
+        : modifier;
+    });
+    return { ...technology, modifiers };
+  });
 }
 
 function readGlobal(file, globalName) {
