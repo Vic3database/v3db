@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 
 const baseUrl = process.argv[2] || "http://127.0.0.1:8876/index.html";
+const isVcSite = baseUrl.includes("8877") || /\/vc(?:\/|$)/.test(new URL(baseUrl).pathname);
+const vcBaseUrl = isVcSite ? baseUrl : baseUrl.replace("8876", "8877");
 const chromePath = process.env.VC_CHROME_PATH || "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
 const debugPort = 9246;
 const chrome = spawn(chromePath, [
@@ -75,7 +77,7 @@ try {
     assert.equal(list.categoryButtons, 3, "technology category switcher should expose three categories");
     assert.match(list.backIcon, /arrow-left\.svg$/, "technology back control should use the Lucide left arrow icon");
     assert.equal(list.backText, "", "technology list back control should be icon-only");
-    const toolbarInk = baseUrl.includes("8877") ? "rgb(238, 229, 223)" : "rgb(238, 232, 221)";
+    const toolbarInk = isVcSite ? "rgb(238, 229, 223)" : "rgb(238, 232, 221)";
     assert.equal(list.controlColor, toolbarInk, "technology controls should use the map toolbar white color");
     assert.equal(list.categoryActiveColor, toolbarInk, "active technology category should use the map toolbar white color");
     assert.notEqual(list.iconFilter, "none", "technology control icons should use the white icon treatment");
@@ -160,21 +162,21 @@ try {
     assert.deepEqual(searchState, { value: "electric railway", focused: true, cards: 1 });
 
     const vanillaVcFilters = await page.evaluate(() => document.querySelectorAll('[data-technology-change]').length);
-    assert.equal(vanillaVcFilters, baseUrl.includes("8877") ? 2 : 0, "technology list should expose VC filters only on the VC site");
+    assert.equal(vanillaVcFilters, isVcSite ? 2 : 0, "technology list should expose VC filters only on the VC site");
 
     await page.evaluate(() => { const input = document.querySelector('[data-technology-search]'); input.value = ""; input.dispatchEvent(new Event("input", { bubbles: true })); input.value = "机"; input.dispatchEvent(new Event("input", { bubbles: true })); });
     await page.waitFor(() => document.querySelectorAll('[data-technology-key="shaft_mining"]').length === 0, "scoped technology search");
     const scopedSearch = await page.evaluate(() => [...document.querySelectorAll(".technology-list-card")].map((node) => node.dataset.technologyKey));
     assert.ok(!scopedSearch.includes("shaft_mining"), "searching 机 must not match shaft mining through related content");
 
-    await page.goto(`${baseUrl.replace("8876", "8877")}?lang=zh-Hans#/technology/list/military`);
+    await page.goto(`${vcBaseUrl}?lang=zh-Hans#/technology/list/military`);
     await page.waitForSelector(".technology-list-card");
     const standaloneAdjusted = await page.evaluate(() => ({
       filters: document.querySelectorAll('[data-technology-change]').length,
       cardBorder: getComputedStyle(document.querySelector('[data-technology-key="concrete_fortifications"]')).borderTopColor,
       addedEffect: (() => { const card = document.querySelector('[data-technology-key="military_statistics"]'); const effect = [...(card?.querySelectorAll('.technology-effect-text') || [])].find((node) => node.textContent.includes('损耗风险乘数')); return { text: effect?.textContent.trim() || '', className: effect?.className || '', color: effect ? getComputedStyle(effect).color : '' }; })(),
     }));
-    assert.equal(standaloneAdjusted.filters, 2, "VC technology list must retain VC filters");
+    assert.equal(standaloneAdjusted.filters, 2, `VC technology list must retain VC filters: ${JSON.stringify(standaloneAdjusted)}`);
     assert.notEqual(standaloneAdjusted.cardBorder, "rgb(214, 138, 58)", "VC technology cards should keep their normal color");
     assert.match(standaloneAdjusted.addedEffect.text, /损耗风险乘数/);
     assert.match(standaloneAdjusted.addedEffect.className, /technology-vc-effect/);
@@ -188,23 +190,23 @@ try {
     });
     assert.doesNotMatch(mobilizationLabels.text, /mobilization_option_[a-z0-9_]+/i, "VC mobilization options should not display internal keys");
     assert.ok(mobilizationLabels.titles.some((title) => title === "奢侈补给" || title.includes("奢侈补给")), `VC military statistics should display the localized mobilization option: ${JSON.stringify({ ...mobilizationLabels, localized: typeof localeRuntime !== "undefined" ? localeRuntime.dataMessages?.[localeRuntime.current]?.["item:0:mobilization_option_luxurious_supplies.name"] : "missing-runtime" })}`);
-    await page.goto(`${baseUrl.replace("8876", "8877")}?lang=zh-Hans#/technology/nationalism?from=list`);
+    await page.goto(`${vcBaseUrl}?lang=zh-Hans#/technology/nationalism?from=list`);
     await page.waitFor(() => document.querySelector("[data-technology-research-effect]"), "localized ideology research results");
     const nationalismResearch = await page.evaluate(() => document.querySelector("[data-technology-research-effect]")?.textContent || "");
     assert.match(nationalismResearch, /孤立主义者/);
     assert.match(nationalismResearch, /扩张主义者/);
     assert.doesNotMatch(nationalismResearch, /ideology_|remove_ideology|add_ideology/);
-    await page.goto(`${baseUrl.replace("8876", "8877")}?lang=zh-Hans#/technology/central_archives?from=list`);
+    await page.goto(`${vcBaseUrl}?lang=zh-Hans#/technology/central_archives?from=list`);
     await page.waitFor(() => document.querySelector("[data-technology-key=central_archives] .technology-research-kind")?.textContent.includes("发起政治运动"), "political movement research label");
-    await page.goto(`${baseUrl.replace("8876", "8877")}?lang=zh-Hans#/technology/egalitarianism?from=list`);
+    await page.goto(`${vcBaseUrl}?lang=zh-Hans#/technology/egalitarianism?from=list`);
     await page.waitFor(() => document.querySelector("[data-technology-research-effect]")?.textContent.includes("人民之春"), "localized journal research result");
     const egalitarianismResearch = await page.evaluate(() => document.querySelector("[data-technology-research-effect]")?.textContent || "");
     assert.doesNotMatch(egalitarianismResearch, /je_springtime|add_involved_country/);
-    await page.goto(`${baseUrl.replace("8876", "8877")}?lang=zh-Hans#/technology/triage?from=list`);
+    await page.goto(`${vcBaseUrl}?lang=zh-Hans#/technology/triage?from=list`);
     await page.waitFor(() => document.querySelector("[data-technology-research-effect]")?.textContent.includes("提灯女士"), "localized event research result");
     const triageResearch = await page.evaluate(() => document.querySelector("[data-technology-research-effect]")?.textContent || "");
     assert.doesNotMatch(triageResearch, /historical_agitators\.23|trigger_event|create_character/);
-    await page.goto(`${baseUrl.replace("8876", "8877")}?lang=zh-Hans#/technology/list/production`);
+    await page.goto(`${vcBaseUrl}?lang=zh-Hans#/technology/list/production`);
     await page.waitForSelector('[data-technology-key="united_fruit_banana_tech"]');
     const standaloneAdded = await page.evaluate(() => ({
       border: getComputedStyle(document.querySelector('[data-technology-key="united_fruit_banana_tech"]')).borderTopColor,
