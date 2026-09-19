@@ -25,6 +25,14 @@ try {
   assert.ok(countryPreload.selected.length > 0);
   assert.deepEqual(countryPreload.applied, []);
   assert.equal(countryPreload.dirty, true);
+  await page.click("[data-state-statistics-start]");
+  await page.waitFor(() => state.stateStatisticsCalculatorDirty === false, "country statistics submission");
+  const countryResult = await page.evaluate(() => ({
+    population: document.querySelector("[data-state-statistics-result]")?.textContent || "",
+    note: document.querySelector(".state-statistics-split-note")?.textContent || "",
+  }));
+  assert.ok(countryResult.note, "country statistics should explain split-state resource exclusion");
+  assert.match(countryResult.population, /分割地域/);
 
   await page.goto(`${baseUrl}?lang=zh-Hans#/region/statistics`);
   await page.waitFor(() => Boolean(document.querySelector("[data-state-statistics-calculator]")), "calculator page");

@@ -1507,6 +1507,9 @@ function buildStateRegionRows(stateDefinitions, strategicRegions, stateHistory, 
         starting_owners: ownerTags.map((tag) => countryKeyRef(tag, loc)),
         starting_province_owners: provinceOwners,
         starting_population: startingPopulation.byState.get(stateRegion.key) ?? null,
+        starting_population_by_owner: [...(startingPopulation.byStateOwner.get(stateRegion.key) || new Map())]
+          .sort(([left], [right]) => left.localeCompare(right))
+          .map(([tag, population]) => ({ tag, population })),
         dynamic_name_variants: dynamicStateNameVariantsByState.get(stateRegion.key) || [],
       };
     });
@@ -1670,6 +1673,7 @@ function startingPoliticsContext(tag, definitions, cultures) {
 
 function loadStartingPopulation(dirs, cultures = new Map()) {
   const byState = new Map();
+  const byStateOwner = new Map();
   const byCountry = new Map();
   const byCulture = new Map();
   const byReligion = new Map();
@@ -1699,6 +1703,8 @@ function loadStartingPopulation(dirs, cultures = new Map()) {
         const population = populations.reduce((sum, pop) => sum + pop.size, 0);
         if (!population) continue;
         byState.set(stateKey, (byState.get(stateKey) || 0) + population);
+        if (!byStateOwner.has(stateKey)) byStateOwner.set(stateKey, new Map());
+        byStateOwner.get(stateKey).set(ownerTag, (byStateOwner.get(stateKey).get(ownerTag) || 0) + population);
         byCountry.set(ownerTag, (byCountry.get(ownerTag) || 0) + population);
         for (const pop of populations) {
           byCulture.set(pop.culture, (byCulture.get(pop.culture) || 0) + pop.size);
@@ -1708,7 +1714,7 @@ function loadStartingPopulation(dirs, cultures = new Map()) {
       }
     }
   }
-  return { byState, byCountry, byCulture, byReligion };
+  return { byState, byStateOwner, byCountry, byCulture, byReligion };
 }
 
 function collectStartingPoliticsLaws(node, context) {

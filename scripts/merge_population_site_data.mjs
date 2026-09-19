@@ -24,6 +24,7 @@ for (const target of targets) {
   const religions = readJson(path.join(databaseDir, "religions.json"));
   const countryPopulation = new Map(countries.map((item) => [item.tag, item.starting_population]));
   const statePopulation = new Map(stateRegions.map((item) => [item.key, item.starting_population]));
+  const statePopulationByOwner = new Map(stateRegions.map((item) => [item.key, item.starting_population_by_owner || []]));
   const strategicPopulation = new Map(strategicRegions.map((item) => [item.key, item.starting_population]));
   const geographicPopulation = new Map(geographicRegions.map((item) => [item.key, item.starting_population]));
   const culturePopulation = new Map(cultures.map((item) => [item.key, item.starting_population]));
@@ -42,7 +43,7 @@ for (const target of targets) {
   const regionsFile = path.join(absoluteTarget, "data-regions.js");
   if (fs.existsSync(regionsFile)) {
     const chunk = readGlobal(regionsFile, "VIC3_DATA_CHUNK");
-    chunk.stateRegions = (chunk.stateRegions || []).map((item) => ({ ...item, starting_population: statePopulation.get(item.key) ?? null }));
+    chunk.stateRegions = (chunk.stateRegions || []).map((item) => ({ ...item, starting_population: statePopulation.get(item.key) ?? null, starting_population_by_owner: statePopulationByOwner.get(item.key) || [] }));
     chunk.strategicRegions = (chunk.strategicRegions || []).map((item) => ({ ...item, starting_population: strategicPopulation.get(item.key) ?? null }));
     chunk.geographicRegions = (chunk.geographicRegions || []).map((item) => ({ ...item, starting_population: geographicPopulation.get(item.key) ?? null }));
     writeGlobal(regionsFile, "VIC3_DATA_CHUNK", chunk);

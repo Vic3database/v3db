@@ -14,17 +14,17 @@ for (const [sourceDir, targetDir] of pairs) {
   const populationFiles = ["countries.json", "state_regions.json", "strategic_regions.json", "geographic_regions.json", "cultures.json", "religions.json"];
   const fieldsByFile = {
     "countries.json": ["tag", "starting_population"],
-    "state_regions.json": ["key", "starting_population"],
+    "state_regions.json": ["key", "starting_population", "starting_population_by_owner"],
     "strategic_regions.json": ["key", "starting_population"],
     "geographic_regions.json": ["key", "starting_population"],
     "cultures.json": ["key", "starting_population"],
     "religions.json": ["key", "starting_population"],
   };
   for (const file of populationFiles) {
-    const [keyField, valueField] = fieldsByFile[file];
+    const [keyField, ...valueFields] = fieldsByFile[file];
     const sourceRows = readJson(path.join(source, file));
-    const valueByKey = new Map(sourceRows.map((row) => [row[keyField], row[valueField] ?? null]));
-    const targetRows = readJson(path.join(target, file)).map((row) => ({ ...row, [valueField]: valueByKey.get(row[keyField]) ?? null }));
+    const valueByKey = new Map(sourceRows.map((row) => [row[keyField], Object.fromEntries(valueFields.map((field) => [field, row[field] ?? null]))]));
+    const targetRows = readJson(path.join(target, file)).map((row) => ({ ...row, ...(valueByKey.get(row[keyField]) || Object.fromEntries(valueFields.map((field) => [field, null]))) }));
     writeJson(path.join(target, file), targetRows);
   }
 }

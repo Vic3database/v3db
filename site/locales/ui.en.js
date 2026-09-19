@@ -600,6 +600,7 @@ window.VICDATA_UI_LOCALES.en = {
     "board.stateStatistics.cappedResources": "Resource caps",
     "board.stateStatistics.arableResources": "Arable resource types",
     "board.stateStatistics.discoverableResources": "Discoverable resources",
+    "board.stateStatistics.splitResourceNote": "Split states contribute population only; resources and arable land are excluded from the country-only totals.",
     "board.stateStatistics.startingOwners": "Starting owner countries",
     "board.stateStatistics.ownerRegionCount": "{count} states",
     "board.country.openStateStatistics": "Statistics for starting states",
