@@ -1989,6 +1989,15 @@ label.culture-incorporation-effect > span,
   background: var(--surface-raised);
 }
 
+.state-statistics-section > summary {
+  cursor: pointer;
+  list-style-position: inside;
+}
+
+.state-statistics-section > summary h3 {
+  display: inline;
+}
+
 .state-statistics-section h3,
 .state-statistics-section h4 {
   margin: 0;
@@ -2044,6 +2053,14 @@ label.culture-incorporation-effect > span,
 .state-statistics-resource-list {
   display: grid;
   gap: 6px;
+}
+
+.state-statistics-resource-group + .state-statistics-resource-group {
+  margin-top: 6px;
+}
+
+.state-statistics-resource-group .state-statistics-resource-row + .state-statistics-resource-row {
+  margin-top: 2px;
 }
 
 .state-statistics-overview {

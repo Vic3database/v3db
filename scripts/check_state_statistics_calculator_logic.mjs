@@ -4,7 +4,7 @@ import vm from "node:vm";
 
 const source = fs.readFileSync("site/app/state-statistics.js", "utf8");
 const context = { console };
-vm.runInNewContext(`${source}\nthis.summarizeStateRegions = summarizeStateRegions;`, context);
+vm.runInNewContext(`${source}\nthis.summarizeStateRegions = summarizeStateRegions;\nthis.stateStatisticsResourceGroupKey = stateStatisticsResourceGroupKey;`, context);
 
 const summary = context.summarizeStateRegions([
   {
@@ -35,6 +35,10 @@ assert.equal(summary.discoverableResources.get("building_oil_rig").undiscovered_
 assert.equal(JSON.stringify(summary.discoverableResources.get("building_oil_rig").regions), JSON.stringify(["STATE_A", "STATE_B"]));
 assert.equal(summary.arableResources.get("building_wheat_farm").regions.length, 2);
 assert.equal(summary.arableResources.get("building_rye_farm").regions.length, 1);
+assert.equal(context.stateStatisticsResourceGroupKey({ key: "building_iron_mine" }), "mining");
+assert.equal(context.stateStatisticsResourceGroupKey({ key: "building_gold_field" }), "mining");
+assert.equal(context.stateStatisticsResourceGroupKey({ key: "building_oil_rig" }), "oil");
+assert.equal(context.stateStatisticsResourceGroupKey({ key: "building_wheat_farm" }), "staples");
 assert.equal(summary.startingOwners.get("AAA").population, 350);
 assert.equal(summary.startingOwners.get("AAA").regions.length, 2);
 assert.equal(summary.startingOwners.get("AAA").cappedResources.get("building_iron_mine").amount, 12);

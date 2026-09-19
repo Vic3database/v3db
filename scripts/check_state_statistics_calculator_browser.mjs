@@ -31,6 +31,9 @@ try {
   assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector(".filters .panel-head")).display), "none", "outer filter title should be hidden in calculator");
   assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector(".state-statistics-calculator-title")).position), "static", "statistics title should scroll with content");
   assert.equal(await page.evaluate(() => document.body.dataset.stateStatistics), "true");
+  assert.equal(await page.evaluate(() => document.querySelector("[data-state-statistics-selection-section]")?.open), true);
+  assert.equal(await page.evaluate(() => document.querySelector("[data-state-statistics-search-section]")?.open), true);
+  assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-state-statistics-selection-section] summary"))), true);
   assert.equal(await page.evaluate(() => document.querySelectorAll("[data-state-statistics-region]").length > 0), true);
   const searchBeforeEnter = await page.evaluate(() => {
     const input = document.querySelector("[data-state-statistics-search]");
@@ -100,6 +103,8 @@ try {
   assert.ok(await page.evaluate(() => document.querySelectorAll("[data-state-statistics-result] .state-statistics-resource-icon").length > 0), "resource results should use building icons");
   assert.equal(await page.evaluate(() => [...document.querySelectorAll("[data-state-statistics-result] .state-statistics-resource-icon")].some((node) => node.title && node.getAttribute("aria-label"))), true);
   assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector("[data-state-statistics-result] .state-statistics-overview")).gridTemplateColumns.split(" ").length), 1, "summary metrics should use one row per metric");
+  assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-state-statistics-result] .state-statistics-resource-list h4"))), false, "resource groups should not display group labels");
+  assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-state-statistics-result] .state-statistics-discoverable-row"))), false, "discoverable resources should merge into resource groups");
 
   const search = await page.evaluate((query) => {
     const input = document.querySelector("[data-state-statistics-search]");
