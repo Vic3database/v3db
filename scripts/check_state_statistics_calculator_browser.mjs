@@ -39,6 +39,20 @@ try {
   assert.deepEqual(initial.applied, []);
   assert.deepEqual(initial.selected, []);
 
+  await page.evaluate(() => {
+    const input = document.querySelector("[data-state-statistics-search]");
+    input.value = "STATE_HOME_COUNTIES";
+    input.dispatchEvent(new InputEvent("input", { bubbles: true }));
+  });
+  await page.waitFor(() => Boolean(document.querySelector("[data-state-statistics-region='STATE_HOME_COUNTIES']")), "population regression state");
+  await page.click("[data-state-statistics-region='STATE_HOME_COUNTIES']");
+  await page.click("[data-state-statistics-start]");
+  await page.waitFor(() => document.querySelector("[data-state-statistics-result]")?.textContent.includes("2,805,996"), "non-zero population result");
+
+  await page.goto(`${baseUrl}?lang=zh-Hans#/region/statistics`);
+  await page.waitFor(() => Boolean(document.querySelector("[data-state-statistics-calculator]")), "calculator reset after population regression");
+  await page.evaluate(() => { clearStateStatisticsCalculatorState(); renderStateStatisticsCalculator(); });
+
   const firstRegionKey = await page.evaluate(() => document.querySelector("[data-state-statistics-region]")?.dataset.stateStatisticsRegion || "");
   assert.ok(firstRegionKey, "calculator should render a selectable state");
   await page.click(`[data-state-statistics-region='${firstRegionKey}']`);
