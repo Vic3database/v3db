@@ -1958,6 +1958,9 @@ label.culture-incorporation-effect > span,
 }
 
 .state-statistics-calculator-title {
+  position: static;
+  top: auto;
+  z-index: auto;
   display: flex;
   align-items: center;
   gap: 12px;

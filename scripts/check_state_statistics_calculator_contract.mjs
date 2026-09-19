@@ -44,3 +44,4 @@ assert.match(styles, /\.state-statistics-overview\s*\{\s*grid-template-columns:\
 assert.doesNotMatch(styles, /\.state-statistics-overview\s*\{[\s\S]*?grid-template-columns:\s*repeat\(3/);
 const shell = read("site/styles/shell.css");
 assert.match(shell, /body\[data-view="region"\]\[data-state-statistics="true"\] \.filters > \.panel-head\s*\{\s*display:\s*none/);
+assert.match(styles, /\.state-statistics-calculator-title\s*\{[\s\S]*?position:\s*static/);

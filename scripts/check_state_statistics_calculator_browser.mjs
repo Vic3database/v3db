@@ -29,6 +29,7 @@ try {
   await page.goto(`${baseUrl}?lang=zh-Hans#/region/statistics`);
   await page.waitFor(() => Boolean(document.querySelector("[data-state-statistics-calculator]")), "calculator page");
   assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector(".filters .panel-head")).display), "none", "outer filter title should be hidden in calculator");
+  assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector(".state-statistics-calculator-title")).position), "static", "statistics title should scroll with content");
   assert.equal(await page.evaluate(() => document.body.dataset.stateStatistics), "true");
   assert.equal(await page.evaluate(() => document.querySelectorAll("[data-state-statistics-region]").length > 0), true);
 
