@@ -2044,7 +2044,7 @@ label.culture-incorporation-effect > span,
 }
 
 .state-statistics-overview {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: 1fr;
 }
 
 .state-statistics-overview > div,

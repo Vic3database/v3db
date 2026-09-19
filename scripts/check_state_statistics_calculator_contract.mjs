@@ -15,6 +15,7 @@ const data = read("site/app/data.js");
 const ui = read("site/app/ui.js");
 const presentation = read("site/app/presentation.js");
 const regionsData = read("site/versions/1.13.11/data-regions.js");
+const styles = read("site/styles/records.css");
 
 assert.match(calculator, /function summarizeStateRegions\(stateRegionRows\)/);
 assert.match(calculator, /starting_population/);
@@ -39,3 +40,5 @@ assert.match(data, /parts\[0\] === "region" && parts\[1\] === "statistics"/);
 assert.match(ui, /data-state-statistics-country/);
 assert.match(presentation, /data-state-statistics-country/);
 assert.ok((regionsData.match(/"starting_population"/g) || []).length > 0, "region data must include merged starting population fields");
+assert.match(styles, /\.state-statistics-overview\s*\{\s*grid-template-columns:\s*1fr;/);
+assert.doesNotMatch(styles, /\.state-statistics-overview\s*\{[\s\S]*?grid-template-columns:\s*repeat\(3/);
