@@ -194,6 +194,16 @@ function updateBackToTopButton() {
   els.backToTopButton.hidden = window.scrollY < 160;
 }
 
+function bindSearchSubmitOnEnter(input, submit) {
+  if (!input) return;
+  input.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" || event.isComposing) return;
+    event.preventDefault();
+    event.stopPropagation();
+    submit(input.value);
+  });
+}
+
 function bindEvents() {
   bindTopbarNavigationMenus();
   els.backToTopButton?.addEventListener("click", () => {
@@ -238,8 +248,8 @@ function bindEvents() {
   els.infoDialog?.addEventListener("click", (event) => {
     if (event.target === els.infoDialog) closeInfoDialog();
   });
-  els.globalSearchDialogInput?.addEventListener("input", () => {
-    state.globalSearch = els.globalSearchDialogInput.value.trim().toLowerCase();
+  bindSearchSubmitOnEnter(els.globalSearchDialogInput, (value) => {
+    state.globalSearch = value.trim().toLowerCase();
     state.globalSearchActiveIndex = 0;
     renderGlobalSearchDialogResults();
   });
@@ -336,17 +346,14 @@ function bindEvents() {
     url.searchParams.set("lang", localeRuntime.current);
     location.assign(url.href);
   });
-  els.searchInput.addEventListener("input", () => {
-    state.search = els.searchInput.value.trim().toLowerCase();
-    state.countryMobileSearchDraft = els.searchInput.value;
-    state.cultureMobileSearchDraft = els.searchInput.value;
+  bindSearchSubmitOnEnter(els.searchInput, (value) => {
+    state.search = value.trim().toLowerCase();
+    state.countryMobileSearchDraft = value;
+    state.cultureMobileSearchDraft = value;
     state.globalSearchColorRestoreTag = "";
     render();
   });
-  els.eventSearchInput?.addEventListener("input", () => {
-    state.search = els.eventSearchInput.value.trim().toLowerCase();
-    render();
-  });
+  bindSearchSubmitOnEnter(els.eventSearchInput, (value) => { state.search = value.trim().toLowerCase(); render(); });
   els.eventResetButton?.addEventListener("click", () => {
     state.search = "";
     state.eventTypes.clear();

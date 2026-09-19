@@ -32,6 +32,17 @@ try {
   assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector(".state-statistics-calculator-title")).position), "static", "statistics title should scroll with content");
   assert.equal(await page.evaluate(() => document.body.dataset.stateStatistics), "true");
   assert.equal(await page.evaluate(() => document.querySelectorAll("[data-state-statistics-region]").length > 0), true);
+  const searchBeforeEnter = await page.evaluate(() => {
+    const input = document.querySelector("[data-state-statistics-search]");
+    input.value = "STATE_HOME_COUNTIES";
+    input.dispatchEvent(new InputEvent("input", { bubbles: true }));
+    return { state: state.stateStatisticsCalculatorSearch, visible: document.querySelectorAll("[data-state-statistics-region]").length };
+  });
+  assert.equal(searchBeforeEnter.state, "");
+  assert.ok(searchBeforeEnter.visible > 1);
+  await page.evaluate(() => document.querySelector("[data-state-statistics-search]")?.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })));
+  await page.waitFor(() => state.stateStatisticsCalculatorSearch === "STATE_HOME_COUNTIES", "search submit by Enter");
+  assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll("[data-state-statistics-region]")].map((node) => node.dataset.stateStatisticsRegion)), ["STATE_HOME_COUNTIES"]);
 
   const initial = await page.evaluate(() => ({
     applied: [...state.stateStatisticsCalculatorApplied],
@@ -53,7 +64,7 @@ try {
 
   await page.goto(`${baseUrl}?lang=zh-Hans#/region/statistics`);
   await page.waitFor(() => Boolean(document.querySelector("[data-state-statistics-calculator]")), "calculator reset after population regression");
-  await page.evaluate(() => { clearStateStatisticsCalculatorState(); renderStateStatisticsCalculator(); });
+  await page.evaluate(() => { clearStateStatisticsCalculatorState(); renderStateStatisticsCalculator(); const input = document.querySelector("[data-state-statistics-search]"); input.value = ""; input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })); });
 
   const firstRegionKey = await page.evaluate(() => document.querySelector("[data-state-statistics-region]")?.dataset.stateStatisticsRegion || "");
   assert.ok(firstRegionKey, "calculator should render a selectable state");
@@ -96,7 +107,10 @@ try {
     input.dispatchEvent(new InputEvent("input", { bubbles: true }));
     return [...document.querySelectorAll("[data-state-statistics-region]")].map((node) => node.dataset.stateStatisticsRegion);
   }, firstRegionKey);
-  assert.deepEqual(search, [firstRegionKey]);
+  assert.ok(search.length > 1, "search draft should not filter before Enter");
+  await page.evaluate(() => document.querySelector("[data-state-statistics-search]")?.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })));
+  await page.waitFor((key) => state.stateStatisticsCalculatorSearch === key, "final search submit", firstRegionKey);
+  assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll("[data-state-statistics-region]")].map((node) => node.dataset.stateStatisticsRegion)), [firstRegionKey]);
 } finally {
   page.close();
 }

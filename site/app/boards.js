@@ -1722,8 +1722,8 @@ function bindChangelogControls() {
       render();
     });
   });
-  searchInput?.addEventListener("input", () => {
-    state.changelogSearch = searchInput.value.trim().toLowerCase();
+  bindSearchSubmitOnEnter(searchInput, (value) => {
+    state.changelogSearch = value.trim().toLowerCase();
     renderChangelogBoard();
   });
   filters?.addEventListener("click", (event) => {
@@ -2523,7 +2523,7 @@ function renderTechnologyList(category) {
   els.countryList.innerHTML = `<section class="technology-list-shell">${technologyFloatingControls(category, "list")}<div class="technology-list-toolbar"><div class="technology-list-toolbar-group technology-list-toolbar-view"><select data-technology-era-filter aria-label="${escapeHtml(t("board.technology.eraFilter", "时代"))}"><option value="">${escapeHtml(t("board.technology.allEras", "所有时代"))}</option>${eraOptions}</select>${vcControls}</div><div class="technology-list-toolbar-group technology-list-toolbar-search"><input type="search" data-technology-search aria-label="${escapeHtml(t("board.technology.search", "搜索科技"))}" placeholder="${escapeHtml(t("board.technology.searchEffects", "搜索科技名称或效果"))}" value="${escapeHtml(state.technologySearch)}"></div></div><div class="technology-list-summary"></div><div class="technology-list-groups" data-technology-list-results></div></section>`;
   renderTechnologyListResults(category);
   els.detail.innerHTML = renderTechnologyDetail(selected);
-  els.countryList.querySelector("[data-technology-search]")?.addEventListener("input", (event) => { state.technologySearch = event.target.value; renderTechnologyListResults(category); });
+  bindSearchSubmitOnEnter(els.countryList.querySelector("[data-technology-search]"), (value) => { state.technologySearch = value; renderTechnologyListResults(category); });
   els.countryList.querySelector("[data-technology-era-filter]")?.addEventListener("change", (event) => { state.technologyEraFilter = event.target.value; renderTechnologyList(category); });
   els.countryList.querySelectorAll("[data-technology-change]").forEach((button) => button.addEventListener("click", () => { const kind = button.dataset.technologyChange; if (state.technologyListChangeKinds.has(kind)) state.technologyListChangeKinds.delete(kind); else state.technologyListChangeKinds.add(kind); renderTechnologyList(category); }));
 }
@@ -2553,7 +2553,7 @@ function renderTechnologyBoard(category = state.technologyCategory) {
     button.addEventListener("click", () => { location.hash = `/technology/${encodeURIComponent(button.dataset.technologyKey)}?from=tree`; });
   });
   els.countryList.querySelector("[data-technology-category-select]")?.addEventListener("change", (event) => { state.technologyCategory = event.target.value; state.technologySearch = ""; state.selectedTechnology = ""; state.technologyViewport = { x: 0, y: 0, scale: 1 }; render(); });
-  els.countryList.querySelector("[data-technology-search]")?.addEventListener("input", (event) => { state.technologySearch = event.target.value; preserveSearchFocus(event.target, () => renderTechnologyBoard(category)); });
+  bindSearchSubmitOnEnter(els.countryList.querySelector("[data-technology-search]"), (value) => { state.technologySearch = value; renderTechnologyBoard(category); });
   els.countryList.querySelector("[data-technology-reset]")?.addEventListener("click", () => { state.technologyViewport = { x: 0, y: 0, scale: 1 }; render(); });
   const viewport = els.countryList.querySelector(".technology-graph-viewport");
   let drag = null;

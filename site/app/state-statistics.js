@@ -184,6 +184,6 @@ function renderStateStatisticsCalculator() {
   root.querySelectorAll("[data-state-statistics-selected]").forEach((button) => button.addEventListener("click", () => stateStatisticsCalculatorToggle(button.dataset.stateStatisticsSelected)));
   root.querySelector("[data-state-statistics-start]")?.addEventListener("click", stateStatisticsCalculatorStart);
   root.querySelector("[data-state-statistics-clear]")?.addEventListener("click", () => { state.stateStatisticsCalculatorSelected.clear(); state.stateStatisticsCalculatorDirty = true; renderStateStatisticsCalculator(); renderMapControls(); });
-  root.querySelector("[data-state-statistics-search]")?.addEventListener("input", (event) => { state.stateStatisticsCalculatorSearch = event.target.value; renderStateStatisticsCalculator(); });
+  bindSearchSubmitOnEnter(root.querySelector("[data-state-statistics-search]"), (value) => { state.stateStatisticsCalculatorSearch = value; renderStateStatisticsCalculator(); });
   root.querySelector("[data-state-statistics-back]")?.addEventListener("click", async () => { clearStateStatisticsCalculatorState(); replaceHash("/region"); await applyHash(); render(); });
 }
