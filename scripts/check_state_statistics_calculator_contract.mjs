@@ -42,3 +42,5 @@ assert.match(presentation, /data-state-statistics-country/);
 assert.ok((regionsData.match(/"starting_population"/g) || []).length > 0, "region data must include merged starting population fields");
 assert.match(styles, /\.state-statistics-overview\s*\{\s*grid-template-columns:\s*1fr;/);
 assert.doesNotMatch(styles, /\.state-statistics-overview\s*\{[\s\S]*?grid-template-columns:\s*repeat\(3/);
+const shell = read("site/styles/shell.css");
+assert.match(shell, /body\[data-view="region"\]\[data-state-statistics="true"\] \.filters > \.panel-head\s*\{\s*display:\s*none/);

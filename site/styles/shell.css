@@ -380,6 +380,10 @@ body[data-view="region"][data-state-statistics="true"] .filters > .view-switch {
   display: none;
 }
 
+body[data-view="region"][data-state-statistics="true"] .filters > .panel-head {
+  display: none;
+}
+
 body[data-view="culture"][data-culture-incorporation="true"] .filters .culture-filter,
 body[data-view="culture"][data-culture-incorporation="true"] .filters #strategicRegionFilterSection,
 body[data-view="culture"][data-culture-incorporation="true"] .filters > label.search,
