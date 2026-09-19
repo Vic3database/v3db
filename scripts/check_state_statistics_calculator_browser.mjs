@@ -107,7 +107,6 @@ try {
   await page.click("[data-state-statistics-start]");
   await page.waitFor((key) => state.stateStatisticsCalculatorApplied.has(key), "second statistics start", secondRegionKey);
   assert.deepEqual(await page.evaluate(() => [...state.stateStatisticsCalculatorApplied].sort()), [firstRegionKey, secondRegionKey].sort());
-  assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-state-statistics-owner-group]"))), true);
   assert.ok(await page.evaluate(() => document.querySelectorAll("[data-state-statistics-result] .state-statistics-resource-icon").length > 0), "resource results should use building icons");
   assert.equal(await page.evaluate(() => [...document.querySelectorAll("[data-state-statistics-result] .state-statistics-resource-icon")].some((node) => node.title && node.getAttribute("aria-label"))), true);
   assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector("[data-state-statistics-result] .state-statistics-overview")).gridTemplateColumns.split(" ").length), 1, "summary metrics should use one row per metric");
@@ -124,6 +123,17 @@ try {
   await page.evaluate(() => document.querySelector("[data-state-statistics-search]")?.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })));
   await page.waitFor((key) => state.stateStatisticsCalculatorSearch === key, "final search submit", firstRegionKey);
   assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll("[data-state-statistics-region]")].map((node) => node.dataset.stateStatisticsRegion)), [firstRegionKey]);
+
+  await page.goto(`${baseUrl}?lang=zh-Hans#/country/FRA`);
+  await page.waitFor(() => Boolean(document.querySelector("[data-country-detail-tab='regions']")), "France regions tab");
+  await page.click("[data-country-detail-tab='regions']");
+  await page.waitFor(() => Boolean(document.querySelector("[data-state-statistics-country='FRA']")), "France statistics entry");
+  await page.click("[data-state-statistics-country='FRA']");
+  await page.waitFor(() => state.stateStatisticsCalculatorSelected.size > 0, "France starting states preload");
+  await page.click("[data-state-statistics-start]");
+  await page.waitFor(() => Boolean(document.querySelector("[data-state-statistics-split-region]")), "France split region groups");
+  assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-state-statistics-owner-group]"))), false);
+  assert.ok(await page.evaluate(() => [...document.querySelectorAll("[data-state-statistics-split-region]")].some((node) => node.textContent.includes("普罗旺斯") || node.textContent.includes("Provence"))));
 } finally {
   page.close();
 }

@@ -52,6 +52,9 @@ assert.ok((regionsData.match(/"starting_population"/g) || []).length > 0, "regio
 assert.match(regionsData, /"starting_population_by_owner"/);
 assert.match(calculator, /stateStatisticsCalculatorCountryTag/);
 assert.match(calculator, /starting_population_by_owner/);
+assert.match(calculator, /stateStatisticsSplitRegionGroups/);
+assert.match(calculator, /data-state-statistics-split-region/);
+assert.doesNotMatch(calculator, /data-state-statistics-owner-group/);
 assert.match(calculator, /splitResourceExcluded/);
 assert.match(styles, /\.state-statistics-overview\s*\{\s*grid-template-columns:\s*1fr;/);
 assert.doesNotMatch(styles, /\.state-statistics-overview\s*\{[\s\S]*?grid-template-columns:\s*repeat\(3/);

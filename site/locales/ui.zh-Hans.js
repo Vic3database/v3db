@@ -601,6 +601,7 @@ window.VICDATA_UI_LOCALES["zh-Hans"] = {
     "board.stateStatistics.arableResources": "农业资源类型",
     "board.stateStatistics.discoverableResources": "可发现资源",
     "board.stateStatistics.splitResourceNote": "分割地域只计入人口；资源和可耕地未计入国家专属合计。",
+    "board.stateStatistics.ownerCount": "国家",
     "board.stateStatistics.startingOwners": "开局归属国家",
     "board.stateStatistics.ownerRegionCount": "{count} 个地域",
     "board.country.openStateStatistics": "统计开局所属地域",

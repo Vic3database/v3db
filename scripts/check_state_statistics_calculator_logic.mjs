@@ -51,5 +51,7 @@ const splitSummary = context.summarizeStateRegions([
 assert.equal(splitSummary.countryPopulation.get("FRA"), 300);
 assert.equal(splitSummary.splitStateCount, 1);
 assert.equal(splitSummary.splitResourceExcluded, true);
+assert.equal(splitSummary.splitRegions[0].key, "STATE_SPLIT");
+assert.equal(JSON.stringify(splitSummary.splitRegions[0].owners), JSON.stringify([{ tag: "FRA", population: 300 }, { tag: "SAR", population: 700 }]));
 
 console.log("state statistics logic: passed");
