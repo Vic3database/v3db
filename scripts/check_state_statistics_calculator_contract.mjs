@@ -27,6 +27,8 @@ assert.match(calculator, /data-state-statistics-result/);
 assert.match(calculator, /startingOwners/);
 assert.match(calculator, /stateStatisticsCalculatorInitializeFromCountry/);
 assert.match(calculator, /data-state-statistics-owner-group/);
+assert.match(calculator, /function stateStatisticsResourceIconHtml\(item\)/);
+assert.match(calculator, /stateStatisticsResourceIconHtml\(item\)/);
 assert.match(runtime, /stateStatisticsCalculatorSelected: new Set\(\)/);
 assert.match(runtime, /stateStatisticsCalculatorApplied: new Set\(\)/);
 assert.match(indexHtml, /app\/state-statistics\.js/);

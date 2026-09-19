@@ -2067,6 +2067,24 @@ label.culture-incorporation-effect > span,
   flex: 0 0 auto;
 }
 
+.state-statistics-resource-icon,
+.state-statistics-resource-fallback {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  vertical-align: middle;
+}
+
+.state-statistics-resource-fallback {
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+  line-height: 22px;
+  text-align: center;
+}
+
 .state-statistics-owner-groups {
   display: grid;
   gap: 8px;

@@ -3,6 +3,14 @@ function stateStatisticsResourceLabel(item) {
   return entityText(source, "name", item?.key || "") || item?.key || "";
 }
 
+function stateStatisticsResourceIconHtml(item) {
+  const label = stateStatisticsResourceLabel(item);
+  const icon = buildingIconHtml(item?.key);
+  return icon
+    ? icon.replace('<img class="resource-icon"', `<img class="resource-icon state-statistics-resource-icon" title="${escapeHtml(label)}" aria-label="${escapeHtml(label)}"`)
+    : `<span class="state-statistics-resource-fallback" title="${escapeHtml(label)}" aria-label="${escapeHtml(label)}">?</span>`;
+}
+
 function stateStatisticsResourceAmount(item, field = "amount") {
   const value = Number(item?.[field]);
   return Number.isFinite(value) ? value : 0;
@@ -129,7 +137,7 @@ function stateStatisticsCalculatorRows() {
 function stateStatisticsResourceRows(map, amountField, label) {
   return [...map.values()]
     .sort((left, right) => localizedCompare(stateStatisticsResourceLabel(left), stateStatisticsResourceLabel(right)))
-    .map((item) => `<div class="state-statistics-resource-row"><span>${escapeHtml(stateStatisticsResourceLabel(item))}</span><strong>${localizedNumber(item[amountField])}</strong></div>`)
+    .map((item) => `<div class="state-statistics-resource-row"><span>${stateStatisticsResourceIconHtml(item)}</span><strong>${localizedNumber(item[amountField])}</strong></div>`)
     .join("") || `<span class="empty">${escapeHtml(t("ui.none", "无"))}</span>`;
 }
 
@@ -153,8 +161,8 @@ function renderStateStatisticsCalculator() {
     : `<span class="empty">${escapeHtml(t("board.stateStatistics.empty", "请选择地域"))}</span>`;
   const rowHtml = rows.slice(0, 220).map((row) => `<button type="button" class="state-statistics-region-row" data-state-statistics-region="${escapeHtml(row.key)}" aria-pressed="${String(state.stateStatisticsCalculatorSelected.has(row.key))}"><span>${escapeHtml(entityText(row) || row.key)}</span><small>${escapeHtml(row.key)}</small></button>`).join("");
   const resourceRows = stateStatisticsResourceRows(summary.cappedResources, "amount", "amount");
-  const discoverableRows = [...summary.discoverableResources.values()].sort((left, right) => localizedCompare(stateStatisticsResourceLabel(left), stateStatisticsResourceLabel(right))).map((item) => `<div class="state-statistics-resource-row state-statistics-discoverable-row"><span>${escapeHtml(stateStatisticsResourceLabel(item))}<small>${escapeHtml(stateStatisticsRegionNames(item.regions))}</small></span><strong>${localizedNumber(item.undiscovered_amount)}</strong></div>`).join("") || `<span class="empty">${escapeHtml(t("ui.none", "无"))}</span>`;
-  const arableRows = [...summary.arableResources.values()].sort((left, right) => localizedCompare(stateStatisticsResourceLabel(left), stateStatisticsResourceLabel(right))).map((item) => `<div class="state-statistics-resource-row"><span>${escapeHtml(stateStatisticsResourceLabel(item))}</span><strong>${localizedNumber(item.regions.length)}</strong></div>`).join("") || `<span class="empty">${escapeHtml(t("ui.none", "无"))}</span>`;
+  const discoverableRows = [...summary.discoverableResources.values()].sort((left, right) => localizedCompare(stateStatisticsResourceLabel(left), stateStatisticsResourceLabel(right))).map((item) => `<div class="state-statistics-resource-row state-statistics-discoverable-row"><span>${stateStatisticsResourceIconHtml(item)}<small>${escapeHtml(stateStatisticsRegionNames(item.regions))}</small></span><strong>${localizedNumber(item.undiscovered_amount)}</strong></div>`).join("") || `<span class="empty">${escapeHtml(t("ui.none", "无"))}</span>`;
+  const arableRows = [...summary.arableResources.values()].sort((left, right) => localizedCompare(stateStatisticsResourceLabel(left), stateStatisticsResourceLabel(right))).map((item) => `<div class="state-statistics-resource-row"><span>${stateStatisticsResourceIconHtml(item)}</span><strong>${localizedNumber(item.regions.length)}</strong></div>`).join("") || `<span class="empty">${escapeHtml(t("ui.none", "无"))}</span>`;
   const ownerGroups = [...summary.startingOwners.values()]
     .sort((left, right) => localizedCompare(entityText(byTag.get(left.tag) || { tag: left.tag }) || left.tag, entityText(byTag.get(right.tag) || { tag: right.tag }) || right.tag))
     .map((owner) => `<details class="state-statistics-owner-group" data-state-statistics-owner-group><summary>${escapeHtml(entityText(byTag.get(owner.tag) || { tag: owner.tag }) || owner.tag)} <small>${escapeHtml(t("board.stateStatistics.ownerRegionCount", { count: owner.regions.length }))}</small></summary><div class="state-statistics-overview"><div><span>${escapeHtml(t("board.stateStatistics.population", "开局人口"))}</span><strong>${localizedNumber(owner.population)}</strong></div><div><span>${escapeHtml(t("board.stateStatistics.arableLand", "可耕地"))}</span><strong>${localizedNumber(owner.arableLand)}</strong></div></div><p class="state-statistics-owner-regions">${escapeHtml(stateStatisticsRegionNames(owner.regions))}</p><div class="state-statistics-resource-list">${stateStatisticsResourceRows(owner.cappedResources, "amount", "amount")}</div></details>`)

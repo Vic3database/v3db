@@ -70,6 +70,8 @@ try {
   await page.waitFor((key) => state.stateStatisticsCalculatorApplied.has(key), "second statistics start", secondRegionKey);
   assert.deepEqual(await page.evaluate(() => [...state.stateStatisticsCalculatorApplied].sort()), [firstRegionKey, secondRegionKey].sort());
   assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-state-statistics-owner-group]"))), true);
+  assert.ok(await page.evaluate(() => document.querySelectorAll("[data-state-statistics-result] .state-statistics-resource-icon").length > 0), "resource results should use building icons");
+  assert.equal(await page.evaluate(() => [...document.querySelectorAll("[data-state-statistics-result] .state-statistics-resource-icon")].some((node) => node.title && node.getAttribute("aria-label"))), true);
 
   const search = await page.evaluate((query) => {
     const input = document.querySelector("[data-state-statistics-search]");
