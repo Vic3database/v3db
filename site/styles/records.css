@@ -1989,6 +1989,11 @@ label.culture-incorporation-effect > span,
   background: var(--surface-raised);
 }
 
+.state-statistics-section:not([open]) {
+  gap: 0;
+  padding-bottom: 4px;
+}
+
 .state-statistics-section > summary {
   cursor: pointer;
   list-style-position: inside;
@@ -2007,13 +2012,17 @@ label.culture-incorporation-effect > span,
 .state-statistics-region-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 3px;
   min-width: 0;
 }
 
 .state-statistics-region-list {
   max-height: 360px;
   overflow: auto;
+}
+
+.state-statistics-region-row {
+  margin: 0;
 }
 
 .state-statistics-selected-tag,
@@ -2055,8 +2064,14 @@ label.culture-incorporation-effect > span,
   gap: 6px;
 }
 
+.state-statistics-resource-list {
+  gap: 2px;
+}
+
 .state-statistics-resource-group + .state-statistics-resource-group {
-  margin-top: 6px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid color-mix(in srgb, var(--line) 60%, transparent);
 }
 
 .state-statistics-resource-group .state-statistics-resource-row + .state-statistics-resource-row {
@@ -2067,14 +2082,21 @@ label.culture-incorporation-effect > span,
   grid-template-columns: 1fr;
 }
 
-.state-statistics-overview > div,
-.state-statistics-resource-row {
+.state-statistics-overview > div {
   display: flex;
   justify-content: space-between;
   gap: 10px;
   min-width: 0;
   padding: 7px 0;
   border-bottom: 1px solid color-mix(in srgb, var(--line) 60%, transparent);
+}
+
+.state-statistics-resource-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+  padding: 2px 0;
 }
 
 .state-statistics-overview span,
@@ -2123,6 +2145,24 @@ label.culture-incorporation-effect > span,
 .state-statistics-owner-group summary small,
 .state-statistics-owner-regions {
   color: var(--ink-muted);
+}
+
+.state-statistics-split-label {
+  margin-left: 6px;
+  color: var(--accent);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.state-statistics-owner-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.state-statistics-owner-color {
+  width: 12px;
+  height: 12px;
 }
 
 @media (max-width: 560px) {

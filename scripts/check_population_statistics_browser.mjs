@@ -16,8 +16,8 @@ const chrome = spawn(chromePath, [
 
 try {
   const page = await openPage({ width: 1440, height: 900 });
-  await page.goto(`${baseUrl}?version=1.13.11&lang=zh-Hans#/country/GBR`);
-  const country = await page.evaluate(() => document.querySelector(".country-detail-overview")?.innerText || "");
+  await page.goto(`${baseUrl}?version=1.13.11&lang=zh-Hans#/country/GBR?tab=resources`);
+  const country = await page.evaluate(() => document.querySelector("[data-country-detail-panel='resources']")?.innerText || "");
   assert.match(country, /开局人口/);
   assert.match(country, /25,951,647/);
 
@@ -26,8 +26,8 @@ try {
   assert.match(state, /开局人口/);
   assert.match(state, /2,805,996/);
 
-  await page.goto(`${baseUrl}?version=1.13.11&lang=en#/country/GBR`);
-  const english = await page.evaluate(() => document.querySelector(".country-detail-overview")?.innerText || "");
+  await page.goto(`${baseUrl}?version=1.13.11&lang=en#/country/GBR?tab=resources`);
+  const english = await page.evaluate(() => document.querySelector("[data-country-detail-panel='resources']")?.innerText || "");
   assert.match(english, /Starting population/);
 
   page.close();

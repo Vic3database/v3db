@@ -19,7 +19,7 @@ try {
   await page.goto(`${baseUrl}?version=1.13.11&lang=zh-Hans#/country`);
   assert.match(
     await page.evaluate(() => [...document.scripts].find((script) => script.src.includes("/app/ui.js"))?.src || ""),
-    /app\/ui\.js\?v=20260902-country-card-detail1$/,
+    /app\/ui\.js\?v=20260919-country-resources1$/,
     "country interaction script must use the current cache-busting version",
   );
   await page.click("[data-country] .name");
@@ -37,13 +37,30 @@ try {
   }));
   assert.equal(desktop.view, "country", "country detail must keep the country board");
   assert.equal(desktop.detailPage, true, "country detail route must open the detail page state");
-  assert.equal(desktop.tabs.length, 8, "country detail must render eight tabs");
+  assert.equal(desktop.tabs.length, 9, "country detail must render nine tabs");
   assert.equal(desktop.tabs[0], "变体", "country detail tab localization must be loaded");
-  assert.deepEqual(desktop.tabs, ["变体", "社会", "地区", "科技", "法律", "外交", "利益集团", "风味"], "country detail tabs must use the approved order");
+  assert.deepEqual(desktop.tabs, ["变体", "社会", "地区", "资源", "科技", "法律", "外交", "利益集团", "风味"], "country detail tabs must use the approved order");
   assert.equal(desktop.selected, "variants", "country detail must default to variants");
   assert.equal(desktop.panel, "variants", "default country detail panel must be variants");
   for (const label of ["国家类型", "国家位阶", "首都", "主流文化", "宗教", "标准色"]) assert.match(desktop.overview, new RegExp(label), `overview must show ${label}`);
-  assert.doesNotMatch(desktop.overview, /部队颜色|开局州数/, "overview must not show excluded fields");
+  assert.doesNotMatch(desktop.overview, /部队颜色|开局州数|开局人口/, "overview must not show excluded fields");
+
+  await page.click("[data-country-detail-tab='resources']");
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  const resources = await page.evaluate(() => ({
+    tab: window.eval("state.countryDetailTab"),
+    panel: document.querySelector("[data-country-detail-panel]")?.dataset.countryDetailPanel || "",
+    text: document.querySelector("[data-country-detail-panel]")?.innerText || "",
+    icons: document.querySelectorAll("[data-country-detail-panel='resources'] .state-statistics-resource-icon").length,
+  }));
+  assert.equal(resources.tab, "resources", "resources tab selection must update state");
+  assert.equal(resources.panel, "resources", "resources tab must render its panel");
+  assert.match(resources.text, /开局人口/);
+  assert.match(resources.text, /可耕地/);
+  assert.match(resources.text, /可耕土地/);
+  assert.match(resources.text, /地块/);
+  assert.ok(resources.icons > 0, "resources tab should render building icons");
+  assert.equal(await page.evaluate(() => location.hash.includes("tab=resources")), true, "resources tab selection must update the route");
 
   await page.click("[data-country-detail-tab='society']");
   await new Promise((resolve) => setTimeout(resolve, 500));

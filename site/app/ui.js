@@ -89,7 +89,7 @@ function mapFullscreenRequested() {
     && window.matchMedia("(max-width: 760px)").matches;
 }
 
-const countryDetailTabKeys = ["variants", "society", "regions", "technology", "laws", "diplomacy", "interest-groups", "flavor"];
+const countryDetailTabKeys = ["variants", "society", "regions", "resources", "technology", "laws", "diplomacy", "interest-groups", "flavor"];
 const countryInterestGroupTabKeys = ["ig_armed_forces", "ig_devout", "ig_industrialists", "ig_intelligentsia", "ig_landowners", "ig_petty_bourgeoisie", "ig_rural_folk", "ig_trade_unions"];
 const countryFlavorTabKeys = ["journal", "event", "decision"];
 

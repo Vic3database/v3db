@@ -40,7 +40,9 @@ try {
   assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector(".state-statistics-calculator-title")).position), "static", "statistics title should scroll with content");
   assert.equal(await page.evaluate(() => document.body.dataset.stateStatistics), "true");
   assert.equal(await page.evaluate(() => document.querySelector("[data-state-statistics-selection-section]")?.open), true);
-  assert.equal(await page.evaluate(() => document.querySelector("[data-state-statistics-search-section]")?.open), true);
+  assert.match(await page.evaluate(() => document.querySelector("[data-state-statistics-guide]")?.textContent || ""), /右键移除/);
+  assert.equal(await page.evaluate(() => document.querySelector("[data-state-statistics-search-section]")?.open), false);
+  assert.match(await page.evaluate(() => document.querySelector("[data-state-statistics-selection-section] summary")?.textContent || ""), /已选地域（0）/);
   assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-state-statistics-selection-section] summary"))), true);
   assert.equal(await page.evaluate(() => document.querySelectorAll("[data-state-statistics-region]").length > 0), true);
   const searchBeforeEnter = await page.evaluate(() => {
@@ -81,6 +83,12 @@ try {
   assert.ok(firstRegionKey, "calculator should render a selectable state");
   await page.click(`[data-state-statistics-region='${firstRegionKey}']`);
   await page.waitFor((key) => state.stateStatisticsCalculatorSelected.has(key), "list selection", firstRegionKey);
+  assert.match(await page.evaluate(() => document.querySelector("[data-state-statistics-selection-section] summary")?.textContent || ""), /已选地域（1）/);
+  await page.evaluate(() => document.querySelector("[data-state-statistics-selected]")?.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true })));
+  await page.waitFor(() => state.stateStatisticsCalculatorSelected.size === 0, "context menu removes selected state");
+  assert.match(await page.evaluate(() => document.querySelector("[data-state-statistics-selection-section] summary")?.textContent || ""), /已选地域（0）/);
+  await page.click(`[data-state-statistics-region='${firstRegionKey}']`);
+  await page.waitFor((key) => state.stateStatisticsCalculatorSelected.has(key), "list selection after context removal", firstRegionKey);
   const beforeStart = await page.evaluate(() => ({
     selected: [...state.stateStatisticsCalculatorSelected],
     applied: [...state.stateStatisticsCalculatorApplied],
@@ -130,10 +138,14 @@ try {
   await page.waitFor(() => Boolean(document.querySelector("[data-state-statistics-country='FRA']")), "France statistics entry");
   await page.click("[data-state-statistics-country='FRA']");
   await page.waitFor(() => state.stateStatisticsCalculatorSelected.size > 0, "France starting states preload");
+  assert.equal(await page.evaluate(() => [...state.stateStatisticsCalculatorSelected].some((key) => isSeaStateRegion(byStateRegion.get(key)))), false, "country preload must exclude sea regions");
   await page.click("[data-state-statistics-start]");
   await page.waitFor(() => Boolean(document.querySelector("[data-state-statistics-split-region]")), "France split region groups");
+  assert.equal(await page.evaluate(() => [...document.querySelectorAll("[data-state-statistics-split-region]")].some((node) => node.textContent.includes("board.stateStatistics.splitLabel"))), false);
+  assert.equal(await page.evaluate(() => [...document.querySelectorAll("[data-state-statistics-split-region]")].some((node) => node.textContent.includes("分属地区"))), true);
   assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-state-statistics-owner-group]"))), false);
   assert.ok(await page.evaluate(() => [...document.querySelectorAll("[data-state-statistics-split-region]")].some((node) => node.textContent.includes("普罗旺斯") || node.textContent.includes("Provence"))));
+  assert.equal(await page.evaluate(() => buildStateStatisticsMapFeatures().get("STATE_PROVENCE")?.color), "#1432d2", "country statistics map should use the selected country's color");
 } finally {
   page.close();
 }

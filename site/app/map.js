@@ -566,13 +566,15 @@ function buildMapFeatures() {
 function buildStateStatisticsMapFeatures() {
   const applied = state.stateStatisticsCalculatorApplied || new Set();
   const selected = state.stateStatisticsCalculatorSelected || new Set();
+  const selectedCountry = byTag.get(state.stateStatisticsCalculatorCountryTag || "");
+  const countryColor = selectedCountry?.colorHex || "#b96a34";
   const features = new Map();
   for (const stateRegion of stateRegions) {
     const isSea = isSeaStateRegion(stateRegion);
     const active = !isSea && applied.has(stateRegion.key);
     const pending = !isSea && selected.has(stateRegion.key);
     features.set(stateRegion.key, {
-      color: mapFeatureColor(stateRegion, active ? "#b96a34" : pending ? "#d8a45b" : "#e9edeb"),
+      color: mapFeatureColor(stateRegion, active ? countryColor : pending ? countryColor : "#e9edeb"),
       active: active || pending,
       value: active ? 1 : 0,
       title: isSea ? t("board.region.sea", "海域") : entityText(stateRegion) || stateRegion.key,
