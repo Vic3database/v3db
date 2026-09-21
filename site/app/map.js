@@ -1,15 +1,18 @@
 function renderMapControls() {
   const mapResetLabel = state.view === "region" ? t("map.resetRegionFocus", "重置地域焦点和地图位置") : t("map.resetPosition", "重置地图位置");
+  const stateStatisticsMap = state.view === "region" && state.detailKind === "stateStatistics";
   els.mapFitWidthButton?.setAttribute("aria-label", mapResetLabel);
   els.mapFitWidthButton?.setAttribute("title", mapResetLabel);
+  if (els.leftPanelToggle) els.leftPanelToggle.hidden = stateStatisticsMap;
+  if (els.bottomPanelToggle) els.bottomPanelToggle.hidden = stateStatisticsMap;
   syncMapModeForView();
   if (els.countryIncorporationMapButton) {
     const available = state.view === "country" && Boolean(state.selectedTag);
-    els.countryIncorporationMapButton.hidden = state.view === "culture" && state.detailKind === "cultureIncorporation";
+    els.countryIncorporationMapButton.hidden = stateStatisticsMap || (state.view === "culture" && state.detailKind === "cultureIncorporation");
     els.countryIncorporationMapButton.disabled = !available;
     els.countryIncorporationMapButton.setAttribute("aria-pressed", String(available && state.mapMode === "countryIncorporation"));
   }
-  if (els.bottomPanelToggle) els.bottomPanelToggle.hidden = state.view === "culture" && state.detailKind === "cultureIncorporation";
+  if (els.bottomPanelToggle) els.bottomPanelToggle.hidden = stateStatisticsMap || (state.view === "culture" && state.detailKind === "cultureIncorporation");
   const terrainViewEnabled = state.view === "region" && state.regionMapView === "terrain";
   els.terrainMapViewButton?.setAttribute("aria-pressed", String(terrainViewEnabled));
   if (state.view === "ideology" || state.view === "law") {
@@ -567,14 +570,15 @@ function buildStateStatisticsMapFeatures() {
   const applied = state.stateStatisticsCalculatorApplied || new Set();
   const selected = state.stateStatisticsCalculatorSelected || new Set();
   const selectedCountry = byTag.get(state.stateStatisticsCalculatorCountryTag || "");
-  const countryColor = selectedCountry?.colorHex || "#b96a34";
+  const countryColor = selectedCountry?.colorHex || "#2f5f74";
+  const pendingColor = selectedCountry?.colorHex || "#4f8aa8";
   const features = new Map();
   for (const stateRegion of stateRegions) {
     const isSea = isSeaStateRegion(stateRegion);
     const active = !isSea && applied.has(stateRegion.key);
     const pending = !isSea && selected.has(stateRegion.key);
     features.set(stateRegion.key, {
-      color: mapFeatureColor(stateRegion, active ? countryColor : pending ? countryColor : "#e9edeb"),
+      color: mapFeatureColor(stateRegion, active ? countryColor : pending ? pendingColor : "#e9edeb"),
       active: active || pending,
       value: active ? 1 : 0,
       title: isSea ? t("board.region.sea", "海域") : entityText(stateRegion) || stateRegion.key,

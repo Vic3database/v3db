@@ -36,13 +36,20 @@ try {
 
   await page.goto(`${baseUrl}?lang=zh-Hans#/region/statistics`);
   await page.waitFor(() => Boolean(document.querySelector("[data-state-statistics-calculator]")), "calculator page");
+  assert.equal(await page.evaluate(() => state.stateStatisticsCalculatorCountryTag), "", "plain statistics route must clear country context");
   assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector(".filters .panel-head")).display), "none", "outer filter title should be hidden in calculator");
   assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector(".state-statistics-calculator-title")).position), "static", "statistics title should scroll with content");
   assert.equal(await page.evaluate(() => document.body.dataset.stateStatistics), "true");
+  assert.equal(await page.evaluate(() => document.querySelector("#mapFitWidthButton")?.hidden), false);
+  assert.equal(await page.evaluate(() => document.querySelector("#leftPanelToggle")?.hidden), true);
+  assert.equal(await page.evaluate(() => document.querySelector("#bottomPanelToggle")?.hidden), true);
+  assert.equal(await page.evaluate(() => document.querySelector("#countryIncorporationMapButton")?.hidden), true);
   assert.equal(await page.evaluate(() => document.querySelector("[data-state-statistics-selection-section]")?.open), true);
   assert.match(await page.evaluate(() => document.querySelector("[data-state-statistics-guide]")?.textContent || ""), /右键移除/);
   assert.equal(await page.evaluate(() => document.querySelector("[data-state-statistics-search-section]")?.open), false);
   assert.match(await page.evaluate(() => document.querySelector("[data-state-statistics-selection-section] summary")?.textContent || ""), /已选地域（0）/);
+  assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-state-statistics-clear] img[src*='refresh-ccw.svg']"))), true);
+  assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-state-statistics-selection-section] .culture-incorporation-clear"))), false);
   assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-state-statistics-selection-section] summary"))), true);
   assert.equal(await page.evaluate(() => document.querySelectorAll("[data-state-statistics-region]").length > 0), true);
   const searchBeforeEnter = await page.evaluate(() => {
@@ -100,6 +107,14 @@ try {
 
   await page.click("[data-state-statistics-start]");
   await page.waitFor((key) => state.stateStatisticsCalculatorApplied.has(key), "statistics start", firstRegionKey);
+  assert.notEqual(await page.evaluate((key) => buildStateStatisticsMapFeatures().get(key)?.color, firstRegionKey), "#e9edeb", "selected region should be colored after statistics start");
+  await page.click("[data-state-statistics-clear]");
+  await page.waitFor(() => state.stateStatisticsCalculatorSelected.size === 0 && state.stateStatisticsCalculatorApplied.size === 0, "clear statistics selections");
+  assert.equal(await page.evaluate((key) => buildStateStatisticsMapFeatures().get(key)?.color, firstRegionKey), "#e9edeb", "clearing selections should clear map colors");
+  await page.click(`[data-state-statistics-region='${firstRegionKey}']`);
+  await page.waitFor((key) => state.stateStatisticsCalculatorSelected.has(key), "list selection after clear", firstRegionKey);
+  await page.click("[data-state-statistics-start]");
+  await page.waitFor((key) => state.stateStatisticsCalculatorApplied.has(key), "statistics restart after clear", firstRegionKey);
   const afterStart = await page.evaluate(() => ({
     applied: [...state.stateStatisticsCalculatorApplied],
     result: document.querySelector("[data-state-statistics-result]")?.textContent || "",
@@ -118,6 +133,8 @@ try {
   assert.ok(await page.evaluate(() => document.querySelectorAll("[data-state-statistics-result] .state-statistics-resource-icon").length > 0), "resource results should use building icons");
   assert.equal(await page.evaluate(() => [...document.querySelectorAll("[data-state-statistics-result] .state-statistics-resource-icon")].some((node) => node.title && node.getAttribute("aria-label"))), true);
   assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector("[data-state-statistics-result] .state-statistics-overview")).gridTemplateColumns.split(" ").length), 1, "summary metrics should use one row per metric");
+  assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-state-statistics-result] [data-state-statistics-split-population]"))), false, "empty split population should stay hidden");
+  assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-state-statistics-result].state-statistics-result-emphasis"))), true, "statistics result should use the emphasized result frame");
   assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-state-statistics-result] .state-statistics-resource-list h4"))), false, "resource groups should not display group labels");
   assert.equal(await page.evaluate(() => Boolean(document.querySelector("[data-state-statistics-result] .state-statistics-discoverable-row"))), false, "discoverable resources should merge into resource groups");
 

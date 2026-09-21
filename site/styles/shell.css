@@ -365,6 +365,12 @@ body[data-view="culture"][data-culture-incorporation="true"] .map-panel {
   display: block;
 }
 
+body[data-state-statistics="true"] #leftPanelToggle,
+body[data-state-statistics="true"] #bottomPanelToggle,
+body[data-state-statistics="true"] #countryIncorporationMapButton {
+  display: none !important;
+}
+
 body[data-view="region"][data-state-statistics="true"] .results,
 body[data-view="region"][data-state-statistics="true"] .detail {
   display: none;

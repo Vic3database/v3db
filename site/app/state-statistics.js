@@ -151,10 +151,23 @@ function stateStatisticsCalculatorStart() {
   }
 }
 
+function stateStatisticsCalculatorClear(event) {
+  event?.preventDefault();
+  event?.stopPropagation();
+  clearStateStatisticsCalculatorState();
+  renderStateStatisticsCalculator();
+  renderMapControls();
+  if (mapRuntime.ready) {
+    ensureMapLayer();
+    paintMapCanvas();
+  }
+}
+
 function clearStateStatisticsCalculatorState() {
   state.stateStatisticsCalculatorSelected.clear();
   state.stateStatisticsCalculatorApplied.clear();
   state.stateStatisticsCalculatorSearch = "";
+  state.stateStatisticsCalculatorCountryTag = "";
   state.stateStatisticsCalculatorDirty = false;
 }
 
@@ -221,6 +234,7 @@ function renderStateStatisticsCalculator() {
   const resourceRows = resourceGroups.map((rows) => `<div class="state-statistics-resource-group">${rows.map((item) => `<div class="state-statistics-resource-row"><span>${stateStatisticsResourceIconHtml(item)}</span><strong>${stateStatisticsResourceAmountLabel(item, item.amount)}</strong></div>`).join("")}</div>`).join("") || `<span class="empty">${escapeHtml(t("ui.none", "无"))}</span>`;
   const splitRegions = summary.splitRegions || [];
   const stateStatisticsSplitRegionGroups = splitRegions.map((region) => `<details class="state-statistics-owner-group" data-state-statistics-split-region="${escapeHtml(region.key)}"><summary>${escapeHtml(entityText(byStateRegion.get(region.key) || { key: region.key }) || region.key)} <span class="state-statistics-split-label">${escapeHtml(t("board.stateStatistics.splitLabel", "分属地区"))}</span> <small>${localizedNumber(region.owners.length)} ${escapeHtml(t("board.stateStatistics.ownerCount", "国家"))}</small></summary><div class="state-statistics-resource-list">${region.owners.map((owner) => { const country = byTag.get(owner.tag) || { tag: owner.tag }; const name = entityText(country) || owner.tag; return `<div class="state-statistics-resource-row state-statistics-owner-row"><span class="state-statistics-owner-name"><span class="country-color state-statistics-owner-color" style="${colorStyle(country.colorHex)}" title="${escapeHtml(name)}" aria-label="${escapeHtml(name)}"></span>${escapeHtml(name)}</span><strong>${localizedNumber(owner.population)}</strong></div>`; }).join("")}</div></details>`).join("");
+  const splitPopulationHtml = stateStatisticsSplitRegionGroups ? `<details class="state-statistics-split-population" data-state-statistics-split-population><summary>${escapeHtml(t("board.stateStatistics.splitPopulation", "分属地区人口"))}<small>${localizedNumber(summary.splitStateCount)} ${escapeHtml(t("board.stateStatistics.regionUnit", "个地域"))}</small></summary><div class="state-statistics-owner-groups">${stateStatisticsSplitRegionGroups}</div></details>` : "";
   const ownerGroups = [...summary.startingOwners.values()]
     .sort((left, right) => localizedCompare(entityText(byTag.get(left.tag) || { tag: left.tag }) || left.tag, entityText(byTag.get(right.tag) || { tag: right.tag }) || right.tag))
   const root = els.stateStatisticsPanel || els.countryList;
@@ -232,14 +246,14 @@ function renderStateStatisticsCalculator() {
     <p class="state-statistics-guide" data-state-statistics-guide>${escapeHtml(t("board.stateStatistics.guide", "单击地图或列表选择地域；已选地域可右键移除；修改选择后需要再次点击开始统计。"))}</p>
     <button type="button" class="culture-incorporation-start" data-state-statistics-start>${escapeHtml(t("board.stateStatistics.start", "开始统计"))}</button>
     ${state.stateStatisticsCalculatorDirty ? `<p class="state-statistics-dirty">${escapeHtml(t("board.stateStatistics.dirty", "选择已改变，请重新统计。"))}</p>` : ""}
-    <details class="state-statistics-section" data-state-statistics-selection-section open><summary><h3>${escapeHtml(t("board.stateStatistics.selected", "已选地域"))}（${localizedNumber(selected.length)}）</h3></summary><div class="state-statistics-selected">${selectedHtml}</div><button type="button" class="culture-incorporation-clear" data-state-statistics-clear>${escapeHtml(t("board.stateStatistics.clear", "清空地域"))}</button></details>
+    <details class="state-statistics-section" data-state-statistics-selection-section open><summary class="state-statistics-section-summary"><h3>${escapeHtml(t("board.stateStatistics.selected", "已选地域"))}（${localizedNumber(selected.length)}）</h3><button type="button" class="state-statistics-reset-button" data-state-statistics-clear aria-label="${escapeHtml(t("board.stateStatistics.reset", "重置"))}" title="${escapeHtml(t("board.stateStatistics.reset", "重置"))}"><img class="lucide-icon" src="assets/lucide/icons/refresh-ccw.svg" alt="" aria-hidden="true"></button></summary><div class="state-statistics-selected">${selectedHtml}</div></details>
     <details class="state-statistics-section" data-state-statistics-search-section><summary><h3>${escapeHtml(t("board.stateStatistics.search", "搜索地域"))}</h3></summary><input class="culture-incorporation-search" data-state-statistics-search type="search" value="${escapeHtml(state.stateStatisticsCalculatorSearch)}" placeholder="${escapeHtml(t("board.stateStatistics.searchPlaceholder", "名称或地域 ID"))}"><div class="state-statistics-region-list">${rowHtml || `<span class="empty">${escapeHtml(t("board.stateStatistics.noResults", "没有匹配地域"))}</span>`}</div></details>
-    <section class="state-statistics-section" data-state-statistics-result><h3>${escapeHtml(t("board.stateStatistics.result", "统计结果"))}</h3><div class="state-statistics-overview"><div><span>${escapeHtml(t("board.stateStatistics.population", "开局人口"))}</span><strong>${localizedNumber(countryPopulation)}</strong></div><div><span>${escapeHtml(t("board.stateStatistics.arableLand", "可耕土地"))}</span><strong>${localizedNumber(summary.arableLand)}</strong></div></div>${selectedCountryTag && summary.splitResourceExcluded ? `<p class="state-statistics-split-note">${escapeHtml(t("board.stateStatistics.splitResourceNote", "分属地域只计入人口；资源和可耕地仍按地域统计，无法按国家拆分。"))}</p>` : ""}<div class="state-statistics-resource-list">${resourceRows}</div>${stateStatisticsSplitRegionGroups ? `<div class="state-statistics-owner-groups">${stateStatisticsSplitRegionGroups}</div>` : ""}</section>
+    <section class="state-statistics-section state-statistics-result-emphasis" data-state-statistics-result><h3>${escapeHtml(t("board.stateStatistics.result", "统计结果"))}</h3><div class="state-statistics-overview"><div><span>${escapeHtml(t("board.stateStatistics.population", "开局人口"))}</span><strong>${localizedNumber(countryPopulation)}</strong></div></div>${splitPopulationHtml}<div class="state-statistics-overview"><div><span>${escapeHtml(t("board.stateStatistics.arableLand", "可耕土地"))}</span><strong>${localizedNumber(summary.arableLand)}</strong></div></div>${selectedCountryTag && summary.splitResourceExcluded ? `<p class="state-statistics-split-note">${escapeHtml(t("board.stateStatistics.splitResourceNote", "分属地域只计入人口；资源和可耕地仍按地域统计，无法按国家拆分。"))}</p>` : ""}<div class="state-statistics-resource-list">${resourceRows}</div></section>
   </section>`;
   root.querySelectorAll("[data-state-statistics-region]").forEach((button) => button.addEventListener("click", () => stateStatisticsCalculatorToggle(button.dataset.stateStatisticsRegion)));
   root.querySelectorAll("[data-state-statistics-selected]").forEach((button) => button.addEventListener("contextmenu", (event) => { event.preventDefault(); stateStatisticsCalculatorToggle(button.dataset.stateStatisticsSelected); }));
   root.querySelector("[data-state-statistics-start]")?.addEventListener("click", stateStatisticsCalculatorStart);
-  root.querySelector("[data-state-statistics-clear]")?.addEventListener("click", () => { state.stateStatisticsCalculatorSelected.clear(); state.stateStatisticsCalculatorDirty = true; renderStateStatisticsCalculator(); renderMapControls(); });
+  root.querySelector("[data-state-statistics-clear]")?.addEventListener("click", stateStatisticsCalculatorClear);
   bindSearchSubmitOnEnter(root.querySelector("[data-state-statistics-search]"), (value) => { state.stateStatisticsCalculatorSearch = value; renderStateStatisticsCalculator(); });
   root.querySelector("[data-state-statistics-back]")?.addEventListener("click", async () => { clearStateStatisticsCalculatorState(); replaceHash("/region"); await applyHash(); render(); });
 }
