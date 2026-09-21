@@ -142,6 +142,10 @@ function bindEconomyBoardEvents(kind) {
     state.economySearch = search?.value || "";
     kind === "building" ? renderBuildingBoard() : renderGoodsBoard();
   });
+  bindSearchSubmitOnEnter(search, (value) => {
+    state.economySearch = value;
+    kind === "building" ? renderBuildingBoard() : renderGoodsBoard();
+  });
   els.countryList.querySelectorAll("[data-economy-vc-change]").forEach((button) => {
     button.addEventListener("click", () => {
       toggleVictorianCenturyChangeKind(button.dataset.economyVcChange);

@@ -89,6 +89,36 @@
   color: #d79b83;
 }
 
+.country-resource-overview {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.country-resource-overview > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border: 1px solid rgba(112, 172, 222, 0.25);
+  border-radius: 6px;
+  background: rgba(27, 49, 64, 0.7);
+}
+
+.country-resource-overview span {
+  color: var(--muted);
+}
+
+.country-resource-list {
+  display: grid;
+  gap: 8px;
+}
+
+.country-resource-group {
+  display: grid;
+  gap: 3px;
+}
+
 .country-starting-technology-tree { display: grid; gap: 14px; margin-top: 14px; }
 .country-starting-technology-era { padding: 10px; border: 1px solid rgba(200, 164, 91, 0.28); border-radius: 7px; background: rgba(27, 49, 64, 0.24); }
 .country-starting-technology-era > h4 { margin: 0 0 9px; color: var(--ink); }

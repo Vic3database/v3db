@@ -1947,6 +1947,294 @@ label.culture-incorporation-effect > span,
   overflow-wrap: anywhere;
 }
 
+.state-statistics-calculator-list {
+  display: block;
+}
+
+.state-statistics-calculator {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+}
+
+.state-statistics-calculator-title {
+  position: static;
+  top: auto;
+  z-index: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  padding: 12px 0;
+}
+
+.state-statistics-description,
+.state-statistics-guide,
+.state-statistics-dirty {
+  margin: 0;
+  color: var(--ink-muted);
+}
+
+.state-statistics-dirty {
+  color: var(--accent);
+}
+
+.state-statistics-section {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-raised);
+}
+
+.state-statistics-section:not([open]) {
+  gap: 0;
+  padding-bottom: 4px;
+}
+
+.state-statistics-result-emphasis {
+  border: 2px solid color-mix(in srgb, var(--accent) 65%, var(--line));
+  background: color-mix(in srgb, var(--accent) 7%, var(--surface-raised));
+  box-shadow: 0 2px 10px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.state-statistics-section > summary {
+  cursor: pointer;
+  list-style-position: inside;
+}
+
+.state-statistics-section > summary h3 {
+  display: inline;
+}
+
+.state-statistics-section-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.state-statistics-reset-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
+  flex: 0 0 28px;
+  box-sizing: border-box;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink-muted);
+  cursor: pointer;
+}
+
+.state-statistics-reset-button:hover,
+.state-statistics-reset-button:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.state-statistics-section h3,
+.state-statistics-section h4 {
+  margin: 0;
+}
+
+.state-statistics-selected,
+.state-statistics-region-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  min-width: 0;
+}
+
+.state-statistics-region-list {
+  max-height: 360px;
+  overflow: auto;
+}
+
+.state-statistics-region-row {
+  margin: 0;
+}
+
+.state-statistics-selected-tag,
+.state-statistics-region-row {
+  min-height: 30px;
+  padding: 5px 9px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--text-sm);
+}
+
+.state-statistics-region-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+}
+
+.state-statistics-region-row small,
+.state-statistics-discoverable-row small {
+  display: block;
+  color: var(--ink-muted);
+}
+
+.state-statistics-region-row[aria-pressed="true"],
+.state-statistics-selected-tag {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 15%, var(--surface));
+}
+
+.state-statistics-overview,
+.state-statistics-resource-list {
+  display: grid;
+  gap: 6px;
+}
+
+.state-statistics-resource-list {
+  gap: 2px;
+}
+
+.state-statistics-resource-group + .state-statistics-resource-group {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid color-mix(in srgb, var(--line) 60%, transparent);
+}
+
+.state-statistics-resource-group .state-statistics-resource-row + .state-statistics-resource-row {
+  margin-top: 2px;
+}
+
+.state-statistics-overview {
+  grid-template-columns: 1fr;
+}
+
+.state-statistics-overview > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+  padding: 7px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 60%, transparent);
+}
+
+.state-statistics-resource-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+  padding: 2px 0;
+}
+
+.state-statistics-overview span,
+.state-statistics-resource-row span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.state-statistics-resource-row strong {
+  flex: 0 0 auto;
+}
+
+.state-statistics-resource-icon,
+.state-statistics-resource-fallback {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  vertical-align: middle;
+}
+
+.state-statistics-resource-fallback {
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+  line-height: 22px;
+  text-align: center;
+}
+
+.state-statistics-owner-groups {
+  display: grid;
+  gap: 8px;
+}
+
+.state-statistics-owner-group {
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.state-statistics-split-population {
+  display: grid;
+  gap: 6px;
+  margin: 4px 0 8px;
+  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 42%, var(--line));
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--accent) 5%, var(--surface));
+}
+
+.state-statistics-split-population > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.state-statistics-split-population > summary small {
+  color: var(--ink-muted);
+  font-weight: 400;
+}
+
+.state-statistics-owner-group summary {
+  cursor: pointer;
+}
+
+.state-statistics-owner-group summary small,
+.state-statistics-owner-regions {
+  color: var(--ink-muted);
+}
+
+.state-statistics-split-label {
+  margin-left: 6px;
+  color: var(--accent);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.state-statistics-owner-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.state-statistics-owner-color {
+  width: 12px;
+  height: 12px;
+}
+
+@media (max-width: 560px) {
+  .state-statistics-calculator {
+    padding: 10px;
+  }
+  .state-statistics-overview {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 560px) {
   .culture-incorporation-calculator {
     padding: 10px;

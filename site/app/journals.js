@@ -54,7 +54,7 @@ function renderJournalFilterOptions() {
   els.journalFilters.dataset.bound = "true";
   els.journalSourceFilters.addEventListener("click", (event) => { const button = event.target.closest("[data-journal-source-filter]"); if (!button) return; const source = button.dataset.journalSourceFilter; state.journalSourceKinds.has(source) ? state.journalSourceKinds.delete(source) : state.journalSourceKinds.add(source); render(); });
   els.journalChangeFilters.addEventListener("click", (event) => { const button = event.target.closest("[data-journal-change-filter]"); if (!button) return; const kind = button.dataset.journalChangeFilter; state.journalChangeKinds.has(kind) ? state.journalChangeKinds.delete(kind) : state.journalChangeKinds.add(kind); render(); });
-  els.journalSearchInput?.addEventListener("input", () => { state.search = els.journalSearchInput.value.trim().toLowerCase(); render(); });
+  bindSearchSubmitOnEnter(els.journalSearchInput, (value) => { state.search = value.trim().toLowerCase(); render(); });
   els.journalResetButton?.addEventListener("click", () => { state.search = ""; state.journalSourceKinds.clear(); state.journalChangeKinds.clear(); state.selectedJournal = ""; replaceHash("/journal"); render(); });
 }
 function renderJournalBoard() {

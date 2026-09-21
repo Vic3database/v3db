@@ -2391,6 +2391,7 @@ function mapModeLabel(mode) {
   if (mode === "company") return "公司关联";
   if (mode === "cultureFilter") return "文化筛选";
   if (mode === "resourceSelection") return "资源潜力";
+  if (mode === "stateStatistics") return t("board.stateStatistics.title", "地域资源与人口统计");
   if (mode === "culture") return "文化关系";
   if (mode === "trait") return "地区特质";
   return "资源潜力";

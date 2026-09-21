@@ -73,11 +73,7 @@ function bindAchievementBoardEvents() {
     event.preventDefault();
     submitAchievementSearch(search);
   });
-  search?.addEventListener("keydown", (event) => {
-    if (event.key !== "Enter") return;
-    event.preventDefault();
-    if (!event.isComposing) submitAchievementSearch(search);
-  });
+  bindSearchSubmitOnEnter(search, () => submitAchievementSearch(search));
   els.countryList.querySelectorAll("[data-achievement-key]").forEach((card) => {
     card.addEventListener("click", () => {
       state.achievementWallScrollTop = els.countryList.closest(".results").scrollTop;

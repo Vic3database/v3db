@@ -990,6 +990,7 @@ function countryDetailTabs() {
     { key: "variants", label: t("board.country.tabs.variants", "变体") },
     { key: "society", label: t("board.country.tabs.society", "社会") },
     { key: "regions", label: t("board.country.tabs.regions", "地区") },
+    { key: "resources", label: t("board.country.tabs.resources", "资源") },
     { key: "technology", label: t("board.country.tabs.technology", "科技") },
     { key: "laws", label: t("board.country.tabs.laws", "法律") },
     { key: "diplomacy", label: t("board.country.tabs.diplomacy", "外交") },
@@ -1005,7 +1006,6 @@ function countryDetailOverview(country, primaryCultureNames = []) {
     ${countryOverviewCard(t("board.country.type", "国家类型"), tagPill(countryTypeTagLabel(country), "tag-type"))}
     ${countryOverviewCard(t("board.country.tier", "国家位阶"), tagPill(countryTierLabel(country.tier), "tag-tier"))}
     ${countryOverviewCard(t("board.country.capital", "首都"), stateRegionLinks(capital ? [capital] : []))}
-    ${countryOverviewCard(t("board.country.startingPopulation", "开局人口"), startingPopulationValue(country.startingPopulation))}
     ${countryOverviewCard(t("board.country.primaryCulture", "主流文化"), linkedTerms(country.primaryCultures, primaryCultureNames, "culture"))}
     ${countryOverviewCard(t("board.country.religion", "宗教"), linkedTerms(religion ? [religion.key] : [], religion ? [entityText(religion)] : [], "religion"))}
     ${countryOverviewCard(t("board.country.standardColor", "标准色"), colorValue(country.colorHex, country.colorRgb))}
@@ -1036,12 +1036,21 @@ function countryDetailTabContent(country, tab) {
   if (tab === "variants") return `<h3>${t("board.country.section.variants", "变体")}</h3>${countryFlagVariantSection(country) || ""}<h4>${t("board.country.section.dynamicNames", "国名变体")}</h4>${dynamicNameList(country)}<h4>${t("board.country.section.mapColors", "地图色")}</h4>${dynamicMapColorList(country)}`;
   if (tab === "society") return countryDetailSocietyContent(country);
   if (tab === "regions") return countryDetailRegionsContent(country);
+  if (tab === "resources") return countryDetailResourcesContent(country);
   if (tab === "technology") return countryDetailTechnologyContent(country);
   if (tab === "laws") return countryDetailLawsContent(country);
   if (tab === "diplomacy") return countryDetailDiplomacyContent(country);
   if (tab === "interest-groups") return countryInterestGroupContent(country);
   if (tab === "flavor") return countryFlavorTabContent(country, state.countryDetailFlavorTab);
   return `<div class="country-detail-placeholder"><h3>${escapeHtml(countryDetailTabs().find((item) => item.key === tab)?.label || tab)}</h3><p class="empty compact">${escapeHtml(t("board.country.detailComingSoon", "该分区内容将在后续接入。"))}</p></div>`;
+}
+
+function countryDetailResourcesContent(country) {
+  const rows = (country.startingStates || []).map((key) => byStateRegion.get(key)).filter((row) => row && !isSeaStateRegion(row));
+  const summary = summarizeStateRegions(rows, country.tag);
+  const resourceGroups = stateStatisticsGroupedResourceRows(summary.cappedResources, summary.discoverableResources, summary.arableResources);
+  const resourceRows = resourceGroups.map((items) => `<div class="country-resource-group">${items.map((item) => `<div class="state-statistics-resource-row"><span>${stateStatisticsResourceIconHtml(item)}</span><strong>${stateStatisticsResourceAmountLabel(item, item.amount)}</strong></div>`).join("")}</div>`).join("") || `<span class="empty">${escapeHtml(t("ui.none", "无"))}</span>`;
+  return `<h3>${escapeHtml(t("board.country.tabs.resources", "资源"))}</h3><p class="country-detail-data-status">${escapeHtml(t("board.country.resourcesDescription", "统计 1836 年开局版图中的资源与人口。资源按地域总量显示。"))}</p><div class="country-resource-overview"><div><span>${escapeHtml(t("board.country.startingPopulation", "开局人口"))}</span><strong>${localizedNumber(summary.population)}</strong></div><div><span>${escapeHtml(t("board.country.startingStateCount", "开局地域"))}</span><strong>${localizedNumber(summary.stateCount)}</strong></div><div><span>${escapeHtml(t("board.country.arableLand", "可耕地"))}</span><strong>${localizedNumber(summary.arableLand)}</strong></div></div>${summary.splitResourceExcluded ? `<p class="state-statistics-split-note">${escapeHtml(t("board.country.splitResourceNote", "分属地域只计入本国人口；资源和可耕地仍按地域统计，无法按国家拆分。"))}</p>` : ""}<div class="country-resource-list">${resourceRows}</div>`;
 }
 
 function countryFlavorTabs(country) {
@@ -1379,7 +1388,7 @@ function countryDetailSocietyContent(country) {
 }
 
 function countryDetailRegionsContent(country) {
-  return `<h3>${t("board.country.section.regions", "地区")}</h3><div class="country-region-calculator-entry"><button type="button" class="country-incorporation-calculator-button" data-incorporation-country="${escapeHtml(country.tag)}">${escapeHtml(t("board.country.openIncorporationCalculator", "整合时长计算器"))}</button></div><dl class="field-grid">
+  return `<h3>${t("board.country.section.regions", "地区")}</h3><div class="country-region-calculator-entry"><button type="button" class="country-incorporation-calculator-button" data-incorporation-country="${escapeHtml(country.tag)}">${escapeHtml(t("board.country.openIncorporationCalculator", "整合时长计算器"))}</button><button type="button" class="country-incorporation-calculator-button" data-state-statistics-country="${escapeHtml(country.tag)}">${escapeHtml(t("board.country.openStateStatistics", "统计开局所属地域"))}</button></div><dl class="field-grid">
     ${field(t("board.country.capital", "首都"), stateRegionLinks(country.capital ? [byStateRegion.get(country.capital) || { key: country.capital, id: `state_region:${country.capital}` }] : []))}
     ${field(t("board.country.locationStrategicRegions", "所在战略区域"), strategicRegionLinks(country.locationStrategicRegions))}
     ${field(t("board.country.locationStateRegions", "所在地域"), stateRegionLinks(country.locationStateRegions))}
