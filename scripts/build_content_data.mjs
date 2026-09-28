@@ -300,24 +300,37 @@ function localize(row, maps, kind) {
   const locales = {};
   for (const [locale, map] of Object.entries(maps)) {
     const values = {};
-    for (const [field, key] of Object.entries(keys)) if (map.has(key)) values[field] = map.get(key);
+    for (const [field, key] of Object.entries(keys)) if (map.has(key)) values[field] = expandLocalizationReferences(map.get(key), map);
     if (kind === "events") {
       for (const field of ["title", "desc", "flavor"]) {
         if (values[field]) continue;
         const dynamicValues = [...new Set([...blockRaw(row.raw || "", field).matchAll(/\bdesc\s*=\s*([A-Za-z0-9_.-]+)/g)]
           .map((match) => map.get(match[1]))
           .filter(Boolean))];
-        if (dynamicValues.length) values[field] = dynamicValues.join("／");
+        if (dynamicValues.length) values[field] = dynamicValues.map((value) => expandLocalizationReferences(value, map)).join("／");
       }
       const options = {};
       for (const option of row.options || []) {
-        if (option.name_key && map.has(option.name_key)) options[option.name_key] = map.get(option.name_key);
+        if (option.name_key && map.has(option.name_key)) options[option.name_key] = expandLocalizationReferences(map.get(option.name_key), map);
       }
       if (Object.keys(options).length) values.options = options;
     }
     locales[locale] = values;
   }
   return locales;
+}
+
+function expandLocalizationReferences(value, map) {
+  const tokenPattern = /\$([A-Za-z0-9_.:-]+)\$/g;
+  const expand = (text, stack) => String(text ?? "").replace(tokenPattern, (full, key) => {
+    if (!map.has(key) || stack.has(key)) return full;
+    const replacement = map.get(key);
+    if (typeof replacement !== "string" || replacement === full) return full;
+    const nextStack = new Set(stack);
+    nextStack.add(key);
+    return expand(replacement, nextStack);
+  });
+  return expand(value, new Set());
 }
 
 function collect(kind, relativeDir, localizationKind) {
