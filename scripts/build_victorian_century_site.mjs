@@ -141,6 +141,11 @@ function buildStandaloneHtml(sourceHtml) {
     .replace(/\s*<!-- MAIN_SITE_VC_ENTRY_START -->[\s\S]*?<!-- MAIN_SITE_VC_ENTRY_END -->/, "");
 
   html = html.replace(
+    /(<button class="topbar-nav-item" type="button" data-nav-view="decision">[\s\S]*?<\/button>)/,
+    "$1\n          <button class=\"topbar-nav-item\" type=\"button\" data-nav-view=\"vc-updates\">近期更新</button>",
+  );
+
+  html = html.replace(
     /\s*<script src="assets\/flags\/country-flags\.js[^\"]*"><\/script>/,
     "\n    <script src=\"victorian-century-config.js?v=20260728-vc-standalone\"></script>\n    <script src=\"assets/flags/country-flags.js?v=20260712-all-flags2\"></script>",
   );
@@ -154,7 +159,7 @@ function standaloneConfigSource() {
     .filter((asset) => asset.webp)
     .map((asset) => `assets/${asset.path}`)
     .sort();
-  return `window.VICTORIAN_CENTURY_SITE_CONFIG = Object.freeze({\n  siteTitle: "Victorian Century Database",\n  dataIndex: "data-index.js",\n  mapData: "map-data.js?v=20260803-multilingual-map1",\n  dataRoot: ".",\n  localeRoot: "locales",\n  webpAssetPaths: ${JSON.stringify(webpAssetPaths)},\n});\n`;
+  return `window.VICTORIAN_CENTURY_SITE_CONFIG = Object.freeze({\n  siteTitle: "Victorian Century Database",\n  dataIndex: "data-index.js",\n  mapData: "map-data.js?v=20260803-multilingual-map1",\n  dataRoot: ".",\n  localeRoot: "locales",\n  vcChangelog: { data: "changelogs/441298602252521480.js", oldManifest: "6136745052571973354", newManifest: "441298602252521480" },\n  webpAssetPaths: ${JSON.stringify(webpAssetPaths)},\n});\n`;
 }
 
 function runVcAssetSync(explicitPython, explicitDatabase) {

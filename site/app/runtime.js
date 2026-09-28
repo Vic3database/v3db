@@ -76,6 +76,9 @@ let cultureTraitGroupByKey = new Map();
 let changelogData = { baseVersion: "", targetVersion: "", boards: [], changes: [] };
 let changelogBoardOrder = ["all"];
 let changelogLoadedPair = "";
+let vcChangelogData = null;
+let vcChangelogLoading = false;
+let vcChangelogError = "";
 const announcementItems = Array.isArray(window.VICDATA_ANNOUNCEMENTS) ? window.VICDATA_ANNOUNCEMENTS : [];
 const newsItems = Array.isArray(window.VIC3_NEWS_DATA) ? window.VIC3_NEWS_DATA : [];
 let stateKeyByProvinceColor = new Map();
@@ -153,6 +156,9 @@ const state = {
   changelogPair: "",
   changelogLoading: false,
   changelogError: "",
+  vcChangelogSearch: "",
+  vcChangelogBoard: "all",
+  vcChangelogOpen: new Set(),
   newsCategory: "all",
   newsPage: 1,
   flags: new Set(),
@@ -305,7 +311,7 @@ const tierOrder = ["hegemony", "empire", "kingdom", "grand_principality", "princ
 const countryTypeOrder = ["recognized", "colonial", "company", "unrecognized", "decentralized"];
 
 function hasVictorianCenturyChange(item) {
-  return Boolean(item?.vc_change_kind);
+  return Boolean(standaloneSiteConfig && item?.vc_change_kind);
 }
 
 function toggleVictorianCenturyChangeKind(kind) {
@@ -688,6 +694,7 @@ const viewLabels = {
   building: "nav.building",
   goods: "nav.goods",
   changelog: "nav.changelog",
+  "vc-updates": "nav.vcUpdates",
   news: "nav.news",
 };
 

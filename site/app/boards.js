@@ -140,6 +140,7 @@ function renderHomeBoard() {
   ];
   const availableEntries = entries;
   const tools = [
+    { key: "vcRecentUpdates", label: "vcUpdates.entry", description: "vcUpdates.entryDescription", route: "/vc-updates", icon: "assets/lucide/icons/history.svg", available: isStandaloneSite && Boolean(standaloneSiteConfig.vcChangelog) },
     { key: "cultureIncorporation", label: "nav.cultureIncorporationEntry", description: "board.culture.incorporation.description", route: "/culture/incorporation", icon: "assets/lucide/icons/calculator.svg", available: true },
     { key: "stateStatistics", label: "nav.stateStatisticsCalculator", description: "board.stateStatistics.description", route: "/region/statistics", icon: "assets/lucide/icons/bar-chart-3.svg", available: true },
     { key: "companySolver", label: "board.company.solverEntry", description: "board.company.solverDescription", route: "/company/solver", icon: "assets/lucide/icons/workflow.svg", available: companyToolsAvailable },
@@ -1672,6 +1673,57 @@ function renderChangelogBoard() {
   bindChangelogControls();
 }
 
+function renderVcRecentUpdatesBoard() {
+  els.resultCount.textContent = t("nav.vcUpdates");
+  els.activeHint.textContent = vcChangelogData ? `${vcChangelogData.oldManifest} → ${vcChangelogData.newManifest}` : "";
+  els.countryList.className = "country-list vc-recent-updates-board";
+  els.detail.innerHTML = "";
+  if (vcChangelogError) {
+    els.countryList.innerHTML = `<p class="empty">${escapeHtml(vcChangelogError)}</p>`;
+    return;
+  }
+  if (!vcChangelogData) {
+    els.countryList.innerHTML = `<p class="empty">${escapeHtml(t("vcUpdates.loading"))}</p>`;
+    loadVcChangelog().then(() => renderVcRecentUpdatesBoard());
+    return;
+  }
+  const search = state.vcChangelogSearch.trim().toLowerCase();
+  const visible = (vcChangelogData.changes || []).filter((group) => {
+    if (state.vcChangelogBoard !== "all" && group.board !== state.vcChangelogBoard) return false;
+    if (!search) return true;
+    return [group.label, group.field, group.oldText, group.newText, ...(group.members || []).map((member) => `${member.key} ${member.title}`)].join("\n").toLowerCase().includes(search);
+  });
+  const boards = [{ key: "all", label: t("vcUpdates.all") }, ...(vcChangelogData.boards || []).map((board) => ({ ...board, label: t(`vcUpdates.board.${board.key}`, board.label) }))];
+  const stats = Object.values(vcChangelogData.summary || {}).reduce((sum, item) => sum + (item.groups || 0), 0);
+  els.countryList.innerHTML = `<section class="vc-recent-updates-panel"><header class="vc-recent-updates-heading"><div><h2>${escapeHtml(t("vcUpdates.title"))}</h2><p>${escapeHtml(t("vcUpdates.manifest", { old: vcChangelogData.oldManifest, new: vcChangelogData.newManifest, groups: stats }))}</p></div><label><span>${escapeHtml(t("vcUpdates.search"))}</span><input id="vcChangelogSearch" type="search" value="${escapeHtml(state.vcChangelogSearch)}" placeholder="${escapeHtml(t("vcUpdates.searchPlaceholder"))}"></label></header><div class="changelog-filters">${boards.map((board) => `<button type="button" class="filter-token" data-vc-changelog-board="${escapeHtml(board.key)}" aria-pressed="${String(state.vcChangelogBoard === board.key)}">${escapeHtml(board.label)}</button>`).join("")}</div><p class="changelog-stats">${escapeHtml(t("vcUpdates.groupsStats", { groups: visible.length, members: visible.reduce((sum, group) => sum + group.members.length, 0) }))}</p><div class="vc-recent-updates-list">${visible.map(vcChangeGroupHtml).join("") || `<p class="empty">${escapeHtml(t("vcUpdates.empty"))}</p>`}</div></section>`;
+  const input = els.countryList.querySelector("#vcChangelogSearch");
+  input?.addEventListener("input", () => { state.vcChangelogSearch = input.value; renderVcRecentUpdatesBoard(); });
+  els.countryList.querySelectorAll("[data-vc-changelog-board]").forEach((button) => button.addEventListener("click", () => { state.vcChangelogBoard = button.dataset.vcChangelogBoard; renderVcRecentUpdatesBoard(); }));
+  els.countryList.querySelectorAll("[data-vc-change-group]").forEach((button) => button.addEventListener("click", () => { const key = button.dataset.vcChangeGroup; if (state.vcChangelogOpen.has(key)) state.vcChangelogOpen.delete(key); else state.vcChangelogOpen.add(key); renderVcRecentUpdatesBoard(); }));
+}
+
+function vcChangeGroupHtml(group) {
+  const open = state.vcChangelogOpen.has(group.id);
+  const memberTitle = (member) => localeRuntime?.current === "en" ? (member.titleEn || member.title || member.key) : (member.title || member.key);
+  const iconHtml = (icon, key) => {
+    if (!icon) return "";
+    if (icon.kind === "country") return countryFlagIconHtml({ tag: key }, "vc-change-member-icon vc-change-country-icon");
+    if (icon.kind === "company") return companyIconHtml({ key, icon: icon.icon }).replace("class=\"company-logo\"", "class=\"vc-change-member-icon vc-change-company-icon\"");
+    if (icon.kind === "trait") return `<span class="vc-change-icon-pair">${interestGroupIconHtml({ key: icon.interestGroup?.key, texture: icon.interestGroup?.texture }, "vc-change-member-icon vc-change-interest-group-icon")}${traitIconHtml({ key, icon: icon.icon }, "interest-group").replace('class="trait-icon"', 'class="vc-change-member-icon vc-change-trait-icon"')}</span>`;
+    if (icon.kind === "ideology") return ideologyIconHtml({ key, icon: icon.icon }, "vc-change-member-icon vc-change-ideology-icon");
+    if (icon.kind === "law") return lawIconHtml({ key, icon: icon.icon }, "vc-change-member-icon vc-change-law-icon");
+    if (icon.kind === "event") return `<img class="vc-change-member-icon vc-change-event-icon" src="assets/event-icons/${escapeHtml(String(icon.icon).replaceAll("\\", "/").replace(/^gfx\/interface\/icons\//, "").replace(/\.dds$/i, ".webp"))}" alt="" onerror="this.hidden=true">`;
+    return "";
+  };
+  const members = group.members.map((member) => `<a href="${escapeHtml(member.newUrl || member.oldUrl)}" class="vc-change-member"><span>${escapeHtml(memberTitle(member))}</span><code>${escapeHtml(member.key)}</code></a>`).join("");
+  const fieldLabel = localeRuntime?.current === "en" ? (group.fieldLabelEn || group.field) : (group.fieldLabel || group.field);
+  const headerIcon = iconHtml(group.headerIcon || group.members[0]?.icon, group.members[0]?.key || "");
+  const detailText = (detail) => { const label = localeRuntime?.current === "en" ? (detail.fieldLabelEn || detail.field) : (detail.fieldLabel || detail.field); return `<div class="vc-change-detail"><span>${escapeHtml(label)}</span><code>${escapeHtml(detail.oldText)}</code><b>→</b><code>${escapeHtml(detail.newText)}</code></div>`; };
+  const body = group.details?.length ? `<div class="vc-change-details">${group.details.map(detailText).join("")}</div><div class="vc-change-members">${members}</div>` : `<div class="vc-change-members">${members}</div>`;
+  const values = group.details?.length ? escapeHtml(t("vcUpdates.detailCount", { count: group.details.length })) : `<code>${escapeHtml(group.oldText || "")}</code><b>→</b><code>${escapeHtml(group.newText || "")}</code>`;
+  return `<article class="vc-change-group${open ? " is-open" : ""}"><button type="button" class="vc-change-group-toggle" data-vc-change-group="${escapeHtml(group.id)}" aria-expanded="${String(open)}"><span class="vc-change-group-heading">${headerIcon ? `<span class="vc-change-header-icon">${headerIcon}</span>` : ""}<span><small>${escapeHtml(t(`vcUpdates.board.${group.board}`, group.label))}</small><strong>${escapeHtml(fieldLabel)}</strong><em>${escapeHtml(t("vcUpdates.memberCount", { count: group.memberCount }))}</em></span></span><span class="vc-change-values">${values}</span></button>${open ? `<div class="vc-change-group-body">${body}</div>` : ""}</article>`;
+}
+
 function ensureChangelogLoaded() {
   const pair = changelogPairs().find((item) => item.id === state.changelogPair) || changelogPairs()[0];
   if (!pair || state.changelogLoading || changelogLoadedPair === pair.id) return;
@@ -2320,7 +2372,7 @@ function technologyEdgePath(from, to) {
 function technologyNodeHtml(node) {
   const selected = node.technology.key === state.selectedTechnology;
   const iconFile = node.technology.icon.split("/").pop().replace(/\.dds$/i, ".webp");
-  const changeClass = node.technology.vc_change_kind === "added" ? " technology-vc-added" : node.technology.vc_change_kind === "adjusted" ? " technology-vc-adjusted" : "";
+  const changeClass = standaloneSiteConfig && node.technology.vc_change_kind === "added" ? " technology-vc-added" : standaloneSiteConfig && node.technology.vc_change_kind === "adjusted" ? " technology-vc-adjusted" : "";
   return `<button class="technology-node${changeClass}" type="button" data-technology-key="${escapeHtml(node.technology.key)}" aria-pressed="${selected}" style="left:${node.x}px;top:${node.y}px"><img src="assets/technologies/${escapeHtml(iconFile)}" alt="" aria-hidden="true"><span>${escapeHtml(entityText(node.technology))}</span>${victorianCenturyBadge(node.technology)}</button>`;
 }
 
@@ -2447,7 +2499,7 @@ function renderTechnologyHome() {
 
 function technologyListCard(technology) {
   const selected = technology.key === state.selectedTechnology;
-  const effects = (technology.modifiers || []).map((item) => `<span class="technology-effect-chip technology-effect-text${item.vc_change_kind ? " technology-vc-effect" : ""}">${escapeHtml(cleanGameLocalizationText(renderTextSpec({ message: item.loc?.summary, fallback: item.key })))}</span>`).join("");
+  const effects = (technology.modifiers || []).map((item) => `<span class="technology-effect-chip technology-effect-text${standaloneSiteConfig && item.vc_change_kind ? " technology-vc-effect" : ""}">${escapeHtml(cleanGameLocalizationText(renderTextSpec({ message: item.loc?.summary, fallback: item.key })))}</span>`).join("");
   const references = technology.references || {};
   const productionMethods = dedupeTechnologyReferences(references.production_methods, "production-method");
   const iconContent = [
@@ -2465,7 +2517,7 @@ function technologyListCard(technology) {
   const researchKinds = [...new Set((technology.research_results || []).map((result) => result.kind === "ideology" ? "ideology" : result.kind === "political-movement" ? "political-movement" : "" ).filter(Boolean))];
   const textContent = researchKinds.map((kind) => `<span class="technology-effect-chip technology-effect-text technology-research-kind">${escapeHtml(t(kind === "ideology" ? "board.technology.ideologyChanges" : "board.technology.politicalMovement", kind === "ideology" ? "意识形态改变" : "发起政治运动"))}</span>`).join("");
   const icons = iconContent ? `<span class="technology-effect-icons">${iconContent}</span>` : "";
-  const changeClass = technology.vc_change_kind === "added" ? " technology-vc-added" : technology.vc_change_kind === "adjusted" ? " technology-vc-adjusted" : "";
+  const changeClass = standaloneSiteConfig && technology.vc_change_kind === "added" ? " technology-vc-added" : standaloneSiteConfig && technology.vc_change_kind === "adjusted" ? " technology-vc-adjusted" : "";
   const textGroup = effects || textContent ? `<span class="technology-effect-text-group">${effects}${textContent}</span>` : "";
   return `<button class="technology-list-card${selected ? " is-selected" : ""}${changeClass}" type="button" data-technology-key="${escapeHtml(technology.key)}" aria-pressed="${String(selected)}"><span class="technology-list-icon"><img src="assets/technologies/${escapeHtml(technology.icon.split("/").pop().replace(/\.dds$/i, ".webp"))}" alt="" aria-hidden="true"></span><span class="technology-list-copy"><strong>${escapeHtml(entityText(technology))}</strong><small>${escapeHtml(t("board.technology.listMeta", { era: entityText(technology, "eraLabel", technology.era), cost: localizedNumber(technology.era_cost) }))}</small></span><span class="technology-list-effects">${textGroup}${icons}${victorianCenturyBadge(technology)}</span></button>`;
 }
@@ -2568,7 +2620,7 @@ function renderTechnologyBoard(category = state.technologyCategory) {
 function technologyEffectSection(technology) {
   const modifiers = technology.modifiers || [];
   if (!modifiers.length) return "";
-  return `<section class="technology-detail-section technology-effects-section" data-technology-effects><h3>${escapeHtml(t("board.technology.effects", "持续效果"))}</h3><div class="technology-effect-list">${modifiers.map((item) => `<div class="technology-effect-row${item.vc_change_kind ? " technology-vc-effect" : ""}"><span>${escapeHtml(cleanGameLocalizationText(renderTextSpec({ message: item.loc?.name, fallback: item.key })))}</span><strong>${escapeHtml(cleanGameLocalizationText(renderTextSpec({ message: item.loc?.value, fallback: item.value_zh || item.value_raw || "" })))}</strong></div>`).join("")}</div></section>`;
+  return `<section class="technology-detail-section technology-effects-section" data-technology-effects><h3>${escapeHtml(t("board.technology.effects", "持续效果"))}</h3><div class="technology-effect-list">${modifiers.map((item) => `<div class="technology-effect-row${standaloneSiteConfig && item.vc_change_kind ? " technology-vc-effect" : ""}"><span>${escapeHtml(cleanGameLocalizationText(renderTextSpec({ message: item.loc?.name, fallback: item.key })))}</span><strong>${escapeHtml(cleanGameLocalizationText(renderTextSpec({ message: item.loc?.value, fallback: item.value_zh || item.value_raw || "" })))}</strong></div>`).join("")}</div></section>`;
 }
 
 function technologyResearchEffectSection(technology) {

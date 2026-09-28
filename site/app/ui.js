@@ -1452,6 +1452,10 @@ async function applyHash() {
     changeBoard("changelog", "changelog");
     return;
   }
+  if (parts[0] === "vc-updates" && standaloneSiteConfig) {
+    changeBoard("vc-updates", "vc-updates");
+    return;
+  }
   if (parts[0] === "about") {
     state.infoDialog = "about";
     return;
@@ -1926,6 +1930,8 @@ function render() {
     renderNewsBoard();
   } else if (state.view === "changelog") {
     renderChangelogBoard();
+  } else if (state.view === "vc-updates") {
+    renderVcRecentUpdatesBoard();
   } else if (state.view === "culture") {
     renderCultureBoard();
   } else if (state.view === "region") {
@@ -2018,6 +2024,11 @@ function syncFilterSectionOpenStates() {
 
 function syncVictorianCenturyChangeFilter() {
   if (!els.victorianCenturyChangeFilterSection || !els.victorianCenturyAddedFilter || !els.victorianCenturyAdjustedFilter) return;
+  if (!standaloneSiteConfig) {
+    state.victorianCenturyChangeKinds.clear();
+    els.victorianCenturyChangeFilterSection.hidden = true;
+    return;
+  }
   const available = Boolean(standaloneSiteConfig) || [
     countries,
     cultures,
