@@ -330,40 +330,6 @@ body:not(.detail-page):not([data-view="home"]):not([data-view="changelog"]) .det
   display: none;
 }
 
-body[data-view="vc-updates"] {
-  overflow: auto;
-}
-
-body[data-view="vc-updates"] .layout {
-  display: block;
-  height: auto;
-  min-height: calc(100vh - var(--chrome-height));
-  overflow: visible;
-  padding: 0;
-  background: var(--bg);
-}
-
-body[data-view="vc-updates"] .map-panel,
-body[data-view="vc-updates"] .map-toolbar,
-body[data-view="vc-updates"] .filters,
-body[data-view="vc-updates"] .detail,
-body[data-view="vc-updates"] .layout::before {
-  display: none !important;
-}
-
-body[data-view="vc-updates"] .results {
-  position: static;
-  width: auto;
-  min-height: calc(100vh - var(--chrome-height));
-  padding: 14px;
-  overflow: visible;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-  backdrop-filter: none;
-}
-
 body:not(.detail-page) .results {
   right: 12px;
 }

@@ -224,23 +224,6 @@ function loadScriptValue(src, globalName) {
   });
 }
 
-async function loadVcChangelog() {
-  if (!standaloneSiteConfig?.vcChangelog?.data) return null;
-  if (vcChangelogData) return vcChangelogData;
-  if (vcChangelogLoading) return vcChangelogData;
-  vcChangelogLoading = true;
-  vcChangelogError = "";
-  try {
-    vcChangelogData = await loadScriptValue(standaloneSiteConfig.vcChangelog.data, "VIC3_VC_CHANGELOG_DATA");
-    return vcChangelogData;
-  } catch (error) {
-    vcChangelogError = error?.message || String(error);
-    return null;
-  } finally {
-    vcChangelogLoading = false;
-  }
-}
-
 function applyLoadedDataset(nextData, nextMapData, options = {}) {
   data = nextData || {};
   globalSearchDetailCache = null;
